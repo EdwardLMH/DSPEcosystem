@@ -1,0 +1,283 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		E2791A31CFFDF4190BC0F5BF = {isa = PBXBuildFile; fileRef = E2791A31CFFDF4190BC0F556; };
+		39DCDEE4700FA058ECAB3CBF = {isa = PBXBuildFile; fileRef = 39DCDEE4700FA058ECAB3CF5; };
+		2A170C31B3ABF92D981695BF = {isa = PBXBuildFile; fileRef = 2A170C31B3ABF92D9816953E; };
+		DB52F0D98502BA6AB6C1A0BF = {isa = PBXBuildFile; fileRef = DB52F0D98502BA6AB6C1A0F6; };
+		95CE93268A87C10D0996CFBF = {isa = PBXBuildFile; fileRef = 95CE93268A87C10D0996CF95; };
+		C0CC66B9ECC2749FF394F9BF = {isa = PBXBuildFile; fileRef = C0CC66B9ECC2749FF394F965; };
+		6E135A00C2111D4A203BCFBF = {isa = PBXBuildFile; fileRef = 6E135A00C2111D4A203BCFCF; };
+		AC3025F910DAACFCA3A080BF = {isa = PBXBuildFile; fileRef = AC3025F910DAACFCA3A08071; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		E2791A31CFFDF4190BC0F556 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HiveTokens.swift; sourceTree = "<group>"; };
+		39DCDEE4700FA058ECAB3CF5 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HSBCKycApp.swift; sourceTree = "<group>"; };
+		2A170C31B3ABF92D9816953E = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KYCShellViews.swift; sourceTree = "<group>"; };
+		DB52F0D98502BA6AB6C1A0F6 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KYCStepViews.swift; sourceTree = "<group>"; };
+		95CE93268A87C10D0996CF95 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KYCNetworkService.swift; sourceTree = "<group>"; };
+		C0CC66B9ECC2749FF394F965 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDUIModels.swift; sourceTree = "<group>"; };
+		6E135A00C2111D4A203BCFCF = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KYCSDUIStepRouter.swift; sourceTree = "<group>"; };
+		AC3025F910DAACFCA3A08071 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStore.swift; sourceTree = "<group>"; };
+		OO000000000000000000OOOO = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HSBCKyc.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		GG000000000000000000GGGG = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		BB000000000000000000BBBB = {
+			isa = PBXGroup;
+			children = (
+				CC000000000000000000CCCC,
+				DD000000000000000000DDDD,
+			);
+			sourceTree = "<group>";
+		};
+		CC000000000000000000CCCC = {
+			isa = PBXGroup;
+			children = (
+
+				E2791A31CFFDF4190BC0F556,
+				39DCDEE4700FA058ECAB3CF5,
+				2A170C31B3ABF92D9816953E,
+				DB52F0D98502BA6AB6C1A0F6,
+				95CE93268A87C10D0996CF95,
+				C0CC66B9ECC2749FF394F965,
+				6E135A00C2111D4A203BCFCF,
+				AC3025F910DAACFCA3A08071,
+			);
+			name = HSBCKyc;
+			path = HSBCKyc;
+			sourceTree = "<group>";
+		};
+		DD000000000000000000DDDD = {
+			isa = PBXGroup;
+			children = (
+				OO000000000000000000OOOO,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		EE000000000000000000EEEE = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = NN000000000000000000NNNN;
+			buildPhases = (
+				FF000000000000000000FFFF,
+				GG000000000000000000GGGG,
+				HH000000000000000000HHHH,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HSBCKyc;
+			productName = HSBCKyc;
+			productReference = OO000000000000000000OOOO;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AA000000000000000000AAAA = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					EE000000000000000000EEEE = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = MM000000000000000000MMMM;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = BB000000000000000000BBBB;
+			productRefGroup = DD000000000000000000DDDD;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				EE000000000000000000EEEE,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		HH000000000000000000HHHH = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FF000000000000000000FFFF = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E2791A31CFFDF4190BC0F5BF,
+				39DCDEE4700FA058ECAB3CBF,
+				2A170C31B3ABF92D981695BF,
+				DB52F0D98502BA6AB6C1A0BF,
+				95CE93268A87C10D0996CFBF,
+				C0CC66B9ECC2749FF394F9BF,
+				6E135A00C2111D4A203BCFBF,
+				AC3025F910DAACFCA3A080BF,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		KK000000000000000000KKKK = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("DEBUG=1","$(inherited)",);
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		LL000000000000000000LLLL = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		II000000000000000000IIII = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSTETALOG_COMPILER_FLAGS = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Required for document capture and liveness verification";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Required to upload identity documents";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LE_SWIFT_VERSION = 5.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hsbc.obkyc;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		JJ000000000000000000JJJJ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSTETALOG_COMPILER_FLAGS = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Required for document capture and liveness verification";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Required to upload identity documents";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LE_SWIFT_VERSION = 5.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hsbc.obkyc;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		MM000000000000000000MMMM = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				KK000000000000000000KKKK,
+				LL000000000000000000LLLL,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		NN000000000000000000NNNN = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				II000000000000000000IIII,
+				JJ000000000000000000JJJJ,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AA000000000000000000AAAA;
+}
