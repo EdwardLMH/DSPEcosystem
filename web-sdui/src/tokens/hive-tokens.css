@@ -1,0 +1,211 @@
+/**
+ * HSBC HIVE Design Tokens — CSS Custom Properties
+ * Generated from hive-tokens.json v2.1.0
+ *
+ * Usage: import this file once at app root (e.g. index.tsx)
+ * Then reference tokens as: var(--hive-color-brand-primary)
+ */
+
+:root {
+  /* ── Brand Colors ─────────────────────────────────────────────────── */
+  --hive-color-brand-primary:       #DB0011;
+  --hive-color-brand-primary-dark:  #A6000D;
+  --hive-color-brand-primary-light: #F5E6E7;
+  --hive-color-brand-secondary:     #000000;
+  --hive-color-brand-white:         #FFFFFF;
+
+  /* ── Semantic Colors ──────────────────────────────────────────────── */
+  --hive-color-success:             #007A4D;
+  --hive-color-success-light:       #E6F4EF;
+  --hive-color-warning:             #B45309;
+  --hive-color-warning-light:       #FEF3C7;
+  --hive-color-error:               #DB0011;
+  --hive-color-error-light:         #F5E6E7;
+  --hive-color-info:                #005EB8;
+  --hive-color-info-light:          #E6EFF9;
+
+  /* ── Neutral Palette ──────────────────────────────────────────────── */
+  --hive-color-neutral-0:           #FFFFFF;
+  --hive-color-neutral-50:          #F8F8F8;
+  --hive-color-neutral-100:         #F0F0F0;
+  --hive-color-neutral-200:         #E0E0E0;
+  --hive-color-neutral-300:         #CCCCCC;
+  --hive-color-neutral-400:         #999999;
+  --hive-color-neutral-500:         #767676;
+  --hive-color-neutral-600:         #595959;
+  --hive-color-neutral-700:         #3D3D3D;
+  --hive-color-neutral-800:         #222222;
+  --hive-color-neutral-900:         #000000;
+
+  /* ── Jade Tier Colors ─────────────────────────────────────────────── */
+  --hive-color-jade-base:           #C9A84C;
+  --hive-color-jade-dark:           #9A7A2E;
+  --hive-color-jade-light:          #F7F0DC;
+  --hive-color-jade-surface:        #1D1D1B;
+
+  /* ── Premier Tier Colors ──────────────────────────────────────────── */
+  --hive-color-premier-base:        #005EB8;
+  --hive-color-premier-light:       #E6EFF9;
+
+  /* ── Typography ───────────────────────────────────────────────────── */
+  --hive-font-family-primary:       'UniversNext', Arial, Helvetica, sans-serif;
+  --hive-font-family-mono:          'Courier New', Courier, monospace;
+
+  --hive-font-size-xs:              11px;
+  --hive-font-size-sm:              13px;
+  --hive-font-size-base:            16px;
+  --hive-font-size-md:              18px;
+  --hive-font-size-lg:              20px;
+  --hive-font-size-xl:              24px;
+  --hive-font-size-2xl:             28px;
+  --hive-font-size-3xl:             32px;
+  --hive-font-size-4xl:             40px;
+  --hive-font-size-5xl:             48px;
+
+  --hive-font-weight-regular:       400;
+  --hive-font-weight-medium:        500;
+  --hive-font-weight-semibold:      600;
+  --hive-font-weight-bold:          700;
+
+  --hive-line-height-tight:         1.2;
+  --hive-line-height-snug:          1.375;
+  --hive-line-height-normal:        1.5;
+  --hive-line-height-relaxed:       1.625;
+
+  --hive-letter-spacing-tight:      -0.02em;
+  --hive-letter-spacing-normal:     0em;
+  --hive-letter-spacing-wide:       0.04em;
+  --hive-letter-spacing-wider:      0.08em;
+
+  /* ── Spacing ──────────────────────────────────────────────────────── */
+  --hive-spacing-0:                 0px;
+  --hive-spacing-1:                 4px;
+  --hive-spacing-2:                 8px;
+  --hive-spacing-3:                 12px;
+  --hive-spacing-4:                 16px;
+  --hive-spacing-5:                 20px;
+  --hive-spacing-6:                 24px;
+  --hive-spacing-8:                 32px;
+  --hive-spacing-10:                40px;
+  --hive-spacing-12:                48px;
+  --hive-spacing-16:                64px;
+  --hive-spacing-20:                80px;
+
+  /* ── Border Radius ────────────────────────────────────────────────── */
+  --hive-radius-none:               0px;
+  --hive-radius-sm:                 4px;
+  --hive-radius-base:               6px;
+  --hive-radius-md:                 8px;
+  --hive-radius-lg:                 12px;
+  --hive-radius-xl:                 16px;
+  --hive-radius-full:               9999px;
+
+  /* ── Shadows ──────────────────────────────────────────────────────── */
+  --hive-shadow-sm:     0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  --hive-shadow-base:   0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+  --hive-shadow-md:     0 8px 16px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.06);
+  --hive-shadow-lg:     0 16px 32px rgba(0,0,0,0.10), 0 8px 16px rgba(0,0,0,0.06);
+  --hive-shadow-navbar: 0 -2px 8px rgba(0,0,0,0.06);
+
+  /* ── Motion ───────────────────────────────────────────────────────── */
+  --hive-duration-instant:  100ms;
+  --hive-duration-fast:     150ms;
+  --hive-duration-base:     200ms;
+  --hive-duration-slow:     300ms;
+  --hive-duration-slower:   500ms;
+
+  --hive-easing-standard:   cubic-bezier(0.4, 0, 0.2, 1);
+  --hive-easing-enter:      cubic-bezier(0.0, 0, 0.2, 1);
+  --hive-easing-exit:       cubic-bezier(0.4, 0, 1, 1);
+
+  /* ── Component: Button ────────────────────────────────────────────── */
+  --hive-btn-height:          48px;
+  --hive-btn-height-sm:       36px;
+  --hive-btn-padding-h:       24px;
+  --hive-btn-padding-h-sm:    16px;
+  --hive-btn-radius:          var(--hive-radius-base);
+  --hive-btn-font-weight:     var(--hive-font-weight-semibold);
+  --hive-btn-font-size:       var(--hive-font-size-base);
+
+  /* ── Component: Input ─────────────────────────────────────────────── */
+  --hive-input-height:           52px;
+  --hive-input-padding-h:        16px;
+  --hive-input-padding-v:        14px;
+  --hive-input-radius:           var(--hive-radius-base);
+  --hive-input-font-size:        var(--hive-font-size-base);
+  --hive-input-border-color:     var(--hive-color-neutral-300);
+  --hive-input-border-focus:     var(--hive-color-brand-primary);
+  --hive-input-border-error:     var(--hive-color-error);
+  --hive-input-bg:               var(--hive-color-brand-white);
+  --hive-input-label-size:       var(--hive-font-size-sm);
+  --hive-input-label-weight:     var(--hive-font-weight-semibold);
+
+  /* ── Component: Card ──────────────────────────────────────────────── */
+  --hive-card-radius:  var(--hive-radius-md);
+  --hive-card-padding: var(--hive-spacing-6);
+  --hive-card-shadow:  var(--hive-shadow-base);
+  --hive-card-bg:      var(--hive-color-brand-white);
+
+  /* ── Component: Progress Bar ──────────────────────────────────────── */
+  --hive-progress-height:       4px;
+  --hive-progress-radius:       var(--hive-radius-full);
+  --hive-progress-track-color:  var(--hive-color-neutral-200);
+  --hive-progress-fill-color:   var(--hive-color-brand-primary);
+}
+
+/* ── Base Resets Using HIVE Tokens ─────────────────────────────────────── */
+
+body {
+  font-family:  var(--hive-font-family-primary);
+  font-size:    var(--hive-font-size-base);
+  font-weight:  var(--hive-font-weight-regular);
+  line-height:  var(--hive-line-height-normal);
+  color:        var(--hive-color-neutral-800);
+  background:   var(--hive-color-neutral-50);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Utility Classes ────────────────────────────────────────────────────── */
+
+.hive-btn-primary {
+  height:           var(--hive-btn-height);
+  padding:          0 var(--hive-btn-padding-h);
+  background-color: var(--hive-color-brand-primary);
+  color:            var(--hive-color-brand-white);
+  font-weight:      var(--hive-btn-font-weight);
+  font-size:        var(--hive-btn-font-size);
+  border:           none;
+  border-radius:    var(--hive-btn-radius);
+  cursor:           pointer;
+  transition:       background-color var(--hive-duration-base) var(--hive-easing-standard);
+}
+.hive-btn-primary:hover  { background-color: var(--hive-color-brand-primary-dark); }
+.hive-btn-primary:active { background-color: var(--hive-color-brand-primary-dark); }
+.hive-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.hive-input {
+  height:        var(--hive-input-height);
+  padding:       var(--hive-input-padding-v) var(--hive-input-padding-h);
+  font-size:     var(--hive-input-font-size);
+  border:        1px solid var(--hive-input-border-color);
+  border-radius: var(--hive-input-radius);
+  background:    var(--hive-input-bg);
+  width:         100%;
+  transition:    border-color var(--hive-duration-fast) var(--hive-easing-standard);
+  outline:       none;
+}
+.hive-input:focus { border-color: var(--hive-input-border-focus); box-shadow: 0 0 0 2px var(--hive-color-brand-primary-light); }
+.hive-input.error { border-color: var(--hive-input-border-error); }
+
+.hive-card {
+  background:    var(--hive-card-bg);
+  border-radius: var(--hive-card-radius);
+  padding:       var(--hive-card-padding);
+  box-shadow:    var(--hive-card-shadow);
+}
+
+.hive-label {
+  font-size:   var(--hive-input-label-size);
+  font-weight: var(--hive-input-label-weight);
+  color:       var(--hive-color-neutral-700);
+}
