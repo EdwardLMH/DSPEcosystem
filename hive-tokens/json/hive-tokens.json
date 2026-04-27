@@ -1,0 +1,301 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "$metadata": {
+    "system": "HSBC HIVE Design Language",
+    "version": "2.1.0",
+    "generated": "2026-04-19",
+    "note": "Approximate HIVE-compatible token structure based on HSBC brand guidelines. Validate against official Figma HIVE library before production use."
+  },
+
+  "color": {
+    "brand": {
+      "primary": {
+        "$value": "#DB0011",
+        "$type": "color",
+        "$description": "HSBC Red — primary brand colour, CTAs, interactive elements"
+      },
+      "primaryDark": {
+        "$value": "#A6000D",
+        "$type": "color",
+        "$description": "HSBC Red Dark — hover and pressed state on primary"
+      },
+      "primaryLight": {
+        "$value": "#F5E6E7",
+        "$type": "color",
+        "$description": "HSBC Red Light — tinted backgrounds, error tint"
+      },
+      "secondary": {
+        "$value": "#000000",
+        "$type": "color",
+        "$description": "HSBC Black — secondary brand colour"
+      },
+      "white": {
+        "$value": "#FFFFFF",
+        "$type": "color",
+        "$description": "Pure white — page backgrounds, card surfaces"
+      }
+    },
+    "semantic": {
+      "success": {
+        "$value": "#007A4D",
+        "$type": "color",
+        "$description": "HSBC Green — success states, positive values, checkmarks"
+      },
+      "successLight": {
+        "$value": "#E6F4EF",
+        "$type": "color",
+        "$description": "Success tint background"
+      },
+      "warning": {
+        "$value": "#B45309",
+        "$type": "color",
+        "$description": "Amber — warning states, caution banners"
+      },
+      "warningLight": {
+        "$value": "#FEF3C7",
+        "$type": "color",
+        "$description": "Warning tint background"
+      },
+      "error": {
+        "$value": "#DB0011",
+        "$type": "color",
+        "$description": "Error — same as brand primary per HIVE spec"
+      },
+      "errorLight": {
+        "$value": "#F5E6E7",
+        "$type": "color",
+        "$description": "Error tint background"
+      },
+      "info": {
+        "$value": "#005EB8",
+        "$type": "color",
+        "$description": "Info blue — informational banners, links"
+      },
+      "infoLight": {
+        "$value": "#E6EFF9",
+        "$type": "color",
+        "$description": "Info tint background"
+      }
+    },
+    "neutral": {
+      "0":   { "$value": "#FFFFFF", "$type": "color" },
+      "50":  { "$value": "#F8F8F8", "$type": "color", "$description": "Page background" },
+      "100": { "$value": "#F0F0F0", "$type": "color", "$description": "Subtle background, disabled" },
+      "200": { "$value": "#E0E0E0", "$type": "color", "$description": "Borders, dividers" },
+      "300": { "$value": "#CCCCCC", "$type": "color", "$description": "Input borders, placeholder borders" },
+      "400": { "$value": "#999999", "$type": "color", "$description": "Placeholder text, icons on light bg" },
+      "500": { "$value": "#767676", "$type": "color", "$description": "Secondary text (AA compliant)" },
+      "600": { "$value": "#595959", "$type": "color", "$description": "Body text secondary" },
+      "700": { "$value": "#3D3D3D", "$type": "color", "$description": "Body text primary" },
+      "800": { "$value": "#222222", "$type": "color", "$description": "Headings" },
+      "900": { "$value": "#000000", "$type": "color", "$description": "Maximum contrast" }
+    },
+    "jade": {
+      "base": {
+        "$value": "#C9A84C",
+        "$type": "color",
+        "$description": "HSBC Jade gold — Jade premium product tier"
+      },
+      "dark": {
+        "$value": "#9A7A2E",
+        "$type": "color",
+        "$description": "Jade gold dark — hover on jade elements"
+      },
+      "light": {
+        "$value": "#F7F0DC",
+        "$type": "color",
+        "$description": "Jade gold tint — jade card backgrounds"
+      },
+      "surface": {
+        "$value": "#1D1D1B",
+        "$type": "color",
+        "$description": "Jade dark surface — jade card/banner background"
+      }
+    },
+    "premier": {
+      "base": {
+        "$value": "#005EB8",
+        "$type": "color",
+        "$description": "HSBC Premier blue"
+      },
+      "light": {
+        "$value": "#E6EFF9",
+        "$type": "color",
+        "$description": "Premier blue tint — premier card backgrounds"
+      }
+    }
+  },
+
+  "typography": {
+    "fontFamily": {
+      "primary": {
+        "$value": "UniversNext, Arial, Helvetica, sans-serif",
+        "$type": "fontFamily",
+        "$description": "HSBC UniversNext — primary brand typeface"
+      },
+      "mono": {
+        "$value": "Courier New, Courier, monospace",
+        "$type": "fontFamily",
+        "$description": "Monospace — sort codes, account numbers"
+      }
+    },
+    "fontSize": {
+      "xs":   { "$value": "11px", "$type": "dimension" },
+      "sm":   { "$value": "13px", "$type": "dimension" },
+      "base": { "$value": "16px", "$type": "dimension", "$description": "Body copy baseline" },
+      "md":   { "$value": "18px", "$type": "dimension" },
+      "lg":   { "$value": "20px", "$type": "dimension" },
+      "xl":   { "$value": "24px", "$type": "dimension" },
+      "2xl":  { "$value": "28px", "$type": "dimension" },
+      "3xl":  { "$value": "32px", "$type": "dimension" },
+      "4xl":  { "$value": "40px", "$type": "dimension" },
+      "5xl":  { "$value": "48px", "$type": "dimension" }
+    },
+    "fontWeight": {
+      "regular":   { "$value": "400", "$type": "fontWeight" },
+      "medium":    { "$value": "500", "$type": "fontWeight" },
+      "semibold":  { "$value": "600", "$type": "fontWeight" },
+      "bold":      { "$value": "700", "$type": "fontWeight" }
+    },
+    "lineHeight": {
+      "tight":   { "$value": "1.2", "$type": "number" },
+      "snug":    { "$value": "1.375", "$type": "number" },
+      "normal":  { "$value": "1.5", "$type": "number" },
+      "relaxed": { "$value": "1.625", "$type": "number" }
+    },
+    "letterSpacing": {
+      "tight":  { "$value": "-0.02em", "$type": "dimension" },
+      "normal": { "$value": "0em",     "$type": "dimension" },
+      "wide":   { "$value": "0.04em",  "$type": "dimension" },
+      "wider":  { "$value": "0.08em",  "$type": "dimension" }
+    }
+  },
+
+  "spacing": {
+    "0":   { "$value": "0px",   "$type": "dimension" },
+    "1":   { "$value": "4px",   "$type": "dimension" },
+    "2":   { "$value": "8px",   "$type": "dimension" },
+    "3":   { "$value": "12px",  "$type": "dimension" },
+    "4":   { "$value": "16px",  "$type": "dimension", "$description": "Base unit — standard padding" },
+    "5":   { "$value": "20px",  "$type": "dimension" },
+    "6":   { "$value": "24px",  "$type": "dimension", "$description": "Card internal padding" },
+    "8":   { "$value": "32px",  "$type": "dimension" },
+    "10":  { "$value": "40px",  "$type": "dimension" },
+    "12":  { "$value": "48px",  "$type": "dimension" },
+    "16":  { "$value": "64px",  "$type": "dimension" },
+    "20":  { "$value": "80px",  "$type": "dimension" }
+  },
+
+  "borderRadius": {
+    "none":  { "$value": "0px",  "$type": "dimension" },
+    "sm":    { "$value": "4px",  "$type": "dimension" },
+    "base":  { "$value": "6px",  "$type": "dimension", "$description": "Buttons, inputs" },
+    "md":    { "$value": "8px",  "$type": "dimension", "$description": "Cards, panels" },
+    "lg":    { "$value": "12px", "$type": "dimension", "$description": "Large cards, modals" },
+    "xl":    { "$value": "16px", "$type": "dimension" },
+    "full":  { "$value": "9999px", "$type": "dimension", "$description": "Pills, badges, progress bars" }
+  },
+
+  "shadow": {
+    "sm": {
+      "$value": "0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06)",
+      "$type": "shadow",
+      "$description": "Subtle card lift"
+    },
+    "base": {
+      "$value": "0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06)",
+      "$type": "shadow",
+      "$description": "Standard card shadow"
+    },
+    "md": {
+      "$value": "0 8px 16px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.06)",
+      "$type": "shadow",
+      "$description": "Elevated panels, dropdowns"
+    },
+    "lg": {
+      "$value": "0 16px 32px rgba(0,0,0,0.10), 0 8px 16px rgba(0,0,0,0.06)",
+      "$type": "shadow",
+      "$description": "Modals, bottom sheets"
+    },
+    "navBar": {
+      "$value": "0 -2px 8px rgba(0,0,0,0.06)",
+      "$type": "shadow",
+      "$description": "Sticky navigation bars (upward shadow)"
+    }
+  },
+
+  "border": {
+    "width": {
+      "thin":   { "$value": "1px", "$type": "dimension" },
+      "medium": { "$value": "2px", "$type": "dimension" },
+      "thick":  { "$value": "3px", "$type": "dimension" }
+    },
+    "color": {
+      "default": { "$value": "{color.neutral.200}", "$type": "color" },
+      "input":   { "$value": "{color.neutral.300}", "$type": "color" },
+      "focus":   { "$value": "{color.brand.primary}", "$type": "color" },
+      "error":   { "$value": "{color.semantic.error}", "$type": "color" }
+    }
+  },
+
+  "motion": {
+    "duration": {
+      "instant": { "$value": "100ms", "$type": "duration" },
+      "fast":    { "$value": "150ms", "$type": "duration" },
+      "base":    { "$value": "200ms", "$type": "duration", "$description": "Standard transitions" },
+      "slow":    { "$value": "300ms", "$type": "duration", "$description": "Page transitions, modals" },
+      "slower":  { "$value": "500ms", "$type": "duration" }
+    },
+    "easing": {
+      "standard": { "$value": "cubic-bezier(0.4, 0, 0.2, 1)", "$type": "cubicBezier" },
+      "enter":    { "$value": "cubic-bezier(0.0, 0, 0.2, 1)", "$type": "cubicBezier" },
+      "exit":     { "$value": "cubic-bezier(0.4, 0, 1, 1)",   "$type": "cubicBezier" }
+    }
+  },
+
+  "zIndex": {
+    "base":    { "$value": "0",    "$type": "number" },
+    "raised":  { "$value": "10",   "$type": "number" },
+    "overlay": { "$value": "100",  "$type": "number" },
+    "modal":   { "$value": "200",  "$type": "number" },
+    "toast":   { "$value": "300",  "$type": "number" },
+    "max":     { "$value": "9999", "$type": "number" }
+  },
+
+  "component": {
+    "button": {
+      "height":         { "$value": "48px",  "$type": "dimension", "$description": "Minimum tap target (WCAG 2.5.5)" },
+      "heightSm":       { "$value": "36px",  "$type": "dimension" },
+      "paddingH":       { "$value": "24px",  "$type": "dimension" },
+      "paddingHSm":     { "$value": "16px",  "$type": "dimension" },
+      "borderRadius":   { "$value": "{borderRadius.base}", "$type": "dimension" },
+      "fontWeight":     { "$value": "{typography.fontWeight.semibold}", "$type": "fontWeight" },
+      "fontSize":       { "$value": "{typography.fontSize.base}", "$type": "dimension" }
+    },
+    "input": {
+      "height":         { "$value": "52px",  "$type": "dimension" },
+      "paddingH":       { "$value": "16px",  "$type": "dimension" },
+      "paddingV":       { "$value": "14px",  "$type": "dimension" },
+      "borderRadius":   { "$value": "{borderRadius.base}", "$type": "dimension" },
+      "fontSize":       { "$value": "{typography.fontSize.base}", "$type": "dimension" },
+      "borderColor":    { "$value": "{color.neutral.300}", "$type": "color" },
+      "borderColorFocus": { "$value": "{color.brand.primary}", "$type": "color" },
+      "borderColorError": { "$value": "{color.semantic.error}", "$type": "color" },
+      "bgColor":        { "$value": "{color.brand.white}", "$type": "color" },
+      "labelFontSize":  { "$value": "{typography.fontSize.sm}", "$type": "dimension" },
+      "labelFontWeight":{ "$value": "{typography.fontWeight.semibold}", "$type": "fontWeight" }
+    },
+    "card": {
+      "borderRadius":   { "$value": "{borderRadius.md}", "$type": "dimension" },
+      "padding":        { "$value": "{spacing.6}",        "$type": "dimension" },
+      "shadow":         { "$value": "{shadow.base}",      "$type": "shadow" },
+      "bgColor":        { "$value": "{color.brand.white}", "$type": "color" }
+    },
+    "progressBar": {
+      "height":         { "$value": "4px",   "$type": "dimension" },
+      "borderRadius":   { "$value": "{borderRadius.full}", "$type": "dimension" },
+      "trackColor":     { "$value": "{color.neutral.200}", "$type": "color" },
+      "fillColor":      { "$value": "{color.brand.primary}", "$type": "color" }
+    }
+  }
+}

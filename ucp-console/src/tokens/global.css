@@ -1,0 +1,136 @@
+/* ─── HSBC UCP Console — Design Tokens ───────────────────────────────────── */
+:root {
+  /* Brand */
+  --hsbc-red:        #DB0011;
+  --hsbc-red-dark:   #AA0009;
+  --hsbc-red-light:  #FF4455;
+  --hsbc-charcoal:   #1A1A2E;
+  --hsbc-navy:       #0F3057;
+  --hsbc-gold:       #C8A951;
+
+  /* Surfaces */
+  --surface-bg:      #F0F2F5;
+  --surface-panel:   #FFFFFF;
+  --surface-sidebar: #1E2235;
+  --surface-header:  #16192B;
+  --surface-hover:   #F5F6F8;
+  --surface-active:  #EBEDF2;
+
+  /* Text */
+  --text-primary:    #1A1A2E;
+  --text-secondary:  #6B7280;
+  --text-muted:      #9CA3AF;
+  --text-on-dark:    #FFFFFF;
+  --text-on-dark-muted: rgba(255,255,255,0.6);
+
+  /* Status */
+  --status-draft:    #6B7280;
+  --status-pending:  #D97706;
+  --status-approved: #059669;
+  --status-rejected: #DC2626;
+  --status-live:     #2563EB;
+
+  --status-draft-bg:    #F3F4F6;
+  --status-pending-bg:  #FEF3C7;
+  --status-approved-bg: #D1FAE5;
+  --status-rejected-bg: #FEE2E2;
+  --status-live-bg:     #DBEAFE;
+
+  /* Borders */
+  --border-light:    #E5E7EB;
+  --border-mid:      #D1D5DB;
+  --border-focus:    #DB0011;
+
+  /* Shadows */
+  --shadow-sm:       0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md:       0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
+  --shadow-lg:       0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
+  --shadow-xl:       0 20px 25px -5px rgba(0,0,0,0.10), 0 10px 10px -5px rgba(0,0,0,0.04);
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Radius */
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+  --radius-xl:  16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* Typography */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:   'SF Mono', 'Fira Code', monospace;
+
+  /* Z-index */
+  --z-panel: 10;
+  --z-modal: 100;
+  --z-toast: 200;
+  --z-drag:  300;
+}
+
+/* ─── Reset ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: var(--font-family); font-size: 14px; color: var(--text-primary); background: var(--surface-bg); -webkit-font-smoothing: antialiased; }
+#root { height: 100%; display: flex; flex-direction: column; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+input, select, textarea { font-family: inherit; }
+a { color: inherit; text-decoration: none; }
+ul, ol { list-style: none; }
+img { max-width: 100%; display: block; }
+
+/* ─── Scrollbars ─────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ─── Drag Ghost ─────────────────────────────────────────────────────────── */
+.drag-ghost { opacity: 0.5; border: 2px dashed var(--hsbc-red) !important; }
+.drag-over { background: rgba(219,0,17,0.04) !important; border: 2px dashed var(--hsbc-red) !important; }
+
+/* ─── Utility Classes ────────────────────────────────────────────────────── */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-2 { gap: var(--space-2); }
+.gap-3 { gap: var(--space-3); }
+.gap-4 { gap: var(--space-4); }
+.grow { flex-grow: 1; }
+.shrink-0 { flex-shrink: 0; }
+.overflow-hidden { overflow: hidden; }
+.overflow-y-auto { overflow-y: auto; }
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.relative { position: relative; }
+.absolute { position: absolute; }
+.inset-0 { inset: 0; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.text-xs { font-size: 11px; }
+.text-sm { font-size: 12px; }
+.text-base { font-size: 14px; }
+.text-lg { font-size: 16px; }
+.text-xl { font-size: 18px; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+
+/* ─── Animations ─────────────────────────────────────────────────────────── */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes slideIn { from { transform: translateX(-8px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes toastIn { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.animate-fade-in { animation: fadeIn 0.2s ease-out; }
+.animate-slide-in { animation: slideIn 0.2s ease-out; }
+.animate-spin { animation: spin 0.8s linear infinite; }
