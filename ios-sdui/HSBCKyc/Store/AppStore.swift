@@ -119,6 +119,7 @@ final class AppStore {
         switch action {
 
         case .startSession:
+            TealiumClient.kycJourneyStarted()
             do {
                 let result = try await network.startSession(platform: kyc.platform)
                 dispatch(.sessionStarted(sessionId: result.sessionId, totalSteps: result.totalSteps))
@@ -128,9 +129,22 @@ final class AppStore {
                 dispatch(.setError("Could not connect to server. Is the mock BFF running?\n\(error.localizedDescription)"))
             }
 
+        case .stepLoaded(let payload):
+            TealiumClient.kycStepViewed(
+                stepId:     payload.metadata.stepId,
+                stepIndex:  payload.metadata.stepIndex,
+                totalSteps: payload.metadata.totalSteps,
+                section:    payload.metadata.sectionTitle
+            )
+
         case .submitStep:
             guard let sessionId = kyc.sessionId,
                   let stepId = kyc.currentStepId else { return }
+            TealiumClient.kycStepCompleted(
+                stepId:    stepId,
+                stepIndex: kyc.currentStepIndex,
+                section:   kyc.sectionTitle
+            )
             do {
                 let answerList = kyc.answers.map { AnswerEntry(questionId: $0.key, value: $0.value) }
                 let result = try await network.submitStep(
@@ -138,6 +152,7 @@ final class AppStore {
 
                 switch result.status {
                 case "COMPLETE":
+                    TealiumClient.kycJourneyCompleted()
                     dispatch(.journeyComplete)
                 case "NEXT_STEP":
                     dispatch(.stepSubmitSuccess(nextStepId: result.nextStepId,
@@ -151,6 +166,11 @@ final class AppStore {
                     let errors = result.validationErrors?.map {
                         ValidationError(questionId: $0.questionId, message: $0.message)
                     } ?? []
+                    // Tag each validation error
+                    errors.forEach { err in
+                        TealiumClient.kycValidationError(
+                            stepId: stepId, questionId: err.questionId, errorMsg: err.message)
+                    }
                     dispatch(.setValidationErrors(errors))
                 default: break
                 }

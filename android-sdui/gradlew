@@ -1,0 +1,13 @@
+#!/bin/sh
+# Gradle wrapper script for HSBC SDUI Android
+# Falls back to system Gradle if wrapper jar is not downloaded yet
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+WRAPPER_JAR="$SCRIPT_DIR/gradle/wrapper/gradle-wrapper.jar"
+
+if [ -f "$WRAPPER_JAR" ]; then
+  exec java -jar "$WRAPPER_JAR" "$@"
+else
+  echo "⚠️  gradle-wrapper.jar not found — using system Gradle"
+  exec gradle "$@"
+fi

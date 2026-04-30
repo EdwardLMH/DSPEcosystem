@@ -1,0 +1,9 @@
+{
+  "string": [
+    { "name": "module_desc",         "value": "HSBC DSP SDUI — KYC + Wealth" },
+    { "name": "EntryAbility_desc",   "value": "HSBC SDUI Entry Ability" },
+    { "name": "EntryAbility_label",  "value": "HSBC SDUI" },
+    { "name": "camera_reason",       "value": "$string:camera_reason_desc" },
+    { "name": "camera_reason_desc",  "value": "Required for ID document scanning and liveness verification" }
+  ]
+}

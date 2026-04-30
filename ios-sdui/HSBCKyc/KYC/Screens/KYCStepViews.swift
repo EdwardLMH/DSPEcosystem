@@ -639,7 +639,7 @@ struct KYCLivenessStep: View {
         VStack(spacing: Hive.Spacing.s4) {
             HiveInfoBanner(
                 title: "Liveness Detection — Identity Verification",
-                body: "We need to verify you are a real person matching your ID. This takes ~30 seconds."
+                message: "We need to verify you are a real person matching your ID. This takes ~30 seconds."
             )
             ForEach([
                 ("😊", "Face the camera",   "Position your face in the oval guide with good lighting."),
@@ -860,7 +860,7 @@ struct KYCOpenBankingStep: View {
         VStack(alignment: .leading, spacing: Hive.Spacing.s4) {
             HiveInfoBanner(
                 title: "🔒 Open Banking — Secure Account Connection",
-                body: "We use Open Banking (FCA/HKMA regulated) to verify your identity. Your bank credentials are never shared with HSBC."
+                message: "We use Open Banking (FCA/HKMA regulated) to verify your identity. Your bank credentials are never shared with HSBC."
             )
 
             FieldGroup(title: "Your current bank", required: true) {

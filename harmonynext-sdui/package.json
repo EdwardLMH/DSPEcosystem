@@ -1,0 +1,17 @@
+{
+  "name": "hsbcsdui",
+  "version": "1.0.0",
+  "ohos": {
+    "org": "huawei",
+    "buildTool": "hvigor",
+    "directoryLevel": "project"
+  },
+  "description": "HSBC DSP SDUI HarmonyNext",
+  "repository": {},
+  "license": "ISC",
+  "dependencies": {
+    "@ohos/hypium": "1.0.0",
+    "@ohos/hvigor": "file:/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor",
+    "@ohos/hvigor-ohos-plugin": "file:/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin"
+  }
+}

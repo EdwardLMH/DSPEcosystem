@@ -942,6 +942,304 @@ app.get('/api/v1/ucp/preview/:pageIdOrEntryId', (req, res) => {
 </html>`);
 });
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// AI SEMANTIC SEARCH — Zone 1 (public)
+// POST /api/v1/search
+//
+// Approach: cosine-similarity over TF-IDF-style keyword vectors built from the
+// canonical embedding corpus below. No external ML dependency required — the
+// mock simulates what a real vector-search backend (e.g. Vertex AI Matching
+// Engine) would return, with identical result shapes.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ─── Embedding corpus ─────────────────────────────────────────────────────────
+// Each entry represents one searchable item: a mobile function entry-point OR
+// a product / offer that is displayed on the Wealth Hub HK page.
+// Fields:
+//   id          — stable unique key
+//   type        — 'function' | 'product' | 'ranking' | 'deal' | 'campaign'
+//   title       — primary display label (Traditional Chinese + English keyword)
+//   description — longer text used for semantic matching
+//   keywords    — comma-separated aliases / synonyms for ranking boosts
+//   deepLink    — deep link URI the mobile client should navigate to on tap
+//   icon        — emoji for display in search results
+//   category    — grouping label shown in results UI
+
+const SEARCH_CORPUS = [
+  // ── Quick Access functions ──────────────────────────────────────────────────
+  { id:'fn-morning-treasure', type:'function',
+    title:'朝朝寶', description:'朝朝寶每日活期存款高息理財產品 morning treasure daily wealth',
+    keywords:'朝朝寶,daily interest,活期,高息,morning,treasure,每日收益',
+    deepLink:'hsbc://wealth/morning-treasure', icon:'🌙', category:'快捷功能' },
+
+  { id:'fn-loan', type:'function',
+    title:'借錢 / 貸款', description:'個人貸款申請 閃電貸 極速放款 loan apply borrow cash',
+    keywords:'借錢,貸款,loan,borrow,申請,cash,分期,repayment',
+    deepLink:'hsbc://loan/apply', icon:'💵', category:'快捷功能' },
+
+  { id:'fn-transfer', type:'function',
+    title:'轉帳', description:'本地轉帳 跨行轉賬 即時支付 transfer money bank FPS PayNow',
+    keywords:'轉帳,transfer,匯款,FPS,即時,跨行,他行',
+    deepLink:'hsbc://transfer', icon:'↔️', category:'快捷功能' },
+
+  { id:'fn-accounts', type:'function',
+    title:'帳戶總覽', description:'所有帳戶餘額查詢 收支明細 account overview balance statement',
+    keywords:'帳戶,accounts,餘額,balance,總覽,overview,明細',
+    deepLink:'hsbc://accounts', icon:'📊', category:'快捷功能' },
+
+  // ── Function Grid entry points ──────────────────────────────────────────────
+  { id:'fn-credit-card', type:'function',
+    title:'信用卡', description:'信用卡管理 賬單 還款 積分 credit card bill repayment reward points',
+    keywords:'信用卡,credit card,Visa,Mastercard,賬單,積分,還款,cashback',
+    deepLink:'hsbc://cards', icon:'💳', category:'功能入口' },
+
+  { id:'fn-statements', type:'function',
+    title:'收支明細', description:'交易記錄 月結單 收入支出分析 transaction history statement analysis',
+    keywords:'收支明細,statement,交易,transaction,記錄,history,分析',
+    deepLink:'hsbc://statements', icon:'📄', category:'功能入口' },
+
+  { id:'fn-external-transfer', type:'function',
+    title:'他行卡轉入', description:'從其他銀行轉入資金 外部轉賬 external bank transfer fund in',
+    keywords:'他行,external,轉入,fund in,其他銀行,跨行',
+    deepLink:'hsbc://transfer/external', icon:'🔄', category:'功能入口' },
+
+  { id:'fn-city-services', type:'function',
+    title:'城市服務', description:'繳費 水電煤 交通罰款 政府繳費 city services bill payment utilities',
+    keywords:'城市服務,utilities,繳費,水電,罰款,government,bill payment',
+    deepLink:'hsbc://city-services', icon:'🏙️', category:'功能入口' },
+
+  { id:'fn-events', type:'function',
+    title:'熱門活動', description:'最新優惠活動 推廣 限時優惠 promotions hot events offers',
+    keywords:'熱門活動,events,優惠,promotions,活動,限時,campaigns',
+    deepLink:'hsbc://events', icon:'🔥', category:'功能入口' },
+
+  { id:'fn-wealth', type:'function',
+    title:'理財', description:'理財產品 投資 基金 債券 wealth management investment products',
+    keywords:'理財,wealth,investment,投資,管理,products,fund',
+    deepLink:'hsbc://wealth', icon:'📈', category:'功能入口' },
+
+  { id:'fn-membership', type:'function',
+    title:'M+會員', description:'HSBC M+會員計劃 積分 特權 HSBC membership programme rewards privileges',
+    keywords:'M+,會員,membership,積分,特權,rewards,privileges,premier',
+    deepLink:'hsbc://membership', icon:'Ⓜ️', category:'功能入口' },
+
+  { id:'fn-movies', type:'function',
+    title:'影票優惠', description:'電影票優惠 折扣 cinema movie ticket discount',
+    keywords:'影票,movie,cinema,電影,discount,ticket,折扣',
+    deepLink:'hsbc://movies', icon:'🎬', category:'功能入口' },
+
+  { id:'fn-funds', type:'function',
+    title:'基金', description:'基金投資 互惠基金 ETF fund investment mutual fund',
+    keywords:'基金,fund,ETF,互惠基金,investment,unit trust,NAV',
+    deepLink:'hsbc://funds', icon:'💹', category:'功能入口' },
+
+  { id:'fn-all-services', type:'function',
+    title:'全部功能', description:'所有銀行服務功能列表 all banking services full menu',
+    keywords:'全部,all,services,功能,more,menu,more services',
+    deepLink:'hsbc://all-services', icon:'⋯', category:'功能入口' },
+
+  // ── Wealth products ─────────────────────────────────────────────────────────
+  { id:'prod-daily-positive', type:'product',
+    title:'活錢理財｜歷史天天正收益', description:'R1低風險理財產品 7日年化2.80% 贖回T+1到帳 daily positive return low risk',
+    keywords:'活錢理財,天天正,daily positive,低風險,R1,2.80%,贖回,T+1,活期理財',
+    deepLink:'hsbc://wealth/daily-positive', icon:'💰', category:'財富精選' },
+
+  { id:'prod-bond-fund', type:'product',
+    title:'主投債券基金', description:'7日年化3.04% 歷史周周正收益 債券投資 bond fund weekly positive',
+    keywords:'債券,bond,3.04%,周周正,weekly,fixed income,固定收益',
+    deepLink:'hsbc://wealth/bond-fund', icon:'📋', category:'財富精選' },
+
+  { id:'prod-guaranteed', type:'product',
+    title:'保本理財 / 年均收益率', description:'保証領取 穩健低波 2.31% guaranteed return stable low volatility',
+    keywords:'保証,guaranteed,年均,2.31%,穩健,低波,stable,capital protected',
+    deepLink:'hsbc://wealth/guaranteed', icon:'🔐', category:'財富精選' },
+
+  // ── Rankings ────────────────────────────────────────────────────────────────
+  { id:'rank-top-funds', type:'ranking',
+    title:'3322選基 — 優中選優', description:'精選基金榜單 近1年漲跌幅高達318.19% best performing funds selection methodology',
+    keywords:'3322,選基,top funds,榜單,ranking,優中選優,318%,performance',
+    deepLink:'hsbc://rankings/top-funds', icon:'🥇', category:'特色榜單' },
+
+  { id:'rank-fixed-income', type:'ranking',
+    title:'穩健省心好選擇 — 固收優選', description:'固定收益優選 歷史持有3月盈利概率高達98.23% fixed income conservative ranking',
+    keywords:'固收,穩健,省心,fixed income,98%,盈利,conservative,bond ranking',
+    deepLink:'hsbc://rankings/fixed-income', icon:'🔒', category:'特色榜單' },
+
+  { id:'rank-all-time-high', type:'ranking',
+    title:'屢創新高榜', description:'淨值屢創新高 近3年净值創新高次數達152 all-time high fund performance',
+    keywords:'新高,all-time high,152次,净值,創新高,performance record',
+    deepLink:'hsbc://rankings/all-time-high', icon:'📈', category:'特色榜單' },
+
+  // ── Life deals ──────────────────────────────────────────────────────────────
+  { id:'deal-kfc', type:'deal',
+    title:'KFC 單品優惠', description:'肯德基單品優惠 信用卡折扣 fast food dining discount KFC',
+    keywords:'KFC,肯德基,fast food,單品,優惠,dining,discount,食',
+    deepLink:'hsbc://deals/kfc', icon:'🍗', category:'生活特惠' },
+
+  { id:'deal-luckin', type:'deal',
+    title:'瑞幸咖啡 5折優惠', description:'Luckin Coffee瑞幸5折 咖啡優惠 coffee deal half price',
+    keywords:'瑞幸,Luckin,咖啡,coffee,5折,half price,飲品,drink',
+    deepLink:'hsbc://deals/luckin', icon:'☕', category:'生活特惠' },
+
+  { id:'deal-dq', type:'deal',
+    title:'DQ 冰雪皇后 5折起', description:'Dairy Queen冰淇淋5折起 甜點優惠 ice cream dessert deal',
+    keywords:'DQ,Dairy Queen,冰淇淋,5折,ice cream,dessert,甜點',
+    deepLink:'hsbc://deals/dq', icon:'🍦', category:'生活特惠' },
+
+  // ── Campaigns ───────────────────────────────────────────────────────────────
+  { id:'camp-finance-day', type:'campaign',
+    title:'10分招財日', description:'每月10日開啓 查帳單 學投資 優配置 monthly finance day campaign',
+    keywords:'招財日,10日,finance day,每月,投資,學習,campaign',
+    deepLink:'hsbc://campaign/finance-day', icon:'🎯', category:'推廣活動' },
+
+  { id:'camp-flash-loan', type:'function',
+    title:'閃電貸 — 極速放款', description:'閃電貸最高可借HKD300,000 極速放款 flash loan instant approval',
+    keywords:'閃電貸,flash loan,極速,instant,300000,HKD,放款,approval',
+    deepLink:'hsbc://loan/flash', icon:'⚡', category:'快捷功能' },
+
+  { id:'camp-spring', type:'campaign',
+    title:'春季播種黃金期', description:'春季投資配置 抽體驗禮 spring investment campaign lucky draw',
+    keywords:'春季,spring,投資,配置,抽獎,lucky draw,體驗禮,gift',
+    deepLink:'hsbc://campaign/spring-investment', icon:'🌱', category:'推廣活動' },
+
+  { id:'camp-health', type:'campaign',
+    title:'達標抽好禮 — 豐潤守護', description:'健康隨行保障計劃 達標抽獎 health protection campaign reward',
+    keywords:'健康,health,保障,protection,抽獎,reward,豐潤,守護',
+    deepLink:'hsbc://campaign/health', icon:'🎁', category:'推廣活動' },
+
+  { id:'camp-anniversary', type:'campaign',
+    title:'行慶招財日 — 特惠禮遇', description:'銀行週年慶典 特惠禮遇 bank anniversary special privileges',
+    keywords:'行慶,anniversary,特惠,禮遇,週年,celebration,privileges,special offer',
+    deepLink:'hsbc://campaign/anniversary', icon:'🏦', category:'推廣活動' },
+
+  // ── AI assistant ────────────────────────────────────────────────────────────
+  { id:'fn-ai-assistant', type:'function',
+    title:'智能財富助理', description:'AI智能財富助理 投資建議 產品推薦 AI wealth advisor recommendation',
+    keywords:'AI,智能,助理,advisor,wealth,建議,recommendation,chatbot,聊天',
+    deepLink:'hsbc://ai-assistant', icon:'✉️', category:'快捷功能' },
+
+  // ── Account / settings ──────────────────────────────────────────────────────
+  { id:'fn-notifications', type:'function',
+    title:'通知 / 訊息', description:'銀行通知 賬戶提醒 交易提示 notifications alerts messages',
+    keywords:'通知,notification,提醒,alert,訊息,message,inbox',
+    deepLink:'hsbc://notifications', icon:'🔔', category:'功能入口' },
+
+  { id:'fn-qr-scan', type:'function',
+    title:'QR碼掃描 / 付款', description:'二維碼掃碼付款 收款 QR code scan pay receive',
+    keywords:'QR,二維碼,掃碼,scan,pay,收款,付款,payment',
+    deepLink:'hsbc://qr-scan', icon:'⬛', category:'功能入口' },
+];
+
+// ─── Tokeniser & similarity ────────────────────────────────────────────────────
+
+function tokenise(text) {
+  return text
+    .toLowerCase()
+    .replace(/[｜\|,，。、！？「」『』【】〔〕《》〈〉～·\-_\/\\]/g, ' ')
+    .split(/\s+/)
+    .filter(t => t.length > 0);
+}
+
+function buildTermFreq(tokens) {
+  const freq = {};
+  for (const t of tokens) freq[t] = (freq[t] || 0) + 1;
+  return freq;
+}
+
+// Lightweight cosine-similarity between two term-frequency maps
+function cosineSim(freqA, freqB) {
+  let dot = 0, normA = 0, normB = 0;
+  for (const [t, w] of Object.entries(freqA)) {
+    normA += w * w;
+    if (freqB[t]) dot += w * freqB[t];
+  }
+  for (const w of Object.values(freqB)) normB += w * w;
+  if (normA === 0 || normB === 0) return 0;
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+// Score a single corpus entry against a query
+function scoreEntry(entry, queryTokens, queryFreq) {
+  const entryText = [entry.title, entry.description, entry.keywords].join(' ');
+  const entryTokens = tokenise(entryText);
+  const entryFreq   = buildTermFreq(entryTokens);
+
+  // Cosine similarity on full text
+  let score = cosineSim(queryFreq, entryFreq);
+
+  // Boost: any query token that appears directly in the title (strong signal)
+  const titleTokens = new Set(tokenise(entry.title));
+  for (const qt of queryTokens) {
+    if (titleTokens.has(qt)) score += 0.35;
+  }
+
+  // Boost: any query token that appears in the keywords field
+  const kwTokens = new Set(tokenise(entry.keywords));
+  for (const qt of queryTokens) {
+    if (kwTokens.has(qt)) score += 0.20;
+  }
+
+  return score;
+}
+
+// ─── POST /api/v1/search — semantic search (Zone 1 public) ────────────────────
+app.post('/api/v1/search', (req, res) => {
+  const { query = '', limit = 8, types } = req.body;
+  const q = String(query).trim();
+
+  if (!q) {
+    return res.status(400).json({ error: 'EMPTY_QUERY', message: 'query must not be empty' });
+  }
+  if (q.length > 200) {
+    return res.status(400).json({ error: 'QUERY_TOO_LONG', message: 'query must be ≤ 200 characters' });
+  }
+
+  const queryTokens = tokenise(q);
+  const queryFreq   = buildTermFreq(queryTokens);
+
+  let corpus = SEARCH_CORPUS;
+  if (Array.isArray(types) && types.length > 0) {
+    corpus = corpus.filter(e => types.includes(e.type));
+  }
+
+  const scored = corpus
+    .map(entry => ({ ...entry, score: scoreEntry(entry, queryTokens, queryFreq) }))
+    .filter(e => e.score > 0.01)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, Math.min(Number(limit) || 8, 20));
+
+  console.log(`[SEARCH] query="${q}" → ${scored.length} result(s)`);
+
+  res.json({
+    query: q,
+    totalMatched: scored.length,
+    results: scored.map(e => ({
+      id:          e.id,
+      type:        e.type,
+      title:       e.title,
+      description: e.description,
+      icon:        e.icon,
+      category:    e.category,
+      deepLink:    e.deepLink,
+      score:       parseFloat(e.score.toFixed(4)),
+    })),
+  });
+});
+
+// ─── GET /api/v1/search/corpus — return full embedding corpus (for client-side caching) ─
+app.get('/api/v1/search/corpus', (req, res) => {
+  res.json({
+    version: '1.0.0',
+    generatedAt: new Date().toISOString(),
+    count: SEARCH_CORPUS.length,
+    corpus: SEARCH_CORPUS.map(e => ({
+      id: e.id, type: e.type, title: e.title,
+      description: e.description, keywords: e.keywords,
+      icon: e.icon, category: e.category, deepLink: e.deepLink,
+    })),
+  });
+});
+
 // ─── Start server ─────────────────────────────────────────────────────────────
 
 app.listen(PORT, '0.0.0.0', () => {

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useUCP } from '../../store/UCPStore';
 import { SLICE_DEFINITIONS } from '../../utils/sliceDefinitions';
 import { CanvasSlice } from '../../types/ucp';
@@ -440,6 +440,411 @@ function AIAssistantEditor({ props, onChange }: { props: any; onChange: (p: any)
   );
 }
 
+// ─── Page Settings panel (shown when no slice is selected) ────────────────────
+
+function toLocalDatetimeValue(isoStr: string, timezone: string): string {
+  if (!isoStr) return '';
+  try {
+    // Format the ISO string as local time in the market's timezone for display
+    const date = new Date(isoStr);
+    // Get the local datetime string in the target timezone
+    const parts = new Intl.DateTimeFormat('sv-SE', {
+      timeZone: timezone,
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit',
+    }).formatToParts(date);
+    const get = (type: string) => parts.find(p => p.type === type)?.value ?? '';
+    return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}`;
+  } catch {
+    return isoStr.slice(0, 16);
+  }
+}
+
+function fromLocalDatetimeValue(localStr: string, timezone: string): string {
+  if (!localStr) return '';
+  // Treat the picker value as being in the market timezone and convert to UTC ISO
+  try {
+    // Use Intl to find the UTC offset for this timezone at the given local time
+    // We approximate by parsing as-is then adjusting for the tz offset
+    const local = new Date(localStr); // browser interprets as local time
+    // Get the UTC timestamp that corresponds to `localStr` in `timezone`
+    // Best cross-browser approach: use the difference between UTC and tz-local representation
+    const tzDate = new Date(
+      new Date(localStr + 'Z').toLocaleString('en-US', { timeZone: timezone })
+    );
+    const offset = local.getTime() - tzDate.getTime();
+    return new Date(local.getTime() - offset).toISOString();
+  } catch {
+    return new Date(localStr).toISOString();
+  }
+}
+
+function PageSettingsPanel() {
+  const { state, dispatch } = useUCP();
+  const { layout, markets, workflow, activePageId } = state;
+
+  // Use the workflow entry status (same source as Header) — not layout.authoringStatus,
+  // which lags behind on mock data where pages are seeded as APPROVED but workflow is DRAFT.
+  const wfStatus = workflow.find(w => w.pageId === activePageId)?.status ?? 'DRAFT';
+  const isDraft = wfStatus === 'DRAFT' || wfStatus === 'REJECTED';
+
+  // Find market timezone using primary marketId (first release market or own market)
+  const primaryMarket = markets.find(m => m.marketId === (layout.releaseMarketIds?.[0] ?? layout.marketId))
+    ?? markets.find(m => m.marketId === 'GLOBAL');
+  const timezone = primaryMarket?.timezone ?? 'UTC';
+  const tzLabel  = primaryMarket?.tzLabel  ?? 'UTC (UTC+0)';
+
+  // ── Page info form state ──
+  const [name,             setName]             = useState(layout.name);
+  const [pageType,         setPageType]         = useState(layout.pageType);
+  const [locale,           setLocale]           = useState(layout.locale);
+  const [description,      setDescription]      = useState(layout.description ?? '');
+  const [releaseMarketIds, setReleaseMarketIds] = useState<string[]>(layout.releaseMarketIds ?? [layout.marketId]);
+  const [infoSaved,        setInfoSaved]        = useState(false);
+  const [infoError,        setInfoError]        = useState('');
+
+  // ── Campaign schedule state ──
+  const cs = layout.campaignSchedule;
+  const [publishLocal,  setPublishLocal]  = useState(() => cs ? toLocalDatetimeValue(cs.publishAt,  timezone) : '');
+  const [takedownLocal, setTakedownLocal] = useState(() => cs ? toLocalDatetimeValue(cs.takedownAt, timezone) : '');
+  const [schedError,    setSchedError]    = useState('');
+  const [schedSaved,    setSchedSaved]    = useState(false);
+
+  // Re-sync when page changes
+  useEffect(() => {
+    setName(layout.name);
+    setPageType(layout.pageType);
+    setLocale(layout.locale);
+    setDescription(layout.description ?? '');
+    setReleaseMarketIds(layout.releaseMarketIds ?? [layout.marketId]);
+    setInfoSaved(false); setInfoError('');
+    const newCs = layout.campaignSchedule;
+    setPublishLocal(newCs  ? toLocalDatetimeValue(newCs.publishAt,  timezone) : '');
+    setTakedownLocal(newCs ? toLocalDatetimeValue(newCs.takedownAt, timezone) : '');
+    setSchedError(''); setSchedSaved(false);
+  }, [layout.pageId]);
+
+  function toggleMarket(mId: string) {
+    setReleaseMarketIds(prev =>
+      prev.includes(mId) ? prev.filter(id => id !== mId) : [...prev, mId]
+    );
+    setInfoSaved(false);
+  }
+
+  function handleInfoSave() {
+    if (!name.trim()) { setInfoError('Page name is required'); return; }
+    if (releaseMarketIds.length === 0) { setInfoError('Select at least one release market'); return; }
+    setInfoError('');
+    dispatch({ type: 'UPDATE_PAGE_INFO', name, pageType, locale, description, releaseMarketIds });
+    setInfoSaved(true);
+    setTimeout(() => setInfoSaved(false), 2000);
+  }
+
+  function handleSchedSave() {
+    if (!publishLocal)  { setSchedError('Publish date/time is required'); return; }
+    if (!takedownLocal) { setSchedError('Takedown date/time is required'); return; }
+    const pubISO = fromLocalDatetimeValue(publishLocal,  timezone);
+    const tdnISO = fromLocalDatetimeValue(takedownLocal, timezone);
+    if (new Date(tdnISO) <= new Date(pubISO)) { setSchedError('Takedown must be after publish date'); return; }
+    setSchedError('');
+    dispatch({ type: 'UPDATE_CAMPAIGN_SCHEDULE', publishAt: pubISO, takedownAt: tdnISO });
+    setSchedSaved(true);
+    setTimeout(() => setSchedSaved(false), 2000);
+  }
+
+  const PAGE_TYPES: { type: import('../../types/ucp').PageType; label: string; icon: string }[] = [
+    { type: 'WEALTH_HUB',  label: 'Wealth Hub',   icon: '💰' },
+    { type: 'KYC_JOURNEY', label: 'KYC Journey',   icon: '🪪' },
+    { type: 'PRODUCT',     label: 'Product Page',  icon: '📦' },
+    { type: 'CAMPAIGN',    label: 'Campaign',       icon: '🎪' },
+    { type: 'CUSTOM',      label: 'Custom',         icon: '📝' },
+  ];
+
+  const LOCALES = [
+    { value: 'en-HK', label: 'en-HK (English – HK)' },
+    { value: 'zh-HK', label: 'zh-HK (Traditional Chinese)' },
+    { value: 'zh-CN', label: 'zh-CN (Simplified Chinese)' },
+    { value: 'en-GB', label: 'en-GB (English – UK)' },
+    { value: 'en-SG', label: 'en-SG (English – SG)' },
+    { value: 'en-IN', label: 'en-IN (English – IN)' },
+  ];
+
+  const fieldStyle: React.CSSProperties = {
+    width: '100%', boxSizing: 'border-box', padding: '6px 10px',
+    border: '1.5px solid var(--border-light)', borderRadius: 6,
+    fontSize: 12, outline: 'none', fontFamily: 'var(--font-family)',
+    background: isDraft ? '#fff' : 'var(--surface-hover)',
+    color: 'var(--text-primary)',
+  };
+
+  const labelSt: React.CSSProperties = {
+    display: 'block', fontSize: 11, fontWeight: 600,
+    color: 'var(--text-secondary)', marginBottom: 4,
+  };
+
+  const sectionHead = (title: string) => (
+    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10, marginTop: 4 }}>
+      {title}
+    </div>
+  );
+
+  return (
+    <aside style={{
+      width: 300, flexShrink: 0,
+      background: 'var(--surface-panel)',
+      borderLeft: '1px solid var(--border-light)',
+      display: 'flex', flexDirection: 'column', overflow: 'hidden',
+    }}>
+      {/* Header */}
+      <div style={{
+        padding: '12px 16px', borderBottom: '1px solid var(--border-light)',
+        background: 'var(--surface-hover)', flexShrink: 0,
+      }}>
+        <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-primary)' }}>Page Settings</div>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+          {layout.channel} · {wfStatus}
+          {!isDraft && <span style={{ marginLeft: 6, color: '#D97706', fontWeight: 600 }}>— read-only ({wfStatus})</span>}
+        </div>
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px' }}>
+
+        {/* ── PAGE INFO ─────────────────────────── */}
+        {sectionHead('Page Info')}
+
+        <div style={{ marginBottom: 10 }}>
+          <label style={labelSt}>Page Name *</label>
+          <input
+            value={name}
+            onChange={e => { setName(e.target.value); setInfoSaved(false); }}
+            readOnly={!isDraft}
+            style={fieldStyle}
+            onFocus={e => isDraft && (e.target.style.borderColor = 'var(--hsbc-red)')}
+            onBlur={e => (e.target.style.borderColor = 'var(--border-light)')}
+          />
+        </div>
+
+        <div style={{ marginBottom: 10 }}>
+          <label style={labelSt}>Description</label>
+          <textarea
+            value={description}
+            onChange={e => { setDescription(e.target.value); setInfoSaved(false); }}
+            readOnly={!isDraft}
+            rows={2}
+            style={{ ...fieldStyle, resize: 'vertical' }}
+            onFocus={e => isDraft && (e.target.style.borderColor = 'var(--hsbc-red)')}
+            onBlur={e => (e.target.style.borderColor = 'var(--border-light)')}
+          />
+        </div>
+
+        <div style={{ marginBottom: 10 }}>
+          <label style={labelSt}>Page Type</label>
+          {isDraft ? (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
+              {PAGE_TYPES.map(pt => (
+                <div
+                  key={pt.type}
+                  onClick={() => { setPageType(pt.type); setInfoSaved(false); }}
+                  style={{
+                    padding: '6px 8px', borderRadius: 6, cursor: 'pointer', fontSize: 11,
+                    border: `1.5px solid ${pageType === pt.type ? 'var(--hsbc-red)' : 'var(--border-light)'}`,
+                    background: pageType === pt.type ? '#FEF2F2' : 'var(--surface-hover)',
+                    display: 'flex', alignItems: 'center', gap: 5, fontWeight: pageType === pt.type ? 600 : 400,
+                    color: pageType === pt.type ? 'var(--hsbc-red)' : 'var(--text-secondary)',
+                  }}
+                >
+                  <span>{pt.icon}</span> {pt.label}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ ...fieldStyle, padding: '6px 10px' }}>
+              {PAGE_TYPES.find(p => p.type === pageType)?.icon} {pageType}
+            </div>
+          )}
+        </div>
+
+        <div style={{ marginBottom: 14 }}>
+          <label style={labelSt}>Locale</label>
+          {isDraft ? (
+            <select
+              value={locale}
+              onChange={e => { setLocale(e.target.value); setInfoSaved(false); }}
+              style={fieldStyle}
+            >
+              {LOCALES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
+            </select>
+          ) : (
+            <div style={{ ...fieldStyle, padding: '6px 10px' }}>{locale}</div>
+          )}
+        </div>
+
+        {/* ── RELEASE MARKETS ───────────────────── */}
+        {sectionHead('Release Markets')}
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8, lineHeight: 1.4 }}>
+            Select which markets this page will be released to after approval.
+            {!isDraft && <span style={{ color: '#D97706' }}> (edit in Draft)</span>}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            {markets.filter(m => m.active).map(m => {
+              const checked = releaseMarketIds.includes(m.marketId);
+              return (
+                <div
+                  key={m.marketId}
+                  onClick={() => isDraft && toggleMarket(m.marketId)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '6px 10px', borderRadius: 6,
+                    border: `1px solid ${checked ? 'var(--hsbc-red)' : 'var(--border-light)'}`,
+                    background: checked ? '#FEF2F2' : 'var(--surface-hover)',
+                    cursor: isDraft ? 'pointer' : 'default',
+                    transition: 'all 0.1s',
+                  }}
+                >
+                  <div style={{
+                    width: 14, height: 14, borderRadius: 3, flexShrink: 0,
+                    border: `2px solid ${checked ? 'var(--hsbc-red)' : 'var(--border-mid)'}`,
+                    background: checked ? 'var(--hsbc-red)' : 'transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    {checked && <span style={{ color: '#fff', fontSize: 9, fontWeight: 700 }}>✓</span>}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: checked ? 600 : 400, color: checked ? 'var(--hsbc-red)' : 'var(--text-primary)' }}>
+                      {m.marketId}
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {m.marketName} · {m.tzLabel}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {infoError && <div style={{ fontSize: 11, color: '#DC2626', marginTop: 6 }}>{infoError}</div>}
+        </div>
+
+        {/* ── SAVE PAGE INFO ────────────────────── */}
+        {isDraft && (
+          <button
+            onClick={handleInfoSave}
+            style={{
+              width: '100%', padding: '8px', borderRadius: 6, border: 'none',
+              background: infoSaved ? '#059669' : 'var(--hsbc-red)',
+              color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+              marginBottom: 18, transition: 'background 0.2s',
+            }}
+          >
+            {infoSaved ? '✓ Page Info Saved' : 'Save Page Info'}
+          </button>
+        )}
+
+        {/* ── CAMPAIGN SCHEDULE ─────────────────── */}
+        {(pageType === 'CAMPAIGN' || layout.pageType === 'CAMPAIGN') && (
+          <>
+            {sectionHead('🎪 Campaign Schedule')}
+
+            {/* Timezone reminder — keyed to first selected market */}
+            <div style={{
+              background: '#FEF3C7', border: '1px solid #F59E0B',
+              borderRadius: 6, padding: '7px 10px', marginBottom: 12,
+              fontSize: 11, color: '#92400E', lineHeight: 1.5,
+            }}>
+              <strong>Timezone:</strong> Times are in <strong>{tzLabel}</strong>
+              {primaryMarket && <> — {primaryMarket.marketName}</>}.
+              Each selected market will see these times in their own local clock.
+            </div>
+
+            {/* Current schedule summary */}
+            {cs && (
+              <div style={{
+                background: 'var(--surface-hover)', border: '1px solid var(--border-light)',
+                borderRadius: 6, padding: '8px 10px', marginBottom: 12, fontSize: 11,
+              }}>
+                <div style={{ color: 'var(--text-muted)', marginBottom: 4 }}>Current ({tzLabel})</div>
+                <div style={{ color: 'var(--text-primary)', marginBottom: 2 }}>
+                  📅 Publish: <strong>{toLocalDatetimeValue(cs.publishAt, timezone).replace('T', ' ')}</strong>
+                </div>
+                <div style={{ color: 'var(--text-primary)' }}>
+                  📅 Takedown: <strong>{toLocalDatetimeValue(cs.takedownAt, timezone).replace('T', ' ')}</strong>
+                </div>
+                {cs.timerStopped && <div style={{ color: '#D97706', marginTop: 4, fontWeight: 600 }}>⏹ Timer stopped</div>}
+              </div>
+            )}
+
+            {isDraft ? (
+              <>
+                <div style={{ marginBottom: 10 }}>
+                  <label style={labelSt}>Auto-Publish ({tzLabel}) *</label>
+                  <input
+                    type="datetime-local"
+                    value={publishLocal}
+                    onChange={e => { setPublishLocal(e.target.value); setSchedError(''); setSchedSaved(false); }}
+                    style={fieldStyle}
+                    onFocus={e => (e.target.style.borderColor = 'var(--hsbc-red)')}
+                    onBlur={e => (e.target.style.borderColor = 'var(--border-light)')}
+                  />
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>Page goes LIVE at this time</div>
+                </div>
+                <div style={{ marginBottom: 10 }}>
+                  <label style={labelSt}>Auto-Takedown ({tzLabel}) *</label>
+                  <input
+                    type="datetime-local"
+                    value={takedownLocal}
+                    min={publishLocal || undefined}
+                    onChange={e => { setTakedownLocal(e.target.value); setSchedError(''); setSchedSaved(false); }}
+                    style={fieldStyle}
+                    onFocus={e => (e.target.style.borderColor = 'var(--hsbc-red)')}
+                    onBlur={e => (e.target.style.borderColor = 'var(--border-light)')}
+                  />
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>Page taken down at this time</div>
+                </div>
+                {schedError && <div style={{ fontSize: 11, color: '#DC2626', marginBottom: 8 }}>{schedError}</div>}
+                <button
+                  onClick={handleSchedSave}
+                  style={{
+                    width: '100%', padding: '8px', borderRadius: 6, border: 'none',
+                    background: schedSaved ? '#059669' : '#D97706',
+                    color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                    marginBottom: 10, transition: 'background 0.2s',
+                  }}
+                >
+                  {schedSaved ? '✓ Schedule Saved' : 'Save Schedule'}
+                </button>
+              </>
+            ) : (
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic', padding: '4px 0 12px' }}>
+                Schedule can only be edited while the page is in Draft.
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── READ-ONLY FIELDS ──────────────────── */}
+        <div style={{ marginTop: 4 }}>
+          {sectionHead('Read-only Info')}
+          {[
+            { label: 'Page ID', value: layout.pageId },
+            { label: 'Channel', value: layout.channel },
+            { label: 'Scope',   value: layout.scope },
+            { label: 'Biz Line', value: layout.bizLineId },
+            { label: 'Status',  value: wfStatus },
+          ].map(({ label, value }) => (
+            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--border-light)', fontSize: 11 }}>
+              <span style={{ color: 'var(--text-muted)' }}>{label}</span>
+              <span style={{ color: 'var(--text-secondary)', fontFamily: label === 'Page ID' ? 'monospace' : undefined, fontSize: label === 'Page ID' ? 10 : 11 }}>
+                {value}
+              </span>
+            </div>
+          ))}
+        </div>
+
+      </div>
+    </aside>
+  );
+}
+
 // ─── Main Properties Panel ────────────────────────────────────────────────────
 
 export function PropertiesPanel() {
@@ -454,25 +859,7 @@ export function PropertiesPanel() {
   }, [slice, dispatch]);
 
   if (!slice) {
-    return (
-      <aside style={{
-        width: 280,
-        flexShrink: 0,
-        background: 'var(--surface-panel)',
-        borderLeft: '1px solid var(--border-light)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 24,
-        color: 'var(--text-muted)',
-        textAlign: 'center',
-      }}>
-        <div style={{ fontSize: 40, marginBottom: 12 }}>🖱️</div>
-        <div style={{ fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>No component selected</div>
-        <div style={{ fontSize: 12, lineHeight: 1.5 }}>Click a component on the canvas to edit its properties</div>
-      </aside>
-    );
+    return <PageSettingsPanel />;
   }
 
   const def = SLICE_DEFINITIONS[slice.type];

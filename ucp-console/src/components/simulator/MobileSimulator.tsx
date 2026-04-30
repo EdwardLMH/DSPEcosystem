@@ -73,7 +73,9 @@ function DeviceButton({ device, selected, onClick }: {
   selected: boolean;
   onClick: () => void;
 }) {
-  const osEmoji = device.os === 'ios' ? '🍎' : '🤖';
+  const osEmoji =
+    device.os === 'ios'        ? '🍎' :
+    device.os === 'harmonyos'  ? '🔴' : '🤖';
   return (
     <button
       onClick={onClick}

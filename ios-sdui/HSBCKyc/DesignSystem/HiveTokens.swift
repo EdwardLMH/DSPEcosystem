@@ -24,6 +24,8 @@ enum Hive {
         static let n700              = SwiftUI.Color(hex: "#3D3D3D")
         static let n800              = SwiftUI.Color(hex: "#222222")
         static let jade              = SwiftUI.Color(hex: "#C9A84C")
+        static let brandGold         = SwiftUI.Color(hex: "#C9A84C")
+        static let n900              = SwiftUI.Color(hex: "#0A0A0A")
     }
 
     enum Spacing {
@@ -223,14 +225,14 @@ struct HiveHelpText: View {
 
 struct HiveInfoBanner: View {
     let title: String
-    let body: String
+    let message: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: Hive.Spacing.s1) {
             Text(title)
                 .font(Hive.Typography.labelBase)
                 .foregroundColor(Hive.Color.info)
-            Text(body)
+            Text(message)
                 .font(Hive.Typography.bodySm)
                 .foregroundColor(Hive.Color.n700)
                 .fixedSize(horizontal: false, vertical: true)

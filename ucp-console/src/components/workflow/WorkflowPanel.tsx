@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUCP } from '../../store/UCPStore';
 import { StatusBadge } from '../shared/StatusBadge';
 import { Button } from '../shared/Button';
@@ -74,14 +74,89 @@ function AuditRow({ entry }: { entry: any }) {
   );
 }
 
+// ─── Campaign countdown helpers ───────────────────────────────────────────────
+
+function formatDuration(ms: number): string {
+  if (ms <= 0) return '0s';
+  const totalSecs = Math.floor(ms / 1000);
+  const days  = Math.floor(totalSecs / 86400);
+  const hrs   = Math.floor((totalSecs % 86400) / 3600);
+  const mins  = Math.floor((totalSecs % 3600) / 60);
+  const secs  = totalSecs % 60;
+  if (days > 0)  return `${days}d ${hrs}h ${mins}m`;
+  if (hrs > 0)   return `${hrs}h ${mins}m ${secs}s`;
+  if (mins > 0)  return `${mins}m ${secs}s`;
+  return `${secs}s`;
+}
+
+function CampaignCountdown({ publishAt, takedownAt }: { publishAt: string; takedownAt: string }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const publishMs  = new Date(publishAt).getTime();
+  const takedownMs = new Date(takedownAt).getTime();
+  const msToPublish  = publishMs - now;
+  const msToTakedown = takedownMs - now;
+
+  const isBeforePublish = msToPublish > 0;
+  const isLive          = !isBeforePublish && msToTakedown > 0;
+  const isExpired       = msToTakedown <= 0;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {/* Publish-at countdown */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '10px 14px', borderRadius: 8,
+        background: isBeforePublish ? '#FEF3C7' : isLive ? '#D1FAE5' : '#F3F4F6',
+        border: `1px solid ${isBeforePublish ? '#F59E0B' : isLive ? '#6EE7B7' : '#E5E7EB'}`,
+      }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: isBeforePublish ? '#92400E' : isLive ? '#065F46' : '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            {isBeforePublish ? '⏱ Auto-publish in' : isLive ? '🚀 Currently live' : '✓ Published'}
+          </div>
+          <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'var(--font-mono)', color: isBeforePublish ? '#B45309' : isLive ? '#059669' : '#6B7280', marginTop: 2 }}>
+            {isBeforePublish ? formatDuration(msToPublish) : new Date(publishAt).toLocaleString('en-HK', { dateStyle: 'medium', timeStyle: 'short' })}
+          </div>
+        </div>
+        <div style={{ fontSize: 10, color: isBeforePublish ? '#B45309' : '#6B7280', textAlign: 'right' }}>
+          <div>{new Date(publishAt).toLocaleString('en-HK', { dateStyle: 'short', timeStyle: 'short' })}</div>
+        </div>
+      </div>
+
+      {/* Takedown countdown */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '10px 14px', borderRadius: 8,
+        background: isExpired ? '#F3F4F6' : '#FEE2E2',
+        border: `1px solid ${isExpired ? '#E5E7EB' : '#FCA5A5'}`,
+      }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: isExpired ? '#6B7280' : '#991B1B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            {isExpired ? '✓ Taken down' : '⏳ Auto-takedown in'}
+          </div>
+          <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'var(--font-mono)', color: isExpired ? '#6B7280' : '#DC2626', marginTop: 2 }}>
+            {isExpired ? new Date(takedownAt).toLocaleString('en-HK', { dateStyle: 'medium', timeStyle: 'short' }) : formatDuration(msToTakedown)}
+          </div>
+        </div>
+        <div style={{ fontSize: 10, color: isExpired ? '#6B7280' : '#991B1B', textAlign: 'right' }}>
+          <div>{new Date(takedownAt).toLocaleString('en-HK', { dateStyle: 'short', timeStyle: 'short' })}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 type Tab = 'workflow' | 'qr' | 'audit' | 'json';
 
 export function WorkflowPanel() {
   const { state, dispatch } = useUCP();
-  const { layout, workflow, audit, currentUser } = state;
+  const { layout, workflow, audit, currentUser, markets } = state;
   const [tab, setTab] = useState<Tab>('workflow');
   const [comment, setComment] = useState('');
-  const [showJson, setShowJson] = useState(false);
 
   const currentWf = workflow.find(w => w.pageId === layout.pageId);
   const wfStatus: WorkflowStatus = currentWf?.status ?? 'DRAFT';
@@ -90,7 +165,12 @@ export function WorkflowPanel() {
   const isApprover = currentUser.role.endsWith('-APPROVER') || currentUser.role === 'ADMIN';
   const isAuditor  = currentUser.role === 'AUDITOR';
 
-  const pageAudit  = [...audit].filter(a => a.pageId === layout.pageId).reverse();
+  const pageAudit = [...audit].filter(a => a.pageId === layout.pageId).reverse();
+
+  // Market timezone for this page
+  const market   = markets.find(m => m.marketId === layout.marketId) ?? markets.find(m => m.marketId === 'GLOBAL');
+  const timezone = market?.timezone ?? 'UTC';
+  const tzLabel  = market?.tzLabel  ?? 'UTC (UTC+0)';
 
   function handleApprove() {
     dispatch({ type: 'APPROVE', comment });
@@ -170,6 +250,68 @@ export function WorkflowPanel() {
           {/* ── Workflow tab ── */}
           {tab === 'workflow' && (
             <>
+              {/* Page Info summary — always visible in workflow panel */}
+              <Section title="Page Info">
+                <div style={{ background: 'var(--surface-hover)', borderRadius: 8, padding: '10px 12px', fontSize: 12 }}>
+                  {/* Name + type row */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontSize: 18 }}>
+                      {layout.pageType === 'CAMPAIGN' ? '🎪' : layout.pageType === 'WEALTH_HUB' ? '💰' : layout.pageType === 'KYC_JOURNEY' ? '🪪' : layout.pageType === 'PRODUCT' ? '📦' : '📝'}
+                    </span>
+                    <div>
+                      <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: 13 }}>{layout.name}</div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>{layout.pageType} · {layout.channel} · {layout.locale}</div>
+                    </div>
+                  </div>
+                  {/* Description */}
+                  {layout.description && (
+                    <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 8, lineHeight: 1.5, fontStyle: 'italic' }}>
+                      {layout.description}
+                    </div>
+                  )}
+                  {/* Release markets */}
+                  <div style={{ marginBottom: 6 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
+                      Release Markets
+                    </div>
+                    {(layout.releaseMarketIds ?? [layout.marketId]).length === 0 ? (
+                      <span style={{ fontSize: 11, color: '#DC2626', fontStyle: 'italic' }}>No markets selected</span>
+                    ) : (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                        {(layout.releaseMarketIds ?? [layout.marketId]).map(mId => {
+                          const m = markets.find(x => x.marketId === mId);
+                          return (
+                            <span key={mId} style={{
+                              fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 10,
+                              background: 'rgba(219,0,17,0.08)', color: 'var(--hsbc-red)',
+                              border: '1px solid rgba(219,0,17,0.2)',
+                            }}>
+                              {mId} {m ? `· ${m.tzLabel}` : ''}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                  {/* Campaign schedule summary */}
+                  {layout.pageType === 'CAMPAIGN' && layout.campaignSchedule && (
+                    <div style={{ marginTop: 8, padding: '7px 10px', borderRadius: 6, background: '#FEF3C7', border: '1px solid #F59E0B' }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#92400E', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
+                        Campaign Schedule ({market?.tzLabel ?? 'UTC'})
+                      </div>
+                      <div style={{ fontSize: 11, color: '#92400E' }}>
+                        📅 Publish: <strong>{new Date(layout.campaignSchedule.publishAt).toLocaleString('en-HK', { timeZone: market?.timezone ?? 'UTC', dateStyle: 'medium', timeStyle: 'short' })}</strong>
+                      </div>
+                      <div style={{ fontSize: 11, color: '#92400E', marginTop: 2 }}>
+                        📅 Takedown: <strong>{new Date(layout.campaignSchedule.takedownAt).toLocaleString('en-HK', { timeZone: market?.timezone ?? 'UTC', dateStyle: 'medium', timeStyle: 'short' })}</strong>
+                      </div>
+                      <div style={{ fontSize: 10, color: '#B45309', marginTop: 4, lineHeight: 1.4 }}>
+                        🌏 Times shown in {market?.tzLabel ?? 'UTC'} ({market?.marketName ?? layout.marketId})
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Section>
               {/* Status timeline */}
               <Section title="Status Timeline">
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
@@ -222,6 +364,17 @@ export function WorkflowPanel() {
               {isAuthor && wfStatus === 'DRAFT' && (
                 <Section title="Maker Action">
                   <div style={{ background: '#F9FAFB', borderRadius: 10, padding: 14 }}>
+                    {/* Campaign timezone reminder in draft */}
+                    {layout.pageType === 'CAMPAIGN' && layout.campaignSchedule && (
+                      <div style={{
+                        background: '#FEF3C7', border: '1px solid #F59E0B',
+                        borderRadius: 6, padding: '7px 10px', marginBottom: 12,
+                        fontSize: 11, color: '#92400E', lineHeight: 1.5,
+                      }}>
+                        🎪 <strong>Campaign page</strong> — schedule is set in <strong>{tzLabel}</strong> ({market?.marketName ?? layout.marketId}).
+                        You can update the schedule in the <strong>Page Settings</strong> panel on the right.
+                      </div>
+                    )}
                     <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12, lineHeight: 1.5 }}>
                       Review your changes on the canvas, then submit for approval. The approver will receive a notification to review and publish.
                     </div>
@@ -237,7 +390,7 @@ export function WorkflowPanel() {
                       onFocus={e => (e.target.style.borderColor = 'var(--hsbc-red)')}
                       onBlur={e => (e.target.style.borderColor = 'var(--border-light)')}
                     />
-                    <Button variant="primary" icon="📤" fullWidth onClick={() => { dispatch({ type: 'SUBMIT_FOR_APPROVAL' }); setComment(''); }}>
+                    <Button variant="primary" icon="📤" fullWidth onClick={() => { dispatch({ type: 'SUBMIT_FOR_APPROVAL', targets: [] }); setComment(''); }}>
                       Submit for Approval
                     </Button>
                   </div>
@@ -248,6 +401,17 @@ export function WorkflowPanel() {
               {isApprover && wfStatus === 'PENDING_APPROVAL' && (
                 <Section title="Checker Action">
                   <div style={{ background: '#F9FAFB', borderRadius: 10, padding: 14 }}>
+                    {/* Campaign timezone reminder for approver */}
+                    {layout.pageType === 'CAMPAIGN' && layout.campaignSchedule && (
+                      <div style={{
+                        background: '#FEF3C7', border: '1px solid #F59E0B',
+                        borderRadius: 6, padding: '7px 10px', marginBottom: 12,
+                        fontSize: 11, color: '#92400E', lineHeight: 1.5,
+                      }}>
+                        🎪 <strong>Campaign page</strong> — if approved, auto-publish timer will start.
+                        Schedule is in <strong>{tzLabel}</strong> ({market?.marketName ?? layout.marketId}).
+                      </div>
+                    )}
                     <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12, lineHeight: 1.5 }}>
                       Review the page in the <strong>Preview</strong> simulator. Leave a comment and approve or reject.
                     </div>
@@ -271,19 +435,107 @@ export function WorkflowPanel() {
                 </Section>
               )}
 
-              {/* Publish action */}
-              {(isAuthor || isApprover) && wfStatus === 'APPROVED' && (
-                <Section title="Publish">
-                  <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: 10, padding: 14 }}>
-                    <div style={{ fontSize: 13, color: '#065F46', marginBottom: 12 }}>
-                      ✅ This page has been approved and is ready to publish to production.
-                    </div>
-                    <Button variant="primary" icon="🚀" fullWidth onClick={() => dispatch({ type: 'PUBLISH' })}>
-                      Publish to Production
-                    </Button>
-                  </div>
-                </Section>
-              )}
+              {/* Publish / Send-to-Draft actions — APPROVED status */}
+              {(isAuthor || isApprover) && wfStatus === 'APPROVED' && (() => {
+                const cs = state.layout.campaignSchedule;
+                const isCampaign = state.layout.pageType === 'CAMPAIGN' && !!cs;
+                const timerActive = isCampaign && !cs.timerStopped;
+
+                return (
+                  <Section title="Publish">
+                    {isCampaign && timerActive ? (
+                      /* ── Campaign with active timer ── */
+                      <div style={{ background: '#FFFBEB', border: '1.5px solid #F59E0B', borderRadius: 10, padding: 16 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#92400E', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          🎪 Campaign — Auto-publish scheduled
+                        </div>
+                        <div style={{ fontSize: 12, color: '#B45309', marginBottom: 8, lineHeight: 1.5 }}>
+                          This page will be published automatically at the scheduled time.
+                          You can stop the timer and choose to publish manually or return the page to draft.
+                        </div>
+                        {/* Timezone reminder */}
+                        <div style={{
+                          background: 'rgba(245,158,11,0.15)', border: '1px solid #F59E0B',
+                          borderRadius: 5, padding: '5px 10px', marginBottom: 12,
+                          fontSize: 11, color: '#92400E', display: 'flex', alignItems: 'center', gap: 5,
+                        }}>
+                          🌏 Times are in <strong style={{ margin: '0 2px' }}>{tzLabel}</strong> ({market?.marketName ?? layout.marketId})
+                        </div>
+
+                        <CampaignCountdown publishAt={cs.publishAt} takedownAt={cs.takedownAt} />
+
+                        {isApprover && (
+                          <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+                            <button
+                              onClick={() => dispatch({ type: 'STOP_CAMPAIGN_TIMER' })}
+                              style={{
+                                flex: 1, padding: '9px 14px', borderRadius: 6,
+                                border: '1.5px solid #F59E0B', background: '#FEF3C7',
+                                color: '#92400E', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                              }}
+                            >⏹ Stop Timer</button>
+                          </div>
+                        )}
+                      </div>
+                    ) : isCampaign && !timerActive ? (
+                      /* ── Campaign with stopped timer ── */
+                      <div style={{ background: '#F9FAFB', border: '1.5px solid var(--border-light)', borderRadius: 10, padding: 16 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>
+                          🎪 Campaign — Timer stopped
+                        </div>
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8, lineHeight: 1.5 }}>
+                          The auto-publish timer was stopped
+                          {cs.stoppedAt ? ` at ${new Date(cs.stoppedAt).toLocaleString('en-HK', { dateStyle: 'short', timeStyle: 'short' })}` : ''}.
+                          Choose an action below.
+                        </div>
+                        {/* Timezone reminder */}
+                        <div style={{
+                          background: 'var(--surface-hover)', border: '1px solid var(--border-light)',
+                          borderRadius: 5, padding: '5px 10px', marginBottom: 12,
+                          fontSize: 11, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 5,
+                        }}>
+                          🌏 Times are in <strong style={{ margin: '0 2px' }}>{tzLabel}</strong> ({market?.marketName ?? layout.marketId})
+                        </div>
+                        {/* Show schedule for context */}
+                        <CampaignCountdown publishAt={cs.publishAt} takedownAt={cs.takedownAt} />
+                        <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+                          <Button variant="primary" icon="🚀" fullWidth onClick={() => dispatch({ type: 'PUBLISH' })}>
+                            Publish Now
+                          </Button>
+                          {isApprover && (
+                            <Button variant="danger" fullWidth onClick={() => dispatch({ type: 'SEND_TO_DRAFT' })}>
+                              Send to Draft
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      /* ── Normal (non-campaign) approved ── */
+                      <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: 10, padding: 14 }}>
+                        <div style={{ fontSize: 13, color: '#065F46', marginBottom: 12 }}>
+                          ✅ This page has been approved and is ready to publish to production.
+                        </div>
+                        <div style={{ display: 'flex', gap: 10 }}>
+                          <Button variant="primary" icon="🚀" fullWidth onClick={() => dispatch({ type: 'PUBLISH' })}>
+                            Publish to Production
+                          </Button>
+                          {isApprover && (
+                            <button
+                              onClick={() => dispatch({ type: 'SEND_TO_DRAFT' })}
+                              style={{
+                                flexShrink: 0, padding: '9px 16px', borderRadius: 6,
+                                border: '1px solid var(--border-mid)', background: '#fff',
+                                color: 'var(--text-secondary)', fontSize: 13, fontWeight: 600,
+                                cursor: 'pointer', whiteSpace: 'nowrap',
+                              }}
+                            >↩ Send to Draft</button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </Section>
+                );
+              })()}
 
               {wfStatus === 'LIVE' && (
                 <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: 14, textAlign: 'center' }}>

@@ -1,0 +1,11 @@
+{
+  "modelVersion": "6.1.0",
+  "name": "hsbcsdui",
+  "version": "1.0.0",
+  "description": "HSBC DSP SDUI HarmonyNext",
+  "main": "",
+  "author": "",
+  "license": "",
+  "dependencies": {},
+  "devDependencies": {}
+}

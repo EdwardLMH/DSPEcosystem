@@ -40,6 +40,7 @@
   --border-light:    #E5E7EB;
   --border-mid:      #D1D5DB;
   --border-focus:    #DB0011;
+  --surface-border:  #E5E7EB; /* alias for --border-light */
 
   /* Shadows */
   --shadow-sm:       0 1px 2px rgba(0,0,0,0.05);
@@ -75,6 +76,40 @@
   --z-modal: 100;
   --z-toast: 200;
   --z-drag:  300;
+
+  /* Channel colours */
+  --channel-sdui:        #0F3057;
+  --channel-sdui-bg:     #E8EFF6;
+  --channel-web:         #1A1A2E;
+  --channel-web-bg:      #EBEDF2;
+  --channel-wechat:      #07C160;
+  --channel-wechat-bg:   #E6F9EE;
+
+  /* Production status colours */
+  --prod-live:           #059669;
+  --prod-live-bg:        #D1FAE5;
+  --prod-never:          #9CA3AF;
+  --prod-never-bg:       #F3F4F6;
+  --prod-rolled:         #D97706;
+  --prod-rolled-bg:      #FEF3C7;
+
+  /* AEO grade colours */
+  --aeo-a:               #059669;
+  --aeo-a-bg:            #D1FAE5;
+  --aeo-b:               #2563EB;
+  --aeo-b-bg:            #DBEAFE;
+  --aeo-c:               #D97706;
+  --aeo-c-bg:            #FEF3C7;
+  --aeo-d:               #DC2626;
+  --aeo-d-bg:            #FEE2E2;
+  --aeo-f:               #7F1D1D;
+  --aeo-f-bg:            #FEE2E2;
+
+  /* Market / biz-line chips */
+  --market-badge:        #AA0009;
+  --market-badge-bg:     rgba(219,0,17,0.08);
+  --bizline-text:        #374151;
+  --bizline-bg:          #F0F2F5;
 }
 
 /* ─── Reset ──────────────────────────────────────────────────────────────── */

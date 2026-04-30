@@ -183,9 +183,8 @@ fun KYCProgressBarComposable(
 ) {
     val progress = currentStep.toFloat() / totalSteps.toFloat()
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = HiveSpacing.s4, vertical = HiveSpacing.s2)) {
-        HStack {
-            Text(label, style = HiveTypography.caption, color = HiveColor.Neutral.N500)
-            Spacer()
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(sectionTitle, style = HiveTypography.caption, color = HiveColor.Neutral.N500)
             Text(sectionProgress ?: "Step $currentStep of $totalSteps",
                 style = HiveTypography.caption, color = HiveColor.Neutral.N500)
         }

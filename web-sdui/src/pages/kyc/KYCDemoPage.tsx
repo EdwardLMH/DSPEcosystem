@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { hive } from '../../tokens/hiveTokens';
+import { tealium } from '../../analytics/TealiumClient';
 import {
   KYCFullNameField, KYCDateOfBirth, KYCNationalitySelect,
   KYCUniqueIdentifier, KYCPhoneField, KYCAddressBlock,
@@ -76,6 +77,15 @@ export function KYCDemoPage() {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
+  // Fire journey-started on first mount
+  useEffect(() => { tealium.kycJourneyStarted(); }, []);
+
+  // Fire step-viewed whenever the step changes
+  useEffect(() => {
+    const s = STEPS[stepIdx];
+    tealium.kycStepViewed(s.id, stepIdx + 1, STEPS.length, SECTION_LABELS[s.section]);
+  }, [stepIdx]);
+
   const step = STEPS[stepIdx];
   const progress = Math.round(((stepIdx + 1) / STEPS.length) * 100);
   const isFirst  = stepIdx === 0;
@@ -88,8 +98,11 @@ export function KYCDemoPage() {
   }, []);
 
   const handleNext = async () => {
+    const s = STEPS[stepIdx];
+    tealium.kycStepCompleted(s.id, stepIdx + 1, SECTION_LABELS[s.section]);
     if (isLast) {
       setSaving(true);
+      tealium.kycJourneyCompleted();
       await new Promise(r => setTimeout(r, 1200)); // simulate submit
       setComplete(true);
     } else {
@@ -99,7 +112,11 @@ export function KYCDemoPage() {
   };
 
   const handleBack = () => {
-    if (stepIdx > 0) { setStepIdx(i => i - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    if (stepIdx > 0) {
+      tealium.kycStepBack(STEPS[stepIdx].id, STEPS[stepIdx - 1].id);
+      setStepIdx(i => i - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   if (complete) return <CompletionScreen isMobile={isMobile} />;

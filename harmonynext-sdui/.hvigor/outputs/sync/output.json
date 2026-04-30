@@ -1,0 +1,128 @@
+{
+  "version": 1,
+  "ohos-module-entry": {
+    "SELECT_TARGET": "default",
+    "MODULE_BUILD_DIR": "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build",
+    "TARGETS": {
+      "default": {
+        "SOURCE_ROOT": "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main",
+        "RESOURCES_PATH": [
+          "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/resources"
+        ],
+        "BUILD_PATH": {
+          "OUTPUT_PATH": "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/outputs/default",
+          "INTERMEDIA_PATH": "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates",
+          "JS_ASSETS_PATH": "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader_out/default",
+          "JS_LITE_ASSETS_PATH": "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader_out_lite/default",
+          "RES_PATH": "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default",
+          "RES_PROFILE_PATH": "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/resources/base/profile",
+          "ETS_SUPER_VISUAL_PATH": "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/cache/default/default@CompileArkTS/esmodule",
+          "JS_SUPER_VISUAL_PATH": "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/cache/default/default@CompileJS/jsbundle",
+          "WORKER_LOADER": "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader/default/loader.json",
+          "MANIFEST_JSON": "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/manifest/default",
+          "OUTPUT_METADATA_JSON": "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/hap_metadata/default/output_metadata.json",
+          "SOURCE_MAP_DIR": "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/source_map/default"
+        },
+        "BUILD_OPTION": {
+          "debuggable": true
+        }
+      }
+    },
+    "BUILD_OPTION": {
+      "default-default": {
+        "debuggable": true,
+        "copyFrom": "default",
+        "strictMode": {
+          "caseSensitiveCheck": true,
+          "useNormalizedOHMUrl": true
+        }
+      }
+    },
+    "BUILD_PROFILE_OPT": {
+      "apiType": "stageMode",
+      "buildOption": {},
+      "targets": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    "BUILD_CACHE_DIR": ""
+  },
+  "ohos-project": {
+    "SELECT_PRODUCT_NAME": "default",
+    "MODULE_BUILD_DIR": "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/build",
+    "BUNDLE_NAME": "com.hsbc.sdui",
+    "VERSION_CODE": 1000000,
+    "VERSION_NAME": "1.0.0",
+    "BUILD_PATH": {
+      "OUTPUT_PATH": "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/build/outputs/default"
+    },
+    "MODULES": [
+      {
+        "name": "entry",
+        "srcPath": "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry",
+        "targets": [
+          {
+            "name": "default",
+            "applyToProducts": [
+              "default"
+            ]
+          }
+        ],
+        "belongProjectPath": "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui"
+      }
+    ],
+    "PROFILE_OPT": {
+      "app": {
+        "signingConfigs": [],
+        "products": [
+          {
+            "name": "default",
+            "signingConfig": "default",
+            "compatibleSdkVersion": "6.1.0(23)",
+            "runtimeOS": "HarmonyOS",
+            "buildOption": {
+              "strictMode": {
+                "caseSensitiveCheck": true,
+                "useNormalizedOHMUrl": true
+              }
+            },
+            "targetSdkVersion": "6.1.0(23)"
+          }
+        ],
+        "buildModeSet": [
+          {
+            "name": "debug"
+          },
+          {
+            "name": "release"
+          }
+        ]
+      },
+      "modules": [
+        {
+          "name": "entry",
+          "srcPath": "./entry",
+          "targets": [
+            {
+              "name": "default",
+              "applyToProducts": [
+                "default"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "CONFIG_PROPERTIES": {
+      "enableSignTask": true,
+      "skipNativeIncremental": false,
+      "hvigor.keepDependency": true
+    },
+    "OVERALL_PROJECT_PATHS": [
+      "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui"
+    ],
+    "BUILD_CACHE_DIR": ""
+  }
+}
