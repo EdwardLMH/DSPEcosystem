@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { MOCK_CONTENT_ASSETS } from '../../store/mockData';
-import { ContentAsset, AssetType, BizLineId } from '../../types/ucp';
+import { MOCK_CONTENT_ASSETS, BIZ_LINES as BIZ_LINES_DATA } from '../../store/mockData';
+import type { ContentAsset, AssetType, BizLineId } from '../../types/ucp';
 import { useUCP } from '../../store/UCPStore';
 
 const ASSET_ICONS: Record<AssetType, string> = {
@@ -49,6 +49,7 @@ export function ContentLibraryPanel() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'ACTIVE' | 'ARCHIVED'>('ACTIVE');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [selected, setSelected] = useState<ContentAsset | null>(null);
+  const [lightbox, setLightbox] = useState<string | null>(null);
   const [showNewModal, setShowNewModal] = useState(false);
   const [form, setForm] = useState<NewAssetForm>(EMPTY_FORM);
   const [dragOver, setDragOver] = useState(false);
@@ -86,7 +87,7 @@ export function ContentLibraryPanel() {
       thumbnailUrl: form.assetType === 'IMAGE' ? `https://placehold.co/160x100/333/fff?text=${encodeURIComponent(form.name)}` : undefined,
       altText: form.altText || undefined,
       tags: form.tags ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-      marketId: state.currentUser.marketId,
+      marketId: state.currentUser.groupId,
       bizLineId: form.bizLineId,
       uploadedBy: state.currentUser.id,
       uploadedByName: state.currentUser.name,
@@ -103,7 +104,7 @@ export function ContentLibraryPanel() {
     if (selected?.assetId === assetId) setSelected(null);
   }
 
-  const BIZ_LINES = state.bizLines;
+  const BIZ_LINES = BIZ_LINES_DATA;
   const assetTypeCounts = (['IMAGE', 'VIDEO', 'DOCUMENT', 'FILE'] as AssetType[]).map(t => ({
     type: t,
     count: assets.filter(a => a.assetType === t && a.status === 'ACTIVE').length,
@@ -428,14 +429,41 @@ export function ContentLibraryPanel() {
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 16 }}
               >✕</button>
             </div>
-            {selected.thumbnailUrl && (
-              <img
-                src={selected.thumbnailUrl}
-                alt={selected.name}
-                style={{ width: '100%', borderRadius: 8, objectFit: 'cover', maxHeight: 140 }}
-                onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-              />
+
+            {/* Full image preview — click to lightbox */}
+            {selected.assetType === 'IMAGE' && (selected.url || selected.thumbnailUrl) && (
+              <div
+                onClick={() => setLightbox(selected.url || selected.thumbnailUrl!)}
+                style={{ cursor: 'zoom-in', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--surface-border)', position: 'relative' }}
+                title="Click to view full size"
+              >
+                <img
+                  src={selected.url || selected.thumbnailUrl}
+                  alt={selected.name}
+                  style={{ width: '100%', display: 'block', objectFit: 'cover', maxHeight: 180 }}
+                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+                <div style={{
+                  position: 'absolute', bottom: 0, right: 0,
+                  background: 'rgba(0,0,0,0.5)', color: '#fff',
+                  fontSize: 10, padding: '2px 6px', borderTopLeftRadius: 4,
+                }}>🔍 Click to enlarge</div>
+              </div>
             )}
+            {selected.assetType === 'VIDEO' && selected.thumbnailUrl && (
+              <div style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid var(--surface-border)', position: 'relative' }}>
+                <img
+                  src={selected.thumbnailUrl}
+                  alt={selected.name}
+                  style={{ width: '100%', display: 'block', objectFit: 'cover', maxHeight: 160 }}
+                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 32, opacity: 0.85 }}>▶️</span>
+                </div>
+              </div>
+            )}
+
             <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
               {[
                 ['Type',        selected.assetType],
@@ -496,6 +524,33 @@ export function ContentLibraryPanel() {
           </div>
         )}
       </div>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          onClick={() => setLightbox(null)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 2000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out',
+          }}
+        >
+          <img
+            src={lightbox}
+            alt="Full size preview"
+            style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain', borderRadius: 8, boxShadow: '0 8px 40px rgba(0,0,0,0.6)' }}
+            onClick={e => e.stopPropagation()}
+          />
+          <button
+            onClick={() => setLightbox(null)}
+            style={{
+              position: 'absolute', top: 20, right: 24,
+              background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%',
+              width: 36, height: 36, fontSize: 18, color: '#fff', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >✕</button>
+        </div>
+      )}
 
       {/* Hidden file input */}
       <input ref={fileRef} type="file" style={{ display: 'none' }} onChange={e => handleUpload(e.target.files)} />

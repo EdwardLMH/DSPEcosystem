@@ -247,7 +247,7 @@ After on-device approval:
 │  1. Updates CMS content state → PUBLISHED                         │
 │  2. Invalidates BFF Redis cache for affected screenIds            │
 │     (all users on those screens get fresh SDUI JSON on next req) │
-│  3. Sends CDN purge signal to Akamai for anonymous screens        │
+│  3. Sends CDN purge signal to CloudFront for anonymous screens     │
 │  4. For WeChat: triggers WeChat Open Platform "submit for review" │
 │     or "release" API (if using Experience Version flow)          │
 │  5. Logs full audit record: published by, device, timestamp      │

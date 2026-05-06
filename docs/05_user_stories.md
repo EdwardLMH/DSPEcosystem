@@ -172,12 +172,12 @@
 - CMS publish event fires a webhook `POST /internal/cache/invalidate` to the BFF
 - BFF flushes all Redis keys matching the affected `screenId` and `contentId` patterns
 - A cache miss after invalidation triggers a fresh CMS content fetch and re-caches the result
-- CDN purge API (Akamai) is called for screens accessible to anonymous users
+- CDN purge API (CloudFront) is called for screens accessible to anonymous users
 - End-to-end latency from CMS publish to client receiving fresh content is <60 s (measured in integration test)
 
 **Story Points:** 3  
 **Dependencies:** BFF-001  
-**Technical Notes:** Webhook secured with HMAC-SHA256 signature. Redis `SCAN` + `DEL` pattern: `sdui:{screenId}:*`. CDN purge via Akamai Fast Purge API. Invalidation events logged to `bff.cache_invalidation_log`.
+**Technical Notes:** Webhook secured with HMAC-SHA256 signature. Redis `SCAN` + `DEL` pattern: `sdui:{screenId}:*`. CDN purge via CloudFront invalidation API. Invalidation events logged to `bff.cache_invalidation_log`.
 
 ---
 

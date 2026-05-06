@@ -10,32 +10,33 @@ interface KYCStepContent_Params {
 }
 interface KYCJourneyView_Params {
     state?: KYCState;
+    dispatch?: (a: KYCAction) => void;
 }
 interface KYCWelcomeView_Params {
     state?: KYCState;
+    dispatch?: (a: KYCAction) => void;
 }
 interface KYCRootView_Params {
-    state?: KYCState;
+    store?: KYCStore;
+    screenReady?: boolean;
+    isComplete?: boolean;
 }
 import { Hive } from "@normalized:N&&&entry/src/main/ets/common/HiveTokens&";
-import type { KYCState, SDUIScreenPayload, AnswerEntry } from '../models/SDUIModels';
-import { KYCNameDobStep, KYCNationalityStep, KYCHKIDStep, KYCMainlandIDStep, KYCPassportStep, KYCDocumentStep, KYCContactStep, KYCAddressStep, KYCAddressDistrictStep, KYCEmploymentStep, KYCAnnualIncomeStep, KYCSourceOfFundsStep, KYCAccountPurposeStep, KYCLivenessStep, KYCOpenBankingStep, KYCDeclarationStep, } from "@normalized:N&&&entry/src/main/ets/kyc/KYCStepViews&";
-import { startSession, resume, getStep, submitStep } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
-import { SensorDataClient } from "@normalized:N&&&entry/src/main/ets/network/SensorDataClient&";
-// ─── Primary question extractor (mirrors iOS KYCStepContentCard.questionIds) ──
-// Reads payload.layout.children[0].props["questionId"] as the routing key.
-// FIX: use children[0].id which is typed as string — avoids ESObject implicit-type
-// error from props['questionId'] index access (arkts-no-any-unknown).
-// The BFF sets node.id = q.questionId in buildComponent(), so .id is authoritative.
+import type { KYCState, KYCAction, SDUIScreenPayload } from '../models/SDUIModels';
+import { KYCStore } from "@normalized:N&&&entry/src/main/ets/kyc/KYCStore&";
+import { KYCNameDobStep, KYCNationalityStep, KYCHKIDStep, KYCMainlandIDStep, KYCPassportStep, KYCDocumentStep, KYCContactStep, KYCAddressStep, KYCEmploymentIncomeStep, KYCSourceOfFundsStep, KYCLivenessStep, KYCOpenBankingStep, KYCDeclarationStep, } from "@normalized:N&&&entry/src/main/ets/kyc/KYCStepViews&";
+// ─── Primary question extractor ───────────────────────────────────────────────
+// Uses children[0].id (typed string) — avoids ESObject implicit-type error from
+// props['questionId'] index access. BFF sets node.id = q.questionId.
 function primaryQuestionId(payload: SDUIScreenPayload): string {
     const children = payload.layout.children;
     if (children === null || children === undefined)
         return '';
     if (children.length === 0)
         return '';
-    return children[0].id; // SDUINode.id is typed string — no cast needed
+    return children[0].id;
 }
-// ─── Step title (matches iOS KYCStepTitleView) ────────────────────────────────
+// ─── Step title (mirrors iOS KYCStepTitleView / Android kycStepTitle()) ───────
 function stepTitle(primaryQ: string): string {
     if (primaryQ === 'q_first_name')
         return '👤 Full Legal Name & Date of Birth';
@@ -51,22 +52,18 @@ function stepTitle(primaryQ: string): string {
         return '📄 Upload Identity Document';
     if (primaryQ === 'q_email')
         return '📱 Contact Details';
-    if (primaryQ === 'q_addr_line1')
+    if (primaryQ === 'q_addr_line1' ||
+        primaryQ === 'q_addr_line2' ||
+        primaryQ === 'q_addr_district')
         return '🏠 Residential Address';
-    if (primaryQ === 'q_addr_district')
-        return '📍 District';
     if (primaryQ === 'q_employment_status')
-        return '💼 Employment Status';
-    if (primaryQ === 'q_annual_income')
-        return '💰 Annual Income';
+        return '💼 Employment & Income';
     if (primaryQ === 'q_source_of_funds')
         return '🏦 Source of Funds';
-    if (primaryQ === 'q_account_purpose')
-        return '🎯 Purpose of Account';
     if (primaryQ === 'q_liveness')
         return '😊 Selfie & Liveness Check';
     if (primaryQ === 'q_ob_consent')
-        return '🏦 Connect Your Bank';
+        return '🔗 Connect Your Bank';
     if (primaryQ === 'q_pep_status')
         return '✍️ Legal Declarations';
     return '📋 Application';
@@ -87,37 +84,66 @@ export class KYCRootView extends ViewPU {
         if (typeof paramsLambda === "function") {
             this.paramsGenerator_ = paramsLambda;
         }
-        this.__state = new SynchedPropertyNesedObjectPU(params.state, this, "state");
+        this.store = new KYCStore();
+        this.__screenReady = new ObservedPropertySimplePU(false, this, "screenReady");
+        this.__isComplete = new ObservedPropertySimplePU(false, this, "isComplete");
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
     setInitiallyProvidedValue(params: KYCRootView_Params) {
-        this.__state.set(params.state);
+        if (params.store !== undefined) {
+            this.store = params.store;
+        }
+        if (params.screenReady !== undefined) {
+            this.screenReady = params.screenReady;
+        }
+        if (params.isComplete !== undefined) {
+            this.isComplete = params.isComplete;
+        }
     }
     updateStateVars(params: KYCRootView_Params) {
-        this.__state.set(params.state);
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
-        this.__state.purgeDependencyOnElmtId(rmElmtId);
+        this.__screenReady.purgeDependencyOnElmtId(rmElmtId);
+        this.__isComplete.purgeDependencyOnElmtId(rmElmtId);
     }
     aboutToBeDeleted() {
-        this.__state.aboutToBeDeleted();
+        this.__screenReady.aboutToBeDeleted();
+        this.__isComplete.aboutToBeDeleted();
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
-    private __state: SynchedPropertyNesedObjectPU<KYCState>;
-    get state() {
-        return this.__state.get();
+    // The store itself is not reactive — only KYCState (which is @Observed) is.
+    // We keep @State copies of the two flags that drive the root branch switch so
+    // that KYCRootView re-renders when dispatch() changes them.
+    private store: KYCStore;
+    private __screenReady: ObservedPropertySimplePU<boolean>;
+    get screenReady() {
+        return this.__screenReady.get();
+    }
+    set screenReady(newValue: boolean) {
+        this.__screenReady.set(newValue);
+    }
+    private __isComplete: ObservedPropertySimplePU<boolean>;
+    get isComplete() {
+        return this.__isComplete.get();
+    }
+    set isComplete(newValue: boolean) {
+        this.__isComplete.set(newValue);
+    }
+    aboutToAppear() {
+        this.store.onScreenReady = () => { this.screenReady = true; };
+        this.store.onComplete = () => { this.isComplete = true; };
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             If.create();
-            if (this.state.isComplete) {
+            if (this.isComplete) {
                 this.ifElseBranchUpdateFunction(0, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new KYCCompletionView(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 82, col: 7 });
+                                let componentCall = new KYCCompletionView(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 89, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -131,23 +157,24 @@ export class KYCRootView extends ViewPU {
                     }
                 });
             }
-            else if (this.state.screenPayload !== null) {
+            else if (this.screenReady) {
                 this.ifElseBranchUpdateFunction(1, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new KYCJourneyView(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 84, col: 7 });
+                                let componentCall = new KYCJourneyView(this, { state: this.store.state, dispatch: (a: KYCAction) => this.store.dispatch(a) }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 91, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
-                                        state: this.state
+                                        state: this.store.state,
+                                        dispatch: (a: KYCAction) => this.store.dispatch(a)
                                     };
                                 };
                                 componentCall.paramsGenerator_ = paramsLambda;
                             }
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {
-                                    state: this.state
+                                    state: this.store.state
                                 });
                             }
                         }, { name: "KYCJourneyView" });
@@ -159,18 +186,19 @@ export class KYCRootView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new KYCWelcomeView(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 86, col: 7 });
+                                let componentCall = new KYCWelcomeView(this, { state: this.store.state, dispatch: (a: KYCAction) => this.store.dispatch(a) }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 93, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
-                                        state: this.state
+                                        state: this.store.state,
+                                        dispatch: (a: KYCAction) => this.store.dispatch(a)
                                     };
                                 };
                                 componentCall.paramsGenerator_ = paramsLambda;
                             }
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {
-                                    state: this.state
+                                    state: this.store.state
                                 });
                             }
                         }, { name: "KYCWelcomeView" });
@@ -191,11 +219,15 @@ class KYCWelcomeView extends ViewPU {
             this.paramsGenerator_ = paramsLambda;
         }
         this.__state = new SynchedPropertyNesedObjectPU(params.state, this, "state");
+        this.dispatch = (_a: KYCAction) => { };
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
     setInitiallyProvidedValue(params: KYCWelcomeView_Params) {
         this.__state.set(params.state);
+        if (params.dispatch !== undefined) {
+            this.dispatch = params.dispatch;
+        }
     }
     updateStateVars(params: KYCWelcomeView_Params) {
         this.__state.set(params.state);
@@ -212,31 +244,7 @@ class KYCWelcomeView extends ViewPU {
     get state() {
         return this.__state.get();
     }
-    doStart() {
-        this.state.isLoading = true;
-        this.state.errorMessage = '';
-        SensorDataClient.kycJourneyStarted();
-        startSession('harmonynext')
-            .then(res => {
-            this.state.sessionId = res.sessionId;
-            this.state.totalSteps = res.totalSteps;
-            return resume(res.sessionId, 'harmonynext');
-        })
-            .then(payload => {
-            this.state.screenPayload = payload;
-            this.state.currentStepId = payload.metadata.stepId;
-            this.state.currentStepIndex = payload.metadata.stepIndex;
-            this.state.totalSteps = payload.metadata.totalSteps;
-            this.state.sectionTitle = payload.metadata.sectionTitle;
-            this.state.isLoading = false;
-            SensorDataClient.kycStepViewed(payload.metadata.stepId, payload.metadata.stepIndex, payload.metadata.totalSteps, payload.metadata.sectionTitle);
-        })
-            .catch((err: Error) => {
-            this.state.isLoading = false;
-            this.state.errorMessage =
-                `Cannot connect to server. Is the mock BFF running?\n${err.message}`;
-        });
-    }
+    private dispatch: (a: KYCAction) => void;
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Scroll.create();
@@ -261,7 +269,7 @@ class KYCWelcomeView extends ViewPU {
         {
             this.observeComponentCreation2((elmtId, isInitialRender) => {
                 if (isInitialRender) {
-                    let componentCall = new HSBCLogoView(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 134, col: 11 });
+                    let componentCall = new HSBCLogoView(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 111, col: 11 });
                     ViewPU.create(componentCall);
                     let paramsLambda = () => {
                         return {};
@@ -394,7 +402,7 @@ class KYCWelcomeView extends ViewPU {
             Button.fontColor(Hive.Color.brandWhite);
             Button.fontWeight(FontWeight.Medium);
             Button.enabled(!this.state.isLoading);
-            Button.onClick(() => { this.doStart(); });
+            Button.onClick(() => { this.dispatch({ type: 'START_SESSION' }); });
         }, Button);
         Button.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -417,11 +425,15 @@ class KYCJourneyView extends ViewPU {
             this.paramsGenerator_ = paramsLambda;
         }
         this.__state = new SynchedPropertyNesedObjectPU(params.state, this, "state");
+        this.dispatch = (_a: KYCAction) => { };
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
     setInitiallyProvidedValue(params: KYCJourneyView_Params) {
         this.__state.set(params.state);
+        if (params.dispatch !== undefined) {
+            this.dispatch = params.dispatch;
+        }
     }
     updateStateVars(params: KYCJourneyView_Params) {
         this.__state.set(params.state);
@@ -438,62 +450,17 @@ class KYCJourneyView extends ViewPU {
     get state() {
         return this.__state.get();
     }
+    private dispatch: (a: KYCAction) => void;
     progress(): number {
         return this.state.totalSteps > 0
             ? this.state.currentStepIndex / this.state.totalSteps * 100
             : 0;
     }
-    // Returns the human-readable title for the current step.
-    // Keeping this in a method avoids any variable declarations inside build().
     currentStepTitle(): string {
         const payload = this.state.screenPayload;
         if (payload === null || payload === undefined)
             return '📋 Application';
         return stepTitle(primaryQuestionId(payload as SDUIScreenPayload));
-    }
-    doSubmit() {
-        const sessionId = this.state.sessionId;
-        const stepId = this.state.currentStepId;
-        if (!sessionId || !stepId)
-            return;
-        this.state.isSubmitting = true;
-        SensorDataClient.kycStepCompleted(stepId, this.state.currentStepIndex, this.state.sectionTitle);
-        const answers: AnswerEntry[] = [];
-        Object.keys(this.state.answers).forEach((k: string) => {
-            answers.push({ questionId: k, value: this.state.answers[k] });
-        });
-        submitStep(sessionId, stepId, { answers })
-            .then(res => {
-            if (res.status === 'COMPLETE') {
-                SensorDataClient.kycJourneyCompleted();
-                this.state.isSubmitting = false;
-                this.state.isComplete = true;
-            }
-            else if (res.status === 'NEXT_STEP' && res.nextStepId) {
-                this.state.totalSteps = res.totalSteps ?? this.state.totalSteps;
-                getStep(sessionId, res.nextStepId, 'harmonynext')
-                    .then(payload => {
-                    this.state.screenPayload = payload;
-                    this.state.currentStepId = payload.metadata.stepId;
-                    this.state.currentStepIndex = payload.metadata.stepIndex;
-                    this.state.totalSteps = payload.metadata.totalSteps;
-                    this.state.sectionTitle = payload.metadata.sectionTitle;
-                    this.state.isSubmitting = false;
-                    SensorDataClient.kycStepViewed(payload.metadata.stepId, payload.metadata.stepIndex, payload.metadata.totalSteps, payload.metadata.sectionTitle);
-                })
-                    .catch((err: Error) => {
-                    this.state.isSubmitting = false;
-                    this.state.errorMessage = `Failed to load next step: ${err.message}`;
-                });
-            }
-            else {
-                this.state.isSubmitting = false;
-            }
-        })
-            .catch((err: Error) => {
-            this.state.isSubmitting = false;
-            this.state.errorMessage = `Submission failed: ${err.message}`;
-        });
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -517,7 +484,7 @@ class KYCJourneyView extends ViewPU {
         {
             this.observeComponentCreation2((elmtId, isInitialRender) => {
                 if (isInitialRender) {
-                    let componentCall = new HSBCLogoView(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 273, col: 9 });
+                    let componentCall = new HSBCLogoView(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 198, col: 9 });
                     ViewPU.create(componentCall);
                     let paramsLambda = () => {
                         return {};
@@ -602,11 +569,8 @@ class KYCJourneyView extends ViewPU {
             Column.padding(Hive.Spacing.s4);
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Section badge + title (derived from primaryQuestionId — not stepId)
             Column.create({ space: Hive.Spacing.s2 });
-            // Section badge + title (derived from primaryQuestionId — not stepId)
             Column.width('100%');
-            // Section badge + title (derived from primaryQuestionId — not stepId)
             Column.alignItems(HorizontalAlign.Start);
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -642,20 +606,13 @@ class KYCJourneyView extends ViewPU {
             }
         }, If);
         If.pop();
-        // Section badge + title (derived from primaryQuestionId — not stepId)
         Column.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Step card — keyed on stepId so ArkTS destroys/recreates on step change
             Column.create({ space: 0 });
-            // Step card — keyed on stepId so ArkTS destroys/recreates on step change
             Column.width('100%');
-            // Step card — keyed on stepId so ArkTS destroys/recreates on step change
             Column.padding(Hive.Spacing.s4);
-            // Step card — keyed on stepId so ArkTS destroys/recreates on step change
             Column.borderRadius(Hive.Radius.lg);
-            // Step card — keyed on stepId so ArkTS destroys/recreates on step change
             Column.backgroundColor(Hive.Color.brandWhite);
-            // Step card — keyed on stepId so ArkTS destroys/recreates on step change
             Column.shadow({ radius: 8, color: '#0F000000', offsetY: 2 });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -665,7 +622,7 @@ class KYCJourneyView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new KYCStepContent(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 321, col: 15 });
+                                let componentCall = new KYCStepContent(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 244, col: 15 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -689,7 +646,6 @@ class KYCJourneyView extends ViewPU {
             }
         }, If);
         If.pop();
-        // Step card — keyed on stepId so ArkTS destroys/recreates on step change
         Column.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             If.create();
@@ -719,9 +675,7 @@ class KYCJourneyView extends ViewPU {
         // Step content (scrollable)
         Scroll.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Nav bar
             Divider.create();
-            // Nav bar
             Divider.color(Hive.Color.n200);
         }, Divider);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -754,7 +708,8 @@ class KYCJourneyView extends ViewPU {
         If.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Button.createWithLabel(this.state.isSubmitting ? 'Submitting…' :
-                this.state.currentStepIndex >= this.state.totalSteps ? 'Submit Application' : 'Continue');
+                this.state.currentStepIndex >= this.state.totalSteps
+                    ? 'Submit Application' : 'Continue');
             Button.layoutWeight(1);
             Button.height(52);
             Button.borderRadius(Hive.Radius.base);
@@ -762,7 +717,7 @@ class KYCJourneyView extends ViewPU {
             Button.fontColor(Hive.Color.brandWhite);
             Button.fontWeight(FontWeight.Medium);
             Button.enabled(!this.state.isSubmitting);
-            Button.onClick(() => { this.doSubmit(); });
+            Button.onClick(() => { this.dispatch({ type: 'SUBMIT_STEP' }); });
         }, Button);
         Button.pop();
         Row.pop();
@@ -796,13 +751,10 @@ class KYCStepContent extends ViewPU {
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
-    private __state: SynchedPropertyNesedObjectPU<KYCState
-    // Returns the primary question ID without any variable declaration in build().
-    >;
+    private __state: SynchedPropertyNesedObjectPU<KYCState>;
     get state() {
         return this.__state.get();
     }
-    // Returns the primary question ID without any variable declaration in build().
     primaryQ(): string {
         const payload = this.state.screenPayload;
         if (payload === null || payload === undefined)
@@ -811,9 +763,7 @@ class KYCStepContent extends ViewPU {
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Single mandatory root container — satisfies ArkTS "one root node" rule.
             Column.create({ space: 0 });
-            // Single mandatory root container — satisfies ArkTS "one root node" rule.
             Column.width('100%');
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -823,7 +773,7 @@ class KYCStepContent extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new KYCNameDobStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 390, col: 9 });
+                                let componentCall = new KYCNameDobStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 306, col: 9 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -846,7 +796,7 @@ class KYCStepContent extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new KYCNationalityStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 392, col: 9 });
+                                let componentCall = new KYCNationalityStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 308, col: 9 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -869,7 +819,7 @@ class KYCStepContent extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new KYCHKIDStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 394, col: 9 });
+                                let componentCall = new KYCHKIDStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 310, col: 9 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -892,7 +842,7 @@ class KYCStepContent extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new KYCMainlandIDStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 396, col: 9 });
+                                let componentCall = new KYCMainlandIDStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 312, col: 9 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -915,7 +865,7 @@ class KYCStepContent extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new KYCPassportStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 398, col: 9 });
+                                let componentCall = new KYCPassportStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 314, col: 9 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -938,7 +888,7 @@ class KYCStepContent extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new KYCDocumentStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 400, col: 9 });
+                                let componentCall = new KYCDocumentStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 316, col: 9 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -961,7 +911,7 @@ class KYCStepContent extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new KYCContactStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 402, col: 9 });
+                                let componentCall = new KYCContactStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 318, col: 9 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -979,12 +929,13 @@ class KYCStepContent extends ViewPU {
                     }
                 });
             }
-            else if (this.primaryQ() === 'q_addr_line1' || this.primaryQ() === 'q_addr_line2') {
+            else if (this.primaryQ() === 'q_addr_line1' || this.primaryQ() === 'q_addr_line2' ||
+                this.primaryQ() === 'q_addr_district') {
                 this.ifElseBranchUpdateFunction(7, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new KYCAddressStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 404, col: 9 });
+                                let componentCall = new KYCAddressStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 321, col: 9 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -1002,12 +953,12 @@ class KYCStepContent extends ViewPU {
                     }
                 });
             }
-            else if (this.primaryQ() === 'q_addr_district') {
+            else if (this.primaryQ() === 'q_employment_status') {
                 this.ifElseBranchUpdateFunction(8, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new KYCAddressDistrictStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 406, col: 9 });
+                                let componentCall = new KYCEmploymentIncomeStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 323, col: 9 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -1021,62 +972,16 @@ class KYCStepContent extends ViewPU {
                                     state: this.state
                                 });
                             }
-                        }, { name: "KYCAddressDistrictStep" });
-                    }
-                });
-            }
-            else if (this.primaryQ() === 'q_employment_status') {
-                this.ifElseBranchUpdateFunction(9, () => {
-                    {
-                        this.observeComponentCreation2((elmtId, isInitialRender) => {
-                            if (isInitialRender) {
-                                let componentCall = new KYCEmploymentStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 408, col: 9 });
-                                ViewPU.create(componentCall);
-                                let paramsLambda = () => {
-                                    return {
-                                        state: this.state
-                                    };
-                                };
-                                componentCall.paramsGenerator_ = paramsLambda;
-                            }
-                            else {
-                                this.updateStateVarsOfChildByElmtId(elmtId, {
-                                    state: this.state
-                                });
-                            }
-                        }, { name: "KYCEmploymentStep" });
-                    }
-                });
-            }
-            else if (this.primaryQ() === 'q_annual_income') {
-                this.ifElseBranchUpdateFunction(10, () => {
-                    {
-                        this.observeComponentCreation2((elmtId, isInitialRender) => {
-                            if (isInitialRender) {
-                                let componentCall = new KYCAnnualIncomeStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 410, col: 9 });
-                                ViewPU.create(componentCall);
-                                let paramsLambda = () => {
-                                    return {
-                                        state: this.state
-                                    };
-                                };
-                                componentCall.paramsGenerator_ = paramsLambda;
-                            }
-                            else {
-                                this.updateStateVarsOfChildByElmtId(elmtId, {
-                                    state: this.state
-                                });
-                            }
-                        }, { name: "KYCAnnualIncomeStep" });
+                        }, { name: "KYCEmploymentIncomeStep" });
                     }
                 });
             }
             else if (this.primaryQ() === 'q_source_of_funds') {
-                this.ifElseBranchUpdateFunction(11, () => {
+                this.ifElseBranchUpdateFunction(9, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new KYCSourceOfFundsStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 412, col: 9 });
+                                let componentCall = new KYCSourceOfFundsStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 325, col: 9 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -1094,35 +999,12 @@ class KYCStepContent extends ViewPU {
                     }
                 });
             }
-            else if (this.primaryQ() === 'q_account_purpose') {
-                this.ifElseBranchUpdateFunction(12, () => {
-                    {
-                        this.observeComponentCreation2((elmtId, isInitialRender) => {
-                            if (isInitialRender) {
-                                let componentCall = new KYCAccountPurposeStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 414, col: 9 });
-                                ViewPU.create(componentCall);
-                                let paramsLambda = () => {
-                                    return {
-                                        state: this.state
-                                    };
-                                };
-                                componentCall.paramsGenerator_ = paramsLambda;
-                            }
-                            else {
-                                this.updateStateVarsOfChildByElmtId(elmtId, {
-                                    state: this.state
-                                });
-                            }
-                        }, { name: "KYCAccountPurposeStep" });
-                    }
-                });
-            }
             else if (this.primaryQ() === 'q_liveness') {
-                this.ifElseBranchUpdateFunction(13, () => {
+                this.ifElseBranchUpdateFunction(10, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new KYCLivenessStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 416, col: 9 });
+                                let componentCall = new KYCLivenessStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 327, col: 9 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -1141,11 +1023,11 @@ class KYCStepContent extends ViewPU {
                 });
             }
             else if (this.primaryQ() === 'q_ob_consent') {
-                this.ifElseBranchUpdateFunction(14, () => {
+                this.ifElseBranchUpdateFunction(11, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new KYCOpenBankingStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 418, col: 9 });
+                                let componentCall = new KYCOpenBankingStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 329, col: 9 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -1166,11 +1048,11 @@ class KYCStepContent extends ViewPU {
             else if (this.primaryQ() === 'q_pep_status' ||
                 this.primaryQ() === 'decl_truthful' ||
                 this.primaryQ() === 'decl_fatca') {
-                this.ifElseBranchUpdateFunction(15, () => {
+                this.ifElseBranchUpdateFunction(12, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new KYCDeclarationStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 422, col: 9 });
+                                let componentCall = new KYCDeclarationStep(this, { state: this.state }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 333, col: 9 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -1189,13 +1071,10 @@ class KYCStepContent extends ViewPU {
                 });
             }
             else {
-                this.ifElseBranchUpdateFunction(16, () => {
+                this.ifElseBranchUpdateFunction(13, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        // Debug fallback — visible when primaryQ() returns '' or an unrecognised value
                         Column.create({ space: Hive.Spacing.s3 });
-                        // Debug fallback — visible when primaryQ() returns '' or an unrecognised value
                         Column.padding(Hive.Spacing.s6);
-                        // Debug fallback — visible when primaryQ() returns '' or an unrecognised value
                         Column.width('100%');
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1230,13 +1109,11 @@ class KYCStepContent extends ViewPU {
                         Text.width('100%');
                     }, Text);
                     Text.pop();
-                    // Debug fallback — visible when primaryQ() returns '' or an unrecognised value
                     Column.pop();
                 });
             }
         }, If);
         If.pop();
-        // Single mandatory root container — satisfies ArkTS "one root node" rule.
         Column.pop();
     }
     rerender() {
@@ -1275,7 +1152,7 @@ class KYCCompletionView extends ViewPU {
         {
             this.observeComponentCreation2((elmtId, isInitialRender) => {
                 if (isInitialRender) {
-                    let componentCall = new HSBCLogoView(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 445, col: 7 });
+                    let componentCall = new HSBCLogoView(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/kyc/KYCShellViews.ets", line: 355, col: 7 });
                     ViewPU.create(componentCall);
                     let paramsLambda = () => {
                         return {};

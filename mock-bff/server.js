@@ -32,6 +32,19 @@ const PORT = 4000;
 
 app.use(cors());
 app.use(express.json());
+app.use('/media', express.static(require('path').join(__dirname, 'public/media')));
+
+// ─── Media URL helper ─────────────────────────────────────────────────────────
+// Returns an absolute media URL derived from the *incoming* request host.
+// This ensures iOS Simulator (::1), iOS/Android/HarmonyNext physical devices
+// (LAN IP), and Android/HarmonyNext emulators (10.0.2.2) all receive a URL
+// they can reach — the host in the URL mirrors the host the client used to
+// call the BFF, so it is always reachable from that client.
+function mediaUrl(req, path) {
+  const host = req.hostname;           // e.g. localhost, ::1, 10.81.103.103, 10.0.2.2
+  const proto = req.protocol || 'http';
+  return `${proto}://${host}:${PORT}${path}`;
+}
 
 // ─── Zone 2 guard (mock) ─────────────────────────────────────────────────────
 // In production this is replaced by Spring Security + Azure AD JWT validation.
@@ -247,83 +260,114 @@ function splitIntoSteps(platform) {
   const steps = [];
   let stepNum = 0;
 
-  for (const section of KYC_QUESTIONS) {
-    if (platform === 'web') {
-      // Web: group non-upload questions into one step per section
-      const normal  = section.questions.filter(q => q.type !== 'KYCDocUpload');
-      const uploads = section.questions.filter(q => q.type === 'KYCDocUpload');
-      if (normal.length > 0) {
-        stepNum++;
-        steps.push({
-          stepId: `step-${String(stepNum).padStart(3,'0')}`,
-          stepIndex: stepNum,
-          sectionId: section.sectionId,
-          sectionTitle: section.sectionTitle,
-          questions: normal,
-          layout: 'two_column_grid',
-        });
-      }
-      for (const q of uploads) {
-        stepNum++;
-        steps.push({
-          stepId: `step-${String(stepNum).padStart(3,'0')}`,
-          stepIndex: stepNum,
-          sectionId: section.sectionId,
-          sectionTitle: section.sectionTitle,
-          questions: [q],
-          layout: 'document_upload',
-        });
-      }
-    } else {
-      // Mobile: max 3 questions per step; uploads/selects alone
-      // Special case: identity_document section stays as one step (nationality filtering
-      // happens at render time — we don't know which questions apply until nationality is answered)
-      if (section.sectionId === 'identity_document') {
-        stepNum++;
-        steps.push({
-          stepId: `step-${String(stepNum).padStart(3,'0')}`,
-          stepIndex: stepNum,
-          sectionId: section.sectionId,
-          sectionTitle: section.sectionTitle,
-          questions: section.questions, // all possible ID questions — filtered at render
-          layout: 'single_column',
-        });
-      } else {
-        let buffer = [];
-        const flush = () => {
-          if (buffer.length === 0) return;
-          stepNum++;
-          steps.push({
-            stepId: `step-${String(stepNum).padStart(3,'0')}`,
-            stepIndex: stepNum,
-            sectionId: section.sectionId,
-            sectionTitle: section.sectionTitle,
-            questions: [...buffer],
-            layout: 'single_column',
-          });
-          buffer = [];
-        };
-        for (const q of section.questions) {
-          if (q.type === 'KYCDocUpload' || q.type === 'KYCSingleSelect') {
-            flush();
-            stepNum++;
-            steps.push({
-              stepId: `step-${String(stepNum).padStart(3,'0')}`,
-              stepIndex: stepNum,
-              sectionId: section.sectionId,
-              sectionTitle: section.sectionTitle,
-              questions: [q],
-              layout: q.type === 'KYCDocUpload' ? 'document_upload' : 'single_column',
-            });
-          } else {
-            buffer.push(q);
-            if (buffer.length >= 3) flush();
-          }
-        }
-        flush();
-      }
-    }
+  const push = (sectionId, sectionTitle, questions, layout) => {
+    stepNum++;
+    steps.push({
+      stepId: `step-${String(stepNum).padStart(3,'0')}`,
+      stepIndex: stepNum,
+      sectionId,
+      sectionTitle,
+      questions,
+      layout,
+    });
+  };
+
+  if (platform === 'web') {
+    // Web: 6 consolidated steps matching 'OBKYC Account Opening - Web' journey in OCDP.
+    // Mobile steps 1+2+3 → web-step-001  (identity)
+    // Mobile steps 4+5   → web-step-002  (doc upload + contact)
+    // Mobile steps 6+7+8 → web-step-003  (address + employment + funds)
+    // Mobile step  9     → web-step-004  (liveness)
+    // Mobile step  10    → web-step-005  (open banking)
+    // Mobile step  11    → web-step-006  (declarations)
+    const byId = {};
+    for (const section of KYC_QUESTIONS)
+      for (const q of section.questions) byId[q.questionId] = { ...q, sectionId: section.sectionId, sectionTitle: section.sectionTitle };
+    const q = id => byId[id];
+
+    push('personal_details',    'Your Identity',
+      [q('q_first_name'), q('q_last_name'), q('q_date_of_birth'), q('q_nationality'),
+       q('q_hkid_number'), q('q_hkid_expiry'), q('q_mainland_id'), q('q_passport_number'), q('q_passport_expiry')],
+      'two_column_grid');
+
+    push('identity_upload',     'Document & Contact',
+      [q('q_hkid_front'), q('q_email'), q('q_phone')], 'two_column_grid');
+
+    push('residential_address', 'Background',
+      [q('q_addr_line1'), q('q_addr_line2'), q('q_addr_district'),
+       q('q_employment_status'), q('q_annual_income'), q('q_source_of_funds'), q('q_account_purpose')],
+      'two_column_grid');
+
+    push('liveness_check',      'Selfie & Liveness', [q('q_liveness')], 'single_column');
+    push('open_banking',        'Connect Your Bank',  [q('q_ob_consent')], 'single_column');
+    push('declarations',        'Legal Declarations',
+      [q('q_pep_status'), q('decl_truthful'), q('decl_fatca')], 'two_column_grid');
+
+    return steps;
   }
+
+  // Mobile: fixed 11-step layout matching the 'OBKYC Account Opening' journey in OCDP.
+  // All three platforms (iOS, Android, HarmonyNext) share this step contract.
+  //
+  // step-001  Personal Info + DOB   q_first_name + q_last_name + q_date_of_birth
+  // step-002  Nationality            q_nationality
+  // step-003  Identity Document      q_hkid_number/q_hkid_expiry | q_mainland_id | q_passport_number/q_passport_expiry
+  // step-004  Upload Document        q_hkid_front
+  // step-005  Contact Details        q_email + q_phone
+  // step-006  Residential Address    q_addr_line1 + q_addr_line2 + q_addr_district
+  // step-007  Employment & Income    q_employment_status + q_annual_income
+  // step-008  Source of Funds        q_source_of_funds + q_account_purpose
+  // step-009  Selfie & Liveness      q_liveness
+  // step-010  Connect Your Bank      q_ob_consent
+  // step-011  Legal Declarations     q_pep_status + decl_truthful + decl_fatca
+
+  const byId = {};
+  for (const section of KYC_QUESTIONS) {
+    for (const q of section.questions) byId[q.questionId] = { ...q, sectionId: section.sectionId, sectionTitle: section.sectionTitle };
+  }
+  const q = id => byId[id];
+
+  // step-001: Personal Info + Date of Birth
+  push('personal_details', 'Personal Information',
+    [q('q_first_name'), q('q_last_name'), q('q_date_of_birth')], 'single_column');
+
+  // step-002: Nationality
+  push('personal_details', 'Personal Information',
+    [q('q_nationality')], 'single_column');
+
+  // step-003: Identity Document (all variants — nationality-filtered at render)
+  push('identity_document', 'Identity Document',
+    [q('q_hkid_number'), q('q_hkid_expiry'), q('q_mainland_id'), q('q_passport_number'), q('q_passport_expiry')],
+    'single_column');
+
+  // step-004: Upload Identity Document
+  push('identity_upload', 'Upload Identity Document', [q('q_hkid_front')], 'document_upload');
+
+  // step-005: Contact Details
+  push('contact_details', 'Contact Details', [q('q_email'), q('q_phone')], 'single_column');
+
+  // step-006: Residential Address (all address fields together)
+  push('residential_address', 'Residential Address',
+    [q('q_addr_line1'), q('q_addr_line2'), q('q_addr_district')], 'single_column');
+
+  // step-007: Employment & Income
+  push('employment', 'Employment & Income',
+    [q('q_employment_status'), q('q_annual_income')], 'single_column');
+
+  // step-008: Source of Funds & Account Purpose
+  push('source_of_funds', 'Source of Funds',
+    [q('q_source_of_funds'), q('q_account_purpose')], 'single_column');
+
+  // step-009: Selfie & Liveness
+  push('liveness_check', 'Selfie & Liveness Check', [q('q_liveness')], 'single_column');
+
+  // step-010: Connect Your Bank
+  push('open_banking', 'Connect Your Bank', [q('q_ob_consent')], 'single_column');
+
+  // step-011: Legal Declarations
+  push('declarations', 'Legal Declarations',
+    [q('q_pep_status'), q('decl_truthful'), q('decl_fatca')], 'single_column');
+
   return steps;
 }
 
@@ -627,13 +671,113 @@ const ucpAudit    = [];        // append-only audit log
 // Seed one page so there is always something to GET
 ucpPages.set('home-wealth-hk', {
   pageId: 'home-wealth-hk',
-  name: 'Home – Wealth Hub (HK)',
+  name: 'Home Hub (HK)',
   platform: 'ios',
   locale: 'zh-HK',
   slices: [],
   status: 'DRAFT',
   version: 0,
   publishedAt: null,
+});
+
+// Seed the Market Insight page — FX Viewpoint (LIVE)
+ucpPages.set('fx-viewpoint-hk', {
+  pageId: 'fx-viewpoint-hk',
+  name: 'FX Viewpoint — EUR & GBP (HK)',
+  platform: 'all',
+  locale: 'en-HK',
+  status: 'LIVE',
+  version: 1,
+  publishedAt: new Date(Date.now() - 86400000).toISOString(),
+  slices: [
+    { instanceId: 'mi-header', type: 'HEADER_NAV', visible: true, locked: true,
+      props: { title: 'FX Viewpoint', showNotificationBell: false, showQRScanner: false, showBackButton: true } },
+    { instanceId: 'mi-content-header', type: 'VIDEO_PLAYER', visible: true, locked: false,
+      props: {
+        ucpAssetId: 'asset-008',
+        title: 'FX Viewpoint — EUR & GBP Market Insights (May 2026)',
+        thumbnailUrl: 'https://placehold.co/1280x720/003366/ffffff?text=FX+Viewpoint+EUR+%26+GBP',
+        videoUrl: '/media/fx-viewpoint.mov',
+        presenterName: 'Jackie Wong',
+        presenterTitle: 'FX Strategist, HSBC Global Research',
+        autoplay: false,
+        showCaption: true,
+      } },
+    { instanceId: 'mi-briefing', type: 'MARKET_BRIEFING_TEXT', visible: true, locked: false,
+      props: {
+        ucpContentId: 'ucp-content-fx-viewpoint-001',
+        sectionTitle: 'Key takeaways',
+        bulletPoints: [
+          'A weak USD is likely to persist into 2026, providing temporary support for the EUR and GBP.',
+          'With the ECB expected to maintain its policy rate in 2026, the EUR should remain broadly stable.',
+          'BoE delivered a 25 bps cut in May 2026 — further easing is data-dependent and market pricing appears stretched.',
+          'GBP/USD faces near-term resistance at 1.3200 amid mixed UK growth signals.',
+          'Investors should consider diversified FX exposure to manage downside risk against a volatile USD backdrop.',
+        ],
+        disclaimer: 'This material is issued by HSBC and is for information purposes only. It does not constitute investment advice or a recommendation to buy or sell any financial instrument.',
+      } },
+    { instanceId: 'mi-contact-rm', type: 'CONTACT_RM_CTA', visible: true, locked: false,
+      props: {
+        label: 'Contact Your RM',
+        subLabel: 'Speak to your Relationship Manager about FX opportunities',
+        deepLink: 'hsbc://rm/contact?context=fx-viewpoint',
+        backgroundColor: '#DB0011',
+        textColor: '#FFFFFF',
+        sticky: true,
+      } },
+  ],
+});
+
+// Seed the Deposit Campaign page (LIVE)
+ucpPages.set('deposit-campaign-hk', {
+  pageId: 'deposit-campaign-hk',
+  name: 'New Fund Deposit Campaign (CN)',
+  platform: 'all',
+  locale: 'en-CN',
+  status: 'LIVE',
+  version: 1,
+  publishedAt: new Date(Date.now() - 86400000).toISOString(),
+  slices: [
+    { instanceId: 'dep-header', type: 'HEADER_NAV', visible: true, locked: true,
+      props: { title: 'Renminbi Savings Offers', showNotificationBell: false, showQRScanner: false, showBackButton: true } },
+    { instanceId: 'dep-image-banner', type: 'PROMO_BANNER', visible: true, locked: false,
+      props: { imageUrl: '/media/deposit-campaign-banner.jpg', ucpAssetId: 'asset-009', backgroundColor: '#FFFFFF' } },
+    { instanceId: 'dep-cd-rate-banner', type: 'PROMO_BANNER', visible: true, locked: false,
+      props: {
+        title: '🌟 Up to 1.15% p.a. Annual Equivalent Rate',
+        subtitle: '3-Month New Fund CNY Transferable CD — exclusively for new deposits. Don\'t miss this limited-time rate. Start earning more today.',
+        badgeText: '🔥 New Funds Only',
+        backgroundColor: '#FFF7ED',
+        textColor: '#92400E',
+      } },
+    { instanceId: 'dep-rate-table', type: 'DEPOSIT_RATE_TABLE', visible: true, locked: false,
+      props: {
+        sectionTitle: 'Time Deposit Rate:',
+        asAtDate: '5/22/2025',
+        rates: [
+          { term: '3 Month Time Deposit',  rate: '0.65' },
+          { term: '6 Month Time Deposit',  rate: '0.85' },
+          { term: '12 Month Time Deposit', rate: '0.95' },
+          { term: '24 Month Time Deposit', rate: '1.05' },
+          { term: '36 Month Time Deposit', rate: '1.25' },
+          { term: '60 Month Time Deposit', rate: '1.30' },
+        ],
+        footnote: 'Time deposit minimum balance for Personal Banking customers: RMB50. New Fund refers to funds not previously held with HSBC.',
+      } },
+    { instanceId: 'dep-open-cta', type: 'DEPOSIT_OPEN_CTA', visible: true, locked: false,
+      props: { label: 'Open a Deposit', deepLink: 'hsbc://deposit/open?currency=CNY&campaign=new-fund', backgroundColor: '#C41E3A', textColor: '#FFFFFF' } },
+    { instanceId: 'dep-spacer', type: 'SPACER', visible: true, locked: false, props: { height: 16 } },
+    { instanceId: 'dep-faq', type: 'DEPOSIT_FAQ', visible: true, locked: false,
+      props: {
+        sectionTitle: 'Frequently Asked Questions',
+        items: [
+          { id: 'faq-1', question: 'Can I withdraw my time deposit before it matures?', answer: 'Yes, you can. But you\'ll earn less or no interest, and may have to pay an early withdrawal fee. For foreign currency deposits, visit a bank branch.' },
+          { id: 'faq-2', question: 'What happens if I don\'t withdraw my money after maturity?', answer: 'If you don\'t take out your money when it matures, most banks will automatically renew your deposit for the same term at the current interest rate. You can also choose to withdraw it or change the term before maturity.' },
+          { id: 'faq-3', question: 'How long can I keep a time deposit?', answer: 'Banks usually offer terms like 3 months, 6 months, 1 year, 2 years, 3 years, 5 years, or even 10 years. Longer terms usually have higher interest rates. The most popular choices are 6-month or 12-month plans.' },
+          { id: 'faq-4', question: 'Why is the interest rate higher for time deposits than regular savings accounts?', answer: 'Banks can offer better rates because they know you\'ll keep your money in the account for a fixed period. This lets them use the funds for longer-term investments, so they share more of the profit with you as interest.' },
+        ],
+      } },
+  ],
 });
 
 function ucpAuditEntry(actorId, actorRole, action, pageId, pageName, details) {
@@ -660,7 +804,26 @@ app.get('/api/v1/ucp/pages', requireInternalAuth, (req, res) => {
 app.get('/api/v1/ucp/pages/:pageId', requireInternalAuth, (req, res) => {
   const page = ucpPages.get(req.params.pageId);
   if (!page) return res.status(404).json({ error: 'Page not found' });
-  res.json({ page });
+
+  // Deep-clone and resolve relative media URLs
+  const resolved = JSON.parse(JSON.stringify(page));
+  if (resolved.slices) {
+    resolved.slices.forEach(slice => {
+      if (slice.props) {
+        if (slice.props.imageUrl && slice.props.imageUrl.startsWith('/media/')) {
+          slice.props.imageUrl = mediaUrl(req, slice.props.imageUrl);
+        }
+        if (slice.props.videoUrl && slice.props.videoUrl.startsWith('/media/')) {
+          slice.props.videoUrl = mediaUrl(req, slice.props.videoUrl);
+        }
+        if (slice.props.thumbnailUrl && slice.props.thumbnailUrl.startsWith('/media/')) {
+          slice.props.thumbnailUrl = mediaUrl(req, slice.props.thumbnailUrl);
+        }
+      }
+    });
+  }
+
+  res.json({ page: resolved });
 });
 
 // ─── PUT  /api/v1/ucp/pages/:pageId  — save draft layout (AUTHOR/ADMIN only) ─
@@ -812,7 +975,185 @@ app.post('/api/v1/ucp/workflow/:entryId/publish', requireInternalAuth, (req, res
   res.json({ status: 'PUBLISHED', pageId: entry.pageId, version: entry.version });
 });
 
-// ─── GET /api/v1/screen/home-wealth-hk  — SDUI delivery to mobile clients ────
+// ─── GET /api/v1/ucp/content-assets  — content asset library (Zone 2) ─────────
+// Returns the full list of UCP content assets (images, videos, documents).
+// OCDP's page editor sidebar fetches this to populate the "Content" tab.
+// Supports ?type=VIDEO|IMAGE|DOCUMENT&status=ACTIVE|ARCHIVED&q=<search> filters.
+app.get('/api/v1/ucp/content-assets', requireInternalAuth, (req, res) => {
+  const { type, status = 'ACTIVE', q } = req.query;
+
+  const UCP_CONTENT_ASSETS = [
+    {
+      assetId: 'asset-001',
+      name: 'Jade Banner Hero',
+      assetType: 'IMAGE',
+      mimeType: 'image/jpeg',
+      sizeBytes: 248320,
+      url: 'https://placehold.co/1200x400/1a1a2e/c9a96e?text=Jade+Hero',
+      thumbnailUrl: 'https://placehold.co/240x80/1a1a2e/c9a96e?text=Jade+Hero',
+      altText: 'HSBC Jade Premier Banking hero banner',
+      tags: ['jade', 'hero', 'banner'],
+      marketId: 'HK', bizLineId: 'WEALTH',
+      uploadedBy: 'j.chan@hsbc.com.hk', uploadedByName: 'Janet Chan',
+      uploadedAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+      status: 'ACTIVE',
+    },
+    {
+      assetId: 'asset-002',
+      name: 'VISA Infinite Card Art',
+      assetType: 'IMAGE',
+      mimeType: 'image/png',
+      sizeBytes: 184210,
+      url: 'https://placehold.co/800x500/DB0011/ffffff?text=VISA+Infinite',
+      thumbnailUrl: 'https://placehold.co/160x100/DB0011/ffffff?text=VISA+Infinite',
+      altText: 'HSBC VISA Infinite credit card product image',
+      tags: ['visa', 'credit-card', 'product'],
+      marketId: 'GLOBAL', bizLineId: 'PAYMENT',
+      uploadedBy: 'k.lee@hsbc.com.hk', uploadedByName: 'Karen Lee',
+      uploadedAt: new Date(Date.now() - 86400000 * 12).toISOString(),
+      status: 'ACTIVE',
+    },
+    {
+      assetId: 'asset-003',
+      name: 'KYC Walkthrough Video',
+      assetType: 'VIDEO',
+      mimeType: 'video/mp4',
+      sizeBytes: 18874368,
+      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+      thumbnailUrl: 'https://placehold.co/256x144/003366/ffffff?text=KYC+Video',
+      altText: 'KYC onboarding walkthrough tutorial',
+      tags: ['kyc', 'onboarding', 'tutorial'],
+      marketId: 'HK', bizLineId: 'WEB_ENABLER',
+      uploadedBy: 'j.chan@hsbc.com.hk', uploadedByName: 'Janet Chan',
+      uploadedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+      status: 'ACTIVE',
+      durationSeconds: 90,
+      presenter: 'HSBC Digital Team',
+      presenterTitle: 'Customer Onboarding',
+    },
+    {
+      assetId: 'asset-004',
+      name: 'HSBC Premier T&C PDF',
+      assetType: 'DOCUMENT',
+      mimeType: 'application/pdf',
+      sizeBytes: 3145728,
+      url: 'https://placehold.co/1x1/ffffff/ffffff?text=PDF',
+      tags: ['terms', 'legal', 'premier'],
+      marketId: 'HK', bizLineId: 'WEALTH',
+      uploadedBy: 'j.chan@hsbc.com.hk', uploadedByName: 'Janet Chan',
+      uploadedAt: new Date(Date.now() - 86400000 * 20).toISOString(),
+      status: 'ACTIVE',
+    },
+    {
+      assetId: 'asset-006',
+      name: 'WeChat Campaign Banner',
+      assetType: 'IMAGE',
+      mimeType: 'image/jpeg',
+      sizeBytes: 102400,
+      url: 'https://placehold.co/900x500/07C160/ffffff?text=WeChat+Campaign',
+      thumbnailUrl: 'https://placehold.co/180x100/07C160/ffffff?text=WeChat+Campaign',
+      altText: 'WeChat Jade upgrade campaign banner',
+      tags: ['wechat', 'campaign', 'jade'],
+      marketId: 'HK', bizLineId: 'WEALTH',
+      uploadedBy: 'j.chan@hsbc.com.hk', uploadedByName: 'Janet Chan',
+      uploadedAt: new Date(Date.now() - 86400000 * 1).toISOString(),
+      status: 'ACTIVE',
+    },
+    {
+      assetId: 'asset-008',
+      name: 'FX Viewpoint — EUR & GBP Market Insights (May 2026)',
+      assetType: 'VIDEO',
+      mimeType: 'video/mp4',
+      sizeBytes: 52428800,
+      url: mediaUrl(req, '/media/fx-viewpoint.mov'),
+      thumbnailUrl: 'https://placehold.co/1280x720/003366/ffffff?text=FX+Viewpoint+EUR+%26+GBP',
+      altText: 'HSBC FX Viewpoint: EUR and GBP — ECB on hold and BoE cut rates. Presented by Jackie Wong.',
+      tags: ['fx', 'viewpoint', 'eur', 'gbp', 'market-insight', 'wealth'],
+      marketId: 'HK', bizLineId: 'WEALTH',
+      uploadedBy: 'j.chan@hsbc.com.hk', uploadedByName: 'Janet Chan',
+      uploadedAt: new Date(Date.now() - 86400000 * 1).toISOString(),
+      status: 'ACTIVE',
+      durationSeconds: 120,
+      presenter: 'Jackie Wong',
+      presenterTitle: 'FX Strategist, HSBC Global Research',
+    },
+    {
+      assetId: 'asset-007',
+      name: 'Old Promo Banner 2025',
+      assetType: 'IMAGE',
+      mimeType: 'image/jpeg',
+      sizeBytes: 196608,
+      url: 'https://placehold.co/1200x400/888888/ffffff?text=Old+Banner',
+      thumbnailUrl: 'https://placehold.co/240x80/888888/ffffff?text=Old+Banner',
+      altText: 'Archived 2025 promo banner',
+      tags: ['archived', 'promo'],
+      marketId: 'HK', bizLineId: 'MARKETING',
+      uploadedBy: 'k.lee@hsbc.com.hk', uploadedByName: 'Karen Lee',
+      uploadedAt: new Date(Date.now() - 86400000 * 180).toISOString(),
+      status: 'ARCHIVED',
+    },
+    {
+      assetId: 'asset-009',
+      name: 'Deposit Campaign Hero Banner',
+      assetType: 'IMAGE',
+      mimeType: 'image/jpeg',
+      sizeBytes: 312000,
+      url: mediaUrl(req, '/media/deposit-campaign-banner.jpg'),
+      thumbnailUrl: mediaUrl(req, '/media/deposit-campaign-banner.jpg'),
+      altText: 'Father and child looking out over mountains and lake — Renminbi Savings new fund deposit campaign',
+      tags: ['deposit', 'campaign', 'savings', 'renminbi', 'banner'],
+      marketId: 'HK', bizLineId: 'WEALTH',
+      uploadedBy: 'j.chan@hsbc.com.hk', uploadedByName: 'Janet Chan',
+      uploadedAt: new Date(Date.now()).toISOString(),
+      status: 'ACTIVE',
+    },
+  ];
+
+  let assets = UCP_CONTENT_ASSETS;
+  if (status) assets = assets.filter(a => a.status === status.toUpperCase());
+  if (type)   assets = assets.filter(a => a.assetType === String(type).toUpperCase());
+  if (q)      assets = assets.filter(a =>
+    a.name.toLowerCase().includes(String(q).toLowerCase()) ||
+    (a.tags ?? []).some(t => t.toLowerCase().includes(String(q).toLowerCase()))
+  );
+
+  res.json({ assets, total: assets.length });
+});
+
+// ─── GET /api/v1/ucp/components  — UI component registry (Zone 2) ─────────────
+// Returns the UCP component registry so OCDP's editor sidebar "Components" tab
+// can show live component definitions (version, category, configurable fields).
+// Supports ?category=<cat>&status=ACTIVE|DEPRECATED filters.
+app.get('/api/v1/ucp/components', requireInternalAuth, (req, res) => {
+  const { category, status = 'ACTIVE' } = req.query;
+
+  const UCP_COMPONENTS = [
+    { componentId: 'comp-HEADER_NAV',           sliceType: 'HEADER_NAV',           label: 'Header Navigation',     icon: '🔝',   category: 'navigation', description: 'Top bar with search, notification bell, QR scanner',                        configurable: ['title', 'searchPlaceholder', 'showNotificationBell', 'showQRScanner'], minHeight: 60,  singleton: true,  version: '2.3.1', maintainedBy: 'HIVE Platform Team',         status: 'ACTIVE' },
+    { componentId: 'comp-AI_SEARCH_BAR',        sliceType: 'AI_SEARCH_BAR',        label: 'AI Search Bar',         icon: '🔍',   category: 'navigation', description: 'HSBC red semantic search bar with QR scan, chatbot and message entry',     configurable: ['placeholder', 'enableSemanticSearch', 'enableQRScan', 'enableChatbot', 'enableMessageInbox', 'searchApiEndpoint'], minHeight: 44, singleton: true, version: '1.0.0', maintainedBy: 'HIVE Platform Team', status: 'ACTIVE' },
+    { componentId: 'comp-QUICK_ACCESS',         sliceType: 'QUICK_ACCESS',         label: 'Quick Access Buttons',  icon: '⚡',   category: 'function',   description: 'Row of primary product shortcuts',                                          configurable: ['items'],                                                               minHeight: 80,  singleton: true,  version: '1.8.0', maintainedBy: 'HIVE Platform Team',         status: 'ACTIVE' },
+    { componentId: 'comp-PROMO_BANNER',         sliceType: 'PROMO_BANNER',         label: 'Promo Banner',          icon: '🎪',   category: 'promotion',  description: 'Full-width campaign banner with image, title, CTA',                         configurable: ['title', 'subtitle', 'ctaLabel', 'ctaDeepLink', 'imageUrl', 'backgroundColor', 'badgeText'], minHeight: 120, singleton: false, version: '3.1.0', maintainedBy: 'Marketing Enablement Team',  status: 'ACTIVE' },
+    { componentId: 'comp-FUNCTION_GRID',        sliceType: 'FUNCTION_GRID',        label: 'Function Grid',         icon: '🔲',   category: 'function',   description: 'Icon grid of banking functions',                                            configurable: ['rows'],                                                                minHeight: 140, singleton: true,  version: '2.0.4', maintainedBy: 'HIVE Platform Team',         status: 'ACTIVE' },
+    { componentId: 'comp-AI_ASSISTANT',         sliceType: 'AI_ASSISTANT',         label: 'AI Assistant Entry',    icon: '🤖',   category: 'function',   description: 'Intelligent wealth assistant greeting bar',                                 configurable: ['greeting'],                                                            minHeight: 44,  singleton: false, version: '1.2.0', maintainedBy: 'AI Team',                    status: 'ACTIVE' },
+    { componentId: 'comp-AD_BANNER',            sliceType: 'AD_BANNER',            label: 'Advertisement Banner',  icon: '📢',   category: 'promotion',  description: 'Dismissible promotional banner with image swap support',                    configurable: ['title', 'subtitle', 'ctaLabel', 'ctaDeepLink', 'imageUrl', 'dismissible', 'validUntil'], minHeight: 90,  singleton: false, version: '1.5.2', maintainedBy: 'Marketing Enablement Team',  status: 'ACTIVE' },
+    { componentId: 'comp-FLASH_LOAN',           sliceType: 'FLASH_LOAN',           label: 'Flash Loan Card',       icon: '⚡💳', category: 'wealth',     description: 'Instant loan product card with maximum amount display',                     configurable: ['productName', 'tagline', 'maxAmount', 'currency', 'ctaLabel', 'ctaDeepLink'], minHeight: 80, singleton: false, version: '1.0.3', maintainedBy: 'Lending Product Team',       status: 'ACTIVE' },
+    { componentId: 'comp-WEALTH_SELECTION',     sliceType: 'WEALTH_SELECTION',     label: 'Wealth Selection',      icon: '💰',   category: 'wealth',     description: 'Featured wealth products (7-day yield, risk level)',                        configurable: ['sectionTitle', 'products', 'moreDeepLink'],                            minHeight: 280, singleton: false, version: '2.2.1', maintainedBy: 'Wealth Product Team',        status: 'ACTIVE' },
+    { componentId: 'comp-FEATURED_RANKINGS',    sliceType: 'FEATURED_RANKINGS',    label: 'Featured Rankings',     icon: '🏆',   category: 'wealth',     description: 'Top-performing funds and product rankings',                                 configurable: ['sectionTitle', 'items', 'moreDeepLink'],                               minHeight: 180, singleton: false, version: '1.4.0', maintainedBy: 'Wealth Product Team',        status: 'ACTIVE' },
+    { componentId: 'comp-LIFE_DEALS',           sliceType: 'LIFE_DEALS',           label: 'Life Deals',            icon: '🛍️',  category: 'lifestyle',  description: 'Lifestyle merchant offers',                                                  configurable: ['sectionTitle', 'deals', 'moreDeepLink', 'bottomLinks'],               minHeight: 200, singleton: false, version: '1.1.0', maintainedBy: 'Lifestyle Partnerships Team', status: 'ACTIVE' },
+    { componentId: 'comp-SPACER',               sliceType: 'SPACER',               label: 'Spacer',                icon: '↕️',   category: 'layout',     description: 'Vertical spacing element',                                                  configurable: ['height'],                                                              minHeight: 16,  singleton: false, version: '1.0.0', maintainedBy: 'HIVE Platform Team',         status: 'ACTIVE' },
+    { componentId: 'comp-MARKET_BRIEFING_TEXT', sliceType: 'MARKET_BRIEFING_TEXT', label: 'Market Briefing Text',  icon: '📋',   category: 'insight',    description: 'Bullet-point market briefing sourced from a UCP content entry',            configurable: ['ucpContentId', 'sectionTitle', 'bulletPoints', 'disclaimer'],         minHeight: 200, singleton: false, version: '1.0.0', maintainedBy: 'Wealth Content Team',        status: 'ACTIVE' },
+    { componentId: 'comp-VIDEO_PLAYER',         sliceType: 'VIDEO_PLAYER',         label: 'Video Player',          icon: '🎬',   category: 'insight',    description: 'Inline video player linked to a UCP content asset',                        configurable: ['ucpAssetId', 'title', 'presenterName', 'presenterTitle', 'autoplay', 'showCaption'], minHeight: 180, singleton: false, version: '1.0.0', maintainedBy: 'Wealth Content Team',        status: 'ACTIVE' },
+    { componentId: 'comp-CONTACT_RM_CTA',       sliceType: 'CONTACT_RM_CTA',       label: 'Contact Your RM',       icon: '📞',   category: 'insight',    description: 'Sticky full-width CTA routing the customer to Relationship Manager finder', configurable: ['label', 'subLabel', 'deepLink', 'backgroundColor', 'textColor', 'sticky'], minHeight: 56, singleton: true,  version: '1.0.0', maintainedBy: 'Premier & Jade Team',        status: 'ACTIVE' },
+    { componentId: 'comp-DEPOSIT_RATE_TABLE',   sliceType: 'DEPOSIT_RATE_TABLE',   label: 'Deposit Rate Table',    icon: '🏦',   category: 'wealth',     description: 'Time deposit interest rate table — term and rate columns only',                                                      configurable: ['sectionTitle', 'asAtDate', 'rates', 'footnote'],                                                                       minHeight: 220, singleton: false, version: '1.0.0', maintainedBy: 'Wealth Product Team', status: 'ACTIVE' },
+    { componentId: 'comp-DEPOSIT_OPEN_CTA',     sliceType: 'DEPOSIT_OPEN_CTA',     label: 'Button CTA',            icon: '🏧',   category: 'wealth',     description: 'Full-width "Open a Deposit" CTA button for deposit campaigns',                                                       configurable: ['label', 'deepLink', 'backgroundColor', 'textColor'],                                                                  minHeight: 56,  singleton: false, version: '1.0.0', maintainedBy: 'Wealth Product Team', status: 'ACTIVE' },
+    { componentId: 'comp-DEPOSIT_FAQ',          sliceType: 'DEPOSIT_FAQ',          label: 'General FAQ',           icon: '❓',   category: 'wealth',     description: 'Collapsible FAQ accordion for deposit products — question/answer pairs',        configurable: ['sectionTitle', 'items'],                                                       minHeight: 200, singleton: false, version: '1.0.0', maintainedBy: 'Wealth Product Team', status: 'ACTIVE' },
+  ];
+
+  let comps = UCP_COMPONENTS;
+  if (status)   comps = comps.filter(c => c.status === String(status).toUpperCase());
+  if (category) comps = comps.filter(c => c.category === String(category).toLowerCase());
+
+  res.json({ components: comps, total: comps.length });
+});
 // Zone 1 public endpoint — returns published layout as SDUI JSON
 app.get('/api/v1/screen/home-wealth-hk', (req, res) => {
   const page = ucpPages.get('home-wealth-hk');
@@ -821,6 +1162,7 @@ app.get('/api/v1/screen/home-wealth-hk', (req, res) => {
   }
   res.json({
     schemaVersion: '3.0',
+    pageId: page.pageId,
     screen: 'home_wealth_hub',
     ttl: 300,
     metadata: {
@@ -829,6 +1171,225 @@ app.get('/api/v1/screen/home-wealth-hk', (req, res) => {
       generatedAt: new Date().toISOString(),
     },
     layout: { type: 'SCROLL', children: page.slices },
+  });
+});
+
+// ─── GET /api/v1/screen/fx-viewpoint-hk  — Market Insight SDUI delivery ──────
+// Zone 1 public endpoint — delivers the FX Viewpoint market insight page as SDUI JSON.
+// The page contains a content header, MARKET_BRIEFING_TEXT and CONTACT_RM_CTA slices.
+// The FX Viewpoint video was replaced by the rich UCP content entry "FX Viewpoint — EUR & GBP Market Insights (May 2026)".
+app.get('/api/v1/screen/fx-viewpoint-hk', (req, res) => {
+  const publishedAt = new Date(Date.now() - 86400000).toISOString();
+  res.json({
+    schemaVersion: '3.0',
+    pageId: 'fx-viewpoint-hk',
+    screen: 'fx_viewpoint',
+    ttl: 300,
+    metadata: {
+      pageId: 'fx-viewpoint-hk',
+      locale: 'en-HK',
+      platform: req.headers['x-platform'] || 'all',
+      version: 1,
+      publishedAt,
+      generatedAt: new Date().toISOString(),
+    },
+    layout: {
+      type: 'SCROLL',
+      children: [
+        {
+          instanceId: 'mi-header',
+          type: 'HEADER_NAV',
+          visible: true,
+          locked: true,
+          props: {
+            title: 'FX Viewpoint',
+            showNotificationBell: false,
+            showQRScanner: false,
+            showBackButton: true,
+          },
+        },
+        {
+          instanceId: 'mi-content-header',
+          type: 'VIDEO_PLAYER',
+          visible: true,
+          locked: false,
+          props: {
+            ucpAssetId: 'asset-008',
+            title: 'FX Viewpoint — EUR & GBP Market Insights (May 2026)',
+            thumbnailUrl: 'https://placehold.co/1280x720/003366/ffffff?text=FX+Viewpoint+EUR+%26+GBP',
+            videoUrl: mediaUrl(req, '/media/fx-viewpoint.mov'),
+            presenterName: 'Jackie Wong',
+            presenterTitle: 'FX Strategist, HSBC Global Research',
+            autoplay: false,
+            showCaption: true,
+          },
+        },
+        {
+          instanceId: 'mi-briefing',
+          type: 'MARKET_BRIEFING_TEXT',
+          visible: true,
+          locked: false,
+          props: {
+            ucpContentId: 'ucp-content-fx-viewpoint-001',
+            sectionTitle: 'Key takeaways',
+            bulletPoints: [
+              'A weak USD is likely to persist into 2026, providing temporary support for the EUR and GBP.',
+              'With the ECB expected to maintain its policy rate in 2026, the EUR should remain broadly stable.',
+              'BoE delivered a 25 bps cut in May 2026 — further easing is data-dependent and market pricing appears stretched.',
+              'GBP/USD faces near-term resistance at 1.3200 amid mixed UK growth signals.',
+              'Investors should consider diversified FX exposure to manage downside risk against a volatile USD backdrop.',
+            ],
+            disclaimer: 'This material is issued by HSBC and is for information purposes only. It does not constitute investment advice or a recommendation to buy or sell any financial instrument.',
+          },
+        },
+        {
+          instanceId: 'mi-contact-rm',
+          type: 'CONTACT_RM_CTA',
+          visible: true,
+          locked: false,
+          props: {
+            label: 'Contact Your RM',
+            subLabel: 'Speak to your Relationship Manager about FX opportunities',
+            deepLink: 'hsbc://rm/contact?context=fx-viewpoint',
+            backgroundColor: '#DB0011',
+            textColor: '#FFFFFF',
+            sticky: true,
+          },
+        },
+      ],
+    },
+  });
+});
+
+// ─── GET /api/v1/screen/deposit-campaign-hk  — Deposit Campaign SDUI delivery ─
+// Zone 1 public endpoint — delivers the New Fund Deposit Campaign (CN) page as SDUI JSON.
+// Contains HEADER_NAV, PROMO_BANNER (deposit-campaign-banner.jpg), PROMO_BANNER (CD rate callout),
+// DEPOSIT_RATE_TABLE (rates only), DEPOSIT_OPEN_CTA, SPACER and DEPOSIT_FAQ.
+app.get('/api/v1/screen/deposit-campaign-hk', (req, res) => {
+  const publishedAt = new Date(Date.now() - 86400000).toISOString();
+  res.json({
+    schemaVersion: '3.0',
+    pageId: 'deposit-campaign-hk',
+    screen: 'deposit_campaign',
+    ttl: 300,
+    metadata: {
+      pageId: 'deposit-campaign-hk',
+      locale: 'en-CN',
+      platform: req.headers['x-platform'] || 'all',
+      version: 1,
+      publishedAt,
+      generatedAt: new Date().toISOString(),
+    },
+    layout: {
+      type: 'SCROLL',
+      children: [
+        {
+          instanceId: 'dep-header',
+          type: 'HEADER_NAV',
+          visible: true,
+          locked: true,
+          props: {
+            title: 'Renminbi Savings Offers',
+            showNotificationBell: false,
+            showQRScanner: false,
+            showBackButton: true,
+          },
+        },
+        {
+          instanceId: 'dep-image-banner',
+          type: 'PROMO_BANNER',
+          visible: true,
+          locked: false,
+          props: {
+            imageUrl: mediaUrl(req, '/media/deposit-campaign-banner.jpg'),
+            ucpAssetId: 'asset-009',
+            backgroundColor: '#FFFFFF',
+          },
+        },
+        {
+          instanceId: 'dep-cd-rate-banner',
+          type: 'PROMO_BANNER',
+          visible: true,
+          locked: false,
+          props: {
+            title: '🌟 Up to 1.15% p.a. Annual Equivalent Rate',
+            subtitle: '3-Month New Fund CNY Transferable CD — exclusively for new deposits. Don\'t miss this limited-time rate. Start earning more today.',
+            badgeText: '🔥 New Funds Only',
+            backgroundColor: '#FFF7ED',
+            textColor: '#92400E',
+          },
+        },
+        {
+          instanceId: 'dep-rate-table',
+          type: 'DEPOSIT_RATE_TABLE',
+          visible: true,
+          locked: false,
+          props: {
+            sectionTitle: 'Time Deposit Rate:',
+            asAtDate: '5/22/2025',
+            rates: [
+              { term: '3 Month Time Deposit',  rate: '0.65' },
+              { term: '6 Month Time Deposit',  rate: '0.85' },
+              { term: '12 Month Time Deposit', rate: '0.95' },
+              { term: '24 Month Time Deposit', rate: '1.05' },
+              { term: '36 Month Time Deposit', rate: '1.25' },
+              { term: '60 Month Time Deposit', rate: '1.30' },
+            ],
+            footnote: 'Time deposit minimum balance for Personal Banking customers: RMB50. New Fund refers to funds not previously held with HSBC.',
+          },
+        },
+        {
+          instanceId: 'dep-open-cta',
+          type: 'DEPOSIT_OPEN_CTA',
+          visible: true,
+          locked: false,
+          props: {
+            label: 'Open a Deposit',
+            deepLink: 'hsbc://deposit/open?currency=CNY&campaign=new-fund',
+            backgroundColor: '#C41E3A',
+            textColor: '#FFFFFF',
+          },
+        },
+        {
+          instanceId: 'dep-spacer',
+          type: 'SPACER',
+          visible: true,
+          locked: false,
+          props: { height: 16 },
+        },
+        {
+          instanceId: 'dep-faq',
+          type: 'DEPOSIT_FAQ',
+          visible: true,
+          locked: false,
+          props: {
+            sectionTitle: 'Frequently Asked Questions',
+            items: [
+              {
+                id: 'faq-1',
+                question: 'Can I withdraw my time deposit before it matures?',
+                answer: 'Yes, you can. But you\'ll earn less or no interest, and may have to pay an early withdrawal fee. For foreign currency deposits, visit a bank branch.',
+              },
+              {
+                id: 'faq-2',
+                question: 'What happens if I don\'t withdraw my money after maturity?',
+                answer: 'If you don\'t take out your money when it matures, most banks will automatically renew your deposit for the same term at the current interest rate. You can also choose to withdraw it or change the term before maturity.',
+              },
+              {
+                id: 'faq-3',
+                question: 'How long can I keep a time deposit?',
+                answer: 'Banks usually offer terms like 3 months, 6 months, 1 year, 2 years, 3 years, 5 years, or even 10 years. Longer terms usually have higher interest rates. The most popular choices are 6-month or 12-month plans.',
+              },
+              {
+                id: 'faq-4',
+                question: 'Why is the interest rate higher for time deposits than regular savings accounts?',
+                answer: 'Banks can offer better rates because they know you\'ll keep your money in the account for a fixed period. This lets them use the funds for longer-term investments, so they share more of the profit with you as interest.',
+              },
+            ],
+          },
+        },
+      ],
+    },
   });
 });
 
@@ -1241,8 +1802,13 @@ app.get('/api/v1/search/corpus', (req, res) => {
 });
 
 // ─── Start server ─────────────────────────────────────────────────────────────
+// Bind to '::' (IPv6 wildcard) with ipv6Only:false — this accepts BOTH
+// IPv4-mapped (0.0.0.0) and native IPv6 (::1) connections on the same socket.
+// This fixes iOS Simulator, which resolves 'localhost' to ::1 (IPv6 loopback)
+// and gets ECONNREFUSED when the server only listens on 0.0.0.0 (IPv4).
 
-app.listen(PORT, '0.0.0.0', () => {
+const server = require('http').createServer(app);
+server.listen(PORT, '::', { ipv6Only: false }, () => {
   console.log('');
   console.log('  ╔════════════════════════════════════════════════════╗');
   console.log('  ║     HSBC DSP Mock BFF — Running                    ║');
@@ -1266,6 +1832,8 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('  ║                                                    ║');
   console.log('  ║  SDUI Delivery (Zone 1 — mobile clients):          ║');
   console.log('  ║    GET  /api/v1/screen/home-wealth-hk              ║');
+  console.log('  ║    GET  /api/v1/screen/fx-viewpoint-hk             ║');
+  console.log('  ║    GET  /api/v1/screen/deposit-campaign-hk         ║');
   console.log('  ╚════════════════════════════════════════════════════╝');
   console.log('');
 });

@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#DB0011"/>
-  <text x="32" y="44" font-size="32" text-anchor="middle" fill="white" font-family="sans-serif" font-weight="bold">H</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <rect width="1024" height="1024" rx="230" fill="#DB0011"/>
+  <!-- Left vertical bar -->
+  <rect x="300" y="240" width="110" height="544" fill="#FFFFFF"/>
+  <!-- Right vertical bar -->
+  <rect x="614" y="240" width="110" height="544" fill="#FFFFFF"/>
+  <!-- Crossbar -->
+  <rect x="300" y="462" width="424" height="100" fill="#FFFFFF"/>
 </svg>

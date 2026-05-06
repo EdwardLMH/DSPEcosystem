@@ -24,19 +24,57 @@ interface WHQuickAccess_Params {
 interface WHHeaderNav_Params {
     onSearchTap?: () => void;
 }
+interface SDUILifeDeals_Params {
+    props?: Record<string, ESObject>;
+}
+interface SDUIFeaturedRankings_Params {
+    props?: Record<string, ESObject>;
+}
+interface SDUIWealthSelection_Params {
+    props?: Record<string, ESObject>;
+}
+interface SDUIFlashLoan_Params {
+    props?: Record<string, ESObject>;
+}
+interface SDUIAdBanner_Params {
+    props?: Record<string, ESObject>;
+    onDismiss?: () => void;
+}
+interface SDUIAIAssistant_Params {
+    props?: Record<string, ESObject>;
+}
+interface SDUIFunctionGrid_Params {
+    props?: Record<string, ESObject>;
+}
+interface SDUIPromoBanner_Params {
+    props?: Record<string, ESObject>;
+}
+interface SDUIQuickAccess_Params {
+    props?: Record<string, ESObject>;
+}
+interface SDUIAISearchBar_Params {
+    props?: Record<string, ESObject>;
+    onSearchTap?: () => void;
+}
+interface SDUIHeaderNav_Params {
+    props?: Record<string, ESObject>;
+}
 interface WealthPageView_Params {
     adDismissed?: boolean;
     searchOpen?: boolean;
+    loadState?: number;
+    sdui?: WealthSlice[];
+}
+interface SDUISliceView_Params {
+    slice?: WealthSlice;
+    adDismissed?: boolean;
 }
 import { Hive } from "@normalized:N&&&entry/src/main/ets/common/HiveTokens&";
 import { SensorDataClient } from "@normalized:N&&&entry/src/main/ets/network/SensorDataClient&";
 import { AISearchPage } from "@normalized:N&&&entry/src/main/ets/wealth/AISearchPage&";
+import { fetchWealthScreen } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
+import type { WealthSlice } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
 // ─── Data models ──────────────────────────────────────────────────────────────
-// FIX: inline object type literals used as type annotations are forbidden
-// (arkts-no-object-literal-type). All five were already declared as 'interface'
-// which IS the correct ArkTS form — these were fine. The issue was only in
-// ForEach callback parameter annotations using object literal types inline.
-// The data interfaces below are properly declared interfaces.
 interface QuickItem {
     icon: string;
     label: string;
@@ -73,7 +111,6 @@ interface DealItem {
     tag: string;
     deepLink: string;
 }
-// FIX: bottomLinks uses an object-literal type in ForEach. Declare a proper interface.
 interface BottomLink {
     icon: string;
     label: string;
@@ -121,6 +158,336 @@ const DEALS: DealItem[] = [
     { id: 'd2', brand: 'Luckin Coffee', emoji: '☕', tag: '5折喝瑞幸', deepLink: 'hsbc://deals/luckin' },
     { id: 'd3', brand: 'DQ', emoji: '🍦', tag: '5折起', deepLink: 'hsbc://deals/dq' },
 ];
+// ─── Load-state enum ──────────────────────────────────────────────────────────
+// ArkTS forbids string-union @State — use a plain number enum instead.
+const LOAD_IDLE = 0;
+const LOAD_LOADING = 1;
+const LOAD_DONE = 2;
+const LOAD_ERROR = 3;
+class SDUISliceView extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.slice = { instanceId: '', type: '', props: {}, visible: true };
+        this.__adDismissed = new ObservedPropertySimplePU(false, this, "adDismissed");
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params: SDUISliceView_Params) {
+        if (params.slice !== undefined) {
+            this.slice = params.slice;
+        }
+        if (params.adDismissed !== undefined) {
+            this.adDismissed = params.adDismissed;
+        }
+    }
+    updateStateVars(params: SDUISliceView_Params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+        this.__adDismissed.purgeDependencyOnElmtId(rmElmtId);
+    }
+    aboutToBeDeleted() {
+        this.__adDismissed.aboutToBeDeleted();
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    private slice: WealthSlice;
+    private __adDismissed: ObservedPropertySimplePU<boolean>;
+    get adDismissed() {
+        return this.__adDismissed.get();
+    }
+    set adDismissed(newValue: boolean) {
+        this.__adDismissed.set(newValue);
+    }
+    initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            If.create();
+            if (!this.slice.visible) {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Column.create();
+                    }, Column);
+                    Column.pop();
+                });
+            }
+            else {
+                this.ifElseBranchUpdateFunction(1, () => {
+                    this.renderSlice.bind(this)();
+                });
+            }
+        }, If);
+        If.pop();
+    }
+    renderSlice(parent = null) {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            If.create();
+            if (this.slice.type === 'HEADER_NAV') {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new SDUIHeaderNav(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 97, col: 7 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {
+                                        props: this.slice.props
+                                    };
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "SDUIHeaderNav" });
+                    }
+                });
+            }
+            else if (this.slice.type === 'AI_SEARCH_BAR') {
+                this.ifElseBranchUpdateFunction(1, () => {
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new SDUIAISearchBar(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 99, col: 7 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {
+                                        props: this.slice.props
+                                    };
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "SDUIAISearchBar" });
+                    }
+                });
+            }
+            else if (this.slice.type === 'QUICK_ACCESS') {
+                this.ifElseBranchUpdateFunction(2, () => {
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new SDUIQuickAccess(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 101, col: 7 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {
+                                        props: this.slice.props
+                                    };
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "SDUIQuickAccess" });
+                    }
+                });
+            }
+            else if (this.slice.type === 'PROMO_BANNER') {
+                this.ifElseBranchUpdateFunction(3, () => {
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new SDUIPromoBanner(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 103, col: 7 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {
+                                        props: this.slice.props
+                                    };
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "SDUIPromoBanner" });
+                    }
+                });
+            }
+            else if (this.slice.type === 'FUNCTION_GRID') {
+                this.ifElseBranchUpdateFunction(4, () => {
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new SDUIFunctionGrid(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 105, col: 7 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {
+                                        props: this.slice.props
+                                    };
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "SDUIFunctionGrid" });
+                    }
+                });
+            }
+            else if (this.slice.type === 'AI_ASSISTANT') {
+                this.ifElseBranchUpdateFunction(5, () => {
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new SDUIAIAssistant(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 107, col: 7 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {
+                                        props: this.slice.props
+                                    };
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "SDUIAIAssistant" });
+                    }
+                });
+            }
+            else if (this.slice.type === 'AD_BANNER') {
+                this.ifElseBranchUpdateFunction(6, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        If.create();
+                        if (!this.adDismissed) {
+                            this.ifElseBranchUpdateFunction(0, () => {
+                                {
+                                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                        if (isInitialRender) {
+                                            let componentCall = new SDUIAdBanner(this, { props: this.slice.props, onDismiss: () => { this.adDismissed = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 110, col: 9 });
+                                            ViewPU.create(componentCall);
+                                            let paramsLambda = () => {
+                                                return {
+                                                    props: this.slice.props,
+                                                    onDismiss: () => { this.adDismissed = true; }
+                                                };
+                                            };
+                                            componentCall.paramsGenerator_ = paramsLambda;
+                                        }
+                                        else {
+                                            this.updateStateVarsOfChildByElmtId(elmtId, {});
+                                        }
+                                    }, { name: "SDUIAdBanner" });
+                                }
+                            });
+                        }
+                        else {
+                            this.ifElseBranchUpdateFunction(1, () => {
+                            });
+                        }
+                    }, If);
+                    If.pop();
+                });
+            }
+            else if (this.slice.type === 'FLASH_LOAN') {
+                this.ifElseBranchUpdateFunction(7, () => {
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new SDUIFlashLoan(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 113, col: 7 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {
+                                        props: this.slice.props
+                                    };
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "SDUIFlashLoan" });
+                    }
+                });
+            }
+            else if (this.slice.type === 'WEALTH_SELECTION') {
+                this.ifElseBranchUpdateFunction(8, () => {
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new SDUIWealthSelection(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 115, col: 7 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {
+                                        props: this.slice.props
+                                    };
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "SDUIWealthSelection" });
+                    }
+                });
+            }
+            else if (this.slice.type === 'FEATURED_RANKINGS') {
+                this.ifElseBranchUpdateFunction(9, () => {
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new SDUIFeaturedRankings(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 117, col: 7 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {
+                                        props: this.slice.props
+                                    };
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "SDUIFeaturedRankings" });
+                    }
+                });
+            }
+            else if (this.slice.type === 'LIFE_DEALS') {
+                this.ifElseBranchUpdateFunction(10, () => {
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new SDUILifeDeals(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 119, col: 7 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {
+                                        props: this.slice.props
+                                    };
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "SDUILifeDeals" });
+                    }
+                });
+            }
+            else if (this.slice.type === 'SPACER') {
+                this.ifElseBranchUpdateFunction(11, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Blank.create();
+                        Blank.height(this.slice.props['height'] as number ?? 16);
+                    }, Blank);
+                    Blank.pop();
+                });
+            }
+            // unknown types silently omitted
+            else {
+                this.ifElseBranchUpdateFunction(12, () => {
+                });
+            }
+        }, If);
+        If.pop();
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+}
 export class WealthPageView extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
         super(parent, __localStorage, elmtId, extraInfo);
@@ -129,6 +496,10 @@ export class WealthPageView extends ViewPU {
         }
         this.__adDismissed = new ObservedPropertySimplePU(false, this, "adDismissed");
         this.__searchOpen = new ObservedPropertySimplePU(false, this, "searchOpen");
+        this.__loadState = new ObservedPropertySimplePU(LOAD_IDLE // LOAD_* constants
+        , this, "loadState");
+        this.__sdui = new ObservedPropertyObjectPU([] // BFF slices when loaded
+        , this, "sdui");
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
@@ -139,16 +510,26 @@ export class WealthPageView extends ViewPU {
         if (params.searchOpen !== undefined) {
             this.searchOpen = params.searchOpen;
         }
+        if (params.loadState !== undefined) {
+            this.loadState = params.loadState;
+        }
+        if (params.sdui !== undefined) {
+            this.sdui = params.sdui;
+        }
     }
     updateStateVars(params: WealthPageView_Params) {
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
         this.__adDismissed.purgeDependencyOnElmtId(rmElmtId);
         this.__searchOpen.purgeDependencyOnElmtId(rmElmtId);
+        this.__loadState.purgeDependencyOnElmtId(rmElmtId);
+        this.__sdui.purgeDependencyOnElmtId(rmElmtId);
     }
     aboutToBeDeleted() {
         this.__adDismissed.aboutToBeDeleted();
         this.__searchOpen.aboutToBeDeleted();
+        this.__loadState.aboutToBeDeleted();
+        this.__sdui.aboutToBeDeleted();
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
@@ -166,8 +547,35 @@ export class WealthPageView extends ViewPU {
     set searchOpen(newValue: boolean) {
         this.__searchOpen.set(newValue);
     }
+    private __loadState: ObservedPropertySimplePU<number>; // LOAD_* constants
+    get loadState() {
+        return this.__loadState.get();
+    }
+    set loadState(newValue: number) {
+        this.__loadState.set(newValue);
+    }
+    private __sdui: ObservedPropertyObjectPU<WealthSlice[]>; // BFF slices when loaded
+    get sdui() {
+        return this.__sdui.get();
+    }
+    set sdui(newValue: WealthSlice[]) {
+        this.__sdui.set(newValue);
+    }
     aboutToAppear() {
         SensorDataClient.wealthHubViewed();
+        this.loadFromBFF();
+    }
+    private async loadFromBFF(): Promise<void> {
+        this.loadState = LOAD_LOADING;
+        try {
+            const payload = await fetchWealthScreen();
+            this.sdui = payload.layout.children.filter((s: WealthSlice) => s.visible !== false);
+            this.loadState = LOAD_DONE;
+        }
+        catch (_e) {
+            // BFF not live or unreachable — fall back to static layout
+            this.loadState = LOAD_ERROR;
+        }
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -176,108 +584,29 @@ export class WealthPageView extends ViewPU {
             Stack.height('100%');
         }, Stack);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // ── Main page (always rendered beneath) ──────────────────────────────
             Scroll.create();
-            // ── Main page (always rendered beneath) ──────────────────────────────
             Scroll.width('100%');
-            // ── Main page (always rendered beneath) ──────────────────────────────
             Scroll.height('100%');
-            // ── Main page (always rendered beneath) ──────────────────────────────
             Scroll.backgroundColor(Hive.Color.n50);
         }, Scroll);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 0 });
             Column.width('100%');
         }, Column);
-        {
-            this.observeComponentCreation2((elmtId, isInitialRender) => {
-                if (isInitialRender) {
-                    let componentCall = new WHHeaderNav(this, { onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 96, col: 11 });
-                    ViewPU.create(componentCall);
-                    let paramsLambda = () => {
-                        return {
-                            onSearchTap: () => { this.searchOpen = true; }
-                        };
-                    };
-                    componentCall.paramsGenerator_ = paramsLambda;
-                }
-                else {
-                    this.updateStateVarsOfChildByElmtId(elmtId, {});
-                }
-            }, { name: "WHHeaderNav" });
-        }
-        {
-            this.observeComponentCreation2((elmtId, isInitialRender) => {
-                if (isInitialRender) {
-                    let componentCall = new WHQuickAccess(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 97, col: 11 });
-                    ViewPU.create(componentCall);
-                    let paramsLambda = () => {
-                        return {};
-                    };
-                    componentCall.paramsGenerator_ = paramsLambda;
-                }
-                else {
-                    this.updateStateVarsOfChildByElmtId(elmtId, {});
-                }
-            }, { name: "WHQuickAccess" });
-        }
-        {
-            this.observeComponentCreation2((elmtId, isInitialRender) => {
-                if (isInitialRender) {
-                    let componentCall = new WHPromoBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 98, col: 11 });
-                    ViewPU.create(componentCall);
-                    let paramsLambda = () => {
-                        return {};
-                    };
-                    componentCall.paramsGenerator_ = paramsLambda;
-                }
-                else {
-                    this.updateStateVarsOfChildByElmtId(elmtId, {});
-                }
-            }, { name: "WHPromoBanner" });
-        }
-        {
-            this.observeComponentCreation2((elmtId, isInitialRender) => {
-                if (isInitialRender) {
-                    let componentCall = new WHFunctionGrid(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 99, col: 11 });
-                    ViewPU.create(componentCall);
-                    let paramsLambda = () => {
-                        return {};
-                    };
-                    componentCall.paramsGenerator_ = paramsLambda;
-                }
-                else {
-                    this.updateStateVarsOfChildByElmtId(elmtId, {});
-                }
-            }, { name: "WHFunctionGrid" });
-        }
-        {
-            this.observeComponentCreation2((elmtId, isInitialRender) => {
-                if (isInitialRender) {
-                    let componentCall = new WHAIAssistant(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 100, col: 11 });
-                    ViewPU.create(componentCall);
-                    let paramsLambda = () => {
-                        return {};
-                    };
-                    componentCall.paramsGenerator_ = paramsLambda;
-                }
-                else {
-                    this.updateStateVarsOfChildByElmtId(elmtId, {});
-                }
-            }, { name: "WHAIAssistant" });
-        }
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             If.create();
-            if (!this.adDismissed) {
+            if (this.loadState === LOAD_LOADING) {
                 this.ifElseBranchUpdateFunction(0, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHAdBanner(this, { onDismiss: () => { this.adDismissed = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 102, col: 13 });
+                                let componentCall = new 
+                                // Minimal loading state — show header so page doesn't flash blank
+                                WHHeaderNav(this, { onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 159, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
-                                        onDismiss: () => { this.adDismissed = true; }
+                                        onSearchTap: () => { this.searchOpen = true; }
                                     };
                                 };
                                 componentCall.paramsGenerator_ = paramsLambda;
@@ -285,87 +614,237 @@ export class WealthPageView extends ViewPU {
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {});
                             }
-                        }, { name: "WHAdBanner" });
+                        }, { name: "WHHeaderNav" });
                     }
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Row.create();
+                        Row.width('100%');
+                        Row.height(80);
+                        Row.justifyContent(FlexAlign.Center);
+                    }, Row);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create('載入中…');
+                        Text.fontSize(13);
+                        Text.fontColor(Hive.Color.n400);
+                    }, Text);
+                    Text.pop();
+                    Row.pop();
+                });
+            }
+            else if (this.loadState === LOAD_DONE && this.sdui.length > 0) {
+                this.ifElseBranchUpdateFunction(1, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        // ── SDUI path: render slices from BFF ──────────────────────────
+                        ForEach.create();
+                        const forEachItemGenFunction = _item => {
+                            const slice = _item;
+                            {
+                                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                    if (isInitialRender) {
+                                        let componentCall = new SDUISliceView(this, { slice: slice }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 168, col: 15 });
+                                        ViewPU.create(componentCall);
+                                        let paramsLambda = () => {
+                                            return {
+                                                slice: slice
+                                            };
+                                        };
+                                        componentCall.paramsGenerator_ = paramsLambda;
+                                    }
+                                    else {
+                                        this.updateStateVarsOfChildByElmtId(elmtId, {});
+                                    }
+                                }, { name: "SDUISliceView" });
+                            }
+                        };
+                        this.forEachUpdateFunction(elmtId, this.sdui, forEachItemGenFunction);
+                    }, ForEach);
+                    // ── SDUI path: render slices from BFF ──────────────────────────
+                    ForEach.pop();
                 });
             }
             else {
-                this.ifElseBranchUpdateFunction(1, () => {
+                this.ifElseBranchUpdateFunction(2, () => {
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new 
+                                // ── Static fallback: BFF not live yet ──────────────────────────
+                                WHHeaderNav(this, { onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 172, col: 13 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {
+                                        onSearchTap: () => { this.searchOpen = true; }
+                                    };
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "WHHeaderNav" });
+                    }
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new WHQuickAccess(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 173, col: 13 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {};
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "WHQuickAccess" });
+                    }
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new WHPromoBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 174, col: 13 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {};
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "WHPromoBanner" });
+                    }
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new WHFunctionGrid(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 175, col: 13 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {};
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "WHFunctionGrid" });
+                    }
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new WHAIAssistant(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 176, col: 13 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {};
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "WHAIAssistant" });
+                    }
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        If.create();
+                        if (!this.adDismissed) {
+                            this.ifElseBranchUpdateFunction(0, () => {
+                                {
+                                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                        if (isInitialRender) {
+                                            let componentCall = new WHAdBanner(this, { onDismiss: () => { this.adDismissed = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 178, col: 15 });
+                                            ViewPU.create(componentCall);
+                                            let paramsLambda = () => {
+                                                return {
+                                                    onDismiss: () => { this.adDismissed = true; }
+                                                };
+                                            };
+                                            componentCall.paramsGenerator_ = paramsLambda;
+                                        }
+                                        else {
+                                            this.updateStateVarsOfChildByElmtId(elmtId, {});
+                                        }
+                                    }, { name: "WHAdBanner" });
+                                }
+                            });
+                        }
+                        else {
+                            this.ifElseBranchUpdateFunction(1, () => {
+                            });
+                        }
+                    }, If);
+                    If.pop();
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new WHFlashLoan(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 180, col: 13 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {};
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "WHFlashLoan" });
+                    }
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new WHWealthSelection(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 181, col: 13 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {};
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "WHWealthSelection" });
+                    }
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new WHFeaturedRankings(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 182, col: 13 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {};
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "WHFeaturedRankings" });
+                    }
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new WHLifeDeals(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 183, col: 13 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {};
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "WHLifeDeals" });
+                    }
                 });
             }
         }, If);
         If.pop();
-        {
-            this.observeComponentCreation2((elmtId, isInitialRender) => {
-                if (isInitialRender) {
-                    let componentCall = new WHFlashLoan(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 104, col: 11 });
-                    ViewPU.create(componentCall);
-                    let paramsLambda = () => {
-                        return {};
-                    };
-                    componentCall.paramsGenerator_ = paramsLambda;
-                }
-                else {
-                    this.updateStateVarsOfChildByElmtId(elmtId, {});
-                }
-            }, { name: "WHFlashLoan" });
-        }
-        {
-            this.observeComponentCreation2((elmtId, isInitialRender) => {
-                if (isInitialRender) {
-                    let componentCall = new WHWealthSelection(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 105, col: 11 });
-                    ViewPU.create(componentCall);
-                    let paramsLambda = () => {
-                        return {};
-                    };
-                    componentCall.paramsGenerator_ = paramsLambda;
-                }
-                else {
-                    this.updateStateVarsOfChildByElmtId(elmtId, {});
-                }
-            }, { name: "WHWealthSelection" });
-        }
-        {
-            this.observeComponentCreation2((elmtId, isInitialRender) => {
-                if (isInitialRender) {
-                    let componentCall = new WHFeaturedRankings(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 106, col: 11 });
-                    ViewPU.create(componentCall);
-                    let paramsLambda = () => {
-                        return {};
-                    };
-                    componentCall.paramsGenerator_ = paramsLambda;
-                }
-                else {
-                    this.updateStateVarsOfChildByElmtId(elmtId, {});
-                }
-            }, { name: "WHFeaturedRankings" });
-        }
-        {
-            this.observeComponentCreation2((elmtId, isInitialRender) => {
-                if (isInitialRender) {
-                    let componentCall = new WHLifeDeals(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 107, col: 11 });
-                    ViewPU.create(componentCall);
-                    let paramsLambda = () => {
-                        return {};
-                    };
-                    componentCall.paramsGenerator_ = paramsLambda;
-                }
-                else {
-                    this.updateStateVarsOfChildByElmtId(elmtId, {});
-                }
-            }, { name: "WHLifeDeals" });
-        }
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Blank.create();
             Blank.height(40);
         }, Blank);
         Blank.pop();
         Column.pop();
-        // ── Main page (always rendered beneath) ──────────────────────────────
         Scroll.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             If.create();
-            // ── Search overlay (slides over main page) ────────────────────────
             if (this.searchOpen) {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -378,7 +857,7 @@ export class WealthPageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new AISearchPage(this, { onDismiss: () => { this.searchOpen = false; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 114, col: 9 });
+                                let componentCall = new AISearchPage(this, { onDismiss: () => { this.searchOpen = false; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 190, col: 9 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -402,6 +881,1243 @@ export class WealthPageView extends ViewPU {
         }, If);
         If.pop();
         Stack.pop();
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+}
+class SDUIHeaderNav extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.props = {};
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params: SDUIHeaderNav_Params) {
+        if (params.props !== undefined) {
+            this.props = params.props;
+        }
+    }
+    updateStateVars(params: SDUIHeaderNav_Params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+    }
+    aboutToBeDeleted() {
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    private props: Record<string, any>;
+    initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create();
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 10 });
+            Row.width('100%');
+            Row.height(50);
+            Row.padding({ left: 14, right: 14, top: 8, bottom: 8 });
+            Row.backgroundColor(Hive.Color.brandWhite);
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 6 });
+            Row.layoutWeight(1);
+            Row.height(36);
+            Row.padding({ left: 14, right: 14 });
+            Row.borderRadius(18);
+            Row.backgroundColor(Hive.Color.n100);
+            Row.onClick(() => {
+                SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '', 'wealth_hub_hk', 'wealth_hub');
+            });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('🔍');
+            Text.fontSize(13);
+            Text.fontColor(Hive.Color.n400);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.props['searchPlaceholder'] as string ?? '搜尋功能、產品');
+            Text.fontSize(13);
+            Text.fontColor(Hive.Color.n400);
+            Text.layoutWeight(1);
+        }, Text);
+        Text.pop();
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            If.create();
+            if (this.props['showNotificationBell'] as boolean !== false) {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create('🔔');
+                        Text.fontSize(20);
+                        Text.onClick(() => {
+                            SensorDataClient.track('notification_tap', 'Wealth', 'notification_tapped', '', 'wealth_hub_hk', 'wealth_hub');
+                        });
+                    }, Text);
+                    Text.pop();
+                });
+            }
+            else {
+                this.ifElseBranchUpdateFunction(1, () => {
+                });
+            }
+        }, If);
+        If.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            If.create();
+            if (this.props['showQRScanner'] as boolean !== false) {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create('⬛');
+                        Text.fontSize(18);
+                        Text.onClick(() => {
+                            SensorDataClient.track('qr_tap', 'Wealth', 'qr_scanner_tapped', '', 'wealth_hub_hk', 'wealth_hub');
+                        });
+                    }, Text);
+                    Text.pop();
+                });
+            }
+            else {
+                this.ifElseBranchUpdateFunction(1, () => {
+                });
+            }
+        }, If);
+        If.pop();
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Divider.create();
+            Divider.color(Hive.Color.n200);
+        }, Divider);
+        Column.pop();
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+}
+class SDUIAISearchBar extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.props = {};
+        this.onSearchTap = () => { };
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params: SDUIAISearchBar_Params) {
+        if (params.props !== undefined) {
+            this.props = params.props;
+        }
+        if (params.onSearchTap !== undefined) {
+            this.onSearchTap = params.onSearchTap;
+        }
+    }
+    updateStateVars(params: SDUIAISearchBar_Params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+    }
+    aboutToBeDeleted() {
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    private props: Record<string, any>;
+    private onSearchTap: () => void;
+    private placeholder(): string {
+        return this.props['placeholder'] as string ?? '搜尋功能、產品';
+    }
+    private enableQRScan(): boolean { return this.props['enableQRScan'] as boolean ?? true; }
+    private enableChatbot(): boolean { return this.props['enableChatbot'] as boolean ?? true; }
+    private enableInbox(): boolean { return this.props['enableMessageInbox'] as boolean ?? true; }
+    initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 8 });
+            Row.width('100%');
+            Row.height(50);
+            Row.padding({ left: 12, right: 12, top: 7, bottom: 7 });
+            Row.backgroundColor('#DB0011');
+            Row.alignItems(VerticalAlign.Center);
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            If.create();
+            if (this.enableQRScan()) {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create('⬜');
+                        Text.fontSize(20);
+                        Text.fontColor('#E6FFFFFF');
+                        Text.onClick(() => {
+                            SensorDataClient.track('qr_tap', 'Wealth', 'qr_scanner_tapped', '', 'ai_search_bar', 'wealth_hub');
+                        });
+                    }, Text);
+                    Text.pop();
+                });
+            }
+            else {
+                this.ifElseBranchUpdateFunction(1, () => {
+                });
+            }
+        }, If);
+        If.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 6 });
+            Row.layoutWeight(1);
+            Row.height(36);
+            Row.padding({ left: 12, right: 12 });
+            Row.borderRadius(18);
+            Row.backgroundColor('#26FFFFFF');
+            Row.onClick(() => {
+                SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '', 'ai_search_bar', 'wealth_hub');
+                this.onSearchTap();
+            });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('🔍');
+            Text.fontSize(13);
+            Text.fontColor('#99FFFFFF');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.placeholder());
+            Text.fontSize(13);
+            Text.fontColor('#A6FFFFFF');
+            Text.layoutWeight(1);
+        }, Text);
+        Text.pop();
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            If.create();
+            if (this.enableChatbot()) {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create('🤖');
+                        Text.fontSize(20);
+                        Text.fontColor('#E6FFFFFF');
+                        Text.onClick(() => {
+                            SensorDataClient.track('chatbot_tap', 'Wealth', 'chatbot_tapped', '', 'ai_search_bar', 'wealth_hub');
+                        });
+                    }, Text);
+                    Text.pop();
+                });
+            }
+            else {
+                this.ifElseBranchUpdateFunction(1, () => {
+                });
+            }
+        }, If);
+        If.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            If.create();
+            if (this.enableInbox()) {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create('✉️');
+                        Text.fontSize(20);
+                        Text.fontColor('#E6FFFFFF');
+                        Text.onClick(() => {
+                            SensorDataClient.track('inbox_tap', 'Wealth', 'inbox_tapped', '', 'ai_search_bar', 'wealth_hub');
+                        });
+                    }, Text);
+                    Text.pop();
+                });
+            }
+            else {
+                this.ifElseBranchUpdateFunction(1, () => {
+                });
+            }
+        }, If);
+        If.pop();
+        Row.pop();
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+}
+class SDUIQuickAccess extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.props = {};
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params: SDUIQuickAccess_Params) {
+        if (params.props !== undefined) {
+            this.props = params.props;
+        }
+    }
+    updateStateVars(params: SDUIQuickAccess_Params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+    }
+    aboutToBeDeleted() {
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    private props: Record<string, any>;
+    private items(): any[] { return this.props['items'] as any[] ?? [] as any[]; }
+    initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.width('100%');
+            Row.backgroundColor(Hive.Color.brandWhite);
+            Row.padding({ left: 16, right: 16, top: 12, bottom: 12 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            ForEach.create();
+            const forEachItemGenFunction = _item => {
+                const raw = _item;
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Column.create({ space: 5 });
+                    Column.layoutWeight(1);
+                    Column.alignItems(HorizontalAlign.Center);
+                    Column.onClick(() => {
+                        SensorDataClient.quickAccessTapped((raw as Record<string, string>)['label'] ?? '', (raw as Record<string, string>)['deepLink'] ?? '');
+                    });
+                }, Column);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, string>)['icon'] ?? '');
+                    Text.fontSize(22);
+                    Text.width(48);
+                    Text.height(48);
+                    Text.textAlign(TextAlign.Center);
+                    Text.borderRadius(14);
+                    Text.linearGradient({ direction: GradientDirection.LeftTop,
+                        colors: [['#F0F9FF', 0], ['#E0F2FE', 1]] });
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, string>)['label'] ?? '');
+                    Text.fontSize(10);
+                    Text.fontColor(Hive.Color.n700);
+                    Text.textAlign(TextAlign.Center);
+                }, Text);
+                Text.pop();
+                Column.pop();
+            };
+            this.forEachUpdateFunction(elmtId, this.items(), forEachItemGenFunction);
+        }, ForEach);
+        ForEach.pop();
+        Row.pop();
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+}
+class SDUIPromoBanner extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.props = {};
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params: SDUIPromoBanner_Params) {
+        if (params.props !== undefined) {
+            this.props = params.props;
+        }
+    }
+    updateStateVars(params: SDUIPromoBanner_Params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+    }
+    aboutToBeDeleted() {
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    private props: Record<string, any>;
+    private title(): string { return this.props['title'] as string ?? ''; }
+    private subtitle(): string { return this.props['subtitle'] as string ?? ''; }
+    private ctaLabel(): string { return this.props['ctaLabel'] as string ?? ''; }
+    private badgeText(): string { return this.props['badgeText'] as string ?? ''; }
+    private deepLink(): string { return this.props['ctaDeepLink'] as string ?? ''; }
+    initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 0 });
+            Row.width('100%');
+            Row.padding({ left: 12, right: 12, top: 12, bottom: 12 });
+            Row.margin({ left: 12, right: 12, top: 8, bottom: 0 });
+            Row.borderRadius(14);
+            Row.backgroundColor(this.props['backgroundColor'] as string ?? '#E8F4FD');
+            Row.alignItems(VerticalAlign.Center);
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 4 });
+            Column.layoutWeight(1);
+            Column.alignItems(HorizontalAlign.Start);
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            If.create();
+            if (this.badgeText().length > 0) {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create(this.badgeText());
+                        Text.fontSize(9);
+                        Text.fontWeight(FontWeight.Bold);
+                        Text.fontColor('#DB0011');
+                        Text.padding({ left: 8, right: 8, top: 2, bottom: 2 });
+                        Text.borderRadius(10);
+                        Text.backgroundColor('#FFEDED');
+                    }, Text);
+                    Text.pop();
+                });
+            }
+            else {
+                this.ifElseBranchUpdateFunction(1, () => {
+                });
+            }
+        }, If);
+        If.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.title());
+            Text.fontSize(16);
+            Text.fontWeight(FontWeight.Bolder);
+            Text.fontColor(Hive.Color.n900);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.subtitle());
+            Text.fontSize(10);
+            Text.fontColor(Hive.Color.n500);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Button.createWithLabel(this.ctaLabel());
+            Button.height(32);
+            Button.padding({ left: 16, right: 16 });
+            Button.borderRadius(14);
+            Button.backgroundColor(Hive.Color.brandPrimary);
+            Button.fontColor(Hive.Color.brandWhite);
+            Button.fontSize(11);
+            Button.fontWeight(FontWeight.Bold);
+            Button.margin({ top: 8 });
+            Button.onClick(() => {
+                SensorDataClient.promoBannerTapped(this.title(), this.props['instanceId'] as string ?? '', this.deepLink());
+            });
+        }, Button);
+        Button.pop();
+        Column.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('🎯');
+            Text.fontSize(32);
+            Text.width(80);
+            Text.height(80);
+            Text.textAlign(TextAlign.Center);
+            Text.borderRadius(12);
+            Text.backgroundColor('#14000000');
+        }, Text);
+        Text.pop();
+        Row.pop();
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+}
+class SDUIFunctionGrid extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.props = {};
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params: SDUIFunctionGrid_Params) {
+        if (params.props !== undefined) {
+            this.props = params.props;
+        }
+    }
+    updateStateVars(params: SDUIFunctionGrid_Params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+    }
+    aboutToBeDeleted() {
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    private props: Record<string, any>;
+    private rows(): any[] { return this.props['rows'] as any[] ?? [] as any[]; }
+    initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 6 });
+            Column.width('100%');
+            Column.backgroundColor(Hive.Color.brandWhite);
+            Column.padding({ left: 16, right: 16, top: 8, bottom: 8 });
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            ForEach.create();
+            const forEachItemGenFunction = _item => {
+                const rawRow = _item;
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Row.create();
+                    Row.width('100%');
+                }, Row);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    ForEach.create();
+                    const forEachItemGenFunction = _item => {
+                        const raw = _item;
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            Column.create({ space: 4 });
+                            Column.layoutWeight(1);
+                            Column.alignItems(HorizontalAlign.Center);
+                            Column.onClick(() => {
+                                const extra: Record<string, any> = {};
+                                extra['function_label'] = ((raw as Record<string, string>)['label'] ?? '') as any;
+                                extra['deep_link'] = ((raw as Record<string, string>)['deepLink'] ?? '') as any;
+                                SensorDataClient.track('function_tap', 'Wealth', 'function_tapped', (raw as Record<string, string>)['label'] ?? '', 'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '', '', '', extra);
+                            });
+                        }, Column);
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            Text.create((raw as Record<string, string>)['icon'] ?? '');
+                            Text.fontSize(20);
+                            Text.width(44);
+                            Text.height(44);
+                            Text.textAlign(TextAlign.Center);
+                            Text.borderRadius(12);
+                            Text.backgroundColor(Hive.Color.n100);
+                        }, Text);
+                        Text.pop();
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            Text.create((raw as Record<string, string>)['label'] ?? '');
+                            Text.fontSize(10);
+                            Text.fontColor(Hive.Color.n700);
+                            Text.textAlign(TextAlign.Center);
+                            Text.lineHeight(14);
+                        }, Text);
+                        Text.pop();
+                        Column.pop();
+                    };
+                    this.forEachUpdateFunction(elmtId, rawRow as any[], forEachItemGenFunction);
+                }, ForEach);
+                ForEach.pop();
+                Row.pop();
+            };
+            this.forEachUpdateFunction(elmtId, this.rows(), forEachItemGenFunction);
+        }, ForEach);
+        ForEach.pop();
+        Column.pop();
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+}
+class SDUIAIAssistant extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.props = {};
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params: SDUIAIAssistant_Params) {
+        if (params.props !== undefined) {
+            this.props = params.props;
+        }
+    }
+    updateStateVars(params: SDUIAIAssistant_Params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+    }
+    aboutToBeDeleted() {
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    private props: Record<string, any>;
+    initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 8 });
+            Row.width('100%');
+            Row.height(44);
+            Row.padding({ left: 12, right: 12 });
+            Row.margin({ left: 16, right: 16, top: 4, bottom: 4 });
+            Row.borderRadius(10);
+            Row.backgroundColor(Hive.Color.n50);
+            Row.alignItems(VerticalAlign.Center);
+            Row.onClick(() => { SensorDataClient.aiAssistantTapped(); });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('✉️');
+            Text.fontSize(20);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.props['greeting'] as string ?? 'Hi，我是你的智能財富助理');
+            Text.fontSize(11);
+            Text.fontColor(Hive.Color.n600);
+            Text.layoutWeight(1);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('›');
+            Text.fontSize(14);
+            Text.fontColor(Hive.Color.n400);
+        }, Text);
+        Text.pop();
+        Row.pop();
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+}
+class SDUIAdBanner extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.props = {};
+        this.onDismiss = () => { };
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params: SDUIAdBanner_Params) {
+        if (params.props !== undefined) {
+            this.props = params.props;
+        }
+        if (params.onDismiss !== undefined) {
+            this.onDismiss = params.onDismiss;
+        }
+    }
+    updateStateVars(params: SDUIAdBanner_Params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+    }
+    aboutToBeDeleted() {
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    private props: Record<string, any>;
+    private onDismiss: () => void;
+    private title(): string { return this.props['title'] as string ?? ''; }
+    private subtitle(): string { return this.props['subtitle'] as string ?? ''; }
+    private ctaLabel(): string { return this.props['ctaLabel'] as string ?? ''; }
+    private deepLink(): string { return this.props['ctaDeepLink'] as string ?? ''; }
+    initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Stack.create({ alignContent: Alignment.TopEnd });
+            Stack.margin({ left: 12, right: 12, top: 6, bottom: 6 });
+        }, Stack);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 12 });
+            Row.width('100%');
+            Row.padding({ left: 16, right: 16, top: 12, bottom: 12 });
+            Row.borderRadius(14);
+            Row.linearGradient({ direction: GradientDirection.LeftTop,
+                colors: [['#FFFBEB', 0], ['#FEF3C7', 1]] });
+            Row.alignItems(VerticalAlign.Center);
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 4 });
+            Column.layoutWeight(1);
+            Column.alignItems(HorizontalAlign.Start);
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.title());
+            Text.fontSize(13);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor('#92400E');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.subtitle());
+            Text.fontSize(10);
+            Text.fontColor('#78716C');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Button.createWithLabel(this.ctaLabel());
+            Button.height(30);
+            Button.padding({ left: 14, right: 14 });
+            Button.borderRadius(12);
+            Button.backgroundColor(Hive.Color.brandPrimary);
+            Button.fontColor(Hive.Color.brandWhite);
+            Button.fontSize(11);
+            Button.fontWeight(FontWeight.Bold);
+            Button.margin({ top: 8 });
+            Button.onClick(() => {
+                SensorDataClient.sliceTapped('AD_BANNER', 'slice-ad', this.ctaLabel(), this.deepLink());
+            });
+        }, Button);
+        Button.pop();
+        Column.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('🌱');
+            Text.fontSize(28);
+            Text.width(72);
+            Text.height(72);
+            Text.textAlign(TextAlign.Center);
+            Text.borderRadius(10);
+            Text.backgroundColor('#14000000');
+        }, Text);
+        Text.pop();
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('✕');
+            Text.fontSize(13);
+            Text.fontColor(Hive.Color.n400);
+            Text.width(32);
+            Text.height(32);
+            Text.textAlign(TextAlign.Center);
+            Text.onClick(() => {
+                SensorDataClient.adBannerDismissed(this.title());
+                this.onDismiss();
+            });
+        }, Text);
+        Text.pop();
+        Stack.pop();
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+}
+class SDUIFlashLoan extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.props = {};
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params: SDUIFlashLoan_Params) {
+        if (params.props !== undefined) {
+            this.props = params.props;
+        }
+    }
+    updateStateVars(params: SDUIFlashLoan_Params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+    }
+    aboutToBeDeleted() {
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    private props: Record<string, any>;
+    private productName(): string { return this.props['productName'] as string ?? '閃電貸 極速放款'; }
+    private tagline(): string { return this.props['tagline'] as string ?? '最高可借額度'; }
+    private currency(): string { return this.props['currency'] as string ?? 'HKD'; }
+    private maxAmount(): number { return this.props['maxAmount'] as number ?? 300000; }
+    private ctaLabel(): string { return this.props['ctaLabel'] as string ?? '獲取額度'; }
+    private deepLink(): string { return this.props['ctaDeepLink'] as string ?? 'hsbc://loan/flash'; }
+    initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.width('100%');
+            Row.padding({ left: 16, right: 16, top: 12, bottom: 12 });
+            Row.margin({ left: 12, right: 12, top: 6, bottom: 6 });
+            Row.borderRadius(14);
+            Row.linearGradient({ direction: GradientDirection.LeftTop,
+                colors: [['#FFF5F5', 0], ['#FFE4E4', 1]] });
+            Row.alignItems(VerticalAlign.Center);
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 2 });
+            Column.layoutWeight(1);
+            Column.alignItems(HorizontalAlign.Start);
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(`⚡ ${this.productName()}`);
+            Text.fontSize(11);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor(Hive.Color.brandPrimary);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.tagline());
+            Text.fontSize(10);
+            Text.fontColor(Hive.Color.n500);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(`${this.currency()} ${this.maxAmount().toLocaleString()}.00`);
+            Text.fontSize(22);
+            Text.fontWeight(FontWeight.Bolder);
+            Text.fontColor(Hive.Color.n900);
+        }, Text);
+        Text.pop();
+        Column.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Button.createWithLabel(this.ctaLabel());
+            Button.height(44);
+            Button.padding({ left: 18, right: 18 });
+            Button.borderRadius(20);
+            Button.backgroundColor(Hive.Color.brandPrimary);
+            Button.fontColor(Hive.Color.brandWhite);
+            Button.fontSize(12);
+            Button.fontWeight(FontWeight.Bold);
+            Button.onClick(() => {
+                SensorDataClient.sliceTapped('FLASH_LOAN', 'slice-flash-loan', this.ctaLabel(), this.deepLink());
+            });
+        }, Button);
+        Button.pop();
+        Row.pop();
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+}
+class SDUIWealthSelection extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.props = {};
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params: SDUIWealthSelection_Params) {
+        if (params.props !== undefined) {
+            this.props = params.props;
+        }
+    }
+    updateStateVars(params: SDUIWealthSelection_Params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+    }
+    aboutToBeDeleted() {
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    private props: Record<string, any>;
+    private sectionTitle(): string { return this.props['sectionTitle'] as string ?? '財富精選'; }
+    private products(): any[] { return this.props['products'] as any[] ?? [] as any[]; }
+    initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 0 });
+            Column.width('100%');
+            Column.backgroundColor(Hive.Color.brandWhite);
+            Column.padding({ left: 16, right: 16, top: 12, bottom: 12 });
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.width('100%');
+            Row.margin({ bottom: 10 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.sectionTitle());
+            Text.fontSize(15);
+            Text.fontWeight(FontWeight.Bold);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Blank.create();
+            Blank.layoutWeight(1);
+        }, Blank);
+        Blank.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('更多 ›');
+            Text.fontSize(12);
+            Text.fontColor(Hive.Color.brandPrimary);
+        }, Text);
+        Text.pop();
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            ForEach.create();
+            const forEachItemGenFunction = (_item, index: number) => {
+                const raw = _item;
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Row.create();
+                    Row.width('100%');
+                    Row.padding({ top: 10, bottom: 10 });
+                    Row.onClick(() => {
+                        SensorDataClient.wealthProductTapped((raw as Record<string, any>)['productName'] as string ?? '', (raw as Record<string, any>)['id'] as string ?? '');
+                    });
+                }, Row);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Column.create({ space: 2 });
+                    Column.layoutWeight(1);
+                    Column.alignItems(HorizontalAlign.Start);
+                }, Column);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, any>)['productName'] as string ?? '');
+                    Text.fontSize(12);
+                    Text.fontWeight(FontWeight.Medium);
+                    Text.fontColor(Hive.Color.n900);
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Row.create({ space: 6 });
+                }, Row);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, any>)['riskLevel'] as string ?? '');
+                    Text.fontSize(9);
+                    Text.fontColor(Hive.Color.n500);
+                    Text.padding({ left: 6, right: 6, top: 1, bottom: 1 });
+                    Text.borderRadius(8);
+                    Text.backgroundColor(Hive.Color.n100);
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, any>)['redemption'] as string ?? '');
+                    Text.fontSize(9);
+                    Text.fontColor(Hive.Color.n500);
+                    Text.padding({ left: 6, right: 6, top: 1, bottom: 1 });
+                    Text.borderRadius(8);
+                    Text.backgroundColor(Hive.Color.n100);
+                }, Text);
+                Text.pop();
+                Row.pop();
+                Column.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Column.create({ space: 2 });
+                    Column.alignItems(HorizontalAlign.End);
+                }, Column);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, any>)['yield7Day'] as string ?? '');
+                    Text.fontSize(18);
+                    Text.fontWeight(FontWeight.Bolder);
+                    Text.fontColor(Hive.Color.brandPrimary);
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create('7日年化');
+                    Text.fontSize(9);
+                    Text.fontColor(Hive.Color.n400);
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    If.create();
+                    if ((raw as Record<string, any>)['highlighted'] as boolean === true) {
+                        this.ifElseBranchUpdateFunction(0, () => {
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Button.createWithLabel((raw as Record<string, any>)['ctaLabel'] as string ?? '查看');
+                                Button.height(28);
+                                Button.padding({ left: 12, right: 12 });
+                                Button.borderRadius(12);
+                                Button.backgroundColor(Hive.Color.brandPrimary);
+                                Button.fontColor(Hive.Color.brandWhite);
+                                Button.fontSize(10);
+                                Button.fontWeight(FontWeight.Bold);
+                                Button.margin({ top: 4 });
+                                Button.onClick(() => {
+                                    SensorDataClient.wealthProductTapped((raw as Record<string, any>)['productName'] as string ?? '', (raw as Record<string, any>)['id'] as string ?? '');
+                                });
+                            }, Button);
+                            Button.pop();
+                        });
+                    }
+                    else {
+                        this.ifElseBranchUpdateFunction(1, () => {
+                        });
+                    }
+                }, If);
+                If.pop();
+                Column.pop();
+                Row.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    If.create();
+                    if (index < this.products().length - 1) {
+                        this.ifElseBranchUpdateFunction(0, () => {
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Divider.create();
+                                Divider.color(Hive.Color.n100);
+                            }, Divider);
+                        });
+                    }
+                    else {
+                        this.ifElseBranchUpdateFunction(1, () => {
+                        });
+                    }
+                }, If);
+                If.pop();
+            };
+            this.forEachUpdateFunction(elmtId, this.products(), forEachItemGenFunction, undefined, true, false);
+        }, ForEach);
+        ForEach.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Blank.create();
+            Blank.height(10);
+        }, Blank);
+        Blank.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('💬 理財產品這么多，哪款適合我？');
+            Text.fontSize(11);
+            Text.fontColor(Hive.Color.n500);
+            Text.textAlign(TextAlign.Center);
+            Text.width('100%');
+        }, Text);
+        Text.pop();
+        Column.pop();
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+}
+class SDUIFeaturedRankings extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.props = {};
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params: SDUIFeaturedRankings_Params) {
+        if (params.props !== undefined) {
+            this.props = params.props;
+        }
+    }
+    updateStateVars(params: SDUIFeaturedRankings_Params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+    }
+    aboutToBeDeleted() {
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    private props: Record<string, any>;
+    private sectionTitle(): string { return this.props['sectionTitle'] as string ?? '特色榜單'; }
+    private items(): any[] { return this.props['items'] as any[] ?? [] as any[]; }
+    initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 0 });
+            Column.width('100%');
+            Column.backgroundColor(Hive.Color.brandWhite);
+            Column.padding({ left: 16, right: 16, top: 12, bottom: 12 });
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.width('100%');
+            Row.margin({ bottom: 10 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.sectionTitle());
+            Text.fontSize(15);
+            Text.fontWeight(FontWeight.Bold);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Blank.create();
+            Blank.layoutWeight(1);
+        }, Blank);
+        Blank.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('更多 ›');
+            Text.fontSize(12);
+            Text.fontColor(Hive.Color.brandPrimary);
+        }, Text);
+        Text.pop();
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            ForEach.create();
+            const forEachItemGenFunction = _item => {
+                const raw = _item;
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Row.create({ space: 12 });
+                    Row.width('100%');
+                    Row.padding({ top: 8, bottom: 8 });
+                    Row.onClick(() => {
+                        SensorDataClient.rankingsTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['badge'] ?? '');
+                    });
+                }, Row);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, string>)['icon'] ?? '');
+                    Text.fontSize(24);
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Column.create({ space: 2 });
+                    Column.layoutWeight(1);
+                    Column.alignItems(HorizontalAlign.Start);
+                }, Column);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, string>)['badge'] ?? '');
+                    Text.fontSize(9);
+                    Text.fontWeight(FontWeight.Bold);
+                    Text.fontColor(Hive.Color.brandPrimary);
+                    Text.padding({ left: 8, right: 8, top: 2, bottom: 2 });
+                    Text.borderRadius(10);
+                    Text.backgroundColor('#FEF2F2');
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, string>)['title'] ?? '');
+                    Text.fontSize(13);
+                    Text.fontWeight(FontWeight.Bold);
+                    Text.fontColor(Hive.Color.n900);
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, string>)['description'] ?? '');
+                    Text.fontSize(10);
+                    Text.fontColor(Hive.Color.n500);
+                }, Text);
+                Text.pop();
+                Column.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create('›');
+                    Text.fontSize(16);
+                    Text.fontColor(Hive.Color.n400);
+                }, Text);
+                Text.pop();
+                Row.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Divider.create();
+                    Divider.color('#F9FAFB');
+                }, Divider);
+            };
+            this.forEachUpdateFunction(elmtId, this.items(), forEachItemGenFunction);
+        }, ForEach);
+        ForEach.pop();
+        Column.pop();
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+}
+class SDUILifeDeals extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.props = {};
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params: SDUILifeDeals_Params) {
+        if (params.props !== undefined) {
+            this.props = params.props;
+        }
+    }
+    updateStateVars(params: SDUILifeDeals_Params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+    }
+    aboutToBeDeleted() {
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    private props: Record<string, any>;
+    private sectionTitle(): string { return this.props['sectionTitle'] as string ?? '生活特惠'; }
+    private deals(): any[] { return this.props['deals'] as any[] ?? [] as any[]; }
+    private links(): any[] { return this.props['bottomLinks'] as any[] ?? [] as any[]; }
+    initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 10 });
+            Column.width('100%');
+            Column.backgroundColor(Hive.Color.brandWhite);
+            Column.padding({ left: 16, right: 16, top: 12, bottom: 12 });
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.width('100%');
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.sectionTitle());
+            Text.fontSize(15);
+            Text.fontWeight(FontWeight.Bold);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Blank.create();
+            Blank.layoutWeight(1);
+        }, Blank);
+        Blank.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('更多 ›');
+            Text.fontSize(12);
+            Text.fontColor(Hive.Color.brandPrimary);
+        }, Text);
+        Text.pop();
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 10 });
+            Row.width('100%');
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            ForEach.create();
+            const forEachItemGenFunction = _item => {
+                const raw = _item;
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Column.create({ space: 0 });
+                    Column.layoutWeight(1);
+                    Column.borderRadius(12);
+                    Column.clip(true);
+                    Column.backgroundColor(Hive.Color.n50);
+                    Column.onClick(() => {
+                        SensorDataClient.lifeDealTapped((raw as Record<string, string>)['brandName'] ?? '', (raw as Record<string, string>)['tag'] ?? '');
+                    });
+                }, Column);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, string>)['logoUrl'] || '🏷');
+                    Text.fontSize(24);
+                    Text.width('100%');
+                    Text.height(64);
+                    Text.textAlign(TextAlign.Center);
+                    Text.backgroundColor(Hive.Color.n100);
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, string>)['tag'] ?? '');
+                    Text.fontSize(9);
+                    Text.fontWeight(FontWeight.Bold);
+                    Text.fontColor(Hive.Color.brandWhite);
+                    Text.width('100%');
+                    Text.textAlign(TextAlign.Center);
+                    Text.padding({ top: 4, bottom: 4 });
+                    Text.backgroundColor(Hive.Color.brandPrimary);
+                }, Text);
+                Text.pop();
+                Column.pop();
+            };
+            this.forEachUpdateFunction(elmtId, this.deals(), forEachItemGenFunction);
+        }, ForEach);
+        ForEach.pop();
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 10 });
+            Row.width('100%');
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            ForEach.create();
+            const forEachItemGenFunction = _item => {
+                const raw = _item;
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Row.create({ space: 8 });
+                    Row.layoutWeight(1);
+                    Row.padding(10);
+                    Row.borderRadius(12);
+                    Row.backgroundColor(Hive.Color.n50);
+                    Row.alignItems(VerticalAlign.Center);
+                    Row.onClick(() => {
+                        const extra: Record<string, any> = {};
+                        extra['deep_link'] = ((raw as Record<string, string>)['deepLink'] ?? '') as any;
+                        SensorDataClient.track('bottom_link_tap', 'Wealth', 'bottom_link_tapped', (raw as Record<string, string>)['label'] ?? '', 'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '', '', '', extra);
+                    });
+                }, Row);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, string>)['icon'] ?? '');
+                    Text.fontSize(24);
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, string>)['label'] ?? '');
+                    Text.fontSize(10);
+                    Text.fontColor(Hive.Color.n700);
+                    Text.lineHeight(16);
+                }, Text);
+                Text.pop();
+                Row.pop();
+            };
+            this.forEachUpdateFunction(elmtId, this.links(), forEachItemGenFunction);
+        }, ForEach);
+        ForEach.pop();
+        Row.pop();
+        Column.pop();
     }
     rerender() {
         this.updateDirtyElements();
@@ -432,75 +2148,71 @@ class WHHeaderNav extends ViewPU {
     }
     private onSearchTap: () => void;
     aboutToAppear() {
-        SensorDataClient.sliceImpression('HEADER_NAV', 'slice-header', 0);
+        SensorDataClient.sliceImpression('AI_SEARCH_BAR', 'slice-header', 0);
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create();
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create({ space: 10 });
+            Row.create({ space: 8 });
             Row.width('100%');
             Row.height(50);
-            Row.padding({ left: 14, right: 14, top: 8, bottom: 8 });
-            Row.backgroundColor(Hive.Color.brandWhite);
+            Row.padding({ left: 12, right: 12, top: 7, bottom: 7 });
+            Row.backgroundColor('#DB0011');
+            Row.alignItems(VerticalAlign.Center);
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Search bar
+            Text.create('⬜');
+            Text.fontSize(20);
+            Text.fontColor('#E6FFFFFF');
+            Text.onClick(() => {
+                SensorDataClient.track('qr_tap', 'Wealth', 'qr_scanner_tapped', '', 'ai_search_bar', 'wealth_hub');
+            });
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create({ space: 6 });
-            // Search bar
             Row.layoutWeight(1);
-            // Search bar
             Row.height(36);
-            // Search bar
-            Row.padding({ left: 14, right: 14 });
-            // Search bar
+            Row.padding({ left: 12, right: 12 });
             Row.borderRadius(18);
-            // Search bar
-            Row.backgroundColor(Hive.Color.n100);
-            // Search bar
+            Row.backgroundColor('#26FFFFFF');
             Row.onClick(() => {
-                SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '', 'wealth_hub_hk', 'wealth_hub');
+                SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '', 'ai_search_bar', 'wealth_hub');
                 this.onSearchTap();
             });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create('🔍');
             Text.fontSize(13);
-            Text.fontColor(Hive.Color.n400);
+            Text.fontColor('#99FFFFFF');
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create('搜尋功能、產品');
             Text.fontSize(13);
-            Text.fontColor(Hive.Color.n400);
+            Text.fontColor('#A6FFFFFF');
             Text.layoutWeight(1);
         }, Text);
         Text.pop();
-        // Search bar
         Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('🔔');
+            Text.create('🤖');
             Text.fontSize(20);
+            Text.fontColor('#E6FFFFFF');
             Text.onClick(() => {
-                SensorDataClient.track('notification_tap', 'Wealth', 'notification_tapped', '', 'wealth_hub_hk', 'wealth_hub');
+                SensorDataClient.track('chatbot_tap', 'Wealth', 'chatbot_tapped', '', 'ai_search_bar', 'wealth_hub');
             });
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('⬛');
-            Text.fontSize(18);
+            Text.create('✉️');
+            Text.fontSize(20);
+            Text.fontColor('#E6FFFFFF');
             Text.onClick(() => {
-                SensorDataClient.track('qr_tap', 'Wealth', 'qr_scanner_tapped', '', 'wealth_hub_hk', 'wealth_hub');
+                SensorDataClient.track('inbox_tap', 'Wealth', 'inbox_tapped', '', 'ai_search_bar', 'wealth_hub');
             });
         }, Text);
         Text.pop();
         Row.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Divider.create();
-            Divider.color(Hive.Color.n200);
-        }, Divider);
-        Column.pop();
     }
     rerender() {
         this.updateDirtyElements();
@@ -712,7 +2424,6 @@ class WHFunctionGrid extends ViewPU {
                             Column.layoutWeight(1);
                             Column.alignItems(HorizontalAlign.Center);
                             Column.onClick(() => {
-                                // FIX: arkts-no-untyped-obj-literals — build Record via index assignments.
                                 const extra: Record<string, any> = {};
                                 extra['function_label'] = item.label as any;
                                 extra['deep_link'] = item.deepLink as any;
@@ -898,25 +2609,17 @@ class WHAdBanner extends ViewPU {
         Text.pop();
         Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Dismiss button
             Text.create('✕');
-            // Dismiss button
             Text.fontSize(13);
-            // Dismiss button
             Text.fontColor(Hive.Color.n400);
-            // Dismiss button
             Text.width(32);
-            // Dismiss button
             Text.height(32);
-            // Dismiss button
             Text.textAlign(TextAlign.Center);
-            // Dismiss button
             Text.onClick(() => {
                 SensorDataClient.adBannerDismissed('春季播種黃金期');
                 this.onDismiss();
             });
         }, Text);
-        // Dismiss button
         Text.pop();
         Stack.pop();
     }
@@ -1154,8 +2857,7 @@ class WHWealthSelection extends ViewPU {
                             }, Divider);
                         });
                     }
-                    else // FIX: Spacer() does not support .height() modifier (arkts UI syntax error).
-                     {
+                    else {
                         this.ifElseBranchUpdateFunction(1, () => {
                         });
                     }
@@ -1166,15 +2868,9 @@ class WHWealthSelection extends ViewPU {
         }, ForEach);
         ForEach.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // FIX: Spacer() does not support .height() modifier (arkts UI syntax error).
-            // Use Blank().height() which is the correct ArkTS spacer with explicit sizing.
             Blank.create();
-            // FIX: Spacer() does not support .height() modifier (arkts UI syntax error).
-            // Use Blank().height() which is the correct ArkTS spacer with explicit sizing.
             Blank.height(10);
         }, Blank);
-        // FIX: Spacer() does not support .height() modifier (arkts UI syntax error).
-        // Use Blank().height() which is the correct ArkTS spacer with explicit sizing.
         Blank.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create('💬 理財產品這么多，哪款適合我？');
@@ -1333,13 +3029,10 @@ class WHLifeDeals extends ViewPU {
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
+    private bottomLinks: BottomLink[];
     aboutToAppear() {
         SensorDataClient.sliceImpression('LIFE_DEALS', 'slice-life-deals', 9);
     }
-    // FIX: was typed implicitly as Array<{ icon: string, label: string, deepLink: string }>.
-    // Declare with the proper BottomLink interface to avoid object-literal type inference
-    // being used in the ForEach callback annotation.
-    private bottomLinks: BottomLink[];
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 10 });
@@ -1370,9 +3063,7 @@ class WHLifeDeals extends ViewPU {
         Text.pop();
         Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Deal cards
             Row.create({ space: 10 });
-            // Deal cards
             Row.width('100%');
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1412,16 +3103,9 @@ class WHLifeDeals extends ViewPU {
             this.forEachUpdateFunction(elmtId, DEALS, forEachItemGenFunction);
         }, ForEach);
         ForEach.pop();
-        // Deal cards
         Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Bottom links
-            // FIX: was (link: { icon: string, label: string, deepLink: string }) =>
-            // Object literal type as ForEach callback param. Now uses BottomLink interface.
             Row.create({ space: 10 });
-            // Bottom links
-            // FIX: was (link: { icon: string, label: string, deepLink: string }) =>
-            // Object literal type as ForEach callback param. Now uses BottomLink interface.
             Row.width('100%');
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1436,7 +3120,6 @@ class WHLifeDeals extends ViewPU {
                     Row.backgroundColor(Hive.Color.n50);
                     Row.alignItems(VerticalAlign.Center);
                     Row.onClick(() => {
-                        // FIX: arkts-no-untyped-obj-literals — build Record via index assignments.
                         const extra: Record<string, any> = {};
                         extra['deep_link'] = link.deepLink as any;
                         SensorDataClient.track('bottom_link_tap', 'Wealth', 'bottom_link_tapped', link.label, 'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '', '', '', extra);
@@ -1459,9 +3142,6 @@ class WHLifeDeals extends ViewPU {
             this.forEachUpdateFunction(elmtId, this.bottomLinks, forEachItemGenFunction);
         }, ForEach);
         ForEach.pop();
-        // Bottom links
-        // FIX: was (link: { icon: string, label: string, deepLink: string }) =>
-        // Object literal type as ForEach callback param. Now uses BottomLink interface.
         Row.pop();
         Column.pop();
     }

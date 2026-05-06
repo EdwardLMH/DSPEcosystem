@@ -1,27 +1,36 @@
 // Index.ets
 // HarmonyNext SDUI — Entry page (replaces the default generated Index.ets)
-// Renders both the OBKYC journey and the Wealth page with tab navigation.
+// Renders Home Hub, FX Viewpoint, Deposit Campaign, and OBKYC journey with tab navigation.
 
-import { KYCState } from '../models/SDUIModels'
 import { KYCRootView } from '../kyc/KYCShellViews'
 import { WealthPageView } from '../wealth/WealthPage'
+import { FXViewpointView } from '../fxviewpoint/FXViewpointPage'
+import { DepositCampaignView } from '../deposit/DepositCampaignPage'
 import { Hive } from '../common/HiveTokens'
 
 @Entry
 @Component
 struct Index {
   @State selectedTab: number = 0
-  @State kycState: KYCState = new KYCState()
+  private controller: TabsController = new TabsController()
 
   build() {
-    Tabs({ barPosition: BarPosition.End }) {
-      TabContent() {
-        KYCRootView({ state: this.kycState })
-      }.tabBar(this.tabBarItem('🪪', 'OBKYC', 0))
-
+    Tabs({ barPosition: BarPosition.End, controller: this.controller }) {
       TabContent() {
         WealthPageView()
-      }.tabBar(this.tabBarItem('📈', 'Wealth', 1))
+      }.tabBar(this.tabBarItem('🏦', 'Home Hub', 0))
+
+      TabContent() {
+        FXViewpointView({ onBack: () => { this.controller.changeIndex(0) } })
+      }.tabBar(this.tabBarItem('📊', 'FX Viewpoint', 1))
+
+      TabContent() {
+        DepositCampaignView({ onBack: () => { this.controller.changeIndex(0) } })
+      }.tabBar(this.tabBarItem('🏦', 'Deposit', 2))
+
+      TabContent() {
+        KYCRootView()
+      }.tabBar(this.tabBarItem('🪪', 'OBKYC', 3))
     }
     .width('100%').height('100%')
     .barBackgroundColor(Hive.Color.brandWhite)

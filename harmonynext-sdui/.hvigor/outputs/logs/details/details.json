@@ -7,9 +7,6 @@
         "INCLUDE_IN_BUILD": true,
         "IS_COMMAND_LINE_ENTRY_MODULE": true,
         "MODULE_TYPE": "entry",
-        "INCREMENTAL_TASKS": {
-          "COMPILE_ARKTS": true
-        },
         "IS_INCREMENTAL_MODULE": true
       }
     ],
@@ -24,16 +21,25 @@
     "IS_HVIGORFILE_TYPE_CHECK": false,
     "TASK_TIME": {
       "923fe53966c6cd9343e11af776cd4b05be315ea4b200b02e4d5dfb0f929b73bf": {
-        "CreateModuleInfo": 654834,
-        "ConfigureCmake": 173583,
-        "PreCheckSyscap": 361750,
-        "GeneratePkgSdkInfo": 823250,
-        "ProcessIntegratedHsp": 499417,
-        "BuildNativeWithCmake": 160959,
-        "SyscapTransform": 10195000,
-        "ProcessStartupConfig": 2410417,
-        "BuildNativeWithNinja": 376125,
-        "BuildJS": 2629291
+        "init": 218708,
+        "CreateModuleInfo": 324625,
+        "ConfigureCmake": 294667,
+        "PreCheckSyscap": 588958,
+        "GeneratePkgSdkInfo": 2604667,
+        "ProcessIntegratedHsp": 1869625,
+        "BuildNativeWithCmake": 1708833,
+        "SyscapTransform": 2499083,
+        "ProcessStartupConfig": 2237625,
+        "BuildNativeWithNinja": 820667,
+        "BuildJS": 3503959,
+        "ProcessCompiledResources": 361625,
+        "PackingCheck": 5667292,
+        "SignHap": 1661541,
+        "CollectDebugSymbol": 839792,
+        "assembleHap": 156000
+      },
+      "APP": {
+        "init": 116750
       }
     },
     "APIS": [
@@ -44,134 +50,7 @@
       "ENABLE_CPP_FUNCTION_LEVEL_INCREMENTAL": false
     },
     "CONFIG_PROPERTIES": {},
-    "BUILD_ID": "202604301106276120",
-    "ERROR_MESSAGE": [
-      {
-        "CODE": "00305015",
-        "STACK": "00305015 Rollup Error\n...\n10605040 ArkTS Compiler Error\n...\n10605008 ArkTS Compiler Error\n...\n10605008 ArkTS Compiler Error\n...\n10605008 ArkTS Compiler Error\n...\n10605008 ArkTS Compiler Error\n...\n10605008 ArkTS Compiler Error\n...\n10605008 ArkTS Compiler Error\n...\n10605008 ArkTS Compiler Error\n...\n10905209 ArkTS Compiler Error\n...\n10905210 ArkTS Compiler Error\n...\n10905210 ArkTS Compiler Error\n...\n10905210 ArkTS Compiler Error\n...\n10905210 ArkTS Compiler Error\n...\n10905210 ArkTS Compiler Error\n...\n10905210 ArkTS Compiler Error\n...\n10905210 ArkTS Compiler Error\n...\n10905210 ArkTS Compiler Error\n...",
-        "PROJECT_CONFIG": {
-          "buildMode": "Debug",
-          "compileMode": "esmodule",
-          "moduleType": "entry",
-          "targetName": ".default",
-          "packageManagerType": "ohpm",
-          "isLocalTest": false,
-          "needCoverageInsert": false,
-          "debugLine": false,
-          "compileSdkVersion": 23,
-          "compatibleSdkVersion": 23,
-          "originCompatibleSdkVersion": "6.1.0(23)",
-          "etsLoaderVersion": "6.1.0.105",
-          "etsLoaderReleaseType": "Release",
-          "aotCompileMode": "type",
-          "isCrossplatform": false,
-          "bundleType": "app",
-          "apiVersion": 23,
-          "isFaMode": false,
-          "deviceTypes": [
-            "phone"
-          ],
-          "integratedHsp": false,
-          "branchElimination": false,
-          "tsImportSendable": false,
-          "resolveConflictMode": true,
-          "useNativeResolver": true,
-          "shouldEmitJs": true,
-          "useTscResolve": false,
-          "singleFileEmit": false,
-          "executionMode": "memory",
-          "isHarDeduplicateEnabled": false,
-          "autoLazyImport": false,
-          "allowEmptyBundleName": false,
-          "reExportCheckMode": "noCheck",
-          "usePathPlaceholder": false,
-          "writeRollupCache": true,
-          "isExpandImportEnabled": false,
-          "ignoreCrossplatformCheck": false,
-          "skipOhModulesLint": false,
-          "enableStrictCheckOHModule": false,
-          "useDeclarationFileSignature": false,
-          "isPreloadSoEnabled": false,
-          "strictMode.caseSensitiveCheck": true,
-          "strictMode.useNormalizedOHMUrl": true,
-          "strictMode.noExternalImportByPath": true,
-          "runtimeOS": "HarmonyOS",
-          "sdkInfo": "false:23:6.1.0.105:Release",
-          "useSourceHash": false,
-          "isByteCodeHarOptimize": false,
-          "copyCodeResourceEnable": true,
-          "uiTransformOptimization": false
-        }
-      },
-      {
-        "CODE": "10605040",
-        "TIMESTAMP": "1777518396756"
-      },
-      {
-        "CODE": "10605008",
-        "TIMESTAMP": "1777518396756"
-      },
-      {
-        "CODE": "10605008",
-        "TIMESTAMP": "1777518396756"
-      },
-      {
-        "CODE": "10605008",
-        "TIMESTAMP": "1777518396756"
-      },
-      {
-        "CODE": "10605008",
-        "TIMESTAMP": "1777518396756"
-      },
-      {
-        "CODE": "10605008",
-        "TIMESTAMP": "1777518396756"
-      },
-      {
-        "CODE": "10605008",
-        "TIMESTAMP": "1777518396756"
-      },
-      {
-        "CODE": "10605008",
-        "TIMESTAMP": "1777518396756"
-      },
-      {
-        "CODE": "10905209",
-        "TIMESTAMP": "1777518396756"
-      },
-      {
-        "CODE": "10905210",
-        "TIMESTAMP": "1777518396756"
-      },
-      {
-        "CODE": "10905210",
-        "TIMESTAMP": "1777518396756"
-      },
-      {
-        "CODE": "10905210",
-        "TIMESTAMP": "1777518396756"
-      },
-      {
-        "CODE": "10905210",
-        "TIMESTAMP": "1777518396756"
-      },
-      {
-        "CODE": "10905210",
-        "TIMESTAMP": "1777518396756"
-      },
-      {
-        "CODE": "10905210",
-        "TIMESTAMP": "1777518396756"
-      },
-      {
-        "CODE": "10905210",
-        "TIMESTAMP": "1777518396756"
-      },
-      {
-        "CODE": "10905210",
-        "TIMESTAMP": "1777518396756"
-      }
-    ],
-    "TOTAL_TIME": 9144185292
+    "TOTAL_TIME": 432786375,
+    "BUILD_ID": "202605061348385630"
   }
 }

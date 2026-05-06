@@ -25,6 +25,7 @@ const AccordionItem = React.lazy(() => import('../components/AccordionItem'));
 const InfoCard = React.lazy(() => import('../components/InfoCard'));
 const ComparisonTable = React.lazy(() => import('../components/ComparisonTable'));
 const EligibilityChecker = React.lazy(() => import('../components/EligibilityChecker'));
+const AISearchBar = React.lazy(() => import('../components/AISearchBar'));
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
@@ -53,6 +54,8 @@ export const ComponentRegistry: Record<string, React.ComponentType<any>> = {
   InfoCard,
   ComparisonTable,
   EligibilityChecker,
+  AISearchBar,
+  AI_SEARCH_BAR: AISearchBar, // SDUI slice type alias
 };
 
 /**

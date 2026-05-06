@@ -256,11 +256,6 @@ export function ComponentRegistryPanel() {
     return matchSearch && matchCat && matchStatus;
   });
 
-  // Derive pages that use each component type
-  function pagesUsingType(sliceType: string) {
-    return state.pages.filter(p => p.slices.some(s => s.type === sliceType));
-  }
-
   function openDetail(comp: UIComponent) {
     setSelected(comp);
     setIsEditing(false);
@@ -410,7 +405,7 @@ export function ComponentRegistryPanel() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid var(--surface-border)' }}>
-                {['Component', 'Type / Category', 'Version', 'Maintained By', 'Pages Using', 'Updated', 'Status', ''].map(h => (
+                {['Component', 'Type / Category', 'Version', 'Maintained By', 'Updated', 'Status', ''].map(h => (
                   <th key={h} style={{
                     padding: '8px 12px', textAlign: 'left', fontSize: 11,
                     fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase',
@@ -424,7 +419,6 @@ export function ComponentRegistryPanel() {
                 const isSelected = selected?.componentId === comp.componentId;
                 const catColor = CAT_COLORS[comp.category] ?? '#94a3b8';
                 const statusStyle = STATUS_COLORS[comp.status];
-                const usedInPages = pagesUsingType(comp.sliceType);
                 return (
                   <tr
                     key={comp.componentId}
@@ -459,32 +453,6 @@ export function ComponentRegistryPanel() {
                     </td>
                     <td style={{ padding: '11px 12px', fontSize: 12, color: 'var(--text-secondary)' }}>
                       {comp.maintainedBy}
-                    </td>
-                    <td style={{ padding: '11px 12px' }}>
-                      {usedInPages.length === 0 ? (
-                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>—</span>
-                      ) : (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-                          {usedInPages.slice(0, 2).map(p => (
-                            <span
-                              key={p.pageId}
-                              onClick={e => { e.stopPropagation(); dispatch({ type: 'OPEN_PAGE', pageId: p.pageId }); }}
-                              title={`Open ${p.name}`}
-                              style={{
-                                fontSize: 10, padding: '2px 7px', borderRadius: 8,
-                                background: 'rgba(219,0,17,0.08)', color: 'var(--hsbc-red)',
-                                cursor: 'pointer', border: '1px solid rgba(219,0,17,0.2)',
-                                fontWeight: 600,
-                              }}
-                            >{p.name.length > 18 ? p.name.slice(0, 16) + '…' : p.name}</span>
-                          ))}
-                          {usedInPages.length > 2 && (
-                            <span style={{ fontSize: 10, color: 'var(--text-muted)', padding: '2px 4px' }}>
-                              +{usedInPages.length - 2}
-                            </span>
-                          )}
-                        </div>
-                      )}
                     </td>
                     <td style={{ padding: '11px 12px', fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                       {formatDate(comp.updatedAt)}
@@ -679,45 +647,6 @@ export function ComponentRegistryPanel() {
                 </div>
               )}
 
-              {/* Pages using this component */}
-              {(() => {
-                const pages = pagesUsingType(selected.sliceType);
-                return (
-                  <div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
-                      Used In Pages ({pages.length})
-                    </div>
-                    {pages.length === 0 ? (
-                      <div style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>Not used in any page</div>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        {pages.map(p => (
-                          <div
-                            key={p.pageId}
-                            onClick={() => dispatch({ type: 'OPEN_PAGE', pageId: p.pageId })}
-                            style={{
-                              display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px',
-                              borderRadius: 6, border: '1px solid var(--surface-border)',
-                              cursor: 'pointer', background: 'var(--surface-bg)',
-                              transition: 'background 0.1s',
-                            }}
-                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-hover)'; }}
-                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-bg)'; }}
-                          >
-                            <span style={{ fontSize: 16 }}>{p.thumbnail ?? '📄'}</span>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
-                              <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{p.channel} · {p.marketId}</div>
-                            </div>
-                            <span style={{ fontSize: 11, color: 'var(--hsbc-red)', fontWeight: 600 }}>Open →</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-
               {/* Static info when viewing */}
               {!isEditing && (
                 <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
@@ -796,16 +725,6 @@ export function ComponentRegistryPanel() {
             <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>
               Delete "{confirmDelete.label}"?
             </div>
-            {pagesUsingType(confirmDelete.sliceType).length > 0 && (
-              <div style={{
-                padding: '10px 12px', borderRadius: 6, background: 'rgba(239,68,68,0.08)',
-                border: '1px solid rgba(239,68,68,0.25)', marginBottom: 14,
-                fontSize: 12, color: '#ef4444', lineHeight: 1.5,
-              }}>
-                Warning: this component is used in {pagesUsingType(confirmDelete.sliceType).length} page(s).
-                Deleting it from the registry does not remove existing instances from those pages.
-              </div>
-            )}
             <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20, lineHeight: 1.5 }}>
               This removes the component from the registry and Component Library. This action cannot be undone.
             </div>

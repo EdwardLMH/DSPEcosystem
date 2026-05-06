@@ -7,23 +7,21 @@
 //   Step IDs from the BFF are sequential ("step-001", "step-002" …) and are NOT
 //   used for routing — only the primary question ID is.
 //
-// BFF step → primary question → component mapping (mobile platform):
-//   step-001  q_first_name          KYCNameDobStep        (first name + last name + DOB)
-//   step-002  q_nationality         KYCNationalityStep
-//   step-003  q_hkid_number         KYCHKIDStep
-//             q_mainland_id         KYCMainlandIDStep
-//             q_passport_number     KYCPassportStep
-//   step-004  q_hkid_front          KYCDocumentStep
-//   step-005  q_email               KYCContactStep        (email + phone)
-//   step-006  q_addr_line1          KYCAddressStep        (line1 + line2)
-//   step-007  q_addr_district       KYCAddressDistrictStep
-//   step-008  q_employment_status   KYCEmploymentStep
-//   step-009  q_annual_income       KYCAnnualIncomeStep
-//   step-010  q_source_of_funds     KYCSourceOfFundsStep
-//   step-011  q_account_purpose     KYCAccountPurposeStep
-//   step-012  q_liveness            KYCLivenessStep       (unchanged)
-//   step-013  q_ob_consent          KYCOpenBankingStep    (unchanged)
-//   step-014  q_pep_status          KYCDeclarationStep    (unchanged)
+// OBKYC journey — 11 mobile steps:
+//
+//   step-001  q_first_name          KYCNameDobStep        Personal Info: first name + last name + DOB
+//   step-002  q_nationality         KYCNationalityStep    Nationality selector
+//   step-003  q_hkid_number         KYCHKIDStep           Identity Doc — HK (if nationality=HK)
+//             q_mainland_id         KYCMainlandIDStep     Identity Doc — Mainland China
+//             q_passport_number     KYCPassportStep       Identity Doc — all others
+//   step-004  q_hkid_front          KYCDocumentStep       Upload Identity Document (front + back)
+//   step-005  q_email               KYCContactStep        Contact Details: email + phone
+//   step-006  q_addr_line1          KYCAddressStep        Residential Address: line1 + line2 + district
+//   step-007  q_employment_status   KYCEmploymentIncomeStep  Employment & Income: status + annual income
+//   step-008  q_source_of_funds     KYCSourceOfFundsStep  Source of Funds + Purpose of Account
+//   step-009  q_liveness            KYCLivenessStep       Selfie & Liveness Check
+//   step-010  q_ob_consent          KYCOpenBankingStep    Connect Your Bank
+//   step-011  q_pep_status          KYCDeclarationStep    Legal Declarations
 
 import { Hive } from '../common/HiveTokens'
 import { KYCState } from '../models/SDUIModels'
@@ -133,7 +131,7 @@ export struct KYCNameDobStep {
         TextInput({ placeholder: 'e.g. Tai Man', text: answerStr(this.state, 'q_first_name') })
           .width('100%').height(Hive.Component.Input.height)
           .borderRadius(Hive.Radius.base).borderWidth(1).borderColor(Hive.Color.n300)
-          .onChange((v: string) => { this.state.answers['q_first_name'] = v as ESObject })
+          .onChange((v: string) => { this.state.setAnswer('q_first_name', v as ESObject) })
       }.width('100%').alignItems(HorizontalAlign.Start)
 
       // Last Name
@@ -145,7 +143,7 @@ export struct KYCNameDobStep {
         TextInput({ placeholder: 'e.g. CHAN', text: answerStr(this.state, 'q_last_name') })
           .width('100%').height(Hive.Component.Input.height)
           .borderRadius(Hive.Radius.base).borderWidth(1).borderColor(Hive.Color.n300)
-          .onChange((v: string) => { this.state.answers['q_last_name'] = v as ESObject })
+          .onChange((v: string) => { this.state.setAnswer('q_last_name', v as ESObject) })
       }.width('100%').alignItems(HorizontalAlign.Start)
 
       // Date of Birth
@@ -160,7 +158,7 @@ export struct KYCNameDobStep {
           .width('100%').height(Hive.Component.Input.height)
           .borderRadius(Hive.Radius.base).borderWidth(1).borderColor(Hive.Color.n300)
           .type(InputType.Number)
-          .onChange((v: string) => { this.state.answers['q_date_of_birth'] = v as ESObject })
+          .onChange((v: string) => { this.state.setAnswer('q_date_of_birth', v as ESObject) })
       }.width('100%').alignItems(HorizontalAlign.Start)
     }
   }
@@ -232,7 +230,7 @@ export struct KYCNationalityStep {
             }.width('100%').height(50).padding({ left: 16, right: 16 })
             .onClick(() => {
               this.selectedCode = e.code              // triggers re-render immediately
-              this.state.answers['q_nationality'] = e.code as ESObject
+              this.state.setAnswer('q_nationality', e.code as ESObject)
               this.showPicker = false
             })
           }
@@ -261,7 +259,7 @@ export struct KYCHKIDStep {
         TextInput({ placeholder: 'A123456(7)', text: answerStr(this.state, 'q_hkid_number') })
           .width('100%').height(Hive.Component.Input.height)
           .borderRadius(Hive.Radius.base).borderWidth(1).borderColor(Hive.Color.n300)
-          .onChange((v: string) => { this.state.answers['q_hkid_number'] = v as ESObject })
+          .onChange((v: string) => { this.state.setAnswer('q_hkid_number', v as ESObject) })
       }.width('100%').alignItems(HorizontalAlign.Start)
 
       Column({ space: Hive.Spacing.s1 }) {
@@ -271,7 +269,7 @@ export struct KYCHKIDStep {
         TextInput({ placeholder: 'DD/MM/YYYY or N/A', text: answerStr(this.state, 'q_hkid_expiry') })
           .width('100%').height(Hive.Component.Input.height)
           .borderRadius(Hive.Radius.base).borderWidth(1).borderColor(Hive.Color.n300)
-          .onChange((v: string) => { this.state.answers['q_hkid_expiry'] = v as ESObject })
+          .onChange((v: string) => { this.state.setAnswer('q_hkid_expiry', v as ESObject) })
       }.width('100%').alignItems(HorizontalAlign.Start)
     }
   }
@@ -296,7 +294,7 @@ export struct KYCMainlandIDStep {
         TextInput({ placeholder: '110101199001011234', text: answerStr(this.state, 'q_mainland_id') })
           .width('100%').height(Hive.Component.Input.height)
           .borderRadius(Hive.Radius.base).borderWidth(1).borderColor(Hive.Color.n300)
-          .onChange((v: string) => { this.state.answers['q_mainland_id'] = v as ESObject })
+          .onChange((v: string) => { this.state.setAnswer('q_mainland_id', v as ESObject) })
       }.width('100%').alignItems(HorizontalAlign.Start)
     }
   }
@@ -319,7 +317,7 @@ export struct KYCPassportStep {
         TextInput({ placeholder: 'e.g. X12345678', text: answerStr(this.state, 'q_passport_number') })
           .width('100%').height(Hive.Component.Input.height)
           .borderRadius(Hive.Radius.base).borderWidth(1).borderColor(Hive.Color.n300)
-          .onChange((v: string) => { this.state.answers['q_passport_number'] = v as ESObject })
+          .onChange((v: string) => { this.state.setAnswer('q_passport_number', v as ESObject) })
       }.width('100%').alignItems(HorizontalAlign.Start)
 
       Column({ space: Hive.Spacing.s1 }) {
@@ -330,7 +328,7 @@ export struct KYCPassportStep {
         TextInput({ placeholder: 'DD/MM/YYYY', text: answerStr(this.state, 'q_passport_expiry') })
           .width('100%').height(Hive.Component.Input.height)
           .borderRadius(Hive.Radius.base).borderWidth(1).borderColor(Hive.Color.n300)
-          .onChange((v: string) => { this.state.answers['q_passport_expiry'] = v as ESObject })
+          .onChange((v: string) => { this.state.setAnswer('q_passport_expiry', v as ESObject) })
       }.width('100%').alignItems(HorizontalAlign.Start)
     }
   }
@@ -359,13 +357,13 @@ export struct KYCDocumentStep {
       this.uploadZone('Front / Photo Page', 'Hold flat, ensure all corners are visible',
         this.frontDone, () => {
           this.frontDone = true
-          this.state.answers['q_hkid_front'] = 'captured' as ESObject
+          this.state.setAnswer('q_hkid_front', 'captured' as ESObject)
         })
 
       this.uploadZone('Back Side', 'Required for HKID',
         this.backDone, () => {
           this.backDone = true
-          this.state.answers['q_hkid_back'] = 'captured' as ESObject
+          this.state.setAnswer('q_hkid_back', 'captured' as ESObject)
         })
 
       if (this.frontDone) {
@@ -439,7 +437,7 @@ export struct KYCContactStep {
           .width('100%').height(Hive.Component.Input.height)
           .borderRadius(Hive.Radius.base).borderWidth(1).borderColor(Hive.Color.n300)
           .type(InputType.Email)
-          .onChange((v: string) => { this.state.answers['q_email'] = v as ESObject })
+          .onChange((v: string) => { this.state.setAnswer('q_email', v as ESObject) })
       }.width('100%').alignItems(HorizontalAlign.Start)
 
       Column({ space: Hive.Spacing.s1 }) {
@@ -462,14 +460,14 @@ export struct KYCContactStep {
             .layoutWeight(1).height(Hive.Component.Input.height)
             .borderRadius(Hive.Radius.base).borderWidth(1).borderColor(Hive.Color.n300)
             .type(InputType.PhoneNumber)
-            .onChange((v: string) => { this.state.answers['q_phone'] = `+852${v}` as ESObject })
+            .onChange((v: string) => { this.state.setAnswer('q_phone', `+852${v}` as ESObject) })
         }.width('100%')
       }.width('100%').alignItems(HorizontalAlign.Start)
     }.width('100%')
   }
 }
 
-// ─── STEP 006: Residential Address (lines) ────────────────────────────────────
+// ─── STEP 006: Residential Address (lines + district) ────────────────────────
 // Primary question: q_addr_line1
 
 @Component
@@ -484,7 +482,17 @@ export struct KYCAddressStep {
     if (line1 !== '') parts.push(line1)
     if (line2 !== '') parts.push(line2)
     if (dist !== '')  parts.push(dist)
-    this.state.answers['q_address'] = parts.join(', ') as ESObject
+    this.state.setAnswer('q_address', parts.join(', ') as ESObject)
+  }
+
+  @State showDistrictPicker: boolean = false
+  @State selectedDistrict: string = ''
+
+  aboutToAppear() { this.selectedDistrict = answerStr(this.state, 'q_addr_district') }
+
+  distLabel(): string {
+    const d = HK_DISTRICTS.find((e: StringPair) => e.code === this.selectedDistrict)
+    return d ? d.label : 'Select district'
   }
 
   build() {
@@ -506,7 +514,7 @@ export struct KYCAddressStep {
         TextInput({ placeholder: 'e.g. Flat B, 12/F, Block 3', text: answerStr(this.state, 'q_addr_line1') })
           .width('100%').height(Hive.Component.Input.height)
           .borderRadius(Hive.Radius.base).borderWidth(1).borderColor(Hive.Color.n300)
-          .onChange((v: string) => { this.state.answers['q_addr_line1'] = v as ESObject; this.sendAddress() })
+          .onChange((v: string) => { this.state.setAnswer('q_addr_line1', v as ESObject); this.sendAddress() })
       }.width('100%').alignItems(HorizontalAlign.Start)
 
       Column({ space: Hive.Spacing.s1 }) {
@@ -515,30 +523,9 @@ export struct KYCAddressStep {
         TextInput({ placeholder: 'Building / Estate name', text: answerStr(this.state, 'q_addr_line2') })
           .width('100%').height(Hive.Component.Input.height)
           .borderRadius(Hive.Radius.base).borderWidth(1).borderColor(Hive.Color.n300)
-          .onChange((v: string) => { this.state.answers['q_addr_line2'] = v as ESObject; this.sendAddress() })
+          .onChange((v: string) => { this.state.setAnswer('q_addr_line2', v as ESObject); this.sendAddress() })
       }.width('100%').alignItems(HorizontalAlign.Start)
-    }.width('100%')
-  }
-}
 
-// ─── STEP 007: District ───────────────────────────────────────────────────────
-// Primary question: q_addr_district
-
-@Component
-export struct KYCAddressDistrictStep {
-  @ObjectLink state: KYCState
-  @State showPicker: boolean = false
-  @State selectedCode: string = ''
-
-  aboutToAppear() { this.selectedCode = answerStr(this.state, 'q_addr_district') }
-
-  distLabel(): string {
-    const d = HK_DISTRICTS.find((e: StringPair) => e.code === this.selectedCode)
-    return d ? d.label : 'Select district'
-  }
-
-  build() {
-    Column({ space: Hive.Spacing.s4 }) {
       Column({ space: Hive.Spacing.s1 }) {
         Row() {
           Text('District').fontSize(Hive.Typography.labelBase).fontColor(Hive.Color.n700)
@@ -547,7 +534,7 @@ export struct KYCAddressDistrictStep {
         Row() {
           Text(this.distLabel())
             .fontSize(Hive.Typography.bodyBase)
-            .fontColor(this.selectedCode === '' ? Hive.Color.n400 : Hive.Color.n800)
+            .fontColor(this.selectedDistrict === '' ? Hive.Color.n400 : Hive.Color.n800)
             .layoutWeight(1)
           Text('▼').fontSize(12).fontColor(Hive.Color.n400)
         }
@@ -555,13 +542,13 @@ export struct KYCAddressDistrictStep {
         .padding({ left: Hive.Spacing.s4, right: Hive.Spacing.s4 })
         .borderRadius(Hive.Radius.base).borderWidth(1).borderColor(Hive.Color.n300)
         .backgroundColor(Hive.Color.brandWhite)
-        .onClick(() => { this.showPicker = true })
+        .onClick(() => { this.showDistrictPicker = true })
       }.width('100%').alignItems(HorizontalAlign.Start)
     }.width('100%')
-    .bindSheet($$this.showPicker, this.pickerSheet(), { height: SheetSize.MEDIUM })
+    .bindSheet($$this.showDistrictPicker, this.districtPickerSheet(), { height: SheetSize.MEDIUM })
   }
 
-  @Builder pickerSheet() {
+  @Builder districtPickerSheet() {
     Column({ space: 0 }) {
       Text('Select District').fontSize(16).fontWeight(FontWeight.Medium)
         .padding({ left: 16, right: 16, top: 12, bottom: 12 }).width('100%')
@@ -571,14 +558,15 @@ export struct KYCAddressDistrictStep {
           ListItem() {
             Row() {
               Text(e.label).fontSize(15).fontColor(Hive.Color.n800).layoutWeight(1)
-              if (e.code === this.selectedCode) {
+              if (e.code === this.selectedDistrict) {
                 Text('✓').fontColor(Hive.Color.success).fontWeight(FontWeight.Bold)
               }
             }.width('100%').height(50).padding({ left: 16, right: 16 })
             .onClick(() => {
-              this.selectedCode = e.code
-              this.state.answers['q_addr_district'] = e.code as ESObject
-              this.showPicker = false
+              this.selectedDistrict = e.code
+              this.state.setAnswer('q_addr_district', e.code as ESObject)
+              this.showDistrictPicker = false
+              this.sendAddress()
             })
           }
         })
@@ -587,34 +575,45 @@ export struct KYCAddressDistrictStep {
   }
 }
 
-// ─── STEP 008: Employment Status ──────────────────────────────────────────────
+// ─── STEP 007: Employment Status + Annual Income ──────────────────────────────
 // Primary question: q_employment_status
 
 @Component
-@Component
-export struct KYCEmploymentStep {
+export struct KYCEmploymentIncomeStep {
   @ObjectLink state: KYCState
-  @State showPicker: boolean = false
-  @State selectedCode: string = ''
+  @State showEmpPicker: boolean = false
+  @State selectedEmp: string = ''
+  @State showIncPicker: boolean = false
+  @State selectedInc: string = ''
 
-  aboutToAppear() { this.selectedCode = answerStr(this.state, 'q_employment_status') }
+  aboutToAppear() {
+    this.selectedEmp = answerStr(this.state, 'q_employment_status')
+    this.selectedInc = answerStr(this.state, 'q_annual_income')
+  }
 
-  label(): string {
-    const o = EMPLOYMENT_OPTIONS.find((e: StringPair) => e.code === this.selectedCode)
+  empLabel(): string {
+    const o = EMPLOYMENT_OPTIONS.find((e: StringPair) => e.code === this.selectedEmp)
     return o ? o.label : 'Select employment status'
+  }
+
+  incLabel(): string {
+    const o = INCOME_OPTIONS.find((e: StringPair) => e.code === this.selectedInc)
+    return o ? o.label : 'Select annual income range'
   }
 
   build() {
     Column({ space: Hive.Spacing.s4 }) {
+      // Each picker trigger lives in its own Column so .bindSheet() has a dedicated node.
+      // Attaching two .bindSheet() modifiers to the same node causes sheet flicker on HarmonyNext.
       Column({ space: Hive.Spacing.s1 }) {
         Row() {
           Text('Employment Status').fontSize(Hive.Typography.labelBase).fontColor(Hive.Color.n700)
           Text(' *').fontColor(Hive.Color.error)
         }.width('100%')
         Row() {
-          Text(this.label())
+          Text(this.empLabel())
             .fontSize(Hive.Typography.bodyBase)
-            .fontColor(this.selectedCode === '' ? Hive.Color.n400 : Hive.Color.n800)
+            .fontColor(this.selectedEmp === '' ? Hive.Color.n400 : Hive.Color.n800)
             .layoutWeight(1)
           Text('▼').fontSize(12).fontColor(Hive.Color.n400)
         }
@@ -622,13 +621,33 @@ export struct KYCEmploymentStep {
         .padding({ left: Hive.Spacing.s4, right: Hive.Spacing.s4 })
         .borderRadius(Hive.Radius.base).borderWidth(1).borderColor(Hive.Color.n300)
         .backgroundColor(Hive.Color.brandWhite)
-        .onClick(() => { this.showPicker = true })
+        .onClick(() => { this.showEmpPicker = true })
       }.width('100%').alignItems(HorizontalAlign.Start)
+      .bindSheet($$this.showEmpPicker, this.empPickerSheet(), { height: SheetSize.MEDIUM })
+
+      Column({ space: Hive.Spacing.s1 }) {
+        Row() {
+          Text('Annual Income (HKD)').fontSize(Hive.Typography.labelBase).fontColor(Hive.Color.n700)
+          Text(' *').fontColor(Hive.Color.error)
+        }.width('100%')
+        Row() {
+          Text(this.incLabel())
+            .fontSize(Hive.Typography.bodyBase)
+            .fontColor(this.selectedInc === '' ? Hive.Color.n400 : Hive.Color.n800)
+            .layoutWeight(1)
+          Text('▼').fontSize(12).fontColor(Hive.Color.n400)
+        }
+        .width('100%').height(Hive.Component.Input.height)
+        .padding({ left: Hive.Spacing.s4, right: Hive.Spacing.s4 })
+        .borderRadius(Hive.Radius.base).borderWidth(1).borderColor(Hive.Color.n300)
+        .backgroundColor(Hive.Color.brandWhite)
+        .onClick(() => { this.showIncPicker = true })
+      }.width('100%').alignItems(HorizontalAlign.Start)
+      .bindSheet($$this.showIncPicker, this.incPickerSheet(), { height: SheetSize.MEDIUM })
     }.width('100%')
-    .bindSheet($$this.showPicker, this.pickerSheet(), { height: SheetSize.MEDIUM })
   }
 
-  @Builder pickerSheet() {
+  @Builder empPickerSheet() {
     Column({ space: 0 }) {
       Text('Employment Status').fontSize(16).fontWeight(FontWeight.Medium)
         .padding({ left: 16, right: 16, top: 12, bottom: 12 }).width('100%')
@@ -638,63 +657,22 @@ export struct KYCEmploymentStep {
           ListItem() {
             Row() {
               Text(e.label).fontSize(15).fontColor(Hive.Color.n800).layoutWeight(1)
-              if (e.code === this.selectedCode) {
+              if (e.code === this.selectedEmp) {
                 Text('✓').fontColor(Hive.Color.success).fontWeight(FontWeight.Bold)
               }
             }.width('100%').height(50).padding({ left: 16, right: 16 })
             .onClick(() => {
-              this.selectedCode = e.code
-              this.state.answers['q_employment_status'] = e.code as ESObject
-              this.showPicker = false
+              this.selectedEmp = e.code
+              this.state.setAnswer('q_employment_status', e.code as ESObject)
+              this.showEmpPicker = false
             })
           }
         })
       }.width('100%').layoutWeight(1)
     }.height('100%')
   }
-}
 
-// ─── STEP 009: Annual Income ──────────────────────────────────────────────────
-// Primary question: q_annual_income
-
-@Component
-export struct KYCAnnualIncomeStep {
-  @ObjectLink state: KYCState
-  @State showPicker: boolean = false
-  @State selectedCode: string = ''
-
-  aboutToAppear() { this.selectedCode = answerStr(this.state, 'q_annual_income') }
-
-  label(): string {
-    const o = INCOME_OPTIONS.find((e: StringPair) => e.code === this.selectedCode)
-    return o ? o.label : 'Select annual income range'
-  }
-
-  build() {
-    Column({ space: Hive.Spacing.s4 }) {
-      Column({ space: Hive.Spacing.s1 }) {
-        Row() {
-          Text('Annual Income (HKD)').fontSize(Hive.Typography.labelBase).fontColor(Hive.Color.n700)
-          Text(' *').fontColor(Hive.Color.error)
-        }.width('100%')
-        Row() {
-          Text(this.label())
-            .fontSize(Hive.Typography.bodyBase)
-            .fontColor(this.selectedCode === '' ? Hive.Color.n400 : Hive.Color.n800)
-            .layoutWeight(1)
-          Text('▼').fontSize(12).fontColor(Hive.Color.n400)
-        }
-        .width('100%').height(Hive.Component.Input.height)
-        .padding({ left: Hive.Spacing.s4, right: Hive.Spacing.s4 })
-        .borderRadius(Hive.Radius.base).borderWidth(1).borderColor(Hive.Color.n300)
-        .backgroundColor(Hive.Color.brandWhite)
-        .onClick(() => { this.showPicker = true })
-      }.width('100%').alignItems(HorizontalAlign.Start)
-    }.width('100%')
-    .bindSheet($$this.showPicker, this.pickerSheet(), { height: SheetSize.MEDIUM })
-  }
-
-  @Builder pickerSheet() {
+  @Builder incPickerSheet() {
     Column({ space: 0 }) {
       Text('Annual Income (HKD)').fontSize(16).fontWeight(FontWeight.Medium)
         .padding({ left: 16, right: 16, top: 12, bottom: 12 }).width('100%')
@@ -704,14 +682,14 @@ export struct KYCAnnualIncomeStep {
           ListItem() {
             Row() {
               Text(e.label).fontSize(15).fontColor(Hive.Color.n800).layoutWeight(1)
-              if (e.code === this.selectedCode) {
+              if (e.code === this.selectedInc) {
                 Text('✓').fontColor(Hive.Color.success).fontWeight(FontWeight.Bold)
               }
             }.width('100%').height(50).padding({ left: 16, right: 16 })
             .onClick(() => {
-              this.selectedCode = e.code
-              this.state.answers['q_annual_income'] = e.code as ESObject
-              this.showPicker = false
+              this.selectedInc = e.code
+              this.state.setAnswer('q_annual_income', e.code as ESObject)
+              this.showIncPicker = false
             })
           }
         })
@@ -720,34 +698,44 @@ export struct KYCAnnualIncomeStep {
   }
 }
 
-// ─── STEP 010: Source of Funds ────────────────────────────────────────────────
+// ─── STEP 008: Source of Funds + Purpose of Account ──────────────────────────
 // Primary question: q_source_of_funds
 
 @Component
-@Component
 export struct KYCSourceOfFundsStep {
   @ObjectLink state: KYCState
-  @State showPicker: boolean = false
-  @State selectedCode: string = ''
+  @State showFundsPicker: boolean = false
+  @State selectedFunds: string = ''
+  @State showPurposePicker: boolean = false
+  @State selectedPurpose: string = ''
 
-  aboutToAppear() { this.selectedCode = answerStr(this.state, 'q_source_of_funds') }
+  aboutToAppear() {
+    this.selectedFunds   = answerStr(this.state, 'q_source_of_funds')
+    this.selectedPurpose = answerStr(this.state, 'q_account_purpose')
+  }
 
-  label(): string {
-    const o = FUNDS_OPTIONS.find((e: StringPair) => e.code === this.selectedCode)
+  fundsLabel(): string {
+    const o = FUNDS_OPTIONS.find((e: StringPair) => e.code === this.selectedFunds)
     return o ? o.label : 'Select primary source of funds'
+  }
+
+  purposeLabel(): string {
+    const o = PURPOSE_OPTIONS.find((e: StringPair) => e.code === this.selectedPurpose)
+    return o ? o.label : 'Select purpose of account'
   }
 
   build() {
     Column({ space: Hive.Spacing.s4 }) {
+      // Each picker trigger lives in its own Column so .bindSheet() has a dedicated node.
       Column({ space: Hive.Spacing.s1 }) {
         Row() {
           Text('Primary Source of Funds').fontSize(Hive.Typography.labelBase).fontColor(Hive.Color.n700)
           Text(' *').fontColor(Hive.Color.error)
         }.width('100%')
         Row() {
-          Text(this.label())
+          Text(this.fundsLabel())
             .fontSize(Hive.Typography.bodyBase)
-            .fontColor(this.selectedCode === '' ? Hive.Color.n400 : Hive.Color.n800)
+            .fontColor(this.selectedFunds === '' ? Hive.Color.n400 : Hive.Color.n800)
             .layoutWeight(1)
           Text('▼').fontSize(12).fontColor(Hive.Color.n400)
         }
@@ -755,13 +743,33 @@ export struct KYCSourceOfFundsStep {
         .padding({ left: Hive.Spacing.s4, right: Hive.Spacing.s4 })
         .borderRadius(Hive.Radius.base).borderWidth(1).borderColor(Hive.Color.n300)
         .backgroundColor(Hive.Color.brandWhite)
-        .onClick(() => { this.showPicker = true })
+        .onClick(() => { this.showFundsPicker = true })
       }.width('100%').alignItems(HorizontalAlign.Start)
+      .bindSheet($$this.showFundsPicker, this.fundsPickerSheet(), { height: SheetSize.MEDIUM })
+
+      Column({ space: Hive.Spacing.s1 }) {
+        Row() {
+          Text('Purpose of Account').fontSize(Hive.Typography.labelBase).fontColor(Hive.Color.n700)
+          Text(' *').fontColor(Hive.Color.error)
+        }.width('100%')
+        Row() {
+          Text(this.purposeLabel())
+            .fontSize(Hive.Typography.bodyBase)
+            .fontColor(this.selectedPurpose === '' ? Hive.Color.n400 : Hive.Color.n800)
+            .layoutWeight(1)
+          Text('▼').fontSize(12).fontColor(Hive.Color.n400)
+        }
+        .width('100%').height(Hive.Component.Input.height)
+        .padding({ left: Hive.Spacing.s4, right: Hive.Spacing.s4 })
+        .borderRadius(Hive.Radius.base).borderWidth(1).borderColor(Hive.Color.n300)
+        .backgroundColor(Hive.Color.brandWhite)
+        .onClick(() => { this.showPurposePicker = true })
+      }.width('100%').alignItems(HorizontalAlign.Start)
+      .bindSheet($$this.showPurposePicker, this.purposePickerSheet(), { height: SheetSize.MEDIUM })
     }.width('100%')
-    .bindSheet($$this.showPicker, this.pickerSheet(), { height: SheetSize.MEDIUM })
   }
 
-  @Builder pickerSheet() {
+  @Builder fundsPickerSheet() {
     Column({ space: 0 }) {
       Text('Primary Source of Funds').fontSize(16).fontWeight(FontWeight.Medium)
         .padding({ left: 16, right: 16, top: 12, bottom: 12 }).width('100%')
@@ -771,64 +779,22 @@ export struct KYCSourceOfFundsStep {
           ListItem() {
             Row() {
               Text(e.label).fontSize(15).fontColor(Hive.Color.n800).layoutWeight(1)
-              if (e.code === this.selectedCode) {
+              if (e.code === this.selectedFunds) {
                 Text('✓').fontColor(Hive.Color.success).fontWeight(FontWeight.Bold)
               }
             }.width('100%').height(50).padding({ left: 16, right: 16 })
             .onClick(() => {
-              this.selectedCode = e.code
-              this.state.answers['q_source_of_funds'] = e.code as ESObject
-              this.showPicker = false
+              this.selectedFunds = e.code
+              this.state.setAnswer('q_source_of_funds', e.code as ESObject)
+              this.showFundsPicker = false
             })
           }
         })
       }.width('100%').layoutWeight(1)
     }.height('100%')
   }
-}
 
-// ─── STEP 011: Account Purpose ────────────────────────────────────────────────
-// Primary question: q_account_purpose
-
-@Component
-@Component
-export struct KYCAccountPurposeStep {
-  @ObjectLink state: KYCState
-  @State showPicker: boolean = false
-  @State selectedCode: string = ''
-
-  aboutToAppear() { this.selectedCode = answerStr(this.state, 'q_account_purpose') }
-
-  label(): string {
-    const o = PURPOSE_OPTIONS.find((e: StringPair) => e.code === this.selectedCode)
-    return o ? o.label : 'Select purpose of account'
-  }
-
-  build() {
-    Column({ space: Hive.Spacing.s4 }) {
-      Column({ space: Hive.Spacing.s1 }) {
-        Row() {
-          Text('Purpose of Account').fontSize(Hive.Typography.labelBase).fontColor(Hive.Color.n700)
-          Text(' *').fontColor(Hive.Color.error)
-        }.width('100%')
-        Row() {
-          Text(this.label())
-            .fontSize(Hive.Typography.bodyBase)
-            .fontColor(this.selectedCode === '' ? Hive.Color.n400 : Hive.Color.n800)
-            .layoutWeight(1)
-          Text('▼').fontSize(12).fontColor(Hive.Color.n400)
-        }
-        .width('100%').height(Hive.Component.Input.height)
-        .padding({ left: Hive.Spacing.s4, right: Hive.Spacing.s4 })
-        .borderRadius(Hive.Radius.base).borderWidth(1).borderColor(Hive.Color.n300)
-        .backgroundColor(Hive.Color.brandWhite)
-        .onClick(() => { this.showPicker = true })
-      }.width('100%').alignItems(HorizontalAlign.Start)
-    }.width('100%')
-    .bindSheet($$this.showPicker, this.pickerSheet(), { height: SheetSize.MEDIUM })
-  }
-
-  @Builder pickerSheet() {
+  @Builder purposePickerSheet() {
     Column({ space: 0 }) {
       Text('Purpose of Account').fontSize(16).fontWeight(FontWeight.Medium)
         .padding({ left: 16, right: 16, top: 12, bottom: 12 }).width('100%')
@@ -838,14 +804,14 @@ export struct KYCAccountPurposeStep {
           ListItem() {
             Row() {
               Text(e.label).fontSize(15).fontColor(Hive.Color.n800).layoutWeight(1)
-              if (e.code === this.selectedCode) {
+              if (e.code === this.selectedPurpose) {
                 Text('✓').fontColor(Hive.Color.success).fontWeight(FontWeight.Bold)
               }
             }.width('100%').height(50).padding({ left: 16, right: 16 })
             .onClick(() => {
-              this.selectedCode = e.code
-              this.state.answers['q_account_purpose'] = e.code as ESObject
-              this.showPicker = false
+              this.selectedPurpose = e.code
+              this.state.setAnswer('q_account_purpose', e.code as ESObject)
+              this.showPurposePicker = false
             })
           }
         })
@@ -871,7 +837,7 @@ export struct KYCLivenessStep {
         clearInterval(timer)
         setTimeout(() => {
           this.phase = 'done'
-          this.state.answers['q_liveness'] = 'PASSED' as ESObject
+          this.state.setAnswer('q_liveness', 'PASSED' as ESObject)
         }, 300)
       }
     }, 50)
@@ -950,12 +916,13 @@ export struct KYCOpenBankingStep {
   @State showBankPicker: boolean = false
 
   private banks: StringPair[] = [
-    { code: 'HSBC_UK',  label: 'HSBC UK' },
-    { code: 'LLOYDS',   label: 'Lloyds Bank' },
-    { code: 'BARCLAYS', label: 'Barclays' },
-    { code: 'NATWEST',  label: 'NatWest' },
-    { code: 'MONZO',    label: 'Monzo' },
-    { code: 'STARLING', label: 'Starling Bank' },
+    { code: 'HSBC_HK',   label: 'HSBC Hong Kong' },
+    { code: 'BOC_HK',    label: 'Bank of China (Hong Kong)' },
+    { code: 'HANG_SENG', label: 'Hang Seng Bank' },
+    { code: 'SCB_HK',    label: 'Standard Chartered Hong Kong' },
+    { code: 'CITI_HK',   label: 'Citibank Hong Kong' },
+    { code: 'DBS_HK',    label: 'DBS Bank Hong Kong' },
+    { code: 'BEA',       label: 'Bank of East Asia' },
   ]
 
   bankLabel(): string {
@@ -975,7 +942,7 @@ export struct KYCOpenBankingStep {
     setTimeout(() => {
       this.connecting = false
       this.connected = true
-      this.state.answers['q_ob_consent'] = `tok_${Math.floor(Math.random() * 900000 + 100000)}` as ESObject
+      this.state.setAnswer('q_ob_consent', `tok_${Math.floor(Math.random() * 900000 + 100000)}` as ESObject)
     }, 1500)
   }
 
@@ -984,7 +951,7 @@ export struct KYCOpenBankingStep {
       Column({ space: Hive.Spacing.s2 }) {
         Text('🔒 Open Banking — Secure Account Connection')
           .fontSize(14).fontWeight(FontWeight.Medium).fontColor(Hive.Color.n800)
-        Text('We use Open Banking (FCA/HKMA regulated) to verify your identity. Your bank credentials are never shared with HSBC.')
+        Text('We use Open Banking (HKMA regulated) to verify your identity. Your bank credentials are never shared with HSBC.')
           .fontSize(13).fontColor(Hive.Color.n700)
       }.padding(Hive.Spacing.s4).width('100%')
       .borderRadius(Hive.Radius.md).backgroundColor(Hive.Color.infoLt)
@@ -1031,7 +998,7 @@ export struct KYCOpenBankingStep {
           .onClick(() => { this.connectBank() })
       }
 
-      Text('Powered by Open Banking · Regulated by FCA and HKMA')
+      Text('Powered by Open Banking · Regulated by the HKMA')
         .fontSize(11).fontColor(Hive.Color.n400).textAlign(TextAlign.Center).width('100%')
     }.width('100%')
     .bindSheet($$this.showBankPicker, this.bankPickerSheet(), { height: SheetSize.MEDIUM })
@@ -1067,30 +1034,47 @@ export struct KYCOpenBankingStep {
 export struct KYCDeclarationStep {
   @ObjectLink state: KYCState
   @State pepStatus: string = ''
+  // @State mirrors drive re-render — mutating state.answers in-place doesn't trigger @ObjectLink diff
+  @State declTruthful: boolean = false
+  @State declFatca: boolean = false
+
+  aboutToAppear() {
+    this.declTruthful = this.state.answers['decl_truthful'] === true
+    this.declFatca    = this.state.answers['decl_fatca'] === true
+  }
+
+  isChecked(id: string): boolean {
+    return id === 'decl_truthful' ? this.declTruthful : this.declFatca
+  }
 
   @Builder declRow(decl: DeclOption) {
     Row({ space: Hive.Spacing.s3 }) {
       Stack() {
         Rect({ width: 22, height: 22 }).radius(4)
-          .stroke(this.state.answers[decl.id] === true ? Hive.Color.success : Hive.Color.n300)
+          .stroke(this.isChecked(decl.id) ? Hive.Color.success : Hive.Color.n300)
           .strokeWidth(2)
-          .fill(this.state.answers[decl.id] === true ? Hive.Color.success : 'transparent')
-        if (this.state.answers[decl.id] === true) {
+          .fill(this.isChecked(decl.id) ? Hive.Color.success : 'transparent')
+        if (this.isChecked(decl.id)) {
           Text('✓').fontSize(13).fontColor(Hive.Color.brandWhite).fontWeight(FontWeight.Bold)
         }
       }.width(22).height(22)
       Text(decl.text).fontSize(13).fontColor(Hive.Color.n700).layoutWeight(1)
     }.width('100%').padding(Hive.Spacing.s4)
     .borderRadius(Hive.Radius.md)
-    .backgroundColor(this.state.answers[decl.id] === true ? Hive.Color.successLt : Hive.Color.n50)
+    .backgroundColor(this.isChecked(decl.id) ? Hive.Color.successLt : Hive.Color.n50)
     .border({
       width: 1,
-      color: this.state.answers[decl.id] === true ? Hive.Color.success : Hive.Color.n200,
+      color: this.isChecked(decl.id) ? Hive.Color.success : Hive.Color.n200,
       radius: Hive.Radius.md
     })
     .onClick(() => {
-      const newVal = !(this.state.answers[decl.id] === true)
-      this.state.answers[decl.id] = newVal as ESObject
+      if (decl.id === 'decl_truthful') {
+        this.declTruthful = !this.declTruthful
+        this.state.setAnswer(decl.id, this.declTruthful as ESObject)
+      } else {
+        this.declFatca = !this.declFatca
+        this.state.setAnswer(decl.id, this.declFatca as ESObject)
+      }
     })
   }
 
@@ -1126,7 +1110,7 @@ export struct KYCDeclarationStep {
           })
           .onClick(() => {
             this.pepStatus = item.val
-            this.state.answers['q_pep_status'] = item.val as ESObject
+            this.state.setAnswer('q_pep_status', item.val as ESObject)
           })
         })
       }.width('100%').alignItems(HorizontalAlign.Start)

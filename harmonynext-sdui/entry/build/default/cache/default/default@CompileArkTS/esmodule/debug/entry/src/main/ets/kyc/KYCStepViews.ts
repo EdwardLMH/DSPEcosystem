@@ -4,6 +4,8 @@ if (!("finalizeConstruction" in ViewPU.prototype)) {
 interface KYCDeclarationStep_Params {
     state?: KYCState;
     pepStatus?: string;
+    declTruthful?: boolean;
+    declFatca?: boolean;
 }
 interface KYCOpenBankingStep_Params {
     state?: KYCState;
@@ -18,33 +20,24 @@ interface KYCLivenessStep_Params {
     phase?: string;
     progress?: number;
 }
-interface KYCAccountPurposeStep_Params {
-    state?: KYCState;
-    showPicker?: boolean;
-    selectedCode?: string;
-}
 interface KYCSourceOfFundsStep_Params {
     state?: KYCState;
-    showPicker?: boolean;
-    selectedCode?: string;
+    showFundsPicker?: boolean;
+    selectedFunds?: string;
+    showPurposePicker?: boolean;
+    selectedPurpose?: string;
 }
-interface KYCAnnualIncomeStep_Params {
+interface KYCEmploymentIncomeStep_Params {
     state?: KYCState;
-    showPicker?: boolean;
-    selectedCode?: string;
-}
-interface KYCEmploymentStep_Params {
-    state?: KYCState;
-    showPicker?: boolean;
-    selectedCode?: string;
-}
-interface KYCAddressDistrictStep_Params {
-    state?: KYCState;
-    showPicker?: boolean;
-    selectedCode?: string;
+    showEmpPicker?: boolean;
+    selectedEmp?: string;
+    showIncPicker?: boolean;
+    selectedInc?: string;
 }
 interface KYCAddressStep_Params {
     state?: KYCState;
+    showDistrictPicker?: boolean;
+    selectedDistrict?: string;
 }
 interface KYCContactStep_Params {
     state?: KYCState;
@@ -235,7 +228,7 @@ export class KYCNameDobStep extends ViewPU {
             TextInput.borderRadius(Hive.Radius.base);
             TextInput.borderWidth(1);
             TextInput.borderColor(Hive.Color.n300);
-            TextInput.onChange((v: string) => { this.state.answers['q_first_name'] = v as any; });
+            TextInput.onChange((v: string) => { this.state.setAnswer('q_first_name', v as any); });
         }, TextInput);
         // First Name
         Column.pop();
@@ -271,7 +264,7 @@ export class KYCNameDobStep extends ViewPU {
             TextInput.borderRadius(Hive.Radius.base);
             TextInput.borderWidth(1);
             TextInput.borderColor(Hive.Color.n300);
-            TextInput.onChange((v: string) => { this.state.answers['q_last_name'] = v as any; });
+            TextInput.onChange((v: string) => { this.state.setAnswer('q_last_name', v as any); });
         }, TextInput);
         // Last Name
         Column.pop();
@@ -315,7 +308,7 @@ export class KYCNameDobStep extends ViewPU {
             TextInput.borderWidth(1);
             TextInput.borderColor(Hive.Color.n300);
             TextInput.type(InputType.Number);
-            TextInput.onChange((v: string) => { this.state.answers['q_date_of_birth'] = v as any; });
+            TextInput.onChange((v: string) => { this.state.setAnswer('q_date_of_birth', v as any); });
         }, TextInput);
         // Date of Birth
         Column.pop();
@@ -492,7 +485,7 @@ export class KYCNationalityStep extends ViewPU {
                             Row.padding({ left: 16, right: 16 });
                             Row.onClick(() => {
                                 this.selectedCode = e.code; // triggers re-render immediately
-                                this.state.answers['q_nationality'] = e.code as any;
+                                this.state.setAnswer('q_nationality', e.code as any);
                                 this.showPicker = false;
                             });
                         }, Row);
@@ -606,7 +599,7 @@ export class KYCHKIDStep extends ViewPU {
             TextInput.borderRadius(Hive.Radius.base);
             TextInput.borderWidth(1);
             TextInput.borderColor(Hive.Color.n300);
-            TextInput.onChange((v: string) => { this.state.answers['q_hkid_number'] = v as any; });
+            TextInput.onChange((v: string) => { this.state.setAnswer('q_hkid_number', v as any); });
         }, TextInput);
         Column.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -635,7 +628,7 @@ export class KYCHKIDStep extends ViewPU {
             TextInput.borderRadius(Hive.Radius.base);
             TextInput.borderWidth(1);
             TextInput.borderColor(Hive.Color.n300);
-            TextInput.onChange((v: string) => { this.state.answers['q_hkid_expiry'] = v as any; });
+            TextInput.onChange((v: string) => { this.state.setAnswer('q_hkid_expiry', v as any); });
         }, TextInput);
         Column.pop();
         Column.pop();
@@ -712,7 +705,7 @@ export class KYCMainlandIDStep extends ViewPU {
             TextInput.borderRadius(Hive.Radius.base);
             TextInput.borderWidth(1);
             TextInput.borderColor(Hive.Color.n300);
-            TextInput.onChange((v: string) => { this.state.answers['q_mainland_id'] = v as any; });
+            TextInput.onChange((v: string) => { this.state.setAnswer('q_mainland_id', v as any); });
         }, TextInput);
         Column.pop();
         Column.pop();
@@ -782,7 +775,7 @@ export class KYCPassportStep extends ViewPU {
             TextInput.borderRadius(Hive.Radius.base);
             TextInput.borderWidth(1);
             TextInput.borderColor(Hive.Color.n300);
-            TextInput.onChange((v: string) => { this.state.answers['q_passport_number'] = v as any; });
+            TextInput.onChange((v: string) => { this.state.setAnswer('q_passport_number', v as any); });
         }, TextInput);
         Column.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -814,7 +807,7 @@ export class KYCPassportStep extends ViewPU {
             TextInput.borderRadius(Hive.Radius.base);
             TextInput.borderWidth(1);
             TextInput.borderColor(Hive.Color.n300);
-            TextInput.onChange((v: string) => { this.state.answers['q_passport_expiry'] = v as any; });
+            TextInput.onChange((v: string) => { this.state.setAnswer('q_passport_expiry', v as any); });
         }, TextInput);
         Column.pop();
         Column.pop();
@@ -910,11 +903,11 @@ export class KYCDocumentStep extends ViewPU {
         Row.pop();
         this.uploadZone.bind(this)('Front / Photo Page', 'Hold flat, ensure all corners are visible', this.frontDone, () => {
             this.frontDone = true;
-            this.state.answers['q_hkid_front'] = 'captured' as any;
+            this.state.setAnswer('q_hkid_front', 'captured' as any);
         });
         this.uploadZone.bind(this)('Back Side', 'Required for HKID', this.backDone, () => {
             this.backDone = true;
-            this.state.answers['q_hkid_back'] = 'captured' as any;
+            this.state.setAnswer('q_hkid_back', 'captured' as any);
         });
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             If.create();
@@ -1139,7 +1132,7 @@ export class KYCContactStep extends ViewPU {
             TextInput.borderWidth(1);
             TextInput.borderColor(Hive.Color.n300);
             TextInput.type(InputType.Email);
-            TextInput.onChange((v: string) => { this.state.answers['q_email'] = v as any; });
+            TextInput.onChange((v: string) => { this.state.setAnswer('q_email', v as any); });
         }, TextInput);
         Column.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1199,7 +1192,7 @@ export class KYCContactStep extends ViewPU {
             TextInput.borderWidth(1);
             TextInput.borderColor(Hive.Color.n300);
             TextInput.type(InputType.PhoneNumber);
-            TextInput.onChange((v: string) => { this.state.answers['q_phone'] = `+852${v}` as any; });
+            TextInput.onChange((v: string) => { this.state.setAnswer('q_phone', `+852${v}` as any); });
         }, TextInput);
         Row.pop();
         Column.pop();
@@ -1216,20 +1209,32 @@ export class KYCAddressStep extends ViewPU {
             this.paramsGenerator_ = paramsLambda;
         }
         this.__state = new SynchedPropertyNesedObjectPU(params.state, this, "state");
+        this.__showDistrictPicker = new ObservedPropertySimplePU(false, this, "showDistrictPicker");
+        this.__selectedDistrict = new ObservedPropertySimplePU('', this, "selectedDistrict");
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
     setInitiallyProvidedValue(params: KYCAddressStep_Params) {
         this.__state.set(params.state);
+        if (params.showDistrictPicker !== undefined) {
+            this.showDistrictPicker = params.showDistrictPicker;
+        }
+        if (params.selectedDistrict !== undefined) {
+            this.selectedDistrict = params.selectedDistrict;
+        }
     }
     updateStateVars(params: KYCAddressStep_Params) {
         this.__state.set(params.state);
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
         this.__state.purgeDependencyOnElmtId(rmElmtId);
+        this.__showDistrictPicker.purgeDependencyOnElmtId(rmElmtId);
+        this.__selectedDistrict.purgeDependencyOnElmtId(rmElmtId);
     }
     aboutToBeDeleted() {
         this.__state.aboutToBeDeleted();
+        this.__showDistrictPicker.aboutToBeDeleted();
+        this.__selectedDistrict.aboutToBeDeleted();
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
@@ -1248,12 +1253,34 @@ export class KYCAddressStep extends ViewPU {
             parts.push(line2);
         if (dist !== '')
             parts.push(dist);
-        this.state.answers['q_address'] = parts.join(', ') as any;
+        this.state.setAnswer('q_address', parts.join(', ') as any);
+    }
+    private __showDistrictPicker: ObservedPropertySimplePU<boolean>;
+    get showDistrictPicker() {
+        return this.__showDistrictPicker.get();
+    }
+    set showDistrictPicker(newValue: boolean) {
+        this.__showDistrictPicker.set(newValue);
+    }
+    private __selectedDistrict: ObservedPropertySimplePU<string>;
+    get selectedDistrict() {
+        return this.__selectedDistrict.get();
+    }
+    set selectedDistrict(newValue: string) {
+        this.__selectedDistrict.set(newValue);
+    }
+    aboutToAppear() { this.selectedDistrict = answerStr(this.state, 'q_addr_district'); }
+    distLabel(): string {
+        const d = HK_DISTRICTS.find((e: StringPair) => e.code === this.selectedDistrict);
+        return d ? d.label : 'Select district';
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: Hive.Spacing.s3 });
             Column.width('100%');
+            Column.bindSheet({ value: this.showDistrictPicker, changeEvent: newValue => { this.showDistrictPicker = newValue; } }, { builder: () => {
+                    this.districtPickerSheet.call(this);
+                } }, { height: SheetSize.MEDIUM });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create({ space: Hive.Spacing.s2 });
@@ -1309,7 +1336,7 @@ export class KYCAddressStep extends ViewPU {
             TextInput.borderRadius(Hive.Radius.base);
             TextInput.borderWidth(1);
             TextInput.borderColor(Hive.Color.n300);
-            TextInput.onChange((v: string) => { this.state.answers['q_addr_line1'] = v as any; this.sendAddress(); });
+            TextInput.onChange((v: string) => { this.state.setAnswer('q_addr_line1', v as any); this.sendAddress(); });
         }, TextInput);
         Column.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1338,82 +1365,9 @@ export class KYCAddressStep extends ViewPU {
             TextInput.borderRadius(Hive.Radius.base);
             TextInput.borderWidth(1);
             TextInput.borderColor(Hive.Color.n300);
-            TextInput.onChange((v: string) => { this.state.answers['q_addr_line2'] = v as any; this.sendAddress(); });
+            TextInput.onChange((v: string) => { this.state.setAnswer('q_addr_line2', v as any); this.sendAddress(); });
         }, TextInput);
         Column.pop();
-        Column.pop();
-    }
-    rerender() {
-        this.updateDirtyElements();
-    }
-}
-export class KYCAddressDistrictStep extends ViewPU {
-    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
-        super(parent, __localStorage, elmtId, extraInfo);
-        if (typeof paramsLambda === "function") {
-            this.paramsGenerator_ = paramsLambda;
-        }
-        this.__state = new SynchedPropertyNesedObjectPU(params.state, this, "state");
-        this.__showPicker = new ObservedPropertySimplePU(false, this, "showPicker");
-        this.__selectedCode = new ObservedPropertySimplePU('', this, "selectedCode");
-        this.setInitiallyProvidedValue(params);
-        this.finalizeConstruction();
-    }
-    setInitiallyProvidedValue(params: KYCAddressDistrictStep_Params) {
-        this.__state.set(params.state);
-        if (params.showPicker !== undefined) {
-            this.showPicker = params.showPicker;
-        }
-        if (params.selectedCode !== undefined) {
-            this.selectedCode = params.selectedCode;
-        }
-    }
-    updateStateVars(params: KYCAddressDistrictStep_Params) {
-        this.__state.set(params.state);
-    }
-    purgeVariableDependenciesOnElmtId(rmElmtId) {
-        this.__state.purgeDependencyOnElmtId(rmElmtId);
-        this.__showPicker.purgeDependencyOnElmtId(rmElmtId);
-        this.__selectedCode.purgeDependencyOnElmtId(rmElmtId);
-    }
-    aboutToBeDeleted() {
-        this.__state.aboutToBeDeleted();
-        this.__showPicker.aboutToBeDeleted();
-        this.__selectedCode.aboutToBeDeleted();
-        SubscriberManager.Get().delete(this.id__());
-        this.aboutToBeDeletedInternal();
-    }
-    private __state: SynchedPropertyNesedObjectPU<KYCState>;
-    get state() {
-        return this.__state.get();
-    }
-    private __showPicker: ObservedPropertySimplePU<boolean>;
-    get showPicker() {
-        return this.__showPicker.get();
-    }
-    set showPicker(newValue: boolean) {
-        this.__showPicker.set(newValue);
-    }
-    private __selectedCode: ObservedPropertySimplePU<string>;
-    get selectedCode() {
-        return this.__selectedCode.get();
-    }
-    set selectedCode(newValue: string) {
-        this.__selectedCode.set(newValue);
-    }
-    aboutToAppear() { this.selectedCode = answerStr(this.state, 'q_addr_district'); }
-    distLabel(): string {
-        const d = HK_DISTRICTS.find((e: StringPair) => e.code === this.selectedCode);
-        return d ? d.label : 'Select district';
-    }
-    initialRender() {
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: Hive.Spacing.s4 });
-            Column.width('100%');
-            Column.bindSheet({ value: this.showPicker, changeEvent: newValue => { this.showPicker = newValue; } }, { builder: () => {
-                    this.pickerSheet.call(this);
-                } }, { height: SheetSize.MEDIUM });
-        }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: Hive.Spacing.s1 });
             Column.width('100%');
@@ -1444,12 +1398,12 @@ export class KYCAddressDistrictStep extends ViewPU {
             Row.borderWidth(1);
             Row.borderColor(Hive.Color.n300);
             Row.backgroundColor(Hive.Color.brandWhite);
-            Row.onClick(() => { this.showPicker = true; });
+            Row.onClick(() => { this.showDistrictPicker = true; });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(this.distLabel());
             Text.fontSize(Hive.Typography.bodyBase);
-            Text.fontColor(this.selectedCode === '' ? Hive.Color.n400 : Hive.Color.n800);
+            Text.fontColor(this.selectedDistrict === '' ? Hive.Color.n400 : Hive.Color.n800);
             Text.layoutWeight(1);
         }, Text);
         Text.pop();
@@ -1463,7 +1417,7 @@ export class KYCAddressDistrictStep extends ViewPU {
         Column.pop();
         Column.pop();
     }
-    pickerSheet(parent = null) {
+    districtPickerSheet(parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 0 });
             Column.height('100%');
@@ -1508,9 +1462,10 @@ export class KYCAddressDistrictStep extends ViewPU {
                             Row.height(50);
                             Row.padding({ left: 16, right: 16 });
                             Row.onClick(() => {
-                                this.selectedCode = e.code;
-                                this.state.answers['q_addr_district'] = e.code as any;
-                                this.showPicker = false;
+                                this.selectedDistrict = e.code;
+                                this.state.setAnswer('q_addr_district', e.code as any);
+                                this.showDistrictPicker = false;
+                                this.sendAddress();
                             });
                         }, Row);
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1522,7 +1477,7 @@ export class KYCAddressDistrictStep extends ViewPU {
                         Text.pop();
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             If.create();
-                            if (e.code === this.selectedCode) {
+                            if (e.code === this.selectedDistrict) {
                                 this.ifElseBranchUpdateFunction(0, () => {
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Text.create('✓');
@@ -1555,39 +1510,51 @@ export class KYCAddressDistrictStep extends ViewPU {
         this.updateDirtyElements();
     }
 }
-export class KYCEmploymentStep extends ViewPU {
+export class KYCEmploymentIncomeStep extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
         super(parent, __localStorage, elmtId, extraInfo);
         if (typeof paramsLambda === "function") {
             this.paramsGenerator_ = paramsLambda;
         }
         this.__state = new SynchedPropertyNesedObjectPU(params.state, this, "state");
-        this.__showPicker = new ObservedPropertySimplePU(false, this, "showPicker");
-        this.__selectedCode = new ObservedPropertySimplePU('', this, "selectedCode");
+        this.__showEmpPicker = new ObservedPropertySimplePU(false, this, "showEmpPicker");
+        this.__selectedEmp = new ObservedPropertySimplePU('', this, "selectedEmp");
+        this.__showIncPicker = new ObservedPropertySimplePU(false, this, "showIncPicker");
+        this.__selectedInc = new ObservedPropertySimplePU('', this, "selectedInc");
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
-    setInitiallyProvidedValue(params: KYCEmploymentStep_Params) {
+    setInitiallyProvidedValue(params: KYCEmploymentIncomeStep_Params) {
         this.__state.set(params.state);
-        if (params.showPicker !== undefined) {
-            this.showPicker = params.showPicker;
+        if (params.showEmpPicker !== undefined) {
+            this.showEmpPicker = params.showEmpPicker;
         }
-        if (params.selectedCode !== undefined) {
-            this.selectedCode = params.selectedCode;
+        if (params.selectedEmp !== undefined) {
+            this.selectedEmp = params.selectedEmp;
+        }
+        if (params.showIncPicker !== undefined) {
+            this.showIncPicker = params.showIncPicker;
+        }
+        if (params.selectedInc !== undefined) {
+            this.selectedInc = params.selectedInc;
         }
     }
-    updateStateVars(params: KYCEmploymentStep_Params) {
+    updateStateVars(params: KYCEmploymentIncomeStep_Params) {
         this.__state.set(params.state);
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
         this.__state.purgeDependencyOnElmtId(rmElmtId);
-        this.__showPicker.purgeDependencyOnElmtId(rmElmtId);
-        this.__selectedCode.purgeDependencyOnElmtId(rmElmtId);
+        this.__showEmpPicker.purgeDependencyOnElmtId(rmElmtId);
+        this.__selectedEmp.purgeDependencyOnElmtId(rmElmtId);
+        this.__showIncPicker.purgeDependencyOnElmtId(rmElmtId);
+        this.__selectedInc.purgeDependencyOnElmtId(rmElmtId);
     }
     aboutToBeDeleted() {
         this.__state.aboutToBeDeleted();
-        this.__showPicker.aboutToBeDeleted();
-        this.__selectedCode.aboutToBeDeleted();
+        this.__showEmpPicker.aboutToBeDeleted();
+        this.__selectedEmp.aboutToBeDeleted();
+        this.__showIncPicker.aboutToBeDeleted();
+        this.__selectedInc.aboutToBeDeleted();
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
@@ -1595,37 +1562,66 @@ export class KYCEmploymentStep extends ViewPU {
     get state() {
         return this.__state.get();
     }
-    private __showPicker: ObservedPropertySimplePU<boolean>;
-    get showPicker() {
-        return this.__showPicker.get();
+    private __showEmpPicker: ObservedPropertySimplePU<boolean>;
+    get showEmpPicker() {
+        return this.__showEmpPicker.get();
     }
-    set showPicker(newValue: boolean) {
-        this.__showPicker.set(newValue);
+    set showEmpPicker(newValue: boolean) {
+        this.__showEmpPicker.set(newValue);
     }
-    private __selectedCode: ObservedPropertySimplePU<string>;
-    get selectedCode() {
-        return this.__selectedCode.get();
+    private __selectedEmp: ObservedPropertySimplePU<string>;
+    get selectedEmp() {
+        return this.__selectedEmp.get();
     }
-    set selectedCode(newValue: string) {
-        this.__selectedCode.set(newValue);
+    set selectedEmp(newValue: string) {
+        this.__selectedEmp.set(newValue);
     }
-    aboutToAppear() { this.selectedCode = answerStr(this.state, 'q_employment_status'); }
-    label(): string {
-        const o = EMPLOYMENT_OPTIONS.find((e: StringPair) => e.code === this.selectedCode);
+    private __showIncPicker: ObservedPropertySimplePU<boolean>;
+    get showIncPicker() {
+        return this.__showIncPicker.get();
+    }
+    set showIncPicker(newValue: boolean) {
+        this.__showIncPicker.set(newValue);
+    }
+    private __selectedInc: ObservedPropertySimplePU<string>;
+    get selectedInc() {
+        return this.__selectedInc.get();
+    }
+    set selectedInc(newValue: string) {
+        this.__selectedInc.set(newValue);
+    }
+    aboutToAppear() {
+        this.selectedEmp = answerStr(this.state, 'q_employment_status');
+        this.selectedInc = answerStr(this.state, 'q_annual_income');
+    }
+    empLabel(): string {
+        const o = EMPLOYMENT_OPTIONS.find((e: StringPair) => e.code === this.selectedEmp);
         return o ? o.label : 'Select employment status';
+    }
+    incLabel(): string {
+        const o = INCOME_OPTIONS.find((e: StringPair) => e.code === this.selectedInc);
+        return o ? o.label : 'Select annual income range';
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: Hive.Spacing.s4 });
             Column.width('100%');
-            Column.bindSheet({ value: this.showPicker, changeEvent: newValue => { this.showPicker = newValue; } }, { builder: () => {
-                    this.pickerSheet.call(this);
-                } }, { height: SheetSize.MEDIUM });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Each picker trigger lives in its own Column so .bindSheet() has a dedicated node.
+            // Attaching two .bindSheet() modifiers to the same node causes sheet flicker on HarmonyNext.
             Column.create({ space: Hive.Spacing.s1 });
+            // Each picker trigger lives in its own Column so .bindSheet() has a dedicated node.
+            // Attaching two .bindSheet() modifiers to the same node causes sheet flicker on HarmonyNext.
             Column.width('100%');
+            // Each picker trigger lives in its own Column so .bindSheet() has a dedicated node.
+            // Attaching two .bindSheet() modifiers to the same node causes sheet flicker on HarmonyNext.
             Column.alignItems(HorizontalAlign.Start);
+            // Each picker trigger lives in its own Column so .bindSheet() has a dedicated node.
+            // Attaching two .bindSheet() modifiers to the same node causes sheet flicker on HarmonyNext.
+            Column.bindSheet({ value: this.showEmpPicker, changeEvent: newValue => { this.showEmpPicker = newValue; } }, { builder: () => {
+                    this.empPickerSheet.call(this);
+                } }, { height: SheetSize.MEDIUM });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create();
@@ -1652,12 +1648,64 @@ export class KYCEmploymentStep extends ViewPU {
             Row.borderWidth(1);
             Row.borderColor(Hive.Color.n300);
             Row.backgroundColor(Hive.Color.brandWhite);
-            Row.onClick(() => { this.showPicker = true; });
+            Row.onClick(() => { this.showEmpPicker = true; });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(this.label());
+            Text.create(this.empLabel());
             Text.fontSize(Hive.Typography.bodyBase);
-            Text.fontColor(this.selectedCode === '' ? Hive.Color.n400 : Hive.Color.n800);
+            Text.fontColor(this.selectedEmp === '' ? Hive.Color.n400 : Hive.Color.n800);
+            Text.layoutWeight(1);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('▼');
+            Text.fontSize(12);
+            Text.fontColor(Hive.Color.n400);
+        }, Text);
+        Text.pop();
+        Row.pop();
+        // Each picker trigger lives in its own Column so .bindSheet() has a dedicated node.
+        // Attaching two .bindSheet() modifiers to the same node causes sheet flicker on HarmonyNext.
+        Column.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: Hive.Spacing.s1 });
+            Column.width('100%');
+            Column.alignItems(HorizontalAlign.Start);
+            Column.bindSheet({ value: this.showIncPicker, changeEvent: newValue => { this.showIncPicker = newValue; } }, { builder: () => {
+                    this.incPickerSheet.call(this);
+                } }, { height: SheetSize.MEDIUM });
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.width('100%');
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('Annual Income (HKD)');
+            Text.fontSize(Hive.Typography.labelBase);
+            Text.fontColor(Hive.Color.n700);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(' *');
+            Text.fontColor(Hive.Color.error);
+        }, Text);
+        Text.pop();
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.width('100%');
+            Row.height(Hive.Component.Input.height);
+            Row.padding({ left: Hive.Spacing.s4, right: Hive.Spacing.s4 });
+            Row.borderRadius(Hive.Radius.base);
+            Row.borderWidth(1);
+            Row.borderColor(Hive.Color.n300);
+            Row.backgroundColor(Hive.Color.brandWhite);
+            Row.onClick(() => { this.showIncPicker = true; });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.incLabel());
+            Text.fontSize(Hive.Typography.bodyBase);
+            Text.fontColor(this.selectedInc === '' ? Hive.Color.n400 : Hive.Color.n800);
             Text.layoutWeight(1);
         }, Text);
         Text.pop();
@@ -1671,7 +1719,7 @@ export class KYCEmploymentStep extends ViewPU {
         Column.pop();
         Column.pop();
     }
-    pickerSheet(parent = null) {
+    empPickerSheet(parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 0 });
             Column.height('100%');
@@ -1716,9 +1764,9 @@ export class KYCEmploymentStep extends ViewPU {
                             Row.height(50);
                             Row.padding({ left: 16, right: 16 });
                             Row.onClick(() => {
-                                this.selectedCode = e.code;
-                                this.state.answers['q_employment_status'] = e.code as any;
-                                this.showPicker = false;
+                                this.selectedEmp = e.code;
+                                this.state.setAnswer('q_employment_status', e.code as any);
+                                this.showEmpPicker = false;
                             });
                         }, Row);
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1730,7 +1778,7 @@ export class KYCEmploymentStep extends ViewPU {
                         Text.pop();
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             If.create();
-                            if (e.code === this.selectedCode) {
+                            if (e.code === this.selectedEmp) {
                                 this.ifElseBranchUpdateFunction(0, () => {
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Text.create('✓');
@@ -1759,127 +1807,7 @@ export class KYCEmploymentStep extends ViewPU {
         List.pop();
         Column.pop();
     }
-    rerender() {
-        this.updateDirtyElements();
-    }
-}
-export class KYCAnnualIncomeStep extends ViewPU {
-    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
-        super(parent, __localStorage, elmtId, extraInfo);
-        if (typeof paramsLambda === "function") {
-            this.paramsGenerator_ = paramsLambda;
-        }
-        this.__state = new SynchedPropertyNesedObjectPU(params.state, this, "state");
-        this.__showPicker = new ObservedPropertySimplePU(false, this, "showPicker");
-        this.__selectedCode = new ObservedPropertySimplePU('', this, "selectedCode");
-        this.setInitiallyProvidedValue(params);
-        this.finalizeConstruction();
-    }
-    setInitiallyProvidedValue(params: KYCAnnualIncomeStep_Params) {
-        this.__state.set(params.state);
-        if (params.showPicker !== undefined) {
-            this.showPicker = params.showPicker;
-        }
-        if (params.selectedCode !== undefined) {
-            this.selectedCode = params.selectedCode;
-        }
-    }
-    updateStateVars(params: KYCAnnualIncomeStep_Params) {
-        this.__state.set(params.state);
-    }
-    purgeVariableDependenciesOnElmtId(rmElmtId) {
-        this.__state.purgeDependencyOnElmtId(rmElmtId);
-        this.__showPicker.purgeDependencyOnElmtId(rmElmtId);
-        this.__selectedCode.purgeDependencyOnElmtId(rmElmtId);
-    }
-    aboutToBeDeleted() {
-        this.__state.aboutToBeDeleted();
-        this.__showPicker.aboutToBeDeleted();
-        this.__selectedCode.aboutToBeDeleted();
-        SubscriberManager.Get().delete(this.id__());
-        this.aboutToBeDeletedInternal();
-    }
-    private __state: SynchedPropertyNesedObjectPU<KYCState>;
-    get state() {
-        return this.__state.get();
-    }
-    private __showPicker: ObservedPropertySimplePU<boolean>;
-    get showPicker() {
-        return this.__showPicker.get();
-    }
-    set showPicker(newValue: boolean) {
-        this.__showPicker.set(newValue);
-    }
-    private __selectedCode: ObservedPropertySimplePU<string>;
-    get selectedCode() {
-        return this.__selectedCode.get();
-    }
-    set selectedCode(newValue: string) {
-        this.__selectedCode.set(newValue);
-    }
-    aboutToAppear() { this.selectedCode = answerStr(this.state, 'q_annual_income'); }
-    label(): string {
-        const o = INCOME_OPTIONS.find((e: StringPair) => e.code === this.selectedCode);
-        return o ? o.label : 'Select annual income range';
-    }
-    initialRender() {
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: Hive.Spacing.s4 });
-            Column.width('100%');
-            Column.bindSheet({ value: this.showPicker, changeEvent: newValue => { this.showPicker = newValue; } }, { builder: () => {
-                    this.pickerSheet.call(this);
-                } }, { height: SheetSize.MEDIUM });
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: Hive.Spacing.s1 });
-            Column.width('100%');
-            Column.alignItems(HorizontalAlign.Start);
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create();
-            Row.width('100%');
-        }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('Annual Income (HKD)');
-            Text.fontSize(Hive.Typography.labelBase);
-            Text.fontColor(Hive.Color.n700);
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(' *');
-            Text.fontColor(Hive.Color.error);
-        }, Text);
-        Text.pop();
-        Row.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create();
-            Row.width('100%');
-            Row.height(Hive.Component.Input.height);
-            Row.padding({ left: Hive.Spacing.s4, right: Hive.Spacing.s4 });
-            Row.borderRadius(Hive.Radius.base);
-            Row.borderWidth(1);
-            Row.borderColor(Hive.Color.n300);
-            Row.backgroundColor(Hive.Color.brandWhite);
-            Row.onClick(() => { this.showPicker = true; });
-        }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(this.label());
-            Text.fontSize(Hive.Typography.bodyBase);
-            Text.fontColor(this.selectedCode === '' ? Hive.Color.n400 : Hive.Color.n800);
-            Text.layoutWeight(1);
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('▼');
-            Text.fontSize(12);
-            Text.fontColor(Hive.Color.n400);
-        }, Text);
-        Text.pop();
-        Row.pop();
-        Column.pop();
-        Column.pop();
-    }
-    pickerSheet(parent = null) {
+    incPickerSheet(parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 0 });
             Column.height('100%');
@@ -1924,9 +1852,9 @@ export class KYCAnnualIncomeStep extends ViewPU {
                             Row.height(50);
                             Row.padding({ left: 16, right: 16 });
                             Row.onClick(() => {
-                                this.selectedCode = e.code;
-                                this.state.answers['q_annual_income'] = e.code as any;
-                                this.showPicker = false;
+                                this.selectedInc = e.code;
+                                this.state.setAnswer('q_annual_income', e.code as any);
+                                this.showIncPicker = false;
                             });
                         }, Row);
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1938,7 +1866,7 @@ export class KYCAnnualIncomeStep extends ViewPU {
                         Text.pop();
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             If.create();
-                            if (e.code === this.selectedCode) {
+                            if (e.code === this.selectedInc) {
                                 this.ifElseBranchUpdateFunction(0, () => {
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Text.create('✓');
@@ -1978,18 +1906,26 @@ export class KYCSourceOfFundsStep extends ViewPU {
             this.paramsGenerator_ = paramsLambda;
         }
         this.__state = new SynchedPropertyNesedObjectPU(params.state, this, "state");
-        this.__showPicker = new ObservedPropertySimplePU(false, this, "showPicker");
-        this.__selectedCode = new ObservedPropertySimplePU('', this, "selectedCode");
+        this.__showFundsPicker = new ObservedPropertySimplePU(false, this, "showFundsPicker");
+        this.__selectedFunds = new ObservedPropertySimplePU('', this, "selectedFunds");
+        this.__showPurposePicker = new ObservedPropertySimplePU(false, this, "showPurposePicker");
+        this.__selectedPurpose = new ObservedPropertySimplePU('', this, "selectedPurpose");
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
     setInitiallyProvidedValue(params: KYCSourceOfFundsStep_Params) {
         this.__state.set(params.state);
-        if (params.showPicker !== undefined) {
-            this.showPicker = params.showPicker;
+        if (params.showFundsPicker !== undefined) {
+            this.showFundsPicker = params.showFundsPicker;
         }
-        if (params.selectedCode !== undefined) {
-            this.selectedCode = params.selectedCode;
+        if (params.selectedFunds !== undefined) {
+            this.selectedFunds = params.selectedFunds;
+        }
+        if (params.showPurposePicker !== undefined) {
+            this.showPurposePicker = params.showPurposePicker;
+        }
+        if (params.selectedPurpose !== undefined) {
+            this.selectedPurpose = params.selectedPurpose;
         }
     }
     updateStateVars(params: KYCSourceOfFundsStep_Params) {
@@ -1997,13 +1933,17 @@ export class KYCSourceOfFundsStep extends ViewPU {
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
         this.__state.purgeDependencyOnElmtId(rmElmtId);
-        this.__showPicker.purgeDependencyOnElmtId(rmElmtId);
-        this.__selectedCode.purgeDependencyOnElmtId(rmElmtId);
+        this.__showFundsPicker.purgeDependencyOnElmtId(rmElmtId);
+        this.__selectedFunds.purgeDependencyOnElmtId(rmElmtId);
+        this.__showPurposePicker.purgeDependencyOnElmtId(rmElmtId);
+        this.__selectedPurpose.purgeDependencyOnElmtId(rmElmtId);
     }
     aboutToBeDeleted() {
         this.__state.aboutToBeDeleted();
-        this.__showPicker.aboutToBeDeleted();
-        this.__selectedCode.aboutToBeDeleted();
+        this.__showFundsPicker.aboutToBeDeleted();
+        this.__selectedFunds.aboutToBeDeleted();
+        this.__showPurposePicker.aboutToBeDeleted();
+        this.__selectedPurpose.aboutToBeDeleted();
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
@@ -2011,37 +1951,62 @@ export class KYCSourceOfFundsStep extends ViewPU {
     get state() {
         return this.__state.get();
     }
-    private __showPicker: ObservedPropertySimplePU<boolean>;
-    get showPicker() {
-        return this.__showPicker.get();
+    private __showFundsPicker: ObservedPropertySimplePU<boolean>;
+    get showFundsPicker() {
+        return this.__showFundsPicker.get();
     }
-    set showPicker(newValue: boolean) {
-        this.__showPicker.set(newValue);
+    set showFundsPicker(newValue: boolean) {
+        this.__showFundsPicker.set(newValue);
     }
-    private __selectedCode: ObservedPropertySimplePU<string>;
-    get selectedCode() {
-        return this.__selectedCode.get();
+    private __selectedFunds: ObservedPropertySimplePU<string>;
+    get selectedFunds() {
+        return this.__selectedFunds.get();
     }
-    set selectedCode(newValue: string) {
-        this.__selectedCode.set(newValue);
+    set selectedFunds(newValue: string) {
+        this.__selectedFunds.set(newValue);
     }
-    aboutToAppear() { this.selectedCode = answerStr(this.state, 'q_source_of_funds'); }
-    label(): string {
-        const o = FUNDS_OPTIONS.find((e: StringPair) => e.code === this.selectedCode);
+    private __showPurposePicker: ObservedPropertySimplePU<boolean>;
+    get showPurposePicker() {
+        return this.__showPurposePicker.get();
+    }
+    set showPurposePicker(newValue: boolean) {
+        this.__showPurposePicker.set(newValue);
+    }
+    private __selectedPurpose: ObservedPropertySimplePU<string>;
+    get selectedPurpose() {
+        return this.__selectedPurpose.get();
+    }
+    set selectedPurpose(newValue: string) {
+        this.__selectedPurpose.set(newValue);
+    }
+    aboutToAppear() {
+        this.selectedFunds = answerStr(this.state, 'q_source_of_funds');
+        this.selectedPurpose = answerStr(this.state, 'q_account_purpose');
+    }
+    fundsLabel(): string {
+        const o = FUNDS_OPTIONS.find((e: StringPair) => e.code === this.selectedFunds);
         return o ? o.label : 'Select primary source of funds';
+    }
+    purposeLabel(): string {
+        const o = PURPOSE_OPTIONS.find((e: StringPair) => e.code === this.selectedPurpose);
+        return o ? o.label : 'Select purpose of account';
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: Hive.Spacing.s4 });
             Column.width('100%');
-            Column.bindSheet({ value: this.showPicker, changeEvent: newValue => { this.showPicker = newValue; } }, { builder: () => {
-                    this.pickerSheet.call(this);
-                } }, { height: SheetSize.MEDIUM });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Each picker trigger lives in its own Column so .bindSheet() has a dedicated node.
             Column.create({ space: Hive.Spacing.s1 });
+            // Each picker trigger lives in its own Column so .bindSheet() has a dedicated node.
             Column.width('100%');
+            // Each picker trigger lives in its own Column so .bindSheet() has a dedicated node.
             Column.alignItems(HorizontalAlign.Start);
+            // Each picker trigger lives in its own Column so .bindSheet() has a dedicated node.
+            Column.bindSheet({ value: this.showFundsPicker, changeEvent: newValue => { this.showFundsPicker = newValue; } }, { builder: () => {
+                    this.fundsPickerSheet.call(this);
+                } }, { height: SheetSize.MEDIUM });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create();
@@ -2068,12 +2033,63 @@ export class KYCSourceOfFundsStep extends ViewPU {
             Row.borderWidth(1);
             Row.borderColor(Hive.Color.n300);
             Row.backgroundColor(Hive.Color.brandWhite);
-            Row.onClick(() => { this.showPicker = true; });
+            Row.onClick(() => { this.showFundsPicker = true; });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(this.label());
+            Text.create(this.fundsLabel());
             Text.fontSize(Hive.Typography.bodyBase);
-            Text.fontColor(this.selectedCode === '' ? Hive.Color.n400 : Hive.Color.n800);
+            Text.fontColor(this.selectedFunds === '' ? Hive.Color.n400 : Hive.Color.n800);
+            Text.layoutWeight(1);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('▼');
+            Text.fontSize(12);
+            Text.fontColor(Hive.Color.n400);
+        }, Text);
+        Text.pop();
+        Row.pop();
+        // Each picker trigger lives in its own Column so .bindSheet() has a dedicated node.
+        Column.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: Hive.Spacing.s1 });
+            Column.width('100%');
+            Column.alignItems(HorizontalAlign.Start);
+            Column.bindSheet({ value: this.showPurposePicker, changeEvent: newValue => { this.showPurposePicker = newValue; } }, { builder: () => {
+                    this.purposePickerSheet.call(this);
+                } }, { height: SheetSize.MEDIUM });
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.width('100%');
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('Purpose of Account');
+            Text.fontSize(Hive.Typography.labelBase);
+            Text.fontColor(Hive.Color.n700);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(' *');
+            Text.fontColor(Hive.Color.error);
+        }, Text);
+        Text.pop();
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.width('100%');
+            Row.height(Hive.Component.Input.height);
+            Row.padding({ left: Hive.Spacing.s4, right: Hive.Spacing.s4 });
+            Row.borderRadius(Hive.Radius.base);
+            Row.borderWidth(1);
+            Row.borderColor(Hive.Color.n300);
+            Row.backgroundColor(Hive.Color.brandWhite);
+            Row.onClick(() => { this.showPurposePicker = true; });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.purposeLabel());
+            Text.fontSize(Hive.Typography.bodyBase);
+            Text.fontColor(this.selectedPurpose === '' ? Hive.Color.n400 : Hive.Color.n800);
             Text.layoutWeight(1);
         }, Text);
         Text.pop();
@@ -2087,7 +2103,7 @@ export class KYCSourceOfFundsStep extends ViewPU {
         Column.pop();
         Column.pop();
     }
-    pickerSheet(parent = null) {
+    fundsPickerSheet(parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 0 });
             Column.height('100%');
@@ -2132,9 +2148,9 @@ export class KYCSourceOfFundsStep extends ViewPU {
                             Row.height(50);
                             Row.padding({ left: 16, right: 16 });
                             Row.onClick(() => {
-                                this.selectedCode = e.code;
-                                this.state.answers['q_source_of_funds'] = e.code as any;
-                                this.showPicker = false;
+                                this.selectedFunds = e.code;
+                                this.state.setAnswer('q_source_of_funds', e.code as any);
+                                this.showFundsPicker = false;
                             });
                         }, Row);
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -2146,7 +2162,7 @@ export class KYCSourceOfFundsStep extends ViewPU {
                         Text.pop();
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             If.create();
-                            if (e.code === this.selectedCode) {
+                            if (e.code === this.selectedFunds) {
                                 this.ifElseBranchUpdateFunction(0, () => {
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Text.create('✓');
@@ -2175,127 +2191,7 @@ export class KYCSourceOfFundsStep extends ViewPU {
         List.pop();
         Column.pop();
     }
-    rerender() {
-        this.updateDirtyElements();
-    }
-}
-export class KYCAccountPurposeStep extends ViewPU {
-    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
-        super(parent, __localStorage, elmtId, extraInfo);
-        if (typeof paramsLambda === "function") {
-            this.paramsGenerator_ = paramsLambda;
-        }
-        this.__state = new SynchedPropertyNesedObjectPU(params.state, this, "state");
-        this.__showPicker = new ObservedPropertySimplePU(false, this, "showPicker");
-        this.__selectedCode = new ObservedPropertySimplePU('', this, "selectedCode");
-        this.setInitiallyProvidedValue(params);
-        this.finalizeConstruction();
-    }
-    setInitiallyProvidedValue(params: KYCAccountPurposeStep_Params) {
-        this.__state.set(params.state);
-        if (params.showPicker !== undefined) {
-            this.showPicker = params.showPicker;
-        }
-        if (params.selectedCode !== undefined) {
-            this.selectedCode = params.selectedCode;
-        }
-    }
-    updateStateVars(params: KYCAccountPurposeStep_Params) {
-        this.__state.set(params.state);
-    }
-    purgeVariableDependenciesOnElmtId(rmElmtId) {
-        this.__state.purgeDependencyOnElmtId(rmElmtId);
-        this.__showPicker.purgeDependencyOnElmtId(rmElmtId);
-        this.__selectedCode.purgeDependencyOnElmtId(rmElmtId);
-    }
-    aboutToBeDeleted() {
-        this.__state.aboutToBeDeleted();
-        this.__showPicker.aboutToBeDeleted();
-        this.__selectedCode.aboutToBeDeleted();
-        SubscriberManager.Get().delete(this.id__());
-        this.aboutToBeDeletedInternal();
-    }
-    private __state: SynchedPropertyNesedObjectPU<KYCState>;
-    get state() {
-        return this.__state.get();
-    }
-    private __showPicker: ObservedPropertySimplePU<boolean>;
-    get showPicker() {
-        return this.__showPicker.get();
-    }
-    set showPicker(newValue: boolean) {
-        this.__showPicker.set(newValue);
-    }
-    private __selectedCode: ObservedPropertySimplePU<string>;
-    get selectedCode() {
-        return this.__selectedCode.get();
-    }
-    set selectedCode(newValue: string) {
-        this.__selectedCode.set(newValue);
-    }
-    aboutToAppear() { this.selectedCode = answerStr(this.state, 'q_account_purpose'); }
-    label(): string {
-        const o = PURPOSE_OPTIONS.find((e: StringPair) => e.code === this.selectedCode);
-        return o ? o.label : 'Select purpose of account';
-    }
-    initialRender() {
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: Hive.Spacing.s4 });
-            Column.width('100%');
-            Column.bindSheet({ value: this.showPicker, changeEvent: newValue => { this.showPicker = newValue; } }, { builder: () => {
-                    this.pickerSheet.call(this);
-                } }, { height: SheetSize.MEDIUM });
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: Hive.Spacing.s1 });
-            Column.width('100%');
-            Column.alignItems(HorizontalAlign.Start);
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create();
-            Row.width('100%');
-        }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('Purpose of Account');
-            Text.fontSize(Hive.Typography.labelBase);
-            Text.fontColor(Hive.Color.n700);
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(' *');
-            Text.fontColor(Hive.Color.error);
-        }, Text);
-        Text.pop();
-        Row.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create();
-            Row.width('100%');
-            Row.height(Hive.Component.Input.height);
-            Row.padding({ left: Hive.Spacing.s4, right: Hive.Spacing.s4 });
-            Row.borderRadius(Hive.Radius.base);
-            Row.borderWidth(1);
-            Row.borderColor(Hive.Color.n300);
-            Row.backgroundColor(Hive.Color.brandWhite);
-            Row.onClick(() => { this.showPicker = true; });
-        }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(this.label());
-            Text.fontSize(Hive.Typography.bodyBase);
-            Text.fontColor(this.selectedCode === '' ? Hive.Color.n400 : Hive.Color.n800);
-            Text.layoutWeight(1);
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('▼');
-            Text.fontSize(12);
-            Text.fontColor(Hive.Color.n400);
-        }, Text);
-        Text.pop();
-        Row.pop();
-        Column.pop();
-        Column.pop();
-    }
-    pickerSheet(parent = null) {
+    purposePickerSheet(parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 0 });
             Column.height('100%');
@@ -2340,9 +2236,9 @@ export class KYCAccountPurposeStep extends ViewPU {
                             Row.height(50);
                             Row.padding({ left: 16, right: 16 });
                             Row.onClick(() => {
-                                this.selectedCode = e.code;
-                                this.state.answers['q_account_purpose'] = e.code as any;
-                                this.showPicker = false;
+                                this.selectedPurpose = e.code;
+                                this.state.setAnswer('q_account_purpose', e.code as any);
+                                this.showPurposePicker = false;
                             });
                         }, Row);
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -2354,7 +2250,7 @@ export class KYCAccountPurposeStep extends ViewPU {
                         Text.pop();
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             If.create();
-                            if (e.code === this.selectedCode) {
+                            if (e.code === this.selectedPurpose) {
                                 this.ifElseBranchUpdateFunction(0, () => {
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Text.create('✓');
@@ -2449,7 +2345,7 @@ export class KYCLivenessStep extends ViewPU {
                 clearInterval(timer);
                 setTimeout(() => {
                     this.phase = 'done';
-                    this.state.answers['q_liveness'] = 'PASSED' as any;
+                    this.state.setAnswer('q_liveness', 'PASSED' as any);
                 }, 300);
             }
         }, 50);
@@ -2638,12 +2534,13 @@ export class KYCOpenBankingStep extends ViewPU {
         this.__connecting = new ObservedPropertySimplePU(false, this, "connecting");
         this.__showBankPicker = new ObservedPropertySimplePU(false, this, "showBankPicker");
         this.banks = [
-            { code: 'HSBC_UK', label: 'HSBC UK' },
-            { code: 'LLOYDS', label: 'Lloyds Bank' },
-            { code: 'BARCLAYS', label: 'Barclays' },
-            { code: 'NATWEST', label: 'NatWest' },
-            { code: 'MONZO', label: 'Monzo' },
-            { code: 'STARLING', label: 'Starling Bank' },
+            { code: 'HSBC_HK', label: 'HSBC Hong Kong' },
+            { code: 'BOC_HK', label: 'Bank of China (Hong Kong)' },
+            { code: 'HANG_SENG', label: 'Hang Seng Bank' },
+            { code: 'SCB_HK', label: 'Standard Chartered Hong Kong' },
+            { code: 'CITI_HK', label: 'Citibank Hong Kong' },
+            { code: 'DBS_HK', label: 'DBS Bank Hong Kong' },
+            { code: 'BEA', label: 'Bank of East Asia' },
         ];
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
@@ -2733,7 +2630,7 @@ export class KYCOpenBankingStep extends ViewPU {
         setTimeout(() => {
             this.connecting = false;
             this.connected = true;
-            this.state.answers['q_ob_consent'] = `tok_${Math.floor(Math.random() * 900000 + 100000)}` as any;
+            this.state.setAnswer('q_ob_consent', `tok_${Math.floor(Math.random() * 900000 + 100000)}` as any);
         }, 1500);
     }
     initialRender() {
@@ -2759,7 +2656,7 @@ export class KYCOpenBankingStep extends ViewPU {
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('We use Open Banking (FCA/HKMA regulated) to verify your identity. Your bank credentials are never shared with HSBC.');
+            Text.create('We use Open Banking (HKMA regulated) to verify your identity. Your bank credentials are never shared with HSBC.');
             Text.fontSize(13);
             Text.fontColor(Hive.Color.n700);
         }, Text);
@@ -2870,7 +2767,7 @@ export class KYCOpenBankingStep extends ViewPU {
         }, If);
         If.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('Powered by Open Banking · Regulated by FCA and HKMA');
+            Text.create('Powered by Open Banking · Regulated by the HKMA');
             Text.fontSize(11);
             Text.fontColor(Hive.Color.n400);
             Text.textAlign(TextAlign.Center);
@@ -2978,7 +2875,11 @@ export class KYCDeclarationStep extends ViewPU {
             this.paramsGenerator_ = paramsLambda;
         }
         this.__state = new SynchedPropertyNesedObjectPU(params.state, this, "state");
-        this.__pepStatus = new ObservedPropertySimplePU('', this, "pepStatus");
+        this.__pepStatus = new ObservedPropertySimplePU(''
+        // @State mirrors drive re-render — mutating state.answers in-place doesn't trigger @ObjectLink diff
+        , this, "pepStatus");
+        this.__declTruthful = new ObservedPropertySimplePU(false, this, "declTruthful");
+        this.__declFatca = new ObservedPropertySimplePU(false, this, "declFatca");
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
@@ -2987,6 +2888,12 @@ export class KYCDeclarationStep extends ViewPU {
         if (params.pepStatus !== undefined) {
             this.pepStatus = params.pepStatus;
         }
+        if (params.declTruthful !== undefined) {
+            this.declTruthful = params.declTruthful;
+        }
+        if (params.declFatca !== undefined) {
+            this.declFatca = params.declFatca;
+        }
     }
     updateStateVars(params: KYCDeclarationStep_Params) {
         this.__state.set(params.state);
@@ -2994,10 +2901,14 @@ export class KYCDeclarationStep extends ViewPU {
     purgeVariableDependenciesOnElmtId(rmElmtId) {
         this.__state.purgeDependencyOnElmtId(rmElmtId);
         this.__pepStatus.purgeDependencyOnElmtId(rmElmtId);
+        this.__declTruthful.purgeDependencyOnElmtId(rmElmtId);
+        this.__declFatca.purgeDependencyOnElmtId(rmElmtId);
     }
     aboutToBeDeleted() {
         this.__state.aboutToBeDeleted();
         this.__pepStatus.aboutToBeDeleted();
+        this.__declTruthful.aboutToBeDeleted();
+        this.__declFatca.aboutToBeDeleted();
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
@@ -3012,21 +2923,49 @@ export class KYCDeclarationStep extends ViewPU {
     set pepStatus(newValue: string) {
         this.__pepStatus.set(newValue);
     }
+    // @State mirrors drive re-render — mutating state.answers in-place doesn't trigger @ObjectLink diff
+    private __declTruthful: ObservedPropertySimplePU<boolean>;
+    get declTruthful() {
+        return this.__declTruthful.get();
+    }
+    set declTruthful(newValue: boolean) {
+        this.__declTruthful.set(newValue);
+    }
+    private __declFatca: ObservedPropertySimplePU<boolean>;
+    get declFatca() {
+        return this.__declFatca.get();
+    }
+    set declFatca(newValue: boolean) {
+        this.__declFatca.set(newValue);
+    }
+    aboutToAppear() {
+        this.declTruthful = this.state.answers['decl_truthful'] === true;
+        this.declFatca = this.state.answers['decl_fatca'] === true;
+    }
+    isChecked(id: string): boolean {
+        return id === 'decl_truthful' ? this.declTruthful : this.declFatca;
+    }
     declRow(decl: DeclOption, parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create({ space: Hive.Spacing.s3 });
             Row.width('100%');
             Row.padding(Hive.Spacing.s4);
             Row.borderRadius(Hive.Radius.md);
-            Row.backgroundColor(this.state.answers[decl.id] === true ? Hive.Color.successLt : Hive.Color.n50);
+            Row.backgroundColor(this.isChecked(decl.id) ? Hive.Color.successLt : Hive.Color.n50);
             Row.border({
                 width: 1,
-                color: this.state.answers[decl.id] === true ? Hive.Color.success : Hive.Color.n200,
+                color: this.isChecked(decl.id) ? Hive.Color.success : Hive.Color.n200,
                 radius: Hive.Radius.md
             });
             Row.onClick(() => {
-                const newVal = !(this.state.answers[decl.id] === true);
-                this.state.answers[decl.id] = newVal as any;
+                if (decl.id === 'decl_truthful') {
+                    this.declTruthful = !this.declTruthful;
+                    this.state.setAnswer(decl.id, this.declTruthful as any);
+                }
+                else {
+                    this.declFatca = !this.declFatca;
+                    this.state.setAnswer(decl.id, this.declFatca as any);
+                }
             });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -3037,13 +2976,13 @@ export class KYCDeclarationStep extends ViewPU {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Rect.create({ width: 22, height: 22 });
             Rect.radius(4);
-            Rect.stroke(this.state.answers[decl.id] === true ? Hive.Color.success : Hive.Color.n300);
+            Rect.stroke(this.isChecked(decl.id) ? Hive.Color.success : Hive.Color.n300);
             Rect.strokeWidth(2);
-            Rect.fill(this.state.answers[decl.id] === true ? Hive.Color.success : 'transparent');
+            Rect.fill(this.isChecked(decl.id) ? Hive.Color.success : 'transparent');
         }, Rect);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             If.create();
-            if (this.state.answers[decl.id] === true) {
+            if (this.isChecked(decl.id)) {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('✓');
@@ -3109,7 +3048,7 @@ export class KYCDeclarationStep extends ViewPU {
                     });
                     Row.onClick(() => {
                         this.pepStatus = item.val;
-                        this.state.answers['q_pep_status'] = item.val as any;
+                        this.state.setAnswer('q_pep_status', item.val as any);
                     });
                 }, Row);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {

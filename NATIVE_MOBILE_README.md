@@ -12,8 +12,52 @@ harmonynext-sdui/  ← ArkTS / ArkUI (DevEco Studio / HarmonyOS Emulator)
 ```
 
 Both journeys are supported on all platforms:
-- **OBKYC Journey** — 10-step Open Banking KYC with branching questions
+- **OBKYC Journey** — 11-step Open Banking KYC with branching identity questions
 - **Wealth Page** — Portfolio overview, holdings, recommendations, market data
+
+---
+
+## Redux / Unidirectional Data Flow
+
+All three platforms implement Redux-style state management. A single store owns all state; views dispatch actions; the store applies pure state mutations then executes async effects.
+
+```
+View ──dispatch(action)──► Store ──reduce(action)──► new State ──► View re-renders
+                                └──handleEffect(action)──► network call ──► dispatch(result)
+```
+
+| Concept | iOS | Android | HarmonyNext |
+|---------|-----|---------|-------------|
+| Store | `AppStore` (`@Observable` class) | `KYCViewModel` (ViewModel + StateFlow) | `KYCStore` (`@Observed` class) |
+| State | Flat properties on `AppStore` | `KYCUiState` (immutable `data class`) | `KYCState` (`@Observed` class) |
+| Actions | `KYCAction` enum (typed cases) | Named methods (`startSession`, `setAnswer`, `submitStep`) | `KYCAction` interface (string `type` + optional fields) |
+| Reducer | `reduce(_ action: KYCAction)` | `_state.update { it.copy(...) }` | `KYCState.dispatch(action)` |
+| Effects | `handleEffect(_ action)` async | `viewModelScope.launch { ... }` | `KYCStore.handleEffect(action)` |
+| Reactivity | `@Observable` / `@Environment` | `collectAsStateWithLifecycle()` | `@Observed` / `@ObjectLink` |
+
+### Dispatch examples
+
+```swift
+// iOS — dispatch enum action
+store.dispatch(.startSession)
+store.dispatch(.setAnswer(questionId: "q_first_name", value: AnyCodable(v)))
+store.dispatch(.submitStep)
+```
+
+```kotlin
+// Android — named ViewModel methods (equivalent to dispatch)
+viewModel.startSession()
+viewModel.setAnswer("q_first_name", v)
+viewModel.submitStep()
+```
+
+```typescript
+// HarmonyNext — dispatch action object (shell components use KYCStore)
+store.dispatch({ type: 'START_SESSION' })
+store.dispatch({ type: 'SUBMIT_STEP' })
+// Step components use KYCState directly for answer capture
+state.setAnswer('q_first_name', v as ESObject)
+```
 
 ---
 
@@ -40,20 +84,20 @@ Keep this running in a terminal tab.
 
 1. Open the Xcode project:
    ```bash
-   open ios-sdui/HSBCKyc.xcodeproj
+   open ios-sdui/HSBCSDUI.xcodeproj
    ```
 
-2. Select the `HSBCKyc` scheme and an iPhone simulator target (e.g. **iPhone 15 Pro**).
+2. Select the `HSBCSDUI` scheme and an iPhone simulator target (e.g. **iPhone 15 Pro**).
 
 3. Press **⌘R** (Run).
 
 4. The app launches with two tabs:
-   - **OBKYC** tab → tap "Begin Application" to start the 10-step KYC journey
+   - **OBKYC** tab → tap "Begin Application" to start the 11-step KYC journey
    - **Wealth** tab → immediately shows portfolio overview, holdings, recommendations, and market data
 
 ### BFF connection (simulator uses `127.0.0.1:4000`)
-The `KYCNetworkService.swift` already resolves `127.0.0.1` in the simulator build:
 ```swift
+// KYCNetworkService.swift
 #if targetEnvironment(simulator)
 private let BASE_URL = "http://127.0.0.1:4000/api/v1"
 ```
@@ -70,28 +114,20 @@ For a **real device**, replace the IP with your Mac's LAN address.
 
 ### Steps
 
-1. Open **android-sdui/** as an Android Studio project (File → Open → select the `android-sdui` folder).
+1. Open **android-sdui/** as an Android Studio project.
 
 2. Let Gradle sync complete.
 
-3. In the AVD Manager, start a **Pixel 7 / API 35** emulator (or use a connected device).
+3. Start a **Pixel 7 / API 35** emulator and click **Run ▶**.
 
-4. Click **Run ▶** (or press **Shift+F10**).
-
-5. The app launches showing:
+4. The app launches showing:
    - **OBKYC** bottom nav tab → tap "Begin Application"
    - **Wealth** bottom nav tab → full wealth dashboard
 
 ### BFF connection (emulator uses `10.0.2.2:4000`)
-`KYCNetworkService.kt` is pre-configured to route `10.0.2.2` (Android emulator loopback):
 ```kotlin
+// KYCNetworkService.kt
 private const val BASE_URL = "http://10.0.2.2:4000/api/v1/"
-```
-
-### Ensure network permission in AndroidManifest.xml
-The manifest must include:
-```xml
-<uses-permission android:name="android.permission.INTERNET" />
 ```
 
 ---
@@ -105,86 +141,117 @@ The manifest must include:
 
 ### Steps
 
-1. Open DevEco Studio.
+1. Open DevEco Studio → **File → Open** → select `harmonynext-sdui/`.
 
-2. Choose **File → Open** → select the `harmonynext-sdui/` folder.
+2. Let ohpm resolve dependencies.
 
-3. Let ohpm (package manager) resolve dependencies.
+3. Start a **Phone** emulator and click **Run ▶**.
 
-4. In **Device Manager**, create or start a **Phone** emulator.
-
-5. Click **Run ▶** (or press **Shift+F10**).
-
-6. The app loads with a bottom tab bar:
-   - **🪪 OBKYC** tab → KYC journey (tap "Begin Application")
-   - **📈 Wealth** tab → Wealth page with market data
+4. The app loads with bottom tab bar:
+   - **🪪 OBKYC** tab → KYC journey
+   - **📈 Wealth** tab → Wealth page
 
 ### BFF connection (emulator uses `10.0.2.2:4000`)
-`KYCNetworkService.ets` is pre-configured with `http://10.0.2.2:4000/api/v1`.
-
-HarmonyOS emulators share the Android emulator NAT convention — `10.0.2.2` routes to the host machine.
-
-Ensure `ohos.permission.INTERNET` is declared in `module.json5` (already done).
-
----
-
-## 5. KYC Journey Steps (all platforms)
-
-| # | Step ID      | Content |
-|---|-------------|---------|
-| 1 | name        | First / Middle / Last name |
-| 2 | dob         | Date of birth + nationality (country picker) |
-| 3 | contact     | Mobile phone (+852 dial code) + email |
-| 4 | identifier  | ID type picker + ID number |
-| 5 | address     | HK address (flat, floor, building, street, district) |
-| 6 | document    | Document type + camera/upload (front + back for HKID) |
-| 7 | liveness    | Selfie simulation + liveness progress bar |
-| 8 | wealth      | Occupation, annual income, source of funds |
-| 9 | openbanking | Bank picker + consent → "Connect" simulates OAuth |
-|10 | declaration | PEP status + two declarations |
+```typescript
+// KYCNetworkService.ets
+const BASE_URL = 'http://10.0.2.2:4000/api/v1'
+```
 
 ---
 
-## 6. SDUI JSON Schema
+## 5. KYC Journey — 11 Mobile Steps (All Platforms)
 
-All platforms consume the same BFF at `GET /api/v1/kyc/sessions/:id/steps/:stepId` and `POST /api/v1/kyc/sessions/:id/steps/:stepId/submit`.
+Routing is done on the **primary question ID** (`payload.layout.children[0].id`), not the step ID.
 
-The `x-platform` header (`ios` / `android` / `harmonynext`) triggers platform-specific step splitting in the BFF:
-- **Mobile**: max 3 questions per step → 10 steps for KYC
-- **Web**: full sections → 7 steps for KYC
+| # | Primary Question ID | Step Content |
+|---|--------------------|-|
+| 1 | `q_first_name` | First / Middle / Last name + Date of Birth |
+| 2 | `q_nationality` | Nationality (country picker) |
+| 3 | `q_hkid_number` / `q_mainland_id` / `q_passport_number` | ID document — nationality-conditional |
+| 4 | `q_hkid_front` | Document photo upload (front + back for HKID) |
+| 5 | `q_email` | Email + mobile phone |
+| 6 | `q_addr_line1` | HK address — line1 + line2 + district |
+| 7 | `q_employment_status` | Employment status + annual income |
+| 8 | `q_source_of_funds` | Source of funds + account purpose |
+| 9 | `q_liveness` | Selfie + liveness check |
+| 10 | `q_ob_consent` | Open Banking — bank picker + consent |
+| 11 | `q_pep_status` | PEP status + two legal declarations |
 
 ---
 
-## 7. File Map
+## 6. File Map
 
 ```
-ios-sdui/HSBCKyc/
-  App/HSBCKycApp.swift          ← Tab navigator (OBKYC + Wealth)
-  DesignSystem/HiveTokens.swift ← Design tokens
-  Store/AppStore.swift           ← Redux-like state + effects
-  Network/KYCNetworkService.swift← HTTP client
-  Network/SDUIModels.swift       ← Codable DTOs
-  KYC/Screens/KYCShellViews.swift← Welcome, journey shell, nav bar
-  KYC/Screens/KYCStepViews.swift ← 10 step views
-  SDUI/Engine/KYCSDUIStepRouter.swift ← stepId → view router
-  Wealth/WealthPageView.swift    ← Wealth page (4 tabs)
+ios-sdui/HSBCSDUI/
+  AppStore.swift                ← Redux store: KYCAction enum, dispatch(), reduce(), handleEffect()
+  SDUIModels.swift              ← Codable DTOs: SDUIScreenPayload, AnyCodable, KYC reference data
+  KYCNetworkService.swift       ← HTTP client (URLSession)
+  KYCShellViews.swift           ← Welcome, journey shell, progress bar, nav bar
+  KYCStepViews.swift            ← 11 step views (KYCNameStep, KYCAddressStep, etc.)
+  KYCSDUIStepRouter.swift       ← primaryQuestionId → SwiftUI view router
+  HiveTokens.swift              ← Design tokens (colour, spacing, typography)
+  HSBCSduiApp.swift              ← App entry + journey selector
+  WealthPageView.swift          ← Wealth page (4 tabs)
+  Analytics/TealiumClient.swift ← Analytics client
+  FXViewpoint/FXViewpointView.swift
+  Wealth/AISearchView.swift
 
-android-sdui/src/main/java/com/hsbc/sdui/
-  MainActivity.kt                ← Bottom nav (OBKYC + Wealth)
-  kyc/KYCModels.kt               ← DTOs + UI state
-  kyc/KYCNetworkService.kt       ← Retrofit API
-  kyc/KYCViewModel.kt            ← State + effects
-  kyc/KYCShellViews.kt           ← Welcome, journey shell, nav bar
-  kyc/KYCStepViews.kt            ← 10 step composables
-  kyc/KYCStepRouter.kt           ← stepId → composable router
-  wealth/WealthPageScreen.kt     ← Wealth page (4 tabs)
+android-sdui/app/src/main/java/com/hsbc/sdui/
+  MainActivity.kt               ← Bottom nav (OBKYC + Wealth)
+  kyc/
+    KYCModels.kt                ← DTOs (SDUIScreenPayload, KYCUiState, AnswerEntry, …)
+    KYCViewModel.kt             ← Redux store: startSession(), setAnswer(), submitStep()
+    KYCNetworkService.kt        ← Retrofit API client
+    KYCShellViews.kt            ← Welcome, journey shell, progress bar, nav bar
+    KYCStepViews.kt             ← 11 step composables
+    KYCStepRouter.kt            ← primaryQuestionId → Composable router + kycStepTitle()
+  wealth/WealthPageScreen.kt    ← Wealth page (4 tabs)
+  analytics/TealiumClient.kt    ← Analytics client
 
 harmonynext-sdui/entry/src/main/ets/
-  pages/Index.ets                ← Tabs entry (OBKYC + Wealth)
-  common/HiveTokens.ets          ← Design tokens namespace
-  models/SDUIModels.ets          ← ArkTS interfaces + KYCState
-  network/KYCNetworkService.ets  ← HTTP via @ohos.net.http
-  kyc/KYCStepViews.ets           ← 10 @Component step views
-  kyc/KYCShellViews.ets          ← Welcome, journey shell, step router
-  wealth/WealthPage.ets          ← Wealth page (4 tabs)
+  pages/Index.ets               ← Tab entry: @State kycStore: KYCStore
+  common/HiveTokens.ets         ← Design tokens namespace
+  models/SDUIModels.ets         ← ArkTS interfaces + KYCAction + KYCState (reducer)
+  kyc/
+    KYCStore.ets                ← Redux store: @Observed KYCStore, dispatch(), handleEffect()
+    KYCShellViews.ets           ← Welcome, journey shell, step router (@ObjectLink store: KYCStore)
+    KYCStepViews.ets            ← 11 @Component step views (@ObjectLink state: KYCState)
+  network/
+    KYCNetworkService.ets       ← HTTP via @ohos.net.http
+    SensorDataClient.ets        ← Analytics client
+  wealth/WealthPage.ets         ← Wealth page (4 tabs)
+  fxviewpoint/FXViewpointPage.ets
+
+mock-bff/
+  server.js                     ← Express mock BFF (port 4000)
+                                   GET /api/v1/kyc/sessions/:id/resume
+                                   GET /api/v1/kyc/sessions/:id/steps/:stepId
+                                   POST /api/v1/kyc/sessions/:id/steps/:stepId/submit
+```
+
+---
+
+## 7. API Contract
+
+All platforms send `x-platform: ios | android | harmonynext` header to trigger platform-specific step splitting.
+
+```
+POST /api/v1/kyc/sessions/start
+  Header: x-platform: ios
+  Body:   { "journeyType": "PERSONAL_ACCOUNT_OPENING", "market": "HK" }
+  → { "sessionId": "kyc-sess-xxx", "totalSteps": 11, "platform": "mobile" }
+
+GET  /api/v1/kyc/sessions/:sessionId/resume
+  Header: x-platform: ios, x-sdui-version: 2.3
+  → SDUIScreenPayload (first incomplete step)
+
+GET  /api/v1/kyc/sessions/:sessionId/steps/:stepId
+  Header: x-platform: ios, x-sdui-version: 2.3
+  → SDUIScreenPayload
+
+POST /api/v1/kyc/sessions/:sessionId/steps/:stepId/submit
+  Body: { "answers": [{ "questionId": "q_first_name", "value": "TAI MAN" }] }
+  → { "status": "NEXT_STEP", "nextStepId": "step-002", "totalSteps": 11 }
+  → { "status": "COMPLETE" }
+  → { "status": "INVALID", "validationErrors": [...] }
 ```

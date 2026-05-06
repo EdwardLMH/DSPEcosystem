@@ -3,11 +3,12 @@ if (!("finalizeConstruction" in ViewPU.prototype)) {
 }
 interface Index_Params {
     selectedTab?: number;
-    kycState?: KYCState;
+    controller?: TabsController;
 }
-import { KYCState } from "@normalized:N&&&entry/src/main/ets/models/SDUIModels&";
 import { KYCRootView } from "@normalized:N&&&entry/src/main/ets/kyc/KYCShellViews&";
 import { WealthPageView } from "@normalized:N&&&entry/src/main/ets/wealth/WealthPage&";
+import { FXViewpointView } from "@normalized:N&&&entry/src/main/ets/fxviewpoint/FXViewpointPage&";
+import { DepositCampaignView } from "@normalized:N&&&entry/src/main/ets/deposit/DepositCampaignPage&";
 import { Hive } from "@normalized:N&&&entry/src/main/ets/common/HiveTokens&";
 class Index extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
@@ -16,7 +17,7 @@ class Index extends ViewPU {
             this.paramsGenerator_ = paramsLambda;
         }
         this.__selectedTab = new ObservedPropertySimplePU(0, this, "selectedTab");
-        this.__kycState = new ObservedPropertyObjectPU(new KYCState(), this, "kycState");
+        this.controller = new TabsController();
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
@@ -24,19 +25,17 @@ class Index extends ViewPU {
         if (params.selectedTab !== undefined) {
             this.selectedTab = params.selectedTab;
         }
-        if (params.kycState !== undefined) {
-            this.kycState = params.kycState;
+        if (params.controller !== undefined) {
+            this.controller = params.controller;
         }
     }
     updateStateVars(params: Index_Params) {
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
         this.__selectedTab.purgeDependencyOnElmtId(rmElmtId);
-        this.__kycState.purgeDependencyOnElmtId(rmElmtId);
     }
     aboutToBeDeleted() {
         this.__selectedTab.aboutToBeDeleted();
-        this.__kycState.aboutToBeDeleted();
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
@@ -47,16 +46,10 @@ class Index extends ViewPU {
     set selectedTab(newValue: number) {
         this.__selectedTab.set(newValue);
     }
-    private __kycState: ObservedPropertyObjectPU<KYCState>;
-    get kycState() {
-        return this.__kycState.get();
-    }
-    set kycState(newValue: KYCState) {
-        this.__kycState.set(newValue);
-    }
+    private controller: TabsController;
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Tabs.create({ barPosition: BarPosition.End });
+            Tabs.create({ barPosition: BarPosition.End, controller: this.controller });
             Tabs.width('100%');
             Tabs.height('100%');
             Tabs.barBackgroundColor(Hive.Color.brandWhite);
@@ -67,34 +60,7 @@ class Index extends ViewPU {
                 {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         if (isInitialRender) {
-                            let componentCall = new KYCRootView(this, { state: this.kycState }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 19, col: 9 });
-                            ViewPU.create(componentCall);
-                            let paramsLambda = () => {
-                                return {
-                                    state: this.kycState
-                                };
-                            };
-                            componentCall.paramsGenerator_ = paramsLambda;
-                        }
-                        else {
-                            this.updateStateVarsOfChildByElmtId(elmtId, {
-                                state: this.kycState
-                            });
-                        }
-                    }, { name: "KYCRootView" });
-                }
-            });
-            TabContent.tabBar({ builder: () => {
-                    this.tabBarItem.call(this, '🪪', 'OBKYC', 0);
-                } });
-        }, TabContent);
-        TabContent.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            TabContent.create(() => {
-                {
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        if (isInitialRender) {
-                            let componentCall = new WealthPageView(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 23, col: 9 });
+                            let componentCall = new WealthPageView(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 20, col: 9 });
                             ViewPU.create(componentCall);
                             let paramsLambda = () => {
                                 return {};
@@ -108,7 +74,80 @@ class Index extends ViewPU {
                 }
             });
             TabContent.tabBar({ builder: () => {
-                    this.tabBarItem.call(this, '📈', 'Wealth', 1);
+                    this.tabBarItem.call(this, '🏦', 'Home Hub', 0);
+                } });
+        }, TabContent);
+        TabContent.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            TabContent.create(() => {
+                {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        if (isInitialRender) {
+                            let componentCall = new FXViewpointView(this, { onBack: () => { this.controller.changeIndex(0); } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 24, col: 9 });
+                            ViewPU.create(componentCall);
+                            let paramsLambda = () => {
+                                return {
+                                    onBack: () => { this.controller.changeIndex(0); }
+                                };
+                            };
+                            componentCall.paramsGenerator_ = paramsLambda;
+                        }
+                        else {
+                            this.updateStateVarsOfChildByElmtId(elmtId, {});
+                        }
+                    }, { name: "FXViewpointView" });
+                }
+            });
+            TabContent.tabBar({ builder: () => {
+                    this.tabBarItem.call(this, '📊', 'FX Viewpoint', 1);
+                } });
+        }, TabContent);
+        TabContent.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            TabContent.create(() => {
+                {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        if (isInitialRender) {
+                            let componentCall = new DepositCampaignView(this, { onBack: () => { this.controller.changeIndex(0); } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 28, col: 9 });
+                            ViewPU.create(componentCall);
+                            let paramsLambda = () => {
+                                return {
+                                    onBack: () => { this.controller.changeIndex(0); }
+                                };
+                            };
+                            componentCall.paramsGenerator_ = paramsLambda;
+                        }
+                        else {
+                            this.updateStateVarsOfChildByElmtId(elmtId, {});
+                        }
+                    }, { name: "DepositCampaignView" });
+                }
+            });
+            TabContent.tabBar({ builder: () => {
+                    this.tabBarItem.call(this, '🏦', 'Deposit', 2);
+                } });
+        }, TabContent);
+        TabContent.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            TabContent.create(() => {
+                {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        if (isInitialRender) {
+                            let componentCall = new KYCRootView(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 32, col: 9 });
+                            ViewPU.create(componentCall);
+                            let paramsLambda = () => {
+                                return {};
+                            };
+                            componentCall.paramsGenerator_ = paramsLambda;
+                        }
+                        else {
+                            this.updateStateVarsOfChildByElmtId(elmtId, {});
+                        }
+                    }, { name: "KYCRootView" });
+                }
+            });
+            TabContent.tabBar({ builder: () => {
+                    this.tabBarItem.call(this, '🪪', 'OBKYC', 3);
                 } });
         }, TabContent);
         TabContent.pop();

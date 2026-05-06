@@ -1,42 +1,40 @@
 // KYCShellViews.ets
 // HarmonyNext ArkTS — KYC journey shell: welcome, step shell, completion, nav bar
 //
-// ROUTING FIX:
-//   The mock BFF returns step IDs like "step-001", "step-002" etc.
-//   Routing MUST be done on the PRIMARY QUESTION ID extracted from:
-//     payload.layout.children[0].props["questionId"]
-//   This mirrors the iOS KYCSDUIStepRouter approach exactly.
+// KYCRootView owns the @State KYCStore directly — no prop threading needed.
+// Child components that need to mutate state receive @ObjectLink store: KYCStore
+// (passed as a sub-property reference, which ArkTS tracks correctly).
+//
+// ROUTING CONTRACT:
+//   Routes on the PRIMARY QUESTION ID from payload.layout.children[0].id.
+//   The BFF sets node.id = questionId in buildComponent(), so .id is authoritative.
+//   Step IDs ("step-001" etc.) carry no semantic meaning and are NOT used for routing.
 
 import { Hive } from '../common/HiveTokens'
-import { KYCState, SDUIScreenPayload, AnswerEntry } from '../models/SDUIModels'
+import { KYCState, KYCAction, SDUIScreenPayload } from '../models/SDUIModels'
+import { KYCStore } from './KYCStore'
 import {
   KYCNameDobStep, KYCNationalityStep,
   KYCHKIDStep, KYCMainlandIDStep, KYCPassportStep,
   KYCDocumentStep, KYCContactStep,
-  KYCAddressStep, KYCAddressDistrictStep,
-  KYCEmploymentStep, KYCAnnualIncomeStep,
-  KYCSourceOfFundsStep, KYCAccountPurposeStep,
+  KYCAddressStep,
+  KYCEmploymentIncomeStep,
+  KYCSourceOfFundsStep,
   KYCLivenessStep, KYCOpenBankingStep, KYCDeclarationStep,
 } from './KYCStepViews'
-import {
-  startSession, resume, getStep, submitStep
-} from '../network/KYCNetworkService'
-import { SensorDataClient } from '../network/SensorDataClient'
 
-// ─── Primary question extractor (mirrors iOS KYCStepContentCard.questionIds) ──
-// Reads payload.layout.children[0].props["questionId"] as the routing key.
+// ─── Primary question extractor ───────────────────────────────────────────────
+// Uses children[0].id (typed string) — avoids ESObject implicit-type error from
+// props['questionId'] index access. BFF sets node.id = q.questionId.
 
-// FIX: use children[0].id which is typed as string — avoids ESObject implicit-type
-// error from props['questionId'] index access (arkts-no-any-unknown).
-// The BFF sets node.id = q.questionId in buildComponent(), so .id is authoritative.
 function primaryQuestionId(payload: SDUIScreenPayload): string {
   const children = payload.layout.children
   if (children === null || children === undefined) return ''
   if (children.length === 0) return ''
-  return children[0].id   // SDUINode.id is typed string — no cast needed
+  return children[0].id
 }
 
-// ─── Step title (matches iOS KYCStepTitleView) ────────────────────────────────
+// ─── Step title (mirrors iOS KYCStepTitleView / Android kycStepTitle()) ───────
 
 function stepTitle(primaryQ: string): string {
   if (primaryQ === 'q_first_name')         return '👤 Full Legal Name & Date of Birth'
@@ -46,14 +44,13 @@ function stepTitle(primaryQ: string): string {
   if (primaryQ === 'q_passport_number')    return '🛂 Passport'
   if (primaryQ === 'q_hkid_front')         return '📄 Upload Identity Document'
   if (primaryQ === 'q_email')             return '📱 Contact Details'
-  if (primaryQ === 'q_addr_line1')         return '🏠 Residential Address'
-  if (primaryQ === 'q_addr_district')      return '📍 District'
-  if (primaryQ === 'q_employment_status')  return '💼 Employment Status'
-  if (primaryQ === 'q_annual_income')      return '💰 Annual Income'
+  if (primaryQ === 'q_addr_line1' ||
+      primaryQ === 'q_addr_line2' ||
+      primaryQ === 'q_addr_district')      return '🏠 Residential Address'
+  if (primaryQ === 'q_employment_status')  return '💼 Employment & Income'
   if (primaryQ === 'q_source_of_funds')    return '🏦 Source of Funds'
-  if (primaryQ === 'q_account_purpose')    return '🎯 Purpose of Account'
   if (primaryQ === 'q_liveness')           return '😊 Selfie & Liveness Check'
-  if (primaryQ === 'q_ob_consent')         return '🏦 Connect Your Bank'
+  if (primaryQ === 'q_ob_consent')         return '🔗 Connect Your Bank'
   if (primaryQ === 'q_pep_status')         return '✍️ Legal Declarations'
   return '📋 Application'
 }
@@ -75,15 +72,25 @@ interface CompletionItem {
 
 @Component
 export struct KYCRootView {
-  @ObjectLink state: KYCState
+  // The store itself is not reactive — only KYCState (which is @Observed) is.
+  // We keep @State copies of the two flags that drive the root branch switch so
+  // that KYCRootView re-renders when dispatch() changes them.
+  private store: KYCStore = new KYCStore()
+  @State screenReady: boolean = false
+  @State isComplete: boolean = false
+
+  aboutToAppear() {
+    this.store.onScreenReady = () => { this.screenReady = true }
+    this.store.onComplete    = () => { this.isComplete  = true }
+  }
 
   build() {
-    if (this.state.isComplete) {
+    if (this.isComplete) {
       KYCCompletionView()
-    } else if (this.state.screenPayload !== null) {
-      KYCJourneyView({ state: this.state })
+    } else if (this.screenReady) {
+      KYCJourneyView({ state: this.store.state, dispatch: (a: KYCAction) => this.store.dispatch(a) })
     } else {
-      KYCWelcomeView({ state: this.state })
+      KYCWelcomeView({ state: this.store.state, dispatch: (a: KYCAction) => this.store.dispatch(a) })
     }
   }
 }
@@ -93,37 +100,7 @@ export struct KYCRootView {
 @Component
 struct KYCWelcomeView {
   @ObjectLink state: KYCState
-
-  doStart() {
-    this.state.isLoading = true
-    this.state.errorMessage = ''
-    SensorDataClient.kycJourneyStarted()
-    startSession('harmonynext')
-      .then(res => {
-        this.state.sessionId = res.sessionId
-        this.state.totalSteps = res.totalSteps
-        return resume(res.sessionId, 'harmonynext')
-      })
-      .then(payload => {
-        this.state.screenPayload = payload
-        this.state.currentStepId = payload.metadata.stepId
-        this.state.currentStepIndex = payload.metadata.stepIndex
-        this.state.totalSteps = payload.metadata.totalSteps
-        this.state.sectionTitle = payload.metadata.sectionTitle
-        this.state.isLoading = false
-        SensorDataClient.kycStepViewed(
-          payload.metadata.stepId,
-          payload.metadata.stepIndex,
-          payload.metadata.totalSteps,
-          payload.metadata.sectionTitle
-        )
-      })
-      .catch((err: Error) => {
-        this.state.isLoading = false
-        this.state.errorMessage =
-          `Cannot connect to server. Is the mock BFF running?\n${err.message}`
-      })
-  }
+  dispatch: (a: KYCAction) => void = (_a: KYCAction) => {}
 
   build() {
     Scroll() {
@@ -186,7 +163,7 @@ struct KYCWelcomeView {
             .fontColor(Hive.Color.brandWhite)
             .fontWeight(FontWeight.Medium)
             .enabled(!this.state.isLoading)
-            .onClick(() => { this.doStart() })
+            .onClick(() => { this.dispatch({ type: 'START_SESSION' }) })
 
           Blank().height(Hive.Spacing.s8)
         }.padding(Hive.Spacing.s6).width('100%')
@@ -200,6 +177,7 @@ struct KYCWelcomeView {
 @Component
 struct KYCJourneyView {
   @ObjectLink state: KYCState
+  dispatch: (a: KYCAction) => void = (_a: KYCAction) => {}
 
   progress(): number {
     return this.state.totalSteps > 0
@@ -207,63 +185,10 @@ struct KYCJourneyView {
       : 0
   }
 
-  // Returns the human-readable title for the current step.
-  // Keeping this in a method avoids any variable declarations inside build().
   currentStepTitle(): string {
     const payload = this.state.screenPayload
     if (payload === null || payload === undefined) return '📋 Application'
     return stepTitle(primaryQuestionId(payload as SDUIScreenPayload))
-  }
-
-  doSubmit() {
-    const sessionId = this.state.sessionId
-    const stepId = this.state.currentStepId
-    if (!sessionId || !stepId) return
-
-    this.state.isSubmitting = true
-    SensorDataClient.kycStepCompleted(
-      stepId, this.state.currentStepIndex, this.state.sectionTitle)
-
-    const answers: AnswerEntry[] = []
-    Object.keys(this.state.answers).forEach((k: string) => {
-      answers.push({ questionId: k, value: this.state.answers[k] })
-    })
-
-    submitStep(sessionId, stepId, { answers })
-      .then(res => {
-        if (res.status === 'COMPLETE') {
-          SensorDataClient.kycJourneyCompleted()
-          this.state.isSubmitting = false
-          this.state.isComplete = true
-        } else if (res.status === 'NEXT_STEP' && res.nextStepId) {
-          this.state.totalSteps = res.totalSteps ?? this.state.totalSteps
-          getStep(sessionId, res.nextStepId, 'harmonynext')
-            .then(payload => {
-              this.state.screenPayload = payload
-              this.state.currentStepId = payload.metadata.stepId
-              this.state.currentStepIndex = payload.metadata.stepIndex
-              this.state.totalSteps = payload.metadata.totalSteps
-              this.state.sectionTitle = payload.metadata.sectionTitle
-              this.state.isSubmitting = false
-              SensorDataClient.kycStepViewed(
-                payload.metadata.stepId,
-                payload.metadata.stepIndex,
-                payload.metadata.totalSteps,
-                payload.metadata.sectionTitle
-              )
-            })
-            .catch((err: Error) => {
-              this.state.isSubmitting = false
-              this.state.errorMessage = `Failed to load next step: ${err.message}`
-            })
-        } else {
-          this.state.isSubmitting = false
-        }
-      })
-      .catch((err: Error) => {
-        this.state.isSubmitting = false
-        this.state.errorMessage = `Submission failed: ${err.message}`
-      })
   }
 
   build() {
@@ -299,7 +224,6 @@ struct KYCJourneyView {
       // Step content (scrollable)
       Scroll() {
         Column({ space: Hive.Spacing.s4 }) {
-          // Section badge + title (derived from primaryQuestionId — not stepId)
           Column({ space: Hive.Spacing.s2 }) {
             Row({ space: Hive.Spacing.s1 }) {
               Text(this.state.sectionTitle)
@@ -315,7 +239,6 @@ struct KYCJourneyView {
             }
           }.width('100%').alignItems(HorizontalAlign.Start)
 
-          // Step card — keyed on stepId so ArkTS destroys/recreates on step change
           Column({ space: 0 }) {
             if (this.state.screenPayload !== null) {
               KYCStepContent({ state: this.state })
@@ -334,7 +257,6 @@ struct KYCJourneyView {
         }.padding(Hive.Spacing.s4)
       }.layoutWeight(1).backgroundColor(Hive.Color.n50)
 
-      // Nav bar
       Divider().color(Hive.Color.n200)
       Row({ space: Hive.Spacing.s3 }) {
         if (this.state.currentStepIndex > 1) {
@@ -346,14 +268,15 @@ struct KYCJourneyView {
             .border({ width: 1, color: Hive.Color.n300, radius: Hive.Radius.base })
         }
         Button(this.state.isSubmitting ? 'Submitting…' :
-          this.state.currentStepIndex >= this.state.totalSteps ? 'Submit Application' : 'Continue')
+          this.state.currentStepIndex >= this.state.totalSteps
+            ? 'Submit Application' : 'Continue')
           .layoutWeight(1).height(52)
           .borderRadius(Hive.Radius.base)
           .backgroundColor(this.state.isSubmitting ? Hive.Color.n300 : Hive.Color.brandPrimary)
           .fontColor(Hive.Color.brandWhite)
           .fontWeight(FontWeight.Medium)
           .enabled(!this.state.isSubmitting)
-          .onClick(() => { this.doSubmit() })
+          .onClick(() => { this.dispatch({ type: 'SUBMIT_STEP' }) })
       }
       .width('100%')
       .padding({ left: Hive.Spacing.s4, right: Hive.Spacing.s4, top: 12, bottom: 28 })
@@ -364,19 +287,13 @@ struct KYCJourneyView {
 }
 
 // ─── Step content router ──────────────────────────────────────────────────────
-// Routes on primaryQuestionId extracted from the SDUI payload layout children,
-// exactly as iOS does in KYCSDUIStepRouter.swift via primaryQuestion.
-//
-// ArkTS build() rules:
-//   • Exactly ONE root container node — no early returns, no leading variable
-//     declarations before the root node.
-//   • All logic is pushed into helper methods called from within the UI tree.
+// Routes on primaryQuestionId — exactly as iOS KYCSDUIStepRouter / Android KYCStepRouter.
+// Receives @ObjectLink state: KYCState (from KYCJourneyView.state).
 
 @Component
 struct KYCStepContent {
   @ObjectLink state: KYCState
 
-  // Returns the primary question ID without any variable declaration in build().
   primaryQ(): string {
     const payload = this.state.screenPayload
     if (payload === null || payload === undefined) return ''
@@ -384,7 +301,6 @@ struct KYCStepContent {
   }
 
   build() {
-    // Single mandatory root container — satisfies ArkTS "one root node" rule.
     Column({ space: 0 }) {
       if (this.primaryQ() === 'q_first_name') {
         KYCNameDobStep({ state: this.state })
@@ -400,18 +316,13 @@ struct KYCStepContent {
         KYCDocumentStep({ state: this.state })
       } else if (this.primaryQ() === 'q_email') {
         KYCContactStep({ state: this.state })
-      } else if (this.primaryQ() === 'q_addr_line1' || this.primaryQ() === 'q_addr_line2') {
+      } else if (this.primaryQ() === 'q_addr_line1' || this.primaryQ() === 'q_addr_line2' ||
+                 this.primaryQ() === 'q_addr_district') {
         KYCAddressStep({ state: this.state })
-      } else if (this.primaryQ() === 'q_addr_district') {
-        KYCAddressDistrictStep({ state: this.state })
       } else if (this.primaryQ() === 'q_employment_status') {
-        KYCEmploymentStep({ state: this.state })
-      } else if (this.primaryQ() === 'q_annual_income') {
-        KYCAnnualIncomeStep({ state: this.state })
+        KYCEmploymentIncomeStep({ state: this.state })
       } else if (this.primaryQ() === 'q_source_of_funds') {
         KYCSourceOfFundsStep({ state: this.state })
-      } else if (this.primaryQ() === 'q_account_purpose') {
-        KYCAccountPurposeStep({ state: this.state })
       } else if (this.primaryQ() === 'q_liveness') {
         KYCLivenessStep({ state: this.state })
       } else if (this.primaryQ() === 'q_ob_consent') {
@@ -421,7 +332,6 @@ struct KYCStepContent {
                  this.primaryQ() === 'decl_fatca') {
         KYCDeclarationStep({ state: this.state })
       } else {
-        // Debug fallback — visible when primaryQ() returns '' or an unrecognised value
         Column({ space: Hive.Spacing.s3 }) {
           Text('⚠️').fontSize(32).textAlign(TextAlign.Center).width('100%')
           Text('Unknown step').fontSize(14).fontWeight(FontWeight.Medium)

@@ -2,10 +2,13 @@
 // HTTP client for HSBC KYC BFF — HarmonyNext ArkTS
 
 import http from '@ohos.net.http'
-import { KYCState, StartSessionResponse, SDUIScreenPayload, SubmitRequest, SubmitResponse } from '../models/SDUIModels'
+import { StartSessionResponse, SDUIScreenPayload, SubmitRequest, SubmitResponse } from '../models/SDUIModels'
 
-// DevEco emulator loopback to host (HarmonyNext dev machine) mock BFF on port 4000
-const BASE_URL = 'http://10.0.2.2:4000/api/v1'
+// DevEco emulator: 10.0.2.2 is the host loopback
+// Physical device: use your Mac's LAN IP (10.81.103.103)
+// Toggle the comment below based on your test environment:
+const BASE_URL = 'http://10.0.2.2:4000/api/v1'           // For emulator
+// const BASE_URL = 'http://10.81.103.103:4000/api/v1'  // For physical device
 
 async function doRequest<T>(
   method: http.RequestMethod,
@@ -91,15 +94,17 @@ export interface WealthSlice {
   visible: boolean
 }
 
+export interface WealthScreenLayout {
+  type: string
+  children: WealthSlice[]
+}
+
 export interface WealthScreenPayload {
   schemaVersion: string
   screen: string
   ttl: number
   metadata: Record<string, ESObject>
-  layout: {
-    type: string
-    children: WealthSlice[]
-  }
+  layout: WealthScreenLayout
 }
 
 export async function fetchWealthScreen(): Promise<WealthScreenPayload> {
@@ -114,3 +119,38 @@ export async function fetchWealthScreen(): Promise<WealthScreenPayload> {
   }
   throw new Error(`fetchWealthScreen: unexpected response type`)
 }
+
+// ─── FX Viewpoint SDUI delivery ───────────────────────────────────────────────
+// Fetches the published FX Viewpoint (EUR & GBP) page from the BFF.
+// The page is always LIVE so this should never throw in a running mock-bff session.
+
+export async function fetchFXViewpointScreen(): Promise<WealthScreenPayload> {
+  const client = http.createHttp()
+  const resp = await client.request(BASE_URL + '/screen/fx-viewpoint-hk', {
+    method: http.RequestMethod.GET,
+    header: { 'Accept': 'application/json', 'x-platform': 'harmonynext' }
+  })
+  client.destroy()
+  if (typeof resp.result === 'string') {
+    return JSON.parse(resp.result) as WealthScreenPayload
+  }
+  throw new Error(`fetchFXViewpointScreen: unexpected response type`)
+}
+
+// ─── Deposit Campaign SDUI delivery ───────────────────────────────────────────
+// Fetches the New Fund Deposit Campaign (CN) page from the BFF.
+// The page is always LIVE in mock-bff.
+
+export async function fetchDepositCampaignScreen(): Promise<WealthScreenPayload> {
+  const client = http.createHttp()
+  const resp = await client.request(BASE_URL + '/screen/deposit-campaign-hk', {
+    method: http.RequestMethod.GET,
+    header: { 'Accept': 'application/json', 'x-platform': 'harmonynext' }
+  })
+  client.destroy()
+  if (typeof resp.result === 'string') {
+    return JSON.parse(resp.result) as WealthScreenPayload
+  }
+  throw new Error(`fetchDepositCampaignScreen: unexpected response type`)
+}
+

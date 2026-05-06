@@ -1,0 +1,450 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AA01000000000000000001BF /* HSBCSduiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01000000000000000001F5 /* HSBCSduiApp.swift */; };
+		AA02000000000000000001BF /* HiveTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02000000000000000001F5 /* HiveTokens.swift */; };
+		AA03000000000000000001BF /* TealiumClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA03000000000000000001F5 /* TealiumClient.swift */; };
+		AA04000000000000000001BF /* AppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA04000000000000000001F5 /* AppStore.swift */; };
+		AA05000000000000000001BF /* KYCNetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA05000000000000000001F5 /* KYCNetworkService.swift */; };
+		AA06000000000000000001BF /* SDUIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA06000000000000000001F5 /* SDUIModels.swift */; };
+		AA07000000000000000001BF /* KYCShellViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA07000000000000000001F5 /* KYCShellViews.swift */; };
+		AA08000000000000000001BF /* KYCStepViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA08000000000000000001F5 /* KYCStepViews.swift */; };
+		AA09000000000000000001BF /* KYCSDUIStepRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA09000000000000000001F5 /* KYCSDUIStepRouter.swift */; };
+		AA10000000000000000001BF /* WealthPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000001F5 /* WealthPageView.swift */; };
+		AA11000000000000000001BF /* AISearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11000000000000000001F5 /* AISearchView.swift */; };
+		AA12000000000000000001BF /* FXViewpointView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA12000000000000000001F5 /* FXViewpointView.swift */; };
+		AA13000000000000000001BF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA13000000000000000001F5 /* Assets.xcassets */; };
+		AA14000000000000000001BF /* DepositCampaignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA14000000000000000001F5 /* DepositCampaignView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		AA01000000000000000001F5 /* HSBCSduiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HSBCSduiApp.swift; sourceTree = "<group>"; };
+		AA02000000000000000001F5 /* HiveTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HiveTokens.swift; sourceTree = "<group>"; };
+		AA03000000000000000001F5 /* TealiumClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TealiumClient.swift; sourceTree = "<group>"; };
+		AA04000000000000000001F5 /* AppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStore.swift; sourceTree = "<group>"; };
+		AA05000000000000000001F5 /* KYCNetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KYCNetworkService.swift; sourceTree = "<group>"; };
+		AA06000000000000000001F5 /* SDUIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDUIModels.swift; sourceTree = "<group>"; };
+		AA07000000000000000001F5 /* KYCShellViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KYCShellViews.swift; sourceTree = "<group>"; };
+		AA08000000000000000001F5 /* KYCStepViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KYCStepViews.swift; sourceTree = "<group>"; };
+		AA09000000000000000001F5 /* KYCSDUIStepRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KYCSDUIStepRouter.swift; sourceTree = "<group>"; };
+		AA10000000000000000001F5 /* WealthPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WealthPageView.swift; sourceTree = "<group>"; };
+		AA11000000000000000001F5 /* AISearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AISearchView.swift; sourceTree = "<group>"; };
+		AA12000000000000000001F5 /* FXViewpointView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXViewpointView.swift; sourceTree = "<group>"; };
+		AA13000000000000000001F5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AA14000000000000000001F5 /* DepositCampaignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepositCampaignView.swift; sourceTree = "<group>"; };
+		AA15000000000000000001F5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		OO000000000000000000OOOO /* HSBCSDUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HSBCSDUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		GG000000000000000000GGGG /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		BB000000000000000000BBBB = {
+			isa = PBXGroup;
+			children = (
+				CC000000000000000000CCCC /* HSBCSDUI */,
+				DD000000000000000000DDDD /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CC000000000000000000CCCC /* HSBCSDUI */ = {
+			isa = PBXGroup;
+			children = (
+				AA01000000000000000001F5 /* HSBCSduiApp.swift */,
+				AA02000000000000000001F5 /* HiveTokens.swift */,
+				AA04000000000000000001F5 /* AppStore.swift */,
+				AA05000000000000000001F5 /* KYCNetworkService.swift */,
+				AA06000000000000000001F5 /* SDUIModels.swift */,
+				AA07000000000000000001F5 /* KYCShellViews.swift */,
+				AA08000000000000000001F5 /* KYCStepViews.swift */,
+				AA09000000000000000001F5 /* KYCSDUIStepRouter.swift */,
+				AA10000000000000000001F5 /* WealthPageView.swift */,
+				GRP00000000000000000APP /* App */,
+				GRP0000000000000000ANLT /* Analytics */,
+				GRP0000000000000000WLTH /* Wealth */,
+				GRP0000000000000000FXVP /* FXViewpoint */,
+				GRP0000000000000000DEPO /* Deposit */,
+				GRP0000000000000000DSGN /* DesignSystem */,
+				GRP0000000000000000STOR /* Store */,
+				GRP0000000000000000NETW /* Network */,
+				GRP00000000000000000KYC /* KYC */,
+				GRP0000000000000000SDUI /* SDUI */,
+			);
+			path = HSBCSDUI;
+			sourceTree = "<group>";
+		};
+		DD000000000000000000DDDD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				OO000000000000000000OOOO /* HSBCSDUI.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		GRP00000000000000000APP /* App */ = {
+			isa = PBXGroup;
+			children = (
+				AA13000000000000000001F5 /* Assets.xcassets */,
+				AA15000000000000000001F5 /* Info.plist */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		GRP00000000000000000KYC /* KYC */ = {
+			isa = PBXGroup;
+			children = (
+				GRP0000000000000KYCSCR /* Screens */,
+			);
+			name = KYC;
+			sourceTree = "<group>";
+		};
+		GRP0000000000000000ANLT /* Analytics */ = {
+			isa = PBXGroup;
+			children = (
+				AA03000000000000000001F5 /* TealiumClient.swift */,
+			);
+			path = Analytics;
+			sourceTree = "<group>";
+		};
+		GRP0000000000000000DSGN /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = DesignSystem;
+			sourceTree = "<group>";
+		};
+		GRP0000000000000000NETW /* Network */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Network;
+			sourceTree = "<group>";
+		};
+		GRP0000000000000000SDUI /* SDUI */ = {
+			isa = PBXGroup;
+			children = (
+				GRP0000000000000SDUIENG /* Engine */,
+			);
+			name = SDUI;
+			sourceTree = "<group>";
+		};
+		GRP0000000000000000STOR /* Store */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Store;
+			sourceTree = "<group>";
+		};
+		GRP0000000000000000WLTH /* Wealth */ = {
+			isa = PBXGroup;
+			children = (
+				AA11000000000000000001F5 /* AISearchView.swift */,
+			);
+			path = Wealth;
+			sourceTree = "<group>";
+		};
+		GRP0000000000000000FXVP /* FXViewpoint */ = {
+			isa = PBXGroup;
+			children = (
+				AA12000000000000000001F5 /* FXViewpointView.swift */,
+			);
+			path = FXViewpoint;
+			sourceTree = "<group>";
+		};
+		GRP0000000000000000DEPO /* Deposit */ = {
+			isa = PBXGroup;
+			children = (
+				AA14000000000000000001F5 /* DepositCampaignView.swift */,
+			);
+			path = Deposit;
+			sourceTree = "<group>";
+		};
+		GRP0000000000000KYCSCR /* Screens */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Screens;
+			sourceTree = "<group>";
+		};
+		GRP0000000000000SDUIENG /* Engine */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Engine;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		EE000000000000000000EEEE /* HSBCSDUI */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = NN000000000000000000NNNN /* Build configuration list for PBXNativeTarget "HSBCSDUI" */;
+			buildPhases = (
+				FF000000000000000000FFFF /* Sources */,
+				GG000000000000000000GGGG /* Frameworks */,
+				HH000000000000000000HHHH /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HSBCSDUI;
+			productName = HSBCSDUI;
+			productReference = OO000000000000000000OOOO /* HSBCSDUI.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AA000000000000000000AAAA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 2640;
+				TargetAttributes = {
+					EE000000000000000000EEEE = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = MM000000000000000000MMMM /* Build configuration list for PBXProject "HSBCSDUI" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = BB000000000000000000BBBB;
+			productRefGroup = DD000000000000000000DDDD /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				EE000000000000000000EEEE /* HSBCSDUI */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		HH000000000000000000HHHH /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA13000000000000000001BF /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FF000000000000000000FFFF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA01000000000000000001BF /* HSBCSduiApp.swift in Sources */,
+				AA02000000000000000001BF /* HiveTokens.swift in Sources */,
+				AA03000000000000000001BF /* TealiumClient.swift in Sources */,
+				AA04000000000000000001BF /* AppStore.swift in Sources */,
+				AA05000000000000000001BF /* KYCNetworkService.swift in Sources */,
+				AA06000000000000000001BF /* SDUIModels.swift in Sources */,
+				AA07000000000000000001BF /* KYCShellViews.swift in Sources */,
+				AA08000000000000000001BF /* KYCStepViews.swift in Sources */,
+				AA09000000000000000001BF /* KYCSDUIStepRouter.swift in Sources */,
+				AA10000000000000000001BF /* WealthPageView.swift in Sources */,
+				AA11000000000000000001BF /* AISearchView.swift in Sources */,
+				AA12000000000000000001BF /* FXViewpointView.swift in Sources */,
+				AA14000000000000000001BF /* DepositCampaignView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		II000000000000000000IIII /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSTETALOG_COMPILER_FLAGS = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = HSBCSDUI/App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LE_SWIFT_VERSION = 5.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hsbc.sdui;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		JJ000000000000000000JJJJ /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSTETALOG_COMPILER_FLAGS = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = HSBCSDUI/App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LE_SWIFT_VERSION = 5.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hsbc.sdui;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		KK000000000000000000KKKK /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		LL000000000000000000LLLL /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		MM000000000000000000MMMM /* Build configuration list for PBXProject "HSBCSDUI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				KK000000000000000000KKKK /* Debug */,
+				LL000000000000000000LLLL /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		NN000000000000000000NNNN /* Build configuration list for PBXNativeTarget "HSBCSDUI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				II000000000000000000IIII /* Debug */,
+				JJ000000000000000000JJJJ /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AA000000000000000000AAAA /* Project object */;
+}

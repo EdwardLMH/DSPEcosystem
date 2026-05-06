@@ -131,97 +131,6 @@ fun KYCNameStep(
     }
 }
 
-// ─── STEP 2: Date of Birth + Nationality ─────────────────────────────────────
-
-@Composable
-fun KYCDobNationalityStep(
-    answers: Map<String, Any>,
-    onAnswer: (String, Any) -> Unit
-) {
-    var dob         by remember { mutableStateOf(answers["q_dob"]         as? String ?: "") }
-    var nationality by remember { mutableStateOf(answers["q_nationality"] as? String ?: "") }
-    var showSheet   by remember { mutableStateOf(false) }
-
-    val countries = listOf(
-        "HK" to "🇭🇰 Hong Kong SAR",
-        "CN" to "🇨🇳 Mainland China",
-        "SG" to "🇸🇬 Singapore",
-        "GB" to "🇬🇧 United Kingdom",
-        "US" to "🇺🇸 United States",
-        "AU" to "🇦🇺 Australia",
-        "IN" to "🇮🇳 India",
-        "JP" to "🇯🇵 Japan",
-        "OTHER" to "Other"
-    )
-    val natLabel = countries.find { it.first == nationality }?.second ?: "Select nationality"
-
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        FieldGroup("Date of Birth", required = true, help = "You must be at least 18 years old") {
-            OutlinedTextField(
-                value = dob,
-                onValueChange = { dob = it; onAnswer("q_dob", it) },
-                placeholder = { Text("YYYY-MM-DD", color = N400) },
-                modifier = Modifier.fillMaxWidth().height(InputHeight),
-                shape = RoundedCornerShape(Radius),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true
-            )
-        }
-        FieldGroup("Nationality", required = true) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(InputHeight)
-                    .clip(RoundedCornerShape(Radius))
-                    .border(1.dp, N300, RoundedCornerShape(Radius))
-                    .background(White)
-                    .clickable { showSheet = true }
-                    .padding(horizontal = 16.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        natLabel,
-                        color = if (nationality.isEmpty()) N400 else N800,
-                        fontSize = 15.sp
-                    )
-                    Text("▼", color = N400, fontSize = 12.sp)
-                }
-            }
-        }
-    }
-
-    if (showSheet) {
-        ModalBottomSheet(onDismissRequest = { showSheet = false }) {
-            Text("Select Nationality", fontWeight = FontWeight.SemiBold, fontSize = 16.sp,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp))
-            Divider()
-            LazyColumn {
-                items(countries) { (code, label) ->
-                    ListItem(
-                        headlineContent = { Text(label) },
-                        trailingContent = {
-                            if (code == nationality)
-                                Text("✓", color = Success, fontWeight = FontWeight.Bold)
-                        },
-                        modifier = Modifier.clickable {
-                            nationality = code
-                            onAnswer("q_nationality", code)
-                            showSheet = false
-                        }
-                    )
-                    Divider()
-                }
-            }
-            Spacer(Modifier.height(40.dp))
-        }
-    }
-}
-
 // ─── STEP 3: Contact Details ──────────────────────────────────────────────────
 
 @Composable
@@ -269,210 +178,6 @@ fun KYCContactStep(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 singleLine = true
             )
-        }
-    }
-}
-
-// ─── STEP 4: Government ID ────────────────────────────────────────────────────
-
-@Composable
-fun KYCIdentifierStep(
-    answers: Map<String, Any>,
-    onAnswer: (String, Any) -> Unit
-) {
-    val idTypes = listOf(
-        Triple("HKID",      "HKID (Hong Kong)",                   "A123456(7)"),
-        Triple("PASSPORT",  "Passport",                            "X12345678"),
-        Triple("MAINLAND",  "Mainland China ID (居民身份証)",       "110101199001011234"),
-        Triple("NRIC",      "NRIC (Singapore)",                    "S1234567D"),
-        Triple("OTHER",     "Other National ID",                   "")
-    )
-    var idType   by remember { mutableStateOf(answers["q_id_type"]   as? String ?: "") }
-    var idNumber by remember { mutableStateOf(answers["q_id_number"] as? String ?: "") }
-    var showSheet by remember { mutableStateOf(false) }
-    val typeLabel = idTypes.find { it.first == idType }?.second ?: "Select ID type"
-
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        FieldGroup("ID Document Type", required = true) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth().height(InputHeight)
-                    .clip(RoundedCornerShape(Radius))
-                    .border(1.dp, N300, RoundedCornerShape(Radius))
-                    .background(White)
-                    .clickable { showSheet = true }
-                    .padding(horizontal = 16.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(typeLabel, color = if (idType.isEmpty()) N400 else N800, fontSize = 15.sp)
-                    Text("▼", color = N400, fontSize = 12.sp)
-                }
-            }
-        }
-        if (idType.isNotEmpty()) {
-            val placeholder = idTypes.find { it.first == idType }?.third ?: ""
-            FieldGroup("ID Number", required = true,
-                help = if (placeholder.isNotEmpty()) "Format: $placeholder" else null) {
-                OutlinedTextField(
-                    value = idNumber,
-                    onValueChange = { idNumber = it; onAnswer("q_id_number", it) },
-                    placeholder = { Text(placeholder, color = N400) },
-                    modifier = Modifier.fillMaxWidth().height(InputHeight),
-                    shape = RoundedCornerShape(Radius),
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
-                    singleLine = true
-                )
-            }
-        }
-    }
-
-    if (showSheet) {
-        ModalBottomSheet(onDismissRequest = { showSheet = false }) {
-            Text("Select ID Type", fontWeight = FontWeight.SemiBold, fontSize = 16.sp,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp))
-            Divider()
-            LazyColumn {
-                items(idTypes) { (code, label, _) ->
-                    ListItem(
-                        headlineContent = { Text(label) },
-                        trailingContent = {
-                            if (code == idType) Text("✓", color = Success, fontWeight = FontWeight.Bold)
-                        },
-                        modifier = Modifier.clickable {
-                            idType = code
-                            onAnswer("q_id_type", code)
-                            idNumber = ""
-                            showSheet = false
-                        }
-                    )
-                    Divider()
-                }
-            }
-            Spacer(Modifier.height(40.dp))
-        }
-    }
-}
-
-// ─── STEP 5: Residential Address ──────────────────────────────────────────────
-
-@Composable
-fun KYCAddressStep(
-    answers: Map<String, Any>,
-    onAnswer: (String, Any) -> Unit
-) {
-    var flat     by remember { mutableStateOf(answers["q_addr_flat"]     as? String ?: "") }
-    var floor    by remember { mutableStateOf(answers["q_addr_floor"]    as? String ?: "") }
-    var building by remember { mutableStateOf(answers["q_addr_building"] as? String ?: "") }
-    var street   by remember { mutableStateOf(answers["q_addr_street"]   as? String ?: "") }
-    var district by remember { mutableStateOf(answers["q_addr_district"] as? String ?: "") }
-    var showDist by remember { mutableStateOf(false) }
-
-    val districts = listOf(
-        "central_western" to "Central & Western (中西區)",
-        "eastern"         to "Eastern (東區)",
-        "wan_chai"        to "Wan Chai (灣仔)",
-        "kowloon_city"    to "Kowloon City (九龍城)",
-        "kwun_tong"       to "Kwun Tong (觀塘)",
-        "sham_shui_po"    to "Sham Shui Po (深水埗)",
-        "yau_tsim_mong"   to "Yau Tsim Mong (油尖旺)",
-        "sha_tin"         to "Sha Tin (沙田)",
-        "tai_po"          to "Tai Po (大埔)",
-        "islands"         to "Islands (離島)"
-    )
-
-    fun sendAddress() {
-        val addr = listOf(flat, floor, building, street, district)
-            .filter { it.isNotBlank() }.joinToString(", ")
-        onAnswer("q_address", addr)
-    }
-
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Row(
-            modifier = Modifier
-                .clip(RoundedCornerShape(20.dp))
-                .background(Color(0xFFFFEEF0))
-                .padding(horizontal = 12.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("📍", fontSize = 12.sp)
-            Spacer(Modifier.width(6.dp))
-            Text("Hong Kong Address Format",
-                fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = HsbcRed)
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FieldGroup("Flat / Unit", modifier = Modifier.weight(1f)) {
-                OutlinedTextField(flat, { flat = it; sendAddress() },
-                    placeholder = { Text("e.g. Flat B", color = N400) },
-                    modifier = Modifier.fillMaxWidth().height(InputHeight),
-                    shape = RoundedCornerShape(Radius), singleLine = true)
-            }
-            FieldGroup("Floor", modifier = Modifier.weight(1f)) {
-                OutlinedTextField(floor, { floor = it; sendAddress() },
-                    placeholder = { Text("e.g. 12/F", color = N400) },
-                    modifier = Modifier.fillMaxWidth().height(InputHeight),
-                    shape = RoundedCornerShape(Radius), singleLine = true)
-            }
-        }
-        FieldGroup("Building Name", required = true) {
-            OutlinedTextField(building, { building = it; sendAddress() },
-                placeholder = { Text("Building / Estate name", color = N400) },
-                modifier = Modifier.fillMaxWidth().height(InputHeight),
-                shape = RoundedCornerShape(Radius), singleLine = true)
-        }
-        FieldGroup("Street Address", required = true) {
-            OutlinedTextField(street, { street = it; sendAddress() },
-                placeholder = { Text("e.g. 28 Kings Road", color = N400) },
-                modifier = Modifier.fillMaxWidth().height(InputHeight),
-                shape = RoundedCornerShape(Radius), singleLine = true)
-        }
-        FieldGroup("District", required = true) {
-            val distLabel = districts.find { it.first == district }?.second ?: "Select district"
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth().height(InputHeight)
-                    .clip(RoundedCornerShape(Radius))
-                    .border(1.dp, N300, RoundedCornerShape(Radius))
-                    .background(White)
-                    .clickable { showDist = true }
-                    .padding(horizontal = 16.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
-                    Text(distLabel, color = if (district.isEmpty()) N400 else N800, fontSize = 15.sp)
-                    Text("▼", color = N400, fontSize = 12.sp)
-                }
-            }
-        }
-    }
-
-    if (showDist) {
-        ModalBottomSheet(onDismissRequest = { showDist = false }) {
-            Text("Select District", fontWeight = FontWeight.SemiBold, fontSize = 16.sp,
-                modifier = Modifier.padding(16.dp, 12.dp))
-            Divider()
-            LazyColumn {
-                items(districts) { (code, label) ->
-                    ListItem(
-                        headlineContent = { Text(label) },
-                        trailingContent = {
-                            if (code == district) Text("✓", color = Success, fontWeight = FontWeight.Bold)
-                        },
-                        modifier = Modifier.clickable {
-                            district = code
-                            onAnswer("q_addr_district", code)
-                            sendAddress()
-                            showDist = false
-                        }
-                    )
-                    Divider()
-                }
-            }
-            Spacer(Modifier.height(40.dp))
         }
     }
 }
@@ -849,8 +554,13 @@ fun KYCOpenBankingStep(onAnswer: (String, Any) -> Unit) {
     var showBankSheet by remember { mutableStateOf(false) }
 
     val banks = listOf(
-        "HSBC_UK" to "HSBC UK", "LLOYDS" to "Lloyds Bank", "BARCLAYS" to "Barclays",
-        "NATWEST" to "NatWest", "MONZO" to "Monzo", "STARLING" to "Starling Bank"
+        "HSBC_HK"  to "HSBC Hong Kong",
+        "BOC_HK"   to "Bank of China (Hong Kong)",
+        "HANG_SENG" to "Hang Seng Bank",
+        "SCB_HK"   to "Standard Chartered Hong Kong",
+        "CITI_HK"  to "Citibank Hong Kong",
+        "DBS_HK"   to "DBS Bank Hong Kong",
+        "BEA"      to "Bank of East Asia"
     )
     val bankLabel = banks.find { it.first == selectedBank }?.second ?: "Select your bank"
 
@@ -872,7 +582,7 @@ fun KYCOpenBankingStep(onAnswer: (String, Any) -> Unit) {
                 Text("🔒 Open Banking — Secure Account Connection",
                     fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = N800)
                 Spacer(Modifier.height(4.dp))
-                Text("We use Open Banking (FCA/HKMA regulated) to verify your identity. Your bank credentials are never shared with HSBC.",
+                Text("We use Open Banking (HKMA regulated) to verify your identity. Your bank credentials are never shared with HSBC.",
                     fontSize = 13.sp, color = N700)
             }
         }
@@ -928,7 +638,7 @@ fun KYCOpenBankingStep(onAnswer: (String, Any) -> Unit) {
                     color = White, fontWeight = FontWeight.SemiBold)
             }
         }
-        Text("Powered by Open Banking · Regulated by FCA and HKMA",
+        Text("Powered by Open Banking · Regulated by the HKMA",
             fontSize = 11.sp, color = N400, textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth())
     }
@@ -1260,20 +970,33 @@ fun KYCPassportStep(
     }
 }
 
-// ─── STEP 006: Address lines (primary q: q_addr_line1) ───────────────────────
+// ─── STEP 006: Residential Address (primary q: q_addr_line1) — all fields together
 
 @Composable
-fun KYCAddressLinesStep(
+fun KYCAddressStep(
     answers: Map<String, Any>,
     onAnswer: (String, Any) -> Unit
 ) {
-    var line1 by remember { mutableStateOf(answers["q_addr_line1"] as? String ?: "") }
-    var line2 by remember { mutableStateOf(answers["q_addr_line2"] as? String ?: "") }
+    var line1    by remember { mutableStateOf(answers["q_addr_line1"]    as? String ?: "") }
+    var line2    by remember { mutableStateOf(answers["q_addr_line2"]    as? String ?: "") }
+    var district by remember { mutableStateOf(answers["q_addr_district"] as? String ?: "") }
+    var showDist by remember { mutableStateOf(false) }
 
-    fun sendAddr() {
-        val parts = listOf(line1, line2).filter { it.isNotBlank() }
-        onAnswer("q_address", parts.joinToString(", "))
-    }
+    val districts = listOf(
+        "central_western" to "Central & Western (中西區)",
+        "eastern"         to "Eastern (東區)",
+        "southern"        to "Southern (南區)",
+        "wan_chai"        to "Wan Chai (灣仔)",
+        "kowloon_city"    to "Kowloon City (九龍城)",
+        "kwun_tong"       to "Kwun Tong (觀塘)",
+        "sham_shui_po"    to "Sham Shui Po (深水埗)",
+        "yau_tsim_mong"   to "Yau Tsim Mong (油尖旺)",
+        "sha_tin"         to "Sha Tin (沙田)",
+        "tai_po"          to "Tai Po (大埔)",
+        "north"           to "North (北區)",
+        "islands"         to "Islands (離島)"
+    )
+    val distLabel = districts.find { it.first == district }?.second ?: "Select district"
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Row(
@@ -1290,7 +1013,7 @@ fun KYCAddressLinesStep(
         FieldGroup("Address Line 1", required = true, help = "Flat / Floor / Block") {
             OutlinedTextField(
                 value = line1,
-                onValueChange = { line1 = it; onAnswer("q_addr_line1", it); sendAddr() },
+                onValueChange = { line1 = it; onAnswer("q_addr_line1", it) },
                 placeholder = { Text("e.g. Flat B, 12/F, Block 3", color = N400) },
                 modifier = Modifier.fillMaxWidth().height(InputHeight),
                 shape = RoundedCornerShape(Radius), singleLine = true
@@ -1299,60 +1022,33 @@ fun KYCAddressLinesStep(
         FieldGroup("Address Line 2", help = "Building name / Estate (optional)") {
             OutlinedTextField(
                 value = line2,
-                onValueChange = { line2 = it; onAnswer("q_addr_line2", it); sendAddr() },
+                onValueChange = { line2 = it; onAnswer("q_addr_line2", it) },
                 placeholder = { Text("Building / Estate name", color = N400) },
                 modifier = Modifier.fillMaxWidth().height(InputHeight),
                 shape = RoundedCornerShape(Radius), singleLine = true
             )
         }
-    }
-}
-
-// ─── STEP 007: District (primary q: q_addr_district) ─────────────────────────
-
-@Composable
-fun KYCAddressDistrictStep(
-    answers: Map<String, Any>,
-    onAnswer: (String, Any) -> Unit
-) {
-    val districts = listOf(
-        "central_western" to "Central & Western (中西區)",
-        "eastern"         to "Eastern (東區)",
-        "southern"        to "Southern (南區)",
-        "wan_chai"        to "Wan Chai (灣仔)",
-        "kowloon_city"    to "Kowloon City (九龍城)",
-        "kwun_tong"       to "Kwun Tong (觀塘)",
-        "sham_shui_po"    to "Sham Shui Po (深水埗)",
-        "yau_tsim_mong"   to "Yau Tsim Mong (油尖旺)",
-        "sha_tin"         to "Sha Tin (沙田)",
-        "tai_po"          to "Tai Po (大埔)",
-        "north"           to "North (北區)",
-        "islands"         to "Islands (離島)"
-    )
-    var selected  by remember { mutableStateOf(answers["q_addr_district"] as? String ?: "") }
-    var showSheet by remember { mutableStateOf(false) }
-    val label = districts.find { it.first == selected }?.second ?: "Select district"
-
-    FieldGroup("District", required = true) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth().height(InputHeight)
-                .clip(RoundedCornerShape(Radius))
-                .border(1.dp, N300, RoundedCornerShape(Radius))
-                .background(White)
-                .clickable { showSheet = true }
-                .padding(horizontal = 16.dp),
-            contentAlignment = Alignment.CenterStart
-        ) {
-            Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
-                Text(label, color = if (selected.isEmpty()) N400 else N800, fontSize = 15.sp)
-                Text("▼", color = N400, fontSize = 12.sp)
+        FieldGroup("District", required = true) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth().height(InputHeight)
+                    .clip(RoundedCornerShape(Radius))
+                    .border(1.dp, N300, RoundedCornerShape(Radius))
+                    .background(White)
+                    .clickable { showDist = true }
+                    .padding(horizontal = 16.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
+                    Text(distLabel, color = if (district.isEmpty()) N400 else N800, fontSize = 15.sp)
+                    Text("▼", color = N400, fontSize = 12.sp)
+                }
             }
         }
     }
 
-    if (showSheet) {
-        ModalBottomSheet(onDismissRequest = { showSheet = false }) {
+    if (showDist) {
+        ModalBottomSheet(onDismissRequest = { showDist = false }) {
             Text("Select District", fontWeight = FontWeight.SemiBold, fontSize = 16.sp,
                 modifier = Modifier.padding(16.dp, 12.dp))
             Divider()
@@ -1361,10 +1057,10 @@ fun KYCAddressDistrictStep(
                     ListItem(
                         headlineContent = { Text(lbl) },
                         trailingContent = {
-                            if (code == selected) Text("✓", color = Success, fontWeight = FontWeight.Bold)
+                            if (code == district) Text("✓", color = Success, fontWeight = FontWeight.Bold)
                         },
                         modifier = Modifier.clickable {
-                            selected = code; onAnswer("q_addr_district", code); showSheet = false
+                            district = code; onAnswer("q_addr_district", code); showDist = false
                         }
                     )
                     Divider()
@@ -1432,85 +1128,87 @@ private fun KYCSingleSelectStep(
     }
 }
 
-// ─── STEP 008: Employment Status (primary q: q_employment_status) ────────────
+// ─── STEP 007: Employment & Income (primary q: q_employment_status) ──────────
 
 @Composable
-fun KYCEmploymentStep(answers: Map<String, Any>, onAnswer: (String, Any) -> Unit) {
-    KYCSingleSelectStep(
-        fieldLabel  = "Employment Status",
-        answerKey   = "q_employment_status",
-        sheetTitle  = "Employment Status",
-        options = listOf(
-            "EMPLOYED"       to "Employed (full-time or part-time)",
-            "SELF_EMPLOYED"  to "Self-employed",
-            "BUSINESS_OWNER" to "Business owner",
-            "RETIRED"        to "Retired",
-            "STUDENT"        to "Student",
-            "HOMEMAKER"      to "Homemaker",
-            "UNEMPLOYED"     to "Unemployed"
-        ),
-        answers = answers, onAnswer = onAnswer
+fun KYCEmploymentIncomeStep(answers: Map<String, Any>, onAnswer: (String, Any) -> Unit) {
+    val employmentOptions = listOf(
+        "EMPLOYED"       to "Employed (full-time or part-time)",
+        "SELF_EMPLOYED"  to "Self-employed",
+        "BUSINESS_OWNER" to "Business owner",
+        "RETIRED"        to "Retired",
+        "STUDENT"        to "Student",
+        "HOMEMAKER"      to "Homemaker",
+        "UNEMPLOYED"     to "Unemployed"
     )
+    val incomeOptions = listOf(
+        "below_100k" to "Below HKD 100,000",
+        "100k_300k"  to "HKD 100,000 – 300,000",
+        "300k_600k"  to "HKD 300,000 – 600,000",
+        "600k_1m"    to "HKD 600,000 – 1,000,000",
+        "above_1m"   to "Above HKD 1,000,000",
+        "prefer_not" to "Prefer not to say"
+    )
+
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        KYCSingleSelectStep(
+            fieldLabel = "Employment Status",
+            answerKey  = "q_employment_status",
+            sheetTitle = "Employment Status",
+            options    = employmentOptions,
+            answers    = answers,
+            onAnswer   = onAnswer
+        )
+        KYCSingleSelectStep(
+            fieldLabel = "Annual Income (HKD)",
+            answerKey  = "q_annual_income",
+            sheetTitle = "Annual Income (HKD)",
+            options    = incomeOptions,
+            answers    = answers,
+            onAnswer   = onAnswer
+        )
+    }
 }
 
-// ─── STEP 009: Annual Income (primary q: q_annual_income) ────────────────────
+// ─── STEP 008: Source of Funds & Account Purpose (primary q: q_source_of_funds)
 
 @Composable
-fun KYCAnnualIncomeStep(answers: Map<String, Any>, onAnswer: (String, Any) -> Unit) {
-    KYCSingleSelectStep(
-        fieldLabel = "Annual Income (HKD)",
-        answerKey  = "q_annual_income",
-        sheetTitle = "Annual Income (HKD)",
-        options = listOf(
-            "below_100k"  to "Below HKD 100,000",
-            "100k_300k"   to "HKD 100,000 – 300,000",
-            "300k_600k"   to "HKD 300,000 – 600,000",
-            "600k_1m"     to "HKD 600,000 – 1,000,000",
-            "above_1m"    to "Above HKD 1,000,000",
-            "prefer_not"  to "Prefer not to say"
-        ),
-        answers = answers, onAnswer = onAnswer
+fun KYCFundsStep(answers: Map<String, Any>, onAnswer: (String, Any) -> Unit) {
+    val sourceOptions = listOf(
+        "EMPLOYMENT"  to "Employment / Salary",
+        "BUSINESS"    to "Business Income",
+        "INVESTMENT"  to "Investment Returns",
+        "INHERITANCE" to "Inheritance / Gift",
+        "PROPERTY"    to "Property Sale",
+        "PENSION"     to "Pension / Retirement Fund",
+        "SAVINGS"     to "Accumulated Savings",
+        "OTHER"       to "Other"
     )
-}
-
-// ─── STEP 010: Source of Funds (primary q: q_source_of_funds) ────────────────
-
-@Composable
-fun KYCSourceOfFundsStep(answers: Map<String, Any>, onAnswer: (String, Any) -> Unit) {
-    KYCSingleSelectStep(
-        fieldLabel = "Primary Source of Funds",
-        answerKey  = "q_source_of_funds",
-        sheetTitle = "Source of Funds",
-        options = listOf(
-            "EMPLOYMENT"  to "Employment / Salary",
-            "BUSINESS"    to "Business Income",
-            "INVESTMENT"  to "Investment Returns",
-            "INHERITANCE" to "Inheritance / Gift",
-            "PROPERTY"    to "Property Sale",
-            "PENSION"     to "Pension / Retirement Fund",
-            "SAVINGS"     to "Accumulated Savings",
-            "OTHER"       to "Other"
-        ),
-        answers = answers, onAnswer = onAnswer
+    val purposeOptions = listOf(
+        "EVERYDAY_BANKING"       to "Everyday banking & payments",
+        "SAVINGS"                to "Savings & deposits",
+        "INVESTMENT"             to "Investment & wealth management",
+        "SALARY_RECEIPT"         to "Salary / income receipt",
+        "INTERNATIONAL_TRANSFER" to "International money transfers",
+        "MORTGAGE"               to "Mortgage repayments"
     )
-}
 
-// ─── STEP 011: Account Purpose (primary q: q_account_purpose) ────────────────
-
-@Composable
-fun KYCAccountPurposeStep(answers: Map<String, Any>, onAnswer: (String, Any) -> Unit) {
-    KYCSingleSelectStep(
-        fieldLabel = "Purpose of Account",
-        answerKey  = "q_account_purpose",
-        sheetTitle = "Purpose of Account",
-        options = listOf(
-            "EVERYDAY_BANKING"       to "Everyday banking & payments",
-            "SAVINGS"                to "Savings & deposits",
-            "INVESTMENT"             to "Investment & wealth management",
-            "SALARY_RECEIPT"         to "Salary / income receipt",
-            "INTERNATIONAL_TRANSFER" to "International money transfers",
-            "MORTGAGE"               to "Mortgage repayments"
-        ),
-        answers = answers, onAnswer = onAnswer
-    )
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        KYCSingleSelectStep(
+            fieldLabel = "Primary Source of Funds",
+            answerKey  = "q_source_of_funds",
+            sheetTitle = "Source of Funds",
+            options    = sourceOptions,
+            answers    = answers,
+            onAnswer   = onAnswer
+        )
+        KYCSingleSelectStep(
+            fieldLabel = "Purpose of Account",
+            answerKey  = "q_account_purpose",
+            sheetTitle = "Purpose of Account",
+            options    = purposeOptions,
+            answers    = answers,
+            onAnswer   = onAnswer
+        )
+    }
 }

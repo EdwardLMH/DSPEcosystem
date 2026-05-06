@@ -1,8 +1,8 @@
 # Server Driven UI (SDUI) Architecture
 
-**Document Version:** 1.0  
-**Date:** 2026-04-19  
-**Scope:** UCP BFF + Web / iOS / Android SDUI Renderers  
+**Document Version:** 1.1  
+**Date:** 2026-05-04  
+**Scope:** UCP BFF + Web / iOS / Android / HarmonyOS NEXT SDUI Renderers  
 
 ---
 
@@ -168,7 +168,7 @@ public record SlotResolution(
 // Root payload returned by BFF for every screen request
 interface ScreenPayload {
   schemaVersion: string;          // "2.3"
-  screen: string;                 // "home" | "products" | "jade_upgrade" | ...
+  screen: string;                 // "home-wealth-hk" | "fx-viewpoint-hk" | "kyc-step-{id}" | ...
   ttl: number;                    // seconds client may cache this payload
   integrity: string;              // HMAC-SHA256 of payload body
   layout: LayoutNode;
@@ -214,7 +214,7 @@ interface ComponentNode {
 
 interface VisibilityRules {
   segment?: string[];             // show only to these segments
-  platform?: ("ios" | "android" | "web" | "wechat")[];
+  platform?: ("ios" | "android" | "web" | "harmonynext" | "wechat")[];
   locale?: string[];              // e.g. ["en-HK", "zh-HK"]
   minSdui?: string;              // minimum SDUI schema version required
   condition?: string;             // server-evaluated expression
@@ -384,6 +384,34 @@ interface Spacing {
 
 ## 5. Component Taxonomy
 
+### 5.1 UCP Slice Types (SDUI Page Builder)
+
+These are the canonical slice types managed in the UCP Console (`sliceDefinitions.ts`) and served by the BFF as `type` values in the SDUI JSON. They correspond 1:1 to the component registry entries in each client.
+
+| SliceType | Category | Singleton | Description |
+|-----------|----------|-----------|-------------|
+| `HEADER_NAV` | navigation | yes | Top bar with search, notification bell, QR scanner |
+| `AI_SEARCH_BAR` | navigation | yes | HSBC red semantic search bar with QR scan, chatbot, and message entry |
+| `QUICK_ACCESS` | function | yes | Row of primary product shortcuts (朝朝寶, 借錢, 轉帳) |
+| `PROMO_BANNER` | promotion | no | Full-width campaign banner with image, title, and CTA |
+| `FUNCTION_GRID` | function | yes | Icon grid of banking functions |
+| `AI_ASSISTANT` | function | no | Intelligent wealth assistant greeting bar |
+| `AD_BANNER` | promotion | no | Dismissible promotional banner |
+| `FLASH_LOAN` | wealth | no | Instant loan product card |
+| `WEALTH_SELECTION` | wealth | no | Featured wealth products (7-day yield) |
+| `FEATURED_RANKINGS` | wealth | no | Top-performing funds and product rankings |
+| `LIFE_DEALS` | lifestyle | no | Lifestyle merchant offers (KFC, Luckin, DQ) |
+| `VIDEO_PLAYER` | insight | no | Inline video player linked to a UCP content asset |
+| `MARKET_BRIEFING_TEXT` | insight | no | Bullet-point market briefing pulled from UCP content |
+| `CONTACT_RM_CTA` | insight | yes | Sticky full-width CTA to Relationship Manager finder |
+| `SPACER` | layout | no | Vertical spacing element |
+
+> **Implemented screens:** `home-wealth-hk` uses HEADER_NAV, AI_SEARCH_BAR, QUICK_ACCESS, PROMO_BANNER, FUNCTION_GRID, AI_ASSISTANT, AD_BANNER, FLASH_LOAN, WEALTH_SELECTION, FEATURED_RANKINGS, LIFE_DEALS. `fx-viewpoint-hk` uses VIDEO_PLAYER, MARKET_BRIEFING_TEXT, CONTACT_RM_CTA.
+
+### 5.2 Generic Layout & Content Component Types
+
+These types are used inside the SDUI tree as container and content primitives, distinct from the UCP slice types above.
+
 | Category | Component Type | Description |
 |----------|---------------|-------------|
 | **Layout** | `ScrollContainer` | Root scrollable container for a screen |
@@ -534,7 +562,46 @@ fun SDUIRenderer(node: SDUINode, actionHandler: ActionHandler) {
 }
 ```
 
-### 6.4 Action Handler Registry
+### 6.4 HarmonyOS NEXT (ArkUI / ArkTS)
+
+```typescript
+// Component Registry — ArkTS @Builder dispatch
+@Component
+struct SDUIRenderer {
+  private node: SDUINode = {};
+
+  build() {
+    Column() {
+      if (this.node.type === 'PROMO_BANNER') {
+        PromoBannerComponent({ props: this.node.props })
+      } else if (this.node.type === 'QUICK_ACCESS') {
+        QuickAccessComponent({ props: this.node.props })
+      } else if (this.node.type === 'AI_SEARCH_BAR') {
+        AISearchBarComponent({ props: this.node.props })
+      } else if (this.node.type === 'VIDEO_PLAYER') {
+        VideoPlayerComponent({ props: this.node.props })
+      } else if (this.node.type === 'MARKET_BRIEFING_TEXT') {
+        MarketBriefingTextComponent({ props: this.node.props })
+      } else if (this.node.type === 'CONTACT_RM_CTA') {
+        ContactRMCTAComponent({ props: this.node.props })
+      } else {
+        // Unknown component — log and render nothing
+        Text('').visibility(Visibility.None)
+      }
+    }
+    .onAppear(() => {
+      if (this.node.analytics) {
+        SensorDataClient.logEvent(this.node.analytics.impressionEvent,
+          { componentId: this.node.analytics.componentId })
+      }
+    })
+  }
+}
+```
+
+Analytics on HarmonyOS NEXT routes to **SensorDataClient** (神策数据) rather than Tealium, to satisfy China data residency requirements. The `KYCNetworkService.ets` and `SensorDataClient.ets` share the same base URL configuration via `AppStorage`.
+
+### 6.5 Action Handler Registry
 
 All three platforms implement the same action type contract:
 
@@ -566,8 +633,9 @@ VERSION CAPABILITY MATRIX:
   ───────────────────────┼──────────────────────────────────────────────────
   1.x                    │ Basic components, simple props, NAVIGATE action
   2.0–2.2                │ + Personalisation props, A/B metadata, API_CALL
-  2.3+                   │ + Animation props, conditional visibility, MODAL
-  3.0+ (future)          │ + AI-generated layout, voice action type
+  2.3                    │ + Animation props, conditional visibility, MODAL
+  3.0                    │ + VIDEO_PLAYER, MARKET_BRIEFING_TEXT, CONTACT_RM_CTA,
+                         │   AI_SEARCH_BAR (used by fx-viewpoint-hk screen)
 
 GRACEFUL DEGRADATION RULES:
   Situation                        │ Server Behaviour
@@ -587,15 +655,15 @@ GRACEFUL DEGRADATION RULES:
 ┌──────────────────────────────────────────────────────────────────────┐
 │                        Caching Layers                                 │
 │                                                                        │
-│  L1 — CDN (Akamai edge)                                               │
+│  L1 — CDN (CloudFront edge)                                            │
 │  ────────────────────────────────────────────────────────────────    │
 │  Scope:    Anonymous screens only (no user context)                   │
 │  Cache key: screen + locale + platform + sdui-version                 │
 │  TTL:      60 seconds                                                 │
-│  Invalidation: CMS publish webhook → Akamai Fast Purge API            │
+│  Invalidation: CMS publish webhook → CloudFront invalidation API      │
 │  ⚠ NEVER cache personalised or authenticated screens at CDN           │
 │                                                                        │
-│  L2 — BFF Redis (GCP Memorystore)                                     │
+│  L2 — BFF Redis (AWS ElastiCache)                                     │
 │  ────────────────────────────────────────────────────────────────    │
 │  Scope:    Personalised screens (post-login)                          │
 │  Cache key: screen + userId + segmentId + variantId + platform        │

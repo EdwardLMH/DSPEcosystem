@@ -1,5 +1,5 @@
 // WealthPage.ets
-// HarmonyNext ArkTS — Home Wealth Hub HK page
+// HarmonyNext ArkTS — Home Hub HK page
 // Loads slice layout from the UCP BFF (GET /api/v1/screen/home-wealth-hk) when a
 // LIVE page has been approved and published.  Falls back to the static layout when
 // the BFF has no live page yet (404 / connection refused).
@@ -95,6 +95,8 @@ struct SDUISliceView {
   @Builder renderSlice() {
     if (this.slice.type === 'HEADER_NAV') {
       SDUIHeaderNav({ props: this.slice.props })
+    } else if (this.slice.type === 'AI_SEARCH_BAR') {
+      SDUIAISearchBar({ props: this.slice.props })
     } else if (this.slice.type === 'QUICK_ACCESS') {
       SDUIQuickAccess({ props: this.slice.props })
     } else if (this.slice.type === 'PROMO_BANNER') {
@@ -116,8 +118,7 @@ struct SDUISliceView {
     } else if (this.slice.type === 'LIFE_DEALS') {
       SDUILifeDeals({ props: this.slice.props })
     } else if (this.slice.type === 'SPACER') {
-      const h: number = this.slice.props['height'] as number ?? 16
-      Blank().height(h)
+      Blank().height(this.slice.props['height'] as number ?? 16)
     }
     // unknown types silently omitted
   }
@@ -238,27 +239,89 @@ struct SDUIHeaderNav {
   }
 }
 
+// SDUIAISearchBar — SDUI renderer for AI_SEARCH_BAR slice type.
+// HSBC-red bar with semantic search, QR scan, chatbot and message inbox.
+// Tapping the search input opens the AISearchPage overlay.
+@Component
+struct SDUIAISearchBar {
+  props: Record<string, ESObject> = {}
+  onSearchTap: () => void = () => {}
+
+  private placeholder(): string {
+    return this.props['placeholder'] as string ?? '搜尋功能、產品'
+  }
+  private enableQRScan(): boolean   { return this.props['enableQRScan'] as boolean ?? true }
+  private enableChatbot(): boolean  { return this.props['enableChatbot'] as boolean ?? true }
+  private enableInbox(): boolean    { return this.props['enableMessageInbox'] as boolean ?? true }
+
+  build() {
+    Row({ space: 8 }) {
+      if (this.enableQRScan()) {
+        Text('⬜').fontSize(20).fontColor('#E6FFFFFF')
+          .onClick(() => {
+            SensorDataClient.track('qr_tap', 'Wealth', 'qr_scanner_tapped', '',
+              'ai_search_bar', 'wealth_hub')
+          })
+      }
+
+      Row({ space: 6 }) {
+        Text('🔍').fontSize(13).fontColor('#99FFFFFF')
+        Text(this.placeholder()).fontSize(13).fontColor('#A6FFFFFF').layoutWeight(1)
+      }
+      .layoutWeight(1).height(36)
+      .padding({ left: 12, right: 12 })
+      .borderRadius(18)
+      .backgroundColor('#26FFFFFF')
+      .onClick(() => {
+        SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '',
+          'ai_search_bar', 'wealth_hub')
+        this.onSearchTap()
+      })
+
+      if (this.enableChatbot()) {
+        Text('🤖').fontSize(20).fontColor('#E6FFFFFF')
+          .onClick(() => {
+            SensorDataClient.track('chatbot_tap', 'Wealth', 'chatbot_tapped', '',
+              'ai_search_bar', 'wealth_hub')
+          })
+      }
+      if (this.enableInbox()) {
+        Text('✉️').fontSize(20).fontColor('#E6FFFFFF')
+          .onClick(() => {
+            SensorDataClient.track('inbox_tap', 'Wealth', 'inbox_tapped', '',
+              'ai_search_bar', 'wealth_hub')
+          })
+      }
+    }
+    .width('100%').height(50)
+    .padding({ left: 12, right: 12, top: 7, bottom: 7 })
+    .backgroundColor('#DB0011')
+    .alignItems(VerticalAlign.Center)
+  }
+}
+
 @Component
 struct SDUIQuickAccess {
   props: Record<string, ESObject> = {}
 
+  private items(): ESObject[] { return this.props['items'] as ESObject[] ?? [] as ESObject[] }
+
   build() {
-    // items is an ESObject array — cast each element to a typed record
-    const rawItems = this.props['items'] as ESObject[] ?? []
     Row() {
-      ForEach(rawItems, (raw: ESObject) => {
-        const item = raw as Record<string, string>
+      ForEach(this.items(), (raw: ESObject) => {
         Column({ space: 5 }) {
-          Text(item['icon'] ?? '').fontSize(22)
+          Text((raw as Record<string, string>)['icon'] ?? '').fontSize(22)
             .width(48).height(48).textAlign(TextAlign.Center)
             .borderRadius(14)
             .linearGradient({ direction: GradientDirection.LeftTop,
               colors: [['#F0F9FF', 0], ['#E0F2FE', 1]] })
-          Text(item['label'] ?? '').fontSize(10).fontColor(Hive.Color.n700).textAlign(TextAlign.Center)
+          Text((raw as Record<string, string>)['label'] ?? '').fontSize(10).fontColor(Hive.Color.n700).textAlign(TextAlign.Center)
         }
         .layoutWeight(1).alignItems(HorizontalAlign.Center)
         .onClick(() => {
-          SensorDataClient.quickAccessTapped(item['label'] ?? '', item['deepLink'] ?? '')
+          SensorDataClient.quickAccessTapped(
+            (raw as Record<string, string>)['label'] ?? '',
+            (raw as Record<string, string>)['deepLink'] ?? '')
         })
       })
     }
@@ -271,30 +334,30 @@ struct SDUIQuickAccess {
 struct SDUIPromoBanner {
   props: Record<string, ESObject> = {}
 
-  build() {
-    const title    = this.props['title'] as string ?? ''
-    const subtitle = this.props['subtitle'] as string ?? ''
-    const ctaLabel = this.props['ctaLabel'] as string ?? ''
-    const badgeText = this.props['badgeText'] as string ?? ''
-    const deepLink = this.props['ctaDeepLink'] as string ?? ''
+  private title(): string    { return this.props['title'] as string ?? '' }
+  private subtitle(): string { return this.props['subtitle'] as string ?? '' }
+  private ctaLabel(): string { return this.props['ctaLabel'] as string ?? '' }
+  private badgeText(): string { return this.props['badgeText'] as string ?? '' }
+  private deepLink(): string { return this.props['ctaDeepLink'] as string ?? '' }
 
+  build() {
     Row({ space: 0 }) {
       Column({ space: 4 }) {
-        if (badgeText.length > 0) {
-          Text(badgeText)
+        if (this.badgeText().length > 0) {
+          Text(this.badgeText())
             .fontSize(9).fontWeight(FontWeight.Bold).fontColor('#DB0011')
             .padding({ left: 8, right: 8, top: 2, bottom: 2 })
             .borderRadius(10).backgroundColor('#FFEDED')
         }
-        Text(title).fontSize(16).fontWeight(FontWeight.Bolder).fontColor(Hive.Color.n900)
-        Text(subtitle).fontSize(10).fontColor(Hive.Color.n500)
-        Button(ctaLabel)
+        Text(this.title()).fontSize(16).fontWeight(FontWeight.Bolder).fontColor(Hive.Color.n900)
+        Text(this.subtitle()).fontSize(10).fontColor(Hive.Color.n500)
+        Button(this.ctaLabel())
           .height(32).padding({ left: 16, right: 16 })
           .borderRadius(14).backgroundColor(Hive.Color.brandPrimary)
           .fontColor(Hive.Color.brandWhite).fontSize(11).fontWeight(FontWeight.Bold)
           .margin({ top: 8 })
           .onClick(() => {
-            SensorDataClient.promoBannerTapped(title, this.props['instanceId'] as string ?? '', deepLink)
+            SensorDataClient.promoBannerTapped(this.title(), this.props['instanceId'] as string ?? '', this.deepLink())
           })
       }.layoutWeight(1).alignItems(HorizontalAlign.Start)
 
@@ -314,28 +377,27 @@ struct SDUIPromoBanner {
 struct SDUIFunctionGrid {
   props: Record<string, ESObject> = {}
 
+  private rows(): ESObject[] { return this.props['rows'] as ESObject[] ?? [] as ESObject[] }
+
   build() {
-    const rawRows = this.props['rows'] as ESObject[] ?? []
     Column({ space: 6 }) {
-      ForEach(rawRows, (rawRow: ESObject) => {
-        const row = rawRow as ESObject[]
+      ForEach(this.rows(), (rawRow: ESObject) => {
         Row() {
-          ForEach(row, (raw: ESObject) => {
-            const item = raw as Record<string, string>
+          ForEach(rawRow as ESObject[], (raw: ESObject) => {
             Column({ space: 4 }) {
-              Text(item['icon'] ?? '').fontSize(20)
+              Text((raw as Record<string, string>)['icon'] ?? '').fontSize(20)
                 .width(44).height(44).textAlign(TextAlign.Center)
                 .borderRadius(12).backgroundColor(Hive.Color.n100)
-              Text(item['label'] ?? '').fontSize(10).fontColor(Hive.Color.n700)
+              Text((raw as Record<string, string>)['label'] ?? '').fontSize(10).fontColor(Hive.Color.n700)
                 .textAlign(TextAlign.Center).lineHeight(14)
             }
             .layoutWeight(1).alignItems(HorizontalAlign.Center)
             .onClick(() => {
               const extra: Record<string, ESObject> = {}
-              extra['function_label'] = (item['label'] ?? '') as ESObject
-              extra['deep_link']      = (item['deepLink'] ?? '') as ESObject
+              extra['function_label'] = ((raw as Record<string, string>)['label'] ?? '') as ESObject
+              extra['deep_link']      = ((raw as Record<string, string>)['deepLink'] ?? '') as ESObject
               SensorDataClient.track('function_tap', 'Wealth', 'function_tapped',
-                item['label'] ?? '', 'wealth_hub_hk', 'wealth_hub',
+                (raw as Record<string, string>)['label'] ?? '', 'wealth_hub_hk', 'wealth_hub',
                 '', '', '', '', '', '', '', '', extra)
             })
           })
@@ -372,24 +434,24 @@ struct SDUIAdBanner {
   props: Record<string, ESObject> = {}
   onDismiss: () => void = () => {}
 
-  build() {
-    const title    = this.props['title'] as string ?? ''
-    const subtitle = this.props['subtitle'] as string ?? ''
-    const ctaLabel = this.props['ctaLabel'] as string ?? ''
-    const deepLink = this.props['ctaDeepLink'] as string ?? ''
+  private title(): string    { return this.props['title'] as string ?? '' }
+  private subtitle(): string { return this.props['subtitle'] as string ?? '' }
+  private ctaLabel(): string { return this.props['ctaLabel'] as string ?? '' }
+  private deepLink(): string { return this.props['ctaDeepLink'] as string ?? '' }
 
+  build() {
     Stack({ alignContent: Alignment.TopEnd }) {
       Row({ space: 12 }) {
         Column({ space: 4 }) {
-          Text(title).fontSize(13).fontWeight(FontWeight.Bold).fontColor('#92400E')
-          Text(subtitle).fontSize(10).fontColor('#78716C')
-          Button(ctaLabel)
+          Text(this.title()).fontSize(13).fontWeight(FontWeight.Bold).fontColor('#92400E')
+          Text(this.subtitle()).fontSize(10).fontColor('#78716C')
+          Button(this.ctaLabel())
             .height(30).padding({ left: 14, right: 14 })
             .borderRadius(12).backgroundColor(Hive.Color.brandPrimary)
             .fontColor(Hive.Color.brandWhite).fontSize(11).fontWeight(FontWeight.Bold)
             .margin({ top: 8 })
             .onClick(() => {
-              SensorDataClient.sliceTapped('AD_BANNER', 'slice-ad', ctaLabel, deepLink)
+              SensorDataClient.sliceTapped('AD_BANNER', 'slice-ad', this.ctaLabel(), this.deepLink())
             })
         }.layoutWeight(1).alignItems(HorizontalAlign.Start)
 
@@ -407,7 +469,7 @@ struct SDUIAdBanner {
       Text('✕').fontSize(13).fontColor(Hive.Color.n400)
         .width(32).height(32).textAlign(TextAlign.Center)
         .onClick(() => {
-          SensorDataClient.adBannerDismissed(title)
+          SensorDataClient.adBannerDismissed(this.title())
           this.onDismiss()
         })
     }
@@ -419,29 +481,29 @@ struct SDUIAdBanner {
 struct SDUIFlashLoan {
   props: Record<string, ESObject> = {}
 
-  build() {
-    const productName = this.props['productName'] as string ?? '閃電貸 極速放款'
-    const tagline     = this.props['tagline'] as string ?? '最高可借額度'
-    const currency    = this.props['currency'] as string ?? 'HKD'
-    const maxAmount   = this.props['maxAmount'] as number ?? 300000
-    const ctaLabel    = this.props['ctaLabel'] as string ?? '獲取額度'
-    const deepLink    = this.props['ctaDeepLink'] as string ?? 'hsbc://loan/flash'
+  private productName(): string { return this.props['productName'] as string ?? '閃電貸 極速放款' }
+  private tagline(): string     { return this.props['tagline'] as string ?? '最高可借額度' }
+  private currency(): string    { return this.props['currency'] as string ?? 'HKD' }
+  private maxAmount(): number   { return this.props['maxAmount'] as number ?? 300000 }
+  private ctaLabel(): string    { return this.props['ctaLabel'] as string ?? '獲取額度' }
+  private deepLink(): string    { return this.props['ctaDeepLink'] as string ?? 'hsbc://loan/flash' }
 
+  build() {
     Row() {
       Column({ space: 2 }) {
-        Text(`⚡ ${productName}`).fontSize(11).fontWeight(FontWeight.Bold)
+        Text(`⚡ ${this.productName()}`).fontSize(11).fontWeight(FontWeight.Bold)
           .fontColor(Hive.Color.brandPrimary)
-        Text(tagline).fontSize(10).fontColor(Hive.Color.n500)
-        Text(`${currency} ${maxAmount.toLocaleString()}.00`).fontSize(22)
+        Text(this.tagline()).fontSize(10).fontColor(Hive.Color.n500)
+        Text(`${this.currency()} ${this.maxAmount().toLocaleString()}.00`).fontSize(22)
           .fontWeight(FontWeight.Bolder).fontColor(Hive.Color.n900)
       }.layoutWeight(1).alignItems(HorizontalAlign.Start)
 
-      Button(ctaLabel)
+      Button(this.ctaLabel())
         .height(44).padding({ left: 18, right: 18 })
         .borderRadius(20).backgroundColor(Hive.Color.brandPrimary)
         .fontColor(Hive.Color.brandWhite).fontSize(12).fontWeight(FontWeight.Bold)
         .onClick(() => {
-          SensorDataClient.sliceTapped('FLASH_LOAN', 'slice-flash-loan', ctaLabel, deepLink)
+          SensorDataClient.sliceTapped('FLASH_LOAN', 'slice-flash-loan', this.ctaLabel(), this.deepLink())
         })
     }
     .width('100%').padding({ left: 16, right: 16, top: 12, bottom: 12 })
@@ -457,46 +519,46 @@ struct SDUIFlashLoan {
 struct SDUIWealthSelection {
   props: Record<string, ESObject> = {}
 
-  build() {
-    const sectionTitle = this.props['sectionTitle'] as string ?? '財富精選'
-    const rawProducts  = this.props['products'] as ESObject[] ?? []
+  private sectionTitle(): string  { return this.props['sectionTitle'] as string ?? '財富精選' }
+  private products(): ESObject[]  { return this.props['products'] as ESObject[] ?? [] as ESObject[] }
 
+  build() {
     Column({ space: 0 }) {
       Row() {
-        Text(sectionTitle).fontSize(15).fontWeight(FontWeight.Bold)
+        Text(this.sectionTitle()).fontSize(15).fontWeight(FontWeight.Bold)
         Blank().layoutWeight(1)
         Text('更多 ›').fontSize(12).fontColor(Hive.Color.brandPrimary)
       }.width('100%').margin({ bottom: 10 })
 
-      ForEach(rawProducts, (raw: ESObject, index: number) => {
-        const p = raw as Record<string, ESObject>
+      ForEach(this.products(), (raw: ESObject, index: number) => {
         Row() {
           Column({ space: 2 }) {
-            Text(p['productName'] as string ?? '').fontSize(12)
+            Text((raw as Record<string, ESObject>)['productName'] as string ?? '').fontSize(12)
               .fontWeight(FontWeight.Medium).fontColor(Hive.Color.n900)
             Row({ space: 6 }) {
-              Text(p['riskLevel'] as string ?? '').fontSize(9).fontColor(Hive.Color.n500)
+              Text((raw as Record<string, ESObject>)['riskLevel'] as string ?? '').fontSize(9).fontColor(Hive.Color.n500)
                 .padding({ left: 6, right: 6, top: 1, bottom: 1 })
                 .borderRadius(8).backgroundColor(Hive.Color.n100)
-              Text(p['redemption'] as string ?? '').fontSize(9).fontColor(Hive.Color.n500)
+              Text((raw as Record<string, ESObject>)['redemption'] as string ?? '').fontSize(9).fontColor(Hive.Color.n500)
                 .padding({ left: 6, right: 6, top: 1, bottom: 1 })
                 .borderRadius(8).backgroundColor(Hive.Color.n100)
             }
           }.layoutWeight(1).alignItems(HorizontalAlign.Start)
 
           Column({ space: 2 }) {
-            Text(p['yield7Day'] as string ?? '').fontSize(18).fontWeight(FontWeight.Bolder)
+            Text((raw as Record<string, ESObject>)['yield7Day'] as string ?? '').fontSize(18).fontWeight(FontWeight.Bolder)
               .fontColor(Hive.Color.brandPrimary)
             Text('7日年化').fontSize(9).fontColor(Hive.Color.n400)
-            if (p['highlighted'] as boolean === true) {
-              Button(p['ctaLabel'] as string ?? '查看')
+            if ((raw as Record<string, ESObject>)['highlighted'] as boolean === true) {
+              Button((raw as Record<string, ESObject>)['ctaLabel'] as string ?? '查看')
                 .height(28).padding({ left: 12, right: 12 })
                 .borderRadius(12).backgroundColor(Hive.Color.brandPrimary)
                 .fontColor(Hive.Color.brandWhite).fontSize(10).fontWeight(FontWeight.Bold)
                 .margin({ top: 4 })
                 .onClick(() => {
                   SensorDataClient.wealthProductTapped(
-                    p['productName'] as string ?? '', p['id'] as string ?? '')
+                    (raw as Record<string, ESObject>)['productName'] as string ?? '',
+                    (raw as Record<string, ESObject>)['id'] as string ?? '')
                 })
             }
           }.alignItems(HorizontalAlign.End)
@@ -504,10 +566,11 @@ struct SDUIWealthSelection {
         .width('100%').padding({ top: 10, bottom: 10 })
         .onClick(() => {
           SensorDataClient.wealthProductTapped(
-            p['productName'] as string ?? '', p['id'] as string ?? '')
+            (raw as Record<string, ESObject>)['productName'] as string ?? '',
+            (raw as Record<string, ESObject>)['id'] as string ?? '')
         })
 
-        if (index < rawProducts.length - 1) {
+        if (index < this.products().length - 1) {
           Divider().color(Hive.Color.n100)
         }
       })
@@ -525,34 +588,35 @@ struct SDUIWealthSelection {
 struct SDUIFeaturedRankings {
   props: Record<string, ESObject> = {}
 
-  build() {
-    const sectionTitle = this.props['sectionTitle'] as string ?? '特色榜單'
-    const rawItems     = this.props['items'] as ESObject[] ?? []
+  private sectionTitle(): string { return this.props['sectionTitle'] as string ?? '特色榜單' }
+  private items(): ESObject[]    { return this.props['items'] as ESObject[] ?? [] as ESObject[] }
 
+  build() {
     Column({ space: 0 }) {
       Row() {
-        Text(sectionTitle).fontSize(15).fontWeight(FontWeight.Bold)
+        Text(this.sectionTitle()).fontSize(15).fontWeight(FontWeight.Bold)
         Blank().layoutWeight(1)
         Text('更多 ›').fontSize(12).fontColor(Hive.Color.brandPrimary)
       }.width('100%').margin({ bottom: 10 })
 
-      ForEach(rawItems, (raw: ESObject) => {
-        const item = raw as Record<string, string>
+      ForEach(this.items(), (raw: ESObject) => {
         Row({ space: 12 }) {
-          Text(item['icon'] ?? '').fontSize(24)
+          Text((raw as Record<string, string>)['icon'] ?? '').fontSize(24)
           Column({ space: 2 }) {
-            Text(item['badge'] ?? '').fontSize(9).fontWeight(FontWeight.Bold)
+            Text((raw as Record<string, string>)['badge'] ?? '').fontSize(9).fontWeight(FontWeight.Bold)
               .fontColor(Hive.Color.brandPrimary)
               .padding({ left: 8, right: 8, top: 2, bottom: 2 })
               .borderRadius(10).backgroundColor('#FEF2F2')
-            Text(item['title'] ?? '').fontSize(13).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
-            Text(item['description'] ?? '').fontSize(10).fontColor(Hive.Color.n500)
+            Text((raw as Record<string, string>)['title'] ?? '').fontSize(13).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
+            Text((raw as Record<string, string>)['description'] ?? '').fontSize(10).fontColor(Hive.Color.n500)
           }.layoutWeight(1).alignItems(HorizontalAlign.Start)
           Text('›').fontSize(16).fontColor(Hive.Color.n400)
         }
         .width('100%').padding({ top: 8, bottom: 8 })
         .onClick(() => {
-          SensorDataClient.rankingsTapped(item['title'] ?? '', item['badge'] ?? '')
+          SensorDataClient.rankingsTapped(
+            (raw as Record<string, string>)['title'] ?? '',
+            (raw as Record<string, string>)['badge'] ?? '')
         })
 
         Divider().color('#F9FAFB')
@@ -567,26 +631,25 @@ struct SDUIFeaturedRankings {
 struct SDUILifeDeals {
   props: Record<string, ESObject> = {}
 
-  build() {
-    const sectionTitle = this.props['sectionTitle'] as string ?? '生活特惠'
-    const rawDeals     = this.props['deals'] as ESObject[] ?? []
-    const rawLinks     = this.props['bottomLinks'] as ESObject[] ?? []
+  private sectionTitle(): string { return this.props['sectionTitle'] as string ?? '生活特惠' }
+  private deals(): ESObject[]    { return this.props['deals'] as ESObject[] ?? [] as ESObject[] }
+  private links(): ESObject[]    { return this.props['bottomLinks'] as ESObject[] ?? [] as ESObject[] }
 
+  build() {
     Column({ space: 10 }) {
       Row() {
-        Text(sectionTitle).fontSize(15).fontWeight(FontWeight.Bold)
+        Text(this.sectionTitle()).fontSize(15).fontWeight(FontWeight.Bold)
         Blank().layoutWeight(1)
         Text('更多 ›').fontSize(12).fontColor(Hive.Color.brandPrimary)
       }.width('100%')
 
       Row({ space: 10 }) {
-        ForEach(rawDeals, (raw: ESObject) => {
-          const d = raw as Record<string, string>
+        ForEach(this.deals(), (raw: ESObject) => {
           Column({ space: 0 }) {
-            Text(d['logoUrl'] || '🏷').fontSize(24)
+            Text((raw as Record<string, string>)['logoUrl'] || '🏷').fontSize(24)
               .width('100%').height(64).textAlign(TextAlign.Center)
               .backgroundColor(Hive.Color.n100)
-            Text(d['tag'] ?? '').fontSize(9).fontWeight(FontWeight.Bold)
+            Text((raw as Record<string, string>)['tag'] ?? '').fontSize(9).fontWeight(FontWeight.Bold)
               .fontColor(Hive.Color.brandWhite)
               .width('100%').textAlign(TextAlign.Center).padding({ top: 4, bottom: 4 })
               .backgroundColor(Hive.Color.brandPrimary)
@@ -594,26 +657,27 @@ struct SDUILifeDeals {
           .layoutWeight(1).borderRadius(12).clip(true)
           .backgroundColor(Hive.Color.n50)
           .onClick(() => {
-            SensorDataClient.lifeDealTapped(d['brandName'] ?? '', d['tag'] ?? '')
+            SensorDataClient.lifeDealTapped(
+              (raw as Record<string, string>)['brandName'] ?? '',
+              (raw as Record<string, string>)['tag'] ?? '')
           })
         })
       }.width('100%')
 
       Row({ space: 10 }) {
-        ForEach(rawLinks, (raw: ESObject) => {
-          const link = raw as Record<string, string>
+        ForEach(this.links(), (raw: ESObject) => {
           Row({ space: 8 }) {
-            Text(link['icon'] ?? '').fontSize(24)
-            Text(link['label'] ?? '').fontSize(10).fontColor(Hive.Color.n700).lineHeight(16)
+            Text((raw as Record<string, string>)['icon'] ?? '').fontSize(24)
+            Text((raw as Record<string, string>)['label'] ?? '').fontSize(10).fontColor(Hive.Color.n700).lineHeight(16)
           }
           .layoutWeight(1).padding(10).borderRadius(12)
           .backgroundColor(Hive.Color.n50)
           .alignItems(VerticalAlign.Center)
           .onClick(() => {
             const extra: Record<string, ESObject> = {}
-            extra['deep_link'] = (link['deepLink'] ?? '') as ESObject
+            extra['deep_link'] = ((raw as Record<string, string>)['deepLink'] ?? '') as ESObject
             SensorDataClient.track('bottom_link_tap', 'Wealth', 'bottom_link_tapped',
-              link['label'] ?? '', 'wealth_hub_hk', 'wealth_hub',
+              (raw as Record<string, string>)['label'] ?? '', 'wealth_hub_hk', 'wealth_hub',
               '', '', '', '', '', '', '', '', extra)
           })
         })
@@ -624,7 +688,7 @@ struct SDUILifeDeals {
   }
 }
 
-// ─── Static fallback components (unchanged from original) ─────────────────────
+// ─── Static fallback components ────────────────────────────────────────────────
 // Used when the BFF has no LIVE page published yet.
 
 @Component
@@ -632,38 +696,46 @@ struct WHHeaderNav {
   onSearchTap: () => void = () => {}
 
   aboutToAppear() {
-    SensorDataClient.sliceImpression('HEADER_NAV', 'slice-header', 0)
+    SensorDataClient.sliceImpression('AI_SEARCH_BAR', 'slice-header', 0)
   }
 
   build() {
-    Column() {
-      Row({ space: 10 }) {
-        Row({ space: 6 }) {
-          Text('🔍').fontSize(13).fontColor(Hive.Color.n400)
-          Text('搜尋功能、產品').fontSize(13).fontColor(Hive.Color.n400).layoutWeight(1)
-        }
-        .layoutWeight(1).height(36).padding({ left: 14, right: 14 })
-        .borderRadius(18).backgroundColor(Hive.Color.n100)
+    Row({ space: 8 }) {
+      Text('⬜').fontSize(20).fontColor('#E6FFFFFF')
         .onClick(() => {
-          SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '',
-            'wealth_hub_hk', 'wealth_hub')
-          this.onSearchTap()
-        })
-
-        Text('🔔').fontSize(20).onClick(() => {
-          SensorDataClient.track('notification_tap', 'Wealth', 'notification_tapped', '',
-            'wealth_hub_hk', 'wealth_hub')
-        })
-        Text('⬛').fontSize(18).onClick(() => {
           SensorDataClient.track('qr_tap', 'Wealth', 'qr_scanner_tapped', '',
-            'wealth_hub_hk', 'wealth_hub')
+            'ai_search_bar', 'wealth_hub')
         })
-      }.width('100%').height(50)
-      .padding({ left: 14, right: 14, top: 8, bottom: 8 })
-      .backgroundColor(Hive.Color.brandWhite)
 
-      Divider().color(Hive.Color.n200)
+      Row({ space: 6 }) {
+        Text('🔍').fontSize(13).fontColor('#99FFFFFF')
+        Text('搜尋功能、產品').fontSize(13).fontColor('#A6FFFFFF').layoutWeight(1)
+      }
+      .layoutWeight(1).height(36)
+      .padding({ left: 12, right: 12 })
+      .borderRadius(18)
+      .backgroundColor('#26FFFFFF')
+      .onClick(() => {
+        SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '',
+          'ai_search_bar', 'wealth_hub')
+        this.onSearchTap()
+      })
+
+      Text('🤖').fontSize(20).fontColor('#E6FFFFFF')
+        .onClick(() => {
+          SensorDataClient.track('chatbot_tap', 'Wealth', 'chatbot_tapped', '',
+            'ai_search_bar', 'wealth_hub')
+        })
+      Text('✉️').fontSize(20).fontColor('#E6FFFFFF')
+        .onClick(() => {
+          SensorDataClient.track('inbox_tap', 'Wealth', 'inbox_tapped', '',
+            'ai_search_bar', 'wealth_hub')
+        })
     }
+    .width('100%').height(50)
+    .padding({ left: 12, right: 12, top: 7, bottom: 7 })
+    .backgroundColor('#DB0011')
+    .alignItems(VerticalAlign.Center)
   }
 }
 

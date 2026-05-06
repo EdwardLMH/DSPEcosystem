@@ -51,5 +51,6 @@ dependencies {
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp.logging)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.coil.compose)
     debugImplementation(libs.androidx.ui.tooling)
 }

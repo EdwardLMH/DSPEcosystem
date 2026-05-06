@@ -1,8 +1,8 @@
 # CMS Maker-Checker Workflow — Design Document
 
-**Document Version:** 1.0  
-**Date:** 2026-04-19  
-**Scope:** UCP (Stripes CMS) content governance, approval workflow, audit trail  
+**Document Version:** 1.1  
+**Date:** 2026-05-04  
+**Scope:** OCDP/UCP Console content governance, approval workflow, audit trail  
 
 ---
 
@@ -12,22 +12,23 @@ In banking, no customer-facing content — especially promotional material makin
 eligibility statements, or benefit descriptions — can go live without a formal approval gate.
 The Maker-Checker pattern is the standard control in financial services:
 
-- **Maker:** Creates or edits content. Cannot approve their own work.
-- **Checker:** Reviews and approves (or rejects) the Maker's submission. Must be a different person.
-- **Publisher:** (Optional 3rd role for large orgs) Final publish action, or merged with Checker.
+- **Maker (AUTHOR role):** Creates or edits content within their assigned biz line. Cannot approve their own work.
+- **Checker (APPROVER role):** Reviews and approves (or rejects) the Maker's submission within their biz line. Must be a different person.
+- **AUDITOR role:** Read-only access across all biz lines and the full audit log.
+- **ADMIN role:** Full access across all biz lines; must supply justification for cross-biz-line writes.
 
-This ensures **segregation of duties** — a core HKMA and internal audit requirement.
+This ensures **segregation of duties** — a core HKMA and internal audit requirement. See `docs/11_ad_rbac_design.md` for the full AD group naming convention and permission matrix.
 
 ---
 
 ## 2. Roles and Permissions
 
-| Role | Can Do | Cannot Do |
-|------|--------|-----------|
-| **Maker** (Content Editor) | Create, edit, delete drafts; submit for review; preview on device | Approve own content; publish directly |
-| **Checker** (Compliance / Legal) | Review submissions; approve or reject with comments; preview on device; trigger publish | Create content; edit content under review |
-| **Admin** | All of the above; manage users; view full audit log; emergency unpublish | — |
-| **Viewer** (Read-only) | View published content and audit log | Edit or approve anything |
+| Role (AD Group Suffix) | Can Do | Cannot Do |
+|------------------------|--------|-----------|
+| **AUTHOR** (Maker) | Create, edit, delete drafts in own biz line; submit for review; preview on device | Approve own content; access other biz lines' drafts; publish directly |
+| **APPROVER** (Checker) | Review submissions in own biz line; approve or reject with mandatory comment; preview on device; trigger publish | Approve content they authored (Maker-Checker); create or edit content |
+| **AUDITOR** (Read-only) | View all content and full audit log across all biz lines | Edit, approve, or publish anything |
+| **ADMIN** | All of the above across all biz lines; manage users; emergency unpublish | Must supply justification for cross-biz-line writes |
 
 ---
 

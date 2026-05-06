@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Left vertical bar -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M35,24 L45,24 L45,84 L35,84 Z"/>
+    <!-- Right vertical bar -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M63,24 L73,24 L73,84 L63,84 Z"/>
+    <!-- Crossbar -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M35,50 L73,50 L73,58 L35,58 Z"/>
+</vector>

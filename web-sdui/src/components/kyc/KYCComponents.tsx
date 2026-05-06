@@ -731,40 +731,31 @@ export function KYCLivenessCapture({ onAnswer, isMobile }: {
 
 // ─── 9. Open Banking consent ──────────────────────────────────────────────────
 
-const OB_PERMISSIONS = [
-  { id:'ob_account_info',    label:'Account Information',
-    desc:'View your account details, balances and sort code/account number for ownership verification', required:true },
-  { id:'ob_transactions',    label:'Transaction History',
-    desc:'Access up to 12 months of transactions for behavioural risk scoring', required:true },
-  { id:'ob_identity',        label:'Identity Confirmation',
-    desc:'Confirm your name and address as held by your bank matches your application', required:true },
-  { id:'ob_direct_debit',    label:'Direct Debit Setup',
-    desc:'Set up recurring payments (only if you request this service)', required:false },
+const HK_BANKS = [
+  { value:'HSBC_HK',   label:'HSBC Hong Kong' },
+  { value:'BOC_HK',    label:'Bank of China (Hong Kong)' },
+  { value:'HANG_SENG', label:'Hang Seng Bank' },
+  { value:'SCB_HK',    label:'Standard Chartered Hong Kong' },
+  { value:'CITI_HK',   label:'Citibank Hong Kong' },
+  { value:'DBS_HK',    label:'DBS Bank Hong Kong' },
+  { value:'BEA',       label:'Bank of East Asia' },
 ];
 
 export function KYCOpenBankingConsent({ onAnswer, isMobile }: {
   onAnswer:(id:string,v:any)=>void; isMobile:boolean }) {
-  const [consents, setConsents] = useState<Record<string,boolean>>({
-    ob_account_info: false, ob_transactions: false, ob_identity: false, ob_direct_debit: false,
-  });
   const [bank, setBank] = useState('');
   const [connected, setConnected] = useState(false);
+  const [connecting, setConnecting] = useState(false);
 
-  const requiredMet = OB_PERMISSIONS.filter(p => p.required).every(p => consents[p.id]);
-
-  const toggle = (id: string, required: boolean) => {
-    if (required) return; // required permissions cannot be unchecked
-    setConsents(prev => ({ ...prev, [id]: !prev[id] }));
-  };
+  const bankLabel = HK_BANKS.find(b => b.value === bank)?.label ?? 'your bank';
 
   const connectBank = () => {
     if (!bank) return;
+    setConnecting(true);
     setTimeout(() => {
+      setConnecting(false);
       setConnected(true);
-      const allConsents = { ...consents };
-      OB_PERMISSIONS.filter(p=>p.required).forEach(p => { allConsents[p.id] = true; });
-      setConsents(allConsents);
-      onAnswer('q_ob_consent', { bank, consents: allConsents, consentToken: `tok_${Date.now()}` });
+      onAnswer('q_ob_consent', { bank, consentToken: `tok_${Date.now()}` });
     }, 1500);
   };
 
@@ -779,8 +770,8 @@ export function KYCOpenBankingConsent({ onAnswer, isMobile }: {
         </div>
         <p style={{ fontFamily: font, fontSize: hive.typography.fontSize.sm,
           color: hive.color.neutral[700], margin:0, lineHeight: hive.typography.lineHeight.normal }}>
-          We use Open Banking (FCA/HKMA regulated) to verify your identity and assess
-          creditworthiness. Your credentials are never shared with HSBC.
+          We use Open Banking (HKMA regulated) to verify your identity.
+          Your credentials are never shared with HSBC.
         </p>
       </div>
 
@@ -788,54 +779,8 @@ export function KYCOpenBankingConsent({ onAnswer, isMobile }: {
       <div>
         {label('Your current bank', true)}
         <NativeSelect value={bank} placeholder="Select your bank"
-          options={[
-            { value:'HSBC_UK',   label:'HSBC UK' },
-            { value:'LLOYDS',    label:'Lloyds Bank' },
-            { value:'BARCLAYS',  label:'Barclays' },
-            { value:'NATWEST',   label:'NatWest' },
-            { value:'SANTANDER', label:'Santander' },
-            { value:'MONZO',     label:'Monzo' },
-            { value:'STARLING',  label:'Starling Bank' },
-          ]}
+          options={HK_BANKS}
           onChange={setBank} />
-      </div>
-
-      {/* Permission checklist */}
-      <div style={{ display:'flex', flexDirection:'column', gap: hive.spacing[3] }}>
-        <div style={{ fontFamily: font, fontWeight: hive.typography.fontWeight.semibold,
-          fontSize: hive.typography.fontSize.sm, color: hive.color.neutral[700] }}>
-          Data access permissions
-        </div>
-        {OB_PERMISSIONS.map(p => (
-          <div key={p.id}
-            onClick={() => toggle(p.id, p.required)}
-            style={{ display:'flex', gap: hive.spacing[3], alignItems:'flex-start',
-              padding: hive.spacing[4], cursor: p.required ? 'default' : 'pointer',
-              backgroundColor: consents[p.id] ? hive.color.semantic.successLight : hive.color.neutral[50],
-              border: `1px solid ${consents[p.id] ? hive.color.semantic.success : hive.color.neutral[200]}`,
-              borderRadius: hive.borderRadius.md,
-              transition: `all ${hive.motion.duration.base} ${hive.motion.easing.standard}` }}>
-            <div style={{ width:'20px', height:'20px', flexShrink:0, marginTop:'2px',
-              borderRadius: hive.borderRadius.sm, border:`2px solid ${consents[p.id] ? hive.color.semantic.success : hive.color.neutral[300]}`,
-              backgroundColor: consents[p.id] ? hive.color.semantic.success : 'transparent',
-              display:'flex', alignItems:'center', justifyContent:'center' }}>
-              {consents[p.id] && <span style={{ color:'#fff', fontSize:'12px', lineHeight:1 }}>✓</span>}
-            </div>
-            <div style={{ flex:1 }}>
-              <div style={{ fontFamily: font, fontWeight: hive.typography.fontWeight.semibold,
-                fontSize: hive.typography.fontSize.sm, color: hive.color.neutral[800] }}>
-                {p.label}
-                {p.required && <span style={{ marginLeft: hive.spacing[2], fontSize: hive.typography.fontSize.xs,
-                  color: hive.color.brand.primary, fontWeight: hive.typography.fontWeight.regular }}>
-                  (Required)
-                </span>}
-              </div>
-              <div style={{ fontFamily: font, fontSize: hive.typography.fontSize.xs,
-                color: hive.color.neutral[600], marginTop:'2px',
-                lineHeight: hive.typography.lineHeight.normal }}>{p.desc}</div>
-            </div>
-          </div>
-        ))}
       </div>
 
       {connected
@@ -851,21 +796,24 @@ export function KYCOpenBankingConsent({ onAnswer, isMobile }: {
               </div>
               <div style={{ fontFamily: font, fontSize: hive.typography.fontSize.xs,
                 color: hive.color.neutral[600], marginTop:'2px' }}>
-                Account ownership verified · Consent token issued · 90-day access granted
+                Account ownership verified · Consent token issued · 90-day access
               </div>
             </div>
           </div>
-        : <button onClick={connectBank} disabled={!bank || !requiredMet}
-            style={{ ...primaryBtnStyle(), opacity: (!bank || !requiredMet) ? 0.5 : 1,
-              cursor: (!bank || !requiredMet) ? 'not-allowed' : 'pointer' }}>
-            🔐 Connect to {bank || 'your bank'} securely
+        : <button onClick={connectBank} disabled={!bank || connecting}
+            style={{ width:'100%', height: hive.component.button.height,
+              backgroundColor: !bank || connecting ? hive.color.neutral[300] : hive.color.brand.primary,
+              color: hive.color.brand.white, border:'none', borderRadius: hive.borderRadius.base,
+              fontFamily: font, fontWeight: hive.typography.fontWeight.semibold,
+              fontSize: hive.typography.fontSize.base, cursor: !bank ? 'not-allowed' : 'pointer',
+              display:'flex', alignItems:'center', justifyContent:'center', gap: hive.spacing[2] }}>
+            🔒 {connecting ? 'Connecting…' : `Connect to ${bankLabel} securely`}
           </button>
       }
 
       <p style={{ fontFamily: font, fontSize: hive.typography.fontSize.xs,
         color: hive.color.neutral[400], textAlign:'center', margin:0 }}>
-        Powered by Open Banking · Regulated by the FCA and HKMA ·
-        Your bank credentials are entered directly with your bank and never shared with HSBC
+        Powered by Open Banking · Regulated by the HKMA
       </p>
     </div>
   );
