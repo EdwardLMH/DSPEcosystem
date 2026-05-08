@@ -5,6 +5,7 @@
 import { Hive } from '../common/HiveTokens'
 import { SensorDataClient } from '../network/SensorDataClient'
 import http from '@ohos.net.http'
+import promptAction from '@ohos.promptAction'
 
 // ─── Models ────────────────────────────────────────────────────────────────────
 
@@ -149,8 +150,13 @@ export struct AISearchPage {
   private onResultTap(result: SearchResultItem) {
     SensorDataClient.track('ai_search_result_tapped', 'Search', 'result_selected',
       result.title, 'ai_search', 'wealth_hub')
+    // Dismiss search overlay first, then simulate deep-link navigation.
+    // In production this would invoke Want/startAbility with the hsbc:// URI.
     this.onDismiss()
-    // In HarmonyOS, deep links are opened via Want / router; log and dismiss here.
+    promptAction.showToast({
+      message: `→ ${result.title}`,
+      duration: 2000,
+    })
     console.info(`[AISearch] navigate → ${result.deepLink}`)
   }
 
@@ -191,6 +197,8 @@ export struct AISearchPage {
             .fontSize(14).fontColor(Hive.Color.n900)
             .backgroundColor(Color.Transparent)
             .placeholderColor(Hive.Color.n400)
+            .borderWidth(0)
+            .padding(0)
             .layoutWeight(1)
             .onChange((val: string) => { this.onQueryChange(val) })
             .onSubmit(() => {

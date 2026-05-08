@@ -1,238 +1,122 @@
-# AEO/SEO Assessment Implementation Summary
+# DSP Ecosystem — Implementation Summary
+
+**Last Updated:** 2026-05-08  
+**Classification:** Internal — Confidential
+
+---
 
 ## Overview
-Successfully implemented an AEO/SEO assessment tool that automatically evaluates Web Standard pages and journeys when submitting them for approval in the OCDP console.
 
-## What Was Implemented
+This document summarises the current implemented state of the HSBC Digital Sales Promotion (DSP) Ecosystem across all platform layers. It is a snapshot of what exists in this repository today, not a design aspiration.
 
-### 1. Design Document
-**File:** `/Users/Edward/workspace/DSPEcosystem/DESIGN_AEO_SEO_ASSESSMENT.md`
+---
 
-Comprehensive design covering:
-- Assessment algorithm with scoring criteria (100 points total)
-- User flow and integration points
-- UI/UX design for the modal
-- Technical implementation details
+## 1. Home Hub (HK) — 9-Slice SDUI Layout
 
-### 2. AEO Calculator Utility
-**File:** `/Users/Edward/workspace/DSPEcosystem/ocdp-console/src/utils/aeoCalculator.ts`
+The canonical "Home Hub (HK)" page (`screen: home-wealth-hk`) is defined in the OCDP console (`ocdp-console/src/store/mockData.ts`) and implemented identically across all four SDUI platforms. All platforms support both a **live SDUI path** (served from the BFF JSON) and a **static fallback** (hardcoded component defaults for offline / pre-publish use).
 
-Core assessment logic that calculates scores based on:
+### Slice Order & Types
 
-#### SEO Metadata (40 points)
-- Meta Title (15 pts): existence, length 30-60 chars, keyword presence
-- Meta Description (15 pts): existence, length 120-160 chars, call-to-action
-- URL Slug (10 pts): existence, SEO-friendly format
+| # | Slice Type | Description |
+|---|-----------|-------------|
+| 1 | `HOME_SEARCH_HEADER` | HSBC-red header with AI search bar, notifications, QR scanner |
+| 2 | `COMBO_QUICK_ACCESS` | Scrollable tab strip (My pick / Invest / Global / HK Daily) + 2×5 icon quick-access grid |
+| 3 | `CARD_ACTIVATION_BANNER` | Notification banner prompting card activation |
+| 4 | `QUEST_BANNER` | Getting-started quest progress card with HSBC hexagon icon |
+| 5 | `FEATURE_PRODUCT` | Tabbed fund list (Top-Performing / Thematic / All) showing 1Y returns |
+| 6 | `WEALTH_STUDIO_CAROUSEL` | Premier Elite Wealth Studio horizontal video episode carousel |
+| 7 | `GUIDES_INSIGHTS` | Article card carousel — investment guides and market insights |
+| 8 | `FX_WATCHLIST` | Currency pair watchlist with Gold Forex Club tier badge (amber theme) |
+| 9 | `DISCOVER_MORE` | Horizontal campaign card carousel — promotions and lifestyle offers |
 
-#### Content Structure (30 points)
-- FAQ Schema (10 pts): AI assistant, search bar components
-- Product Schema (10 pts): wealth selection, promo banners
-- Structured Content (10 pts): navigation, grids
+### Platform Implementations
 
-#### Content Quality (20 points)
-- Freshness (10 pts): recent creation/updates
-- Author Credentials (10 pts): author information
+| Platform | File | SDUI Path | Static Fallback |
+|----------|------|-----------|-----------------|
+| iOS (SwiftUI) | `ios-sdui/HSBCSDUI/WealthPageView.swift` | `WealthSDUIViewModel` async fetch → `SDUISliceView` dispatcher | 9 `WH*` default components |
+| Android (Compose) | `android-sdui/…/wealth/WealthPageScreen.kt` | `WealthLoadState.Done` → `SDUISliceView` dispatcher | 9 `WH*` composables |
+| HarmonyOS NEXT (ArkTS) | `harmonynext-sdui/…/wealth/WealthPage.ets` | `LOAD_DONE` → `SDUISliceView.renderSlice()` if/else chain | 9 `SDUI*` components |
+| Web (React/TS) | `web-sdui/src/pages/wealth/WealthHubPage.tsx` | Fetch → `renderSlice()` switch | 9 inline React components |
 
-#### Technical SEO (10 points)
-- Direct Answers (5 pts): clear value propositions
-- Rich Media (5 pts): videos, images
+---
 
-**Grading Scale:**
-- A: 90-100 points
-- B: 80-89 points
-- C: 70-79 points
-- D: 60-69 points
-- F: 0-59 points
+## 2. Analytics — New Event Helpers Added (All Platforms)
 
-### 3. AEO Assessment Modal Component
-**File:** `/Users/Edward/workspace/DSPEcosystem/ocdp-console/src/components/deliver/AEOAssessmentModal.tsx`
+Three new analytics helpers were added to all four platform analytics clients during the Home Hub implementation:
 
-Interactive modal that displays:
-- Overall score with A-F grade and color-coded styling
-- Visual progress bar
-- Detailed breakdown of all scoring criteria with pass/fail indicators
-- Expandable details with specific recommendations
-- Warning for low scores (D or F grades)
-- Three action buttons:
-  - **Cancel**: Close modal without submitting
-  - **Improve Content**: Return to editing
-  - **Submit for Approval**: Proceed with submission (shows warning icon for low scores)
+| Event | Trigger | Platforms |
+|-------|---------|-----------|
+| `wealthStudioTapped(title, instanceId)` | User taps a Wealth Studio episode card | iOS (Tealium), Android (Tealium), HarmonyNext (SensorData), Web (Tealium) |
+| `guidesTapped(title, instanceId)` | User taps a Guides & Insights article card | All four |
+| `discoverMoreTapped(title, tag)` | User taps a Discover More campaign card | All four |
 
-### 4. Page Library Integration
-**File:** `/Users/Edward/workspace/DSPEcosystem/ocdp-console/src/components/deliver/PageLibraryPanel.tsx`
+### Analytics Client Files
 
-**Changes:**
-- Added imports for `AEOAssessmentModal`, `calculateAEOScore`, `shouldShowAEOAssessment`
-- Added state management for AEO modal (`showAEOModal`, `aeoScore`)
-- Created `handleSubmit()` function that:
-  - Checks if page is Web Standard channel
-  - Calculates AEO score if applicable
-  - Shows assessment modal before submission
-  - Falls back to direct submission for non-Web Standard pages
-- Created `handleAEOProceed()` to save score and submit
-- Created `handleAEOCancel()` to close modal
-- Modified submit button to use `handleSubmit` instead of direct dispatch
-- Added modal rendering at end of `PageDetailDrawer`
+| Platform | File |
+|----------|------|
+| iOS | `ios-sdui/HSBCSDUI/Analytics/TealiumClient.swift` |
+| Android | `android-sdui/…/analytics/TealiumClient.kt` |
+| HarmonyOS NEXT | `harmonynext-sdui/…/network/SensorDataClient.ets` |
+| Web | `web-sdui/src/analytics/TealiumClient.ts` |
 
-### 5. Journey Builder Integration
-**File:** `/Users/Edward/workspace/DSPEcosystem/ocdp-console/src/components/deliver/JourneyBuilderPanel.tsx`
+HarmonyOS NEXT routes all analytics to SensorData (神策数据) rather than Tealium to satisfy China data residency requirements (PIPL).
 
-**Changes:**
-- Added imports for AEO assessment components
-- Added state management for AEO modal in `JourneyDetail` component
-- Created `handleSubmit()` function that:
-  - Checks if journey contains any Web Standard pages
-  - Calculates AEO score for first Web Standard page found
-  - Shows assessment modal before submission
-  - Falls back to direct submission for non-Web Standard journeys
-- Created `handleAEOProceed()` and `handleAEOCancel()` handlers
-- Modified submit button to use `handleSubmit`
-- Added modal rendering at end of `JourneyDetail`
+---
 
-### 6. Store Updates
-**File:** `/Users/Edward/workspace/DSPEcosystem/ocdp-console/src/store/OCDPStore.tsx`
+## 3. AEO/SEO Assessment Tool (OCDP Console)
 
-**Changes:**
-- Added new action type: `SAVE_AEO_SCORE`
-- Implemented reducer case for `SAVE_AEO_SCORE`:
-  - Removes existing score for same pageId + targetId combination
-  - Adds new score to `aeoScores` array
-  - Ensures scores are always up-to-date
+Integrated into the OCDP submission workflow for Web Standard channel pages and journeys.
 
-## User Flow
+### Files
 
-### For Web Standard Pages:
-1. User fills out page content with SEO metadata (title, description, slug)
-2. User clicks "Submit for Approval" button
-3. **System automatically calculates AEO/SEO score**
-4. **Assessment modal appears** showing:
-   - Overall grade (A-F) with color coding
-   - Score breakdown with recommendations
-   - Option to proceed or improve
-5. User can:
-   - **Submit Anyway**: Proceed with submission (score is saved)
-   - **Improve Content**: Return to editing
-   - **Cancel**: Close modal
-6. If submitted, score is saved to store for future reference
-7. Page moves to PENDING_APPROVAL status
+| File | Role |
+|------|------|
+| `ocdp-console/src/utils/aeoCalculator.ts` | 100-point scoring engine (SEO Metadata 40pt, Content Structure 30pt, Content Quality 20pt, Technical SEO 10pt) |
+| `ocdp-console/src/components/deliver/AEOAssessmentModal.tsx` | A–F grade modal with expandable recommendations and submit/improve/cancel actions |
+| `ocdp-console/src/components/deliver/PageLibraryPanel.tsx` | Modified: intercepts "Submit for Approval" for Web Standard pages |
+| `ocdp-console/src/components/deliver/JourneyBuilderPanel.tsx` | Modified: same interception for journeys containing Web Standard pages |
+| `ocdp-console/src/store/OCDPStore.tsx` | Modified: `SAVE_AEO_SCORE` action added |
 
-### For Non-Web Standard Pages:
-- Direct submission without assessment (existing behavior)
+### Grading Scale
 
-### For Journeys:
-- Same flow as pages, but checks all journey pages
-- If any page is Web Standard, shows assessment for that page
+| Grade | Score |
+|-------|-------|
+| A | 90–100 |
+| B | 80–89 |
+| C | 70–79 |
+| D | 60–69 |
+| F | 0–59 |
 
-## Key Features
+SDUI and WeChat channel pages bypass the assessment (no SEO relevance).
 
-### ✅ Automatic Assessment
-- No manual action required - triggers automatically on submission
-- Only for Web Standard channel (SDUI and WeChat channels skip assessment)
+---
 
-### ✅ Real-time Scoring
-- Calculates score based on current page content
-- Provides immediate feedback
+## 4. Bug Fixes Applied
 
-### ✅ Educational
-- Shows specific recommendations for improvement
-- Helps authors learn SEO best practices
-- Color-coded pass/fail indicators
+### HarmonyOS NEXT — ArkTS Compiler Errors (WealthPage.ets)
 
-### ✅ Non-blocking
-- Users can submit even with low scores
-- Provides guidance without forcing changes
-- Warning shown for D/F grades
+| Error | Root Cause | Fix |
+|-------|-----------|-----|
+| `arkts-no-any-unknown` (line 316) | `as ESObject[]` cast in `SDUIComboQuickAccess.tabs()` | Changed to `const raw: Array<string> = this.props['tabs'] as Array<string>` |
+| `arkts-no-any-unknown` (line 496) | Same pattern in `SDUIFeatureProduct.tabs()` | Same fix applied |
+| `arkts-no-any-unknown` (line 546) | `const tagsRaw = ... as ESObject[]` inside `Row{}` builder | Extracted to `fundTags(fund: ESObject): Array<string>` helper method |
+| `10905209` "Only UI component syntax can be written here" (line 546) | `const` declaration inside `build()` / UI builder block | Same extraction to helper method |
 
-### ��� Persistent Scores
-- Scores saved to store with timestamp
-- Available in AEO Panel for historical analysis
-- Linked to specific page + target combinations
+### Android — Conflicting Declarations (WealthPageScreen.kt)
 
-### ✅ Responsive UI
-- Clean, modern modal design
-- Expandable details section
-- Visual progress indicators
-- Consistent with OCDP design system
+| Error | Root Cause | Fix |
+|-------|-----------|-----|
+| `Conflicting declarations: val HsbcRed`, `White`, `N50`, `N100`, `N400`, `N500`, `N700`, `N900` | `WealthPageScreen.kt` declared `private val` colour tokens at package level; `WealthTokens.kt` in the same package already declared identical `internal val` tokens | Removed the duplicate 10-line colour block from `WealthPageScreen.kt`; all colour references now resolve from `WealthTokens.kt` |
 
-## Technical Details
+---
 
-### Type Safety
-- Full TypeScript support
-- Proper type definitions for `AEOScore`
-- Type-safe action dispatching
+## 5. Key Platform Constraints Documented
 
-### Performance
-- Lightweight calculation (runs in milliseconds)
-- No external API calls
-- Efficient scoring algorithm
-
-### Maintainability
-- Separated concerns (calculator, modal, integration)
-- Reusable components
-- Clear function naming and documentation
-
-### Build Status
-✅ TypeScript compilation: **PASSED**
-✅ Vite build: **PASSED** (447ms)
-
-## Files Created/Modified
-
-### Created:
-1. `/Users/Edward/workspace/DSPEcosystem/DESIGN_AEO_SEO_ASSESSMENT.md`
-2. `/Users/Edward/workspace/DSPEcosystem/ocdp-console/src/utils/aeoCalculator.ts`
-3. `/Users/Edward/workspace/DSPEcosystem/ocdp-console/src/components/deliver/AEOAssessmentModal.tsx`
-
-### Modified:
-1. `/Users/Edward/workspace/DSPEcosystem/ocdp-console/src/components/deliver/PageLibraryPanel.tsx`
-2. `/Users/Edward/workspace/DSPEcosystem/ocdp-console/src/components/deliver/JourneyBuilderPanel.tsx`
-3. `/Users/Edward/workspace/DSPEcosystem/ocdp-console/src/store/OCDPStore.tsx`
-
-## Testing Recommendations
-
-To test the implementation:
-
-1. **Start the OCDP console:**
-   ```bash
-   cd /Users/Edward/workspace/DSPEcosystem/ocdp-console
-   npm run dev
-   ```
-
-2. **Test Page Submission:**
-   - Navigate to Pages panel
-   - Open a Web Standard page (look for ��� Web Standard badge)
-   - Click "Submit for Approval" in the Approval tab
-   - Verify AEO assessment modal appears
-   - Check score calculation and recommendations
-   - Test all three buttons (Cancel, Improve, Submit)
-
-3. **Test Journey Submission:**
-   - Navigate to Journeys panel
-   - Open a journey with Web Standard pages
-   - Go to Approval tab
-   - Select release targets
-   - Click "Submit for Approval"
-   - Verify assessment modal appears
-
-4. **Test Score Variations:**
-   - Create pages with different SEO metadata completeness
-   - Verify scores change appropriately
-   - Check grade thresholds (A/B/C/D/F)
-
-5. **Verify Score Persistence:**
-   - Submit a page with assessment
-   - Navigate to Analyse > AEO/SEO Scores panel
-   - Verify the score appears in the list
-
-## Future Enhancements
-
-Potential improvements mentioned in the design:
-- Real-time score preview in page editor
-- Automated "Fix" buttons for common issues
-- Integration with external SEO tools
-- Competitive analysis features
-- A/B testing recommendations
-- Batch assessment for multiple pages
-
-## Conclusion
-
-The AEO/SEO assessment tool is now fully integrated into the OCDP submission workflow. It provides proactive quality control for Web Standard content while maintaining flexibility for authors to submit content at their discretion. The implementation is type-safe, performant, and follows OCDP design patterns.
+| Platform | Constraint |
+|----------|-----------|
+| ArkTS | `switch` statements forbidden inside `build()` / `@Builder`; use `if/else if` chains |
+| ArkTS | Variable declarations (`const`, `let`) forbidden inside UI builder blocks; extract to `private` helper methods |
+| ArkTS | `as ESObject[]` treated as `any[]` by compiler; use `as Array<T>` with explicit element type |
+| Kotlin | `private val` at file top-level and `internal val` in same package both become package-level declarations and conflict |
+| Tealium (iOS/Android/Web) | Overseas markets; `userId` SHA-256 hashed before event send |
+| SensorData (HarmonyNext) | China-resident endpoints; required for PIPL compliance on HarmonyOS NEXT |

@@ -40,9 +40,26 @@ export type SliceType =
   | 'MARKET_BRIEFING_TEXT'
   | 'VIDEO_PLAYER'
   | 'CONTACT_RM_CTA'
-  | 'DEPOSIT_RATE_TABLE'  // Time deposit interest rate table (rates only, no CTA)
-  | 'DEPOSIT_OPEN_CTA'   // Full-width "Open a Deposit" CTA button
-  | 'DEPOSIT_FAQ';        // Collapsible FAQ accordion for deposit products
+  | 'DEPOSIT_RATE_TABLE'
+  | 'DEPOSIT_OPEN_CTA'
+  | 'DEPOSIT_FAQ'
+  // Home Hub components (new design)
+  | 'HOME_SEARCH_HEADER'
+  | 'PREMIER_HEADER'
+  | 'ELITE_HEADER'
+  | 'ADVANCE_HEADER'
+  | 'MASS_HEADER'
+  | 'HOME_SEARCH_BAR'
+  | 'CONTENT_TAB_BAR'
+  | 'QUICK_ACCESS_GRID'
+  | 'COMBO_QUICK_ACCESS'
+  | 'CARD_ACTIVATION_BANNER'
+  | 'QUEST_BANNER'
+  | 'FEATURE_PRODUCT'
+  | 'WEALTH_STUDIO_CAROUSEL'
+  | 'GUIDES_INSIGHTS_CAROUSEL'
+  | 'FX_WATCHLIST'
+  | 'DISCOVER_MORE_CAROUSEL';
 
 export type SliceCategory = 'navigation' | 'promotion' | 'function' | 'wealth' | 'lifestyle' | 'layout' | 'insight';
 

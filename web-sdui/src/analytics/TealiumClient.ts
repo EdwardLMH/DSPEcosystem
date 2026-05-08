@@ -193,6 +193,33 @@ class TealiumWebClient {
     })
   }
 
+  wealthStudioTapped(episodeLabel: string, title: string, ctaLabel: string): void {
+    this.track({
+      tealium_event: 'wealth_studio_tap', event_category: 'Wealth',
+      event_action: 'wealth_studio_tapped', event_label: title,
+      screen_name: 'wealth_hub_hk', journey_name: 'wealth_hub',
+      episode_label: episodeLabel, cta_label: ctaLabel,
+    })
+  }
+
+  guidesTapped(title: string, articleId: string, deepLink: string): void {
+    this.track({
+      tealium_event: 'guides_tap', event_category: 'Wealth',
+      event_action: 'guides_tapped', event_label: title,
+      screen_name: 'wealth_hub_hk', journey_name: 'wealth_hub',
+      article_id: articleId, deep_link: deepLink,
+    })
+  }
+
+  discoverMoreTapped(tag: string, title: string, deepLink: string): void {
+    this.track({
+      tealium_event: 'discover_more_tap', event_category: 'Wealth',
+      event_action: 'discover_more_tapped', event_label: title,
+      screen_name: 'wealth_hub_hk', journey_name: 'wealth_hub',
+      campaign_tag: tag, deep_link: deepLink,
+    })
+  }
+
   // ── KYC Journey events ─────────────────────────────────────────────────────
 
   kycJourneyStarted(): void {

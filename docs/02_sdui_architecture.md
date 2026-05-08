@@ -388,25 +388,46 @@ interface Spacing {
 
 These are the canonical slice types managed in the UCP Console (`sliceDefinitions.ts`) and served by the BFF as `type` values in the SDUI JSON. They correspond 1:1 to the component registry entries in each client.
 
+#### `home-wealth-hk` — Home Hub (HK) Slices
+
+| # | SliceType | Category | Singleton | Description |
+|---|-----------|----------|-----------|-------------|
+| 1 | `HOME_SEARCH_HEADER` | navigation | yes | HSBC-red adaptive header (Premier/Jade/Advance/Mass) with integrated AI semantic search bar, notifications, and QR scanner |
+| 2 | `COMBO_QUICK_ACCESS` | function | yes | Scrollable tab strip (My pick / Invest / Global / HK Daily) + two 5-icon quick-access rows |
+| 3 | `CARD_ACTIVATION_BANNER` | promotion | no | Inline notification banner prompting card activation |
+| 4 | `QUEST_BANNER` | promotion | no | Getting-started quest progress card with HSBC hexagon icon |
+| 5 | `FEATURE_PRODUCT` | wealth | no | Tabbed fund list (Top-Performing / Thematic / All) showing fund name, code, and 1Y return |
+| 6 | `WEALTH_STUDIO_CAROUSEL` | wealth | no | Premier Elite Wealth Studio horizontal video episode carousel |
+| 7 | `GUIDES_INSIGHTS` | insight | no | Article card carousel — investment guides and market insights |
+| 8 | `FX_WATCHLIST` | wealth | no | Currency pair watchlist with Gold Forex Club tier badge (amber `#FFFBEB`/`#FDE68A` theme) and live bid/ask rates |
+| 9 | `DISCOVER_MORE` | promotion | no | Horizontal campaign card carousel — promotions and lifestyle offers |
+
+#### `fx-viewpoint-hk` — FX Viewpoint Slices
+
 | SliceType | Category | Singleton | Description |
 |-----------|----------|-----------|-------------|
-| `HEADER_NAV` | navigation | yes | Top bar with search, notification bell, QR scanner |
-| `AI_SEARCH_BAR` | navigation | yes | HSBC red semantic search bar with QR scan, chatbot, and message entry |
-| `QUICK_ACCESS` | function | yes | Row of primary product shortcuts (朝朝寶, 借錢, 轉帳) |
-| `PROMO_BANNER` | promotion | no | Full-width campaign banner with image, title, and CTA |
-| `FUNCTION_GRID` | function | yes | Icon grid of banking functions |
-| `AI_ASSISTANT` | function | no | Intelligent wealth assistant greeting bar |
-| `AD_BANNER` | promotion | no | Dismissible promotional banner |
-| `FLASH_LOAN` | wealth | no | Instant loan product card |
-| `WEALTH_SELECTION` | wealth | no | Featured wealth products (7-day yield) |
-| `FEATURED_RANKINGS` | wealth | no | Top-performing funds and product rankings |
-| `LIFE_DEALS` | lifestyle | no | Lifestyle merchant offers (KFC, Luckin, DQ) |
 | `VIDEO_PLAYER` | insight | no | Inline video player linked to a UCP content asset |
 | `MARKET_BRIEFING_TEXT` | insight | no | Bullet-point market briefing pulled from UCP content |
 | `CONTACT_RM_CTA` | insight | yes | Sticky full-width CTA to Relationship Manager finder |
-| `SPACER` | layout | no | Vertical spacing element |
 
-> **Implemented screens:** `home-wealth-hk` uses HEADER_NAV, AI_SEARCH_BAR, QUICK_ACCESS, PROMO_BANNER, FUNCTION_GRID, AI_ASSISTANT, AD_BANNER, FLASH_LOAN, WEALTH_SELECTION, FEATURED_RANKINGS, LIFE_DEALS. `fx-viewpoint-hk` uses VIDEO_PLAYER, MARKET_BRIEFING_TEXT, CONTACT_RM_CTA.
+#### Legacy / Retired UCP Slice Types
+
+The following slice types existed in earlier iterations but are **not used** by the current `home-wealth-hk` layout. They remain registered in the UCP component registry for backwards compatibility with older published pages.
+
+| SliceType | Category | Notes |
+|-----------|----------|-------|
+| `HEADER_NAV` | navigation | Replaced by `HOME_SEARCH_HEADER` |
+| `AI_SEARCH_BAR` | navigation | Merged into `HOME_SEARCH_HEADER` |
+| `QUICK_ACCESS` | function | Replaced by `COMBO_QUICK_ACCESS` |
+| `PROMO_BANNER` | promotion | Replaced by `CARD_ACTIVATION_BANNER` + `QUEST_BANNER` |
+| `FUNCTION_GRID` | function | Replaced by `COMBO_QUICK_ACCESS` tab rows |
+| `AI_ASSISTANT` | function | Deprecated |
+| `AD_BANNER` | promotion | Deprecated |
+| `FLASH_LOAN` | wealth | Deprecated |
+| `WEALTH_SELECTION` | wealth | Replaced by `FEATURE_PRODUCT` |
+| `FEATURED_RANKINGS` | wealth | Deprecated |
+| `LIFE_DEALS` | lifestyle | Replaced by `DISCOVER_MORE` |
+| `SPACER` | layout | Still available for use in custom pages |
 
 ### 5.2 Generic Layout & Content Component Types
 
@@ -599,7 +620,9 @@ struct SDUIRenderer {
 }
 ```
 
-Analytics on HarmonyOS NEXT routes to **SensorDataClient** (神策数据) rather than Tealium, to satisfy China data residency requirements. The `KYCNetworkService.ets` and `SensorDataClient.ets` share the same base URL configuration via `AppStorage`.
+Analytics on HarmonyOS NEXT routes to **SensorDataClient** (神策数据) rather than Tealium, to satisfy China data residency requirements (PIPL). The `KYCNetworkService.ets` and `SensorDataClient.ets` share the same base URL configuration via `AppStorage`.
+
+> **Note:** The code example above shows the old slice dispatcher. The current `WealthPage.ets` dispatches the 9 Home Hub slices (`HOME_SEARCH_HEADER`, `COMBO_QUICK_ACCESS`, `CARD_ACTIVATION_BANNER`, `QUEST_BANNER`, `FEATURE_PRODUCT`, `WEALTH_STUDIO_CAROUSEL`, `GUIDES_INSIGHTS`, `FX_WATCHLIST`, `DISCOVER_MORE`) using the same `if/else if` pattern. `switch` and `const`/`let` declarations are forbidden inside ArkTS `build()` blocks.
 
 ### 6.5 Action Handler Registry
 

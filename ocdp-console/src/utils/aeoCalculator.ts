@@ -198,8 +198,12 @@ export function getRecommendations(score: AEOScore): string[] {
 }
 
 /**
- * Check if a page should show AEO assessment (Web Standard channel only)
+ * Check if a page should show AEO/SEO assessment:
+ * - WEB_STANDARD channel + isPublic !== false
+ * - SDUI channel with 'web' native target selected + isPublic === true
  */
 export function shouldShowAEOAssessment(page: PageLayout): boolean {
-  return page.channel === 'WEB_STANDARD';
+  if (page.channel === 'WEB_STANDARD') return page.isPublic !== false;
+  if (page.channel === 'SDUI') return page.nativeTargets.includes('web') && page.isPublic === true;
+  return false;
 }

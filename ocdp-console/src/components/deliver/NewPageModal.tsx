@@ -44,6 +44,7 @@ export function NewPageModal() {
   const [webSlug,      setWebSlug]      = useState('');
   const [webTitle,     setWebTitle]     = useState('');
   const [webDesc,      setWebDesc]      = useState('');
+  const [isPublic,     setIsPublic]     = useState(false); // SDUI default is private; flips to true when WEB_STANDARD is selected
   // WeChat extra
   const [wcPageUrl,    setWcPageUrl]    = useState('');
   const [wcShareTitle, setWcShareTitle] = useState('');
@@ -60,8 +61,10 @@ export function NewPageModal() {
 
   function handleChannelChange(ch: Channel) {
     setChannel(ch);
-    // Reset native targets to all-on when switching to SDUI
-    if (ch === 'SDUI') setNativeTargets(['ios', 'android', 'harmonynext', 'web']);
+    // Reset native targets to all-on when switching to SDUI; reset isPublic to channel default
+    if (ch === 'SDUI') { setNativeTargets(['ios', 'android', 'harmonynext', 'web']); setIsPublic(false); }
+    if (ch === 'WEB_STANDARD') setIsPublic(true);
+    if (ch === 'WEB_WECHAT')   setIsPublic(false);
   }
 
   function handleCreate() {
@@ -82,7 +85,8 @@ export function NewPageModal() {
         releaseMarketIds: releaseIds.length ? releaseIds : [marketId],
         thumbnail: channel === 'SDUI' ? '📱' : channel === 'WEB_WECHAT' ? '💬' : '🌐',
         tags: [],
-        ...(channel === 'WEB_STANDARD' ? { webSlug, webMetaTitle: webTitle, webMetaDescription: webDesc } : {}),
+        ...(channel === 'WEB_STANDARD' ? { webSlug, webMetaTitle: webTitle, webMetaDescription: webDesc, isPublic } : {}),
+        ...(channel === 'SDUI' && nativeTargets.includes('web') ? { isPublic } : {}),
         ...(channel === 'WEB_WECHAT'   ? { wechatPageUrl: wcPageUrl, wechatShareTitle: wcShareTitle } : {}),
       },
     });
@@ -167,6 +171,35 @@ export function NewPageModal() {
                   <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 8 }}>
                     SDUI JSON will be delivered to all selected clients — iOS, Android, HarmonyNext native apps, and the Web SDUI renderer.
                   </div>
+
+                  {/* Web public toggle — only shown when web target is selected */}
+                  {nativeTargets.includes('web') && (
+                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #FDDCB5' }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#92400E', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+                        Web Visibility
+                      </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={() => setIsPublic(false)} style={{
+                          flex: 1, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
+                          border: !isPublic ? '2px solid #6B7280' : '2px solid #E5E7EB',
+                          background: !isPublic ? '#F3F4F6' : '#fff',
+                          transition: 'all 0.12s',
+                        }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: !isPublic ? '#374151' : '#9CA3AF' }}>🔒 Private</div>
+                          <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>Authenticated users only — no AEO/SEO assessment</div>
+                        </button>
+                        <button onClick={() => setIsPublic(true)} style={{
+                          flex: 1, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
+                          border: isPublic ? '2px solid #059669' : '2px solid #E5E7EB',
+                          background: isPublic ? '#D1FAE5' : '#fff',
+                          transition: 'all 0.12s',
+                        }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: isPublic ? '#059669' : '#9CA3AF' }}>🌐 Public</div>
+                          <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>Indexed by search engines — AEO/SEO assessed on submit</div>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -196,6 +229,29 @@ export function NewPageModal() {
               {channel === 'WEB_STANDARD' && (
                 <div style={{ padding: 14, background: '#F9FAFB', borderRadius: 10, display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Web Standard — SEO</div>
+
+                  {/* Public / Private toggle */}
+                  <div>
+                    <label style={labelStyle}>Page Visibility</label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {([true, false] as const).map(val => (
+                        <button key={String(val)} onClick={() => setIsPublic(val)} style={{
+                          flex: 1, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
+                          border: isPublic === val ? `2px solid ${val ? '#059669' : '#6B7280'}` : '2px solid #E5E7EB',
+                          background: isPublic === val ? (val ? '#D1FAE5' : '#F3F4F6') : '#fff',
+                          transition: 'all 0.12s',
+                        }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: isPublic === val ? (val ? '#059669' : '#374151') : '#9CA3AF' }}>
+                            {val ? '🌐 Public' : '🔒 Private'}
+                          </div>
+                          <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>
+                            {val ? 'Indexed by search engines — AEO/SEO assessed' : 'Authenticated users only — no AEO/SEO assessment'}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div>
                     <label style={labelStyle}>URL Slug</label>
                     <input value={webSlug} onChange={e => setWebSlug(e.target.value)} placeholder="/credit-cards/visa-platinum" style={inputStyle} />

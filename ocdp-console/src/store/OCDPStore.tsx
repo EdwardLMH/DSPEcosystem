@@ -2,14 +2,14 @@ import React, { createContext, useContext, useReducer } from 'react';
 import type {
   StaffUser, NavView, Persona, Market, ReleaseTarget, BizLine, AdGroup,
   ApprovalFlow, WeChatServiceAccount, WeChatMessageTemplate,
-  PageLayout, WorkflowEntry, AuditEntry, PageMarketStatus, AEOScore, PageUsageStat,
+  PageLayout, WorkflowEntry, AuditEntry, PageMarketStatus, AEOScore, PageUsageStat, JourneyUsageStat,
   Channel, AuthoringStatus, BizLineId, CampaignSchedule, CanvasSlice,
   CustomerSegment, VisibilityRule, PreviewContext,
 } from '../types/ocdp';
 export type { CustomerSegment, VisibilityRule, PreviewContext };
 import {
   MOCK_USERS, ALL_PAGES, MOCK_WORKFLOW, MOCK_AUDIT, MOCK_MARKET_STATUS,
-  MOCK_AEO_SCORES, MOCK_USAGE_STATS, MOCK_JOURNEYS, MOCK_JOURNEY_PAGES, MOCK_JOURNEY_PAGES_WEB,
+  MOCK_AEO_SCORES, MOCK_USAGE_STATS, MOCK_JOURNEY_STATS, MOCK_JOURNEYS, MOCK_JOURNEY_PAGES, MOCK_JOURNEY_PAGES_WEB,
   MARKETS, RELEASE_TARGETS, BIZ_LINES, AD_GROUPS, APPROVAL_FLOWS,
   WECHAT_ACCOUNTS, WECHAT_TEMPLATES,
 } from './mockData';
@@ -42,6 +42,7 @@ export interface OCDPState {
   marketStatus: PageMarketStatus[];
   aeoScores: AEOScore[];
   usageStats: PageUsageStat[];
+  journeyStats: JourneyUsageStat[];
   audit: AuditEntry[];
 
   showNewPageModal: boolean;
@@ -136,7 +137,8 @@ type Action =
   // Rule engine
   | { type: 'SET_PREVIEW_CONTEXT'; context: PreviewContext | null }
   | { type: 'SET_SLICE_RULE';      pageId: string; instanceId: string; rule: VisibilityRule | undefined }
-  | { type: 'SET_JOURNEY_SLICE_RULE'; pageId: string; instanceId: string; rule: VisibilityRule | undefined };
+  | { type: 'SET_JOURNEY_SLICE_RULE'; pageId: string; instanceId: string; rule: VisibilityRule | undefined }
+  | { type: 'SET_STEP_RULE'; journeyId: string; stepId: string; rule: VisibilityRule | undefined };
 
 // ─── Reducer ──────────────────────────────────────────────────────────────────
 
@@ -292,8 +294,20 @@ function reducer(state: OCDPState, action: Action): OCDPState {
         slices: [],
       };
       const journeyPage: JourneyPage = { journeyId: action.journeyId, stepIndex: action.stepIndex, page: newPage };
+      const newStep: JourneyStep = {
+        stepId: newPage.pageId,
+        label: action.page.name,
+        description: action.page.description ?? `Step ${action.stepIndex + 1}`,
+        screenType: action.page.pageType,
+        icon: action.page.thumbnail ?? '📄',
+      };
       return {
         ...state,
+        journeys: state.journeys.map(j =>
+          j.journeyId === action.journeyId
+            ? { ...j, steps: [...j.steps, newStep] }
+            : j
+        ),
         journeyPages: [...state.journeyPages, journeyPage],
         editorPageId: newPage.pageId,
         editorReturnView: 'journeys',
@@ -315,12 +329,21 @@ function reducer(state: OCDPState, action: Action): OCDPState {
       };
     }
 
-    case 'REMOVE_JOURNEY_PAGE':
+    case 'REMOVE_JOURNEY_PAGE': {
+      const removedJP = state.journeyPages.find(jp => jp.page.pageId === action.pageId);
       return {
         ...state,
         journeyPages: state.journeyPages.filter(jp => jp.page.pageId !== action.pageId),
+        journeys: removedJP
+          ? state.journeys.map(j =>
+              j.journeyId === removedJP.journeyId
+                ? { ...j, steps: j.steps.filter(s => s.stepId !== action.pageId) }
+                : j
+            )
+          : state.journeys,
         editorPageId: state.editorPageId === action.pageId ? null : state.editorPageId,
       };
+    }
 
     case 'ADD_JOURNEY_PAGE_SLICE': {
       const newSlice: CanvasSlice = { ...action.slice, instanceId: `slice-${v4().slice(0, 8)}` };
@@ -617,6 +640,16 @@ function reducer(state: OCDPState, action: Action): OCDPState {
         ),
       };
 
+    case 'SET_STEP_RULE':
+      return {
+        ...state,
+        journeys: state.journeys.map(j =>
+          j.journeyId === action.journeyId
+            ? { ...j, steps: j.steps.map(s => s.stepId === action.stepId ? { ...s, visibilityRule: action.rule } : s) }
+            : j
+        ),
+      };
+
     default: return state;
   }
 }
@@ -647,6 +680,7 @@ export function OCDPProvider({ children }: { children: React.ReactNode }) {
     marketStatus: MOCK_MARKET_STATUS,
     aeoScores: MOCK_AEO_SCORES,
     usageStats: MOCK_USAGE_STATS,
+    journeyStats: MOCK_JOURNEY_STATS,
     audit: MOCK_AUDIT,
     showNewPageModal: false,
     showNewJourneyModal: false,

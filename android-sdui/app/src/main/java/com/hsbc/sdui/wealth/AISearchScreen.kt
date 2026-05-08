@@ -181,18 +181,18 @@ fun AISearchScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize().background(N50)) {
-        // ── Search bar ────────────────────────────────────────────────────────
+        // ── Search bar — red background with white pill ────────────────────────
         Row(
-            modifier = Modifier.fillMaxWidth().background(White)
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth().background(HsbcRed)
+                .padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(N100)
+                    .background(White)
                     .padding(horizontal = 12.dp, vertical = 2.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -237,11 +237,11 @@ fun AISearchScreen(
                     "search_cancelled", screen = "ai_search", journey = "wealth_hub")
                 onDismiss()
             }) {
-                Text("取消", fontSize = 14.sp, color = HsbcRed)
+                Text("取消", fontSize = 14.sp, color = White)
             }
         }
 
-        Divider(color = N100)
+        Divider(color = Color(0xFFE5E5E5))
 
         // ── Body ──────────────────────────────────────────────────────────────
         LazyColumn(

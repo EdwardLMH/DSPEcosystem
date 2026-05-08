@@ -648,7 +648,7 @@ function QRScanIcon({ color, size }: { color: string; size: number }) {
 
 // ─── Slice content renderer ────────────────────────────────────────────────────
 
-function SliceRow({ type, props }: { type: string; props?: Record<string, unknown> }) {
+function SliceRow({ type, props, segment }: { type: string; props?: Record<string, unknown>; segment?: string }) {
   const KYCScreen = KYC_SCREENS[type];
   if (KYCScreen) {
     return (
@@ -915,6 +915,407 @@ function SliceRow({ type, props }: { type: string; props?: Record<string, unknow
     );
   }
 
+  if (type === 'HOME_SEARCH_HEADER') {
+    const segConfig: Record<string, { bg: string; label: string }> = {
+      premier: { bg: String(p.premierBg ?? '#DB0011'), label: String(p.premierLabel ?? 'HSBC Premier') },
+      elite:   { bg: String(p.eliteBg   ?? '#0D5C3A'), label: String(p.eliteLabel   ?? 'HSBC Elite') },
+      advance: { bg: String(p.advanceBg ?? '#D4580A'), label: String(p.advanceLabel ?? 'HSBC One') },
+      mass:    { bg: String(p.massBg    ?? '#4B5563'), label: String(p.massLabel    ?? 'HSBC Personal Banking') },
+    };
+    const { bg, label: segLabel } = segConfig[segment ?? 'premier'] ?? segConfig.premier;
+    const accent = 'rgba(255,255,255,0.9)';
+    return (
+      <div style={{ flexShrink: 0, background: bg, padding: '10px 14px 10px' }}>
+        {/* Header row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <div style={{ width: 22, height: 22, background: 'rgba(255,255,255,0.25)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ color: accent, fontSize: 10, fontWeight: 900 }}>H</span>
+          </div>
+          <span style={{ color: accent, fontSize: 11, fontWeight: 700, flex: 1 }}>{segLabel}</span>
+          {p.enableNotification && <span style={{ color: accent, fontSize: 14 }}>🔔</span>}
+          {p.enableHeadset      && <span style={{ color: accent, fontSize: 13 }}>🎧</span>}
+        </div>
+        {/* White search bar — full width, no arc */}
+        <div style={{ background: '#fff', borderRadius: 0, padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 11, color: '#9CA3AF', flexShrink: 0 }}>🔍</span>
+          <span style={{ fontSize: 9, color: '#9CA3AF', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {String(p.placeholder ?? 'Search functions, products & content')}
+          </span>
+          {p.enableSemanticSearch !== false && (
+            <span style={{ fontSize: 8, color: '#fff', fontWeight: 700, flexShrink: 0, background: '#DB0011', borderRadius: 4, padding: '1px 4px' }}>AI</span>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'PREMIER_HEADER') {
+    return (
+      <div style={{ background: '#DB0011', padding: '10px 14px 8px', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
+          <div style={{ width: 22, height: 22, background: 'rgba(255,255,255,0.25)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ color: '#fff', fontSize: 10, fontWeight: 900 }}>H</span>
+          </div>
+          <span style={{ color: '#fff', fontSize: 11, fontWeight: 700 }}>{String(p.brandLabel ?? 'HSBC Premier')}</span>
+        </div>
+        {p.enableNotification && <span style={{ color: '#fff', fontSize: 14 }}>🔔</span>}
+        {p.enableHeadset && <span style={{ color: '#fff', fontSize: 13 }}>🎧</span>}
+      </div>
+    );
+  }
+
+  if (type === 'HOME_SEARCH_BAR') {
+    return (
+      <div style={{ background: '#fff', padding: '6px 10px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {p.enableQRScan !== false && (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/>
+            </svg>
+          )}
+          <div style={{ flex: 1, background: '#F5F5F5', borderRadius: 18, padding: '5px 10px', display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
+            <span style={{ fontSize: 11, color: '#9CA3AF', flexShrink: 0 }}>🔍</span>
+            <span style={{ fontSize: 9, color: '#9CA3AF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+              {String(p.placeholder ?? 'Search functions, products & content')}
+            </span>
+            {p.enableSemanticSearch !== false && (
+              <span style={{ fontSize: 8, color: '#DB0011', fontWeight: 700, flexShrink: 0 }}>AI</span>
+            )}
+          </div>
+          {p.enableChatbot !== false && (
+            <span style={{ fontSize: 14, lineHeight: 1, flexShrink: 0 }}>🤖</span>
+          )}
+          {p.enableMessageInbox !== false && (
+            <span style={{ fontSize: 14, lineHeight: 1, flexShrink: 0 }}>✉️</span>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'COMBO_QUICK_ACCESS') {
+    const tabs = Array.isArray(p.tabs) ? p.tabs as { id: string; label: string; active: boolean }[] : [];
+    const row1 = Array.isArray(p.row1Items) ? p.row1Items as { id: string; icon: string; label: string }[] : [];
+    const row2 = Array.isArray(p.row2Items) ? p.row2Items as { id: string; icon: string; label: string }[] : [];
+    const iconMap: Record<string, string> = {
+      account: '👤', transfer: '🌐', fx: '💱', stock: '📈', deposit: '⏰',
+      holding: '📊', safe: '💰', fps: '↔️', scan: '📷', all: '⊞',
+    };
+    const defaultRow1 = [
+      { id: 'qa-1', icon: 'account',  label: 'Account overview' },
+      { id: 'qa-2', icon: 'transfer', label: 'Transfer Globally' },
+      { id: 'qa-3', icon: 'fx',       label: 'Foreign exchange' },
+      { id: 'qa-4', icon: 'stock',    label: 'Trade stock' },
+      { id: 'qa-5', icon: 'deposit',  label: 'Time deposit' },
+    ];
+    const defaultRow2 = [
+      { id: 'qa-6',  icon: 'holding', label: 'My holding details' },
+      { id: 'qa-7',  icon: 'safe',    label: 'Money safe' },
+      { id: 'qa-8',  icon: 'fps',     label: 'Local transfer/FPS' },
+      { id: 'qa-9',  icon: 'scan',    label: 'Scan to pay' },
+      { id: 'qa-10', icon: 'all',     label: 'All product & services' },
+    ];
+    const r1 = row1.length > 0 ? row1 : defaultRow1;
+    const r2 = row2.length > 0 ? row2 : defaultRow2;
+    return (
+      <div style={{ background: '#fff', flexShrink: 0 }}>
+        {/* Tab bar */}
+        <div style={{ padding: '6px 12px 0', display: 'flex', gap: 6, borderBottom: '1px solid #F3F4F6' }}>
+          {(tabs.length > 0 ? tabs : [
+            { id: 'my-pick', label: 'My pick', active: true },
+            { id: 'invest',  label: 'Invest',  active: false },
+            { id: 'global',  label: 'Global',  active: false },
+            { id: 'hk-daily',label: 'HK Daily',active: false },
+          ]).map(tab => (
+            <div key={tab.id} style={{
+              padding: '4px 10px', borderRadius: 16, fontSize: 9, fontWeight: tab.active ? 700 : 400,
+              background: tab.active ? '#000' : 'transparent',
+              color: tab.active ? '#fff' : '#6B7280', marginBottom: 4,
+            }}>{tab.label}</div>
+          ))}
+        </div>
+        {/* Row 1 */}
+        <div style={{ padding: '8px 6px 0', display: 'flex', justifyContent: 'space-around' }}>
+          {r1.map(item => (
+            <div key={item.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, width: 36 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: '#F5F5F5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
+                {iconMap[item.icon] ?? item.icon ?? '⬜'}
+              </div>
+              <span style={{ fontSize: 7, color: '#374151', textAlign: 'center', lineHeight: 1.2 }}>{item.label}</span>
+            </div>
+          ))}
+        </div>
+        {/* Row 2 */}
+        <div style={{ padding: '6px 6px 8px', display: 'flex', justifyContent: 'space-around' }}>
+          {r2.map(item => (
+            <div key={item.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, width: 36 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: '#F5F5F5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
+                {iconMap[item.icon] ?? item.icon ?? '⬜'}
+              </div>
+              <span style={{ fontSize: 7, color: '#374151', textAlign: 'center', lineHeight: 1.2 }}>{item.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'CONTENT_TAB_BAR') {
+    const tabs = Array.isArray(p.tabs) ? p.tabs as { id: string; label: string; active: boolean }[] : [];
+    return (
+      <div style={{ background: '#fff', padding: '6px 12px 0', display: 'flex', gap: 6, flexShrink: 0, borderBottom: '1px solid #F3F4F6' }}>
+        {tabs.map(tab => (
+          <div key={tab.id} style={{
+            padding: '4px 10px', borderRadius: 16, fontSize: 9, fontWeight: tab.active ? 700 : 400,
+            background: tab.active ? '#000' : 'transparent',
+            color: tab.active ? '#fff' : '#6B7280',
+            whiteSpace: 'nowrap' as const,
+            marginBottom: 4,
+          }}>
+            {tab.label}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (type === 'QUICK_ACCESS_GRID') {
+    const items = Array.isArray(p.items) ? p.items as { id: string; icon: string; label: string }[] : [];
+    const iconMap: Record<string, string> = {
+      account: '👤', transfer: '🌐', fx: '💱', stock: '📈', deposit: '⏰',
+      holding: '📊', safe: '💰', fps: '↔️', scan: '📷', all: '⊞',
+    };
+    return (
+      <div style={{ background: '#fff', padding: '8px 6px', display: 'flex', justifyContent: 'space-around', flexShrink: 0 }}>
+        {items.map(item => (
+          <div key={item.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, width: 36 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: '#F5F5F5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
+              {iconMap[item.icon] ?? '⬜'}
+            </div>
+            <span style={{ fontSize: 7, color: '#374151', textAlign: 'center', lineHeight: 1.2 }}>{item.label}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (type === 'CARD_ACTIVATION_BANNER') {
+    return (
+      <div style={{ background: '#fff', margin: '4px 10px', borderRadius: 8, border: '1px solid #E5E7EB', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        <span style={{ fontSize: 14 }}>🔔</span>
+        <span style={{ flex: 1, fontSize: 9, color: '#374151' }}>{String(p.message ?? 'Your card needs to be activated')}</span>
+        <span style={{ fontSize: 12, color: '#9CA3AF' }}>›</span>
+        <span style={{ fontSize: 12, color: '#9CA3AF' }}>🔔</span>
+      </div>
+    );
+  }
+
+  if (type === 'QUEST_BANNER') {
+    return (
+      <div style={{ background: '#fff', margin: '4px 10px', borderRadius: 8, border: '1px solid #E5E7EB', borderLeft: '4px solid #DB0011', padding: '10px 12px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
+          <div style={{ width: 26, height: 26, background: '#DB0011', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <span style={{ color: '#fff', fontSize: 10, fontWeight: 900 }}>H</span>
+          </div>
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#111', marginBottom: 2 }}>{String(p.title ?? 'Getting started')}</div>
+            <div style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.3 }}>{String(p.description ?? '')}</div>
+          </div>
+        </div>
+        <div style={{ color: '#DB0011', fontSize: 9, fontWeight: 700 }}>{String(p.ctaLabel ?? 'Check out all quests')}</div>
+      </div>
+    );
+  }
+
+  if (type === 'FEATURE_PRODUCT') {
+    const funds = Array.isArray(p.funds) ? p.funds as { id: string; name: string; code: string; returnLabel: string; returnValue: string; returnPositive: boolean; tags: string[] }[] : [];
+    const tabs = Array.isArray(p.tabs) ? p.tabs as string[] : [];
+    return (
+      <div style={{ background: '#fff', padding: '10px 0', flexShrink: 0 }}>
+        <div style={{ padding: '0 12px', fontWeight: 700, fontSize: 11, color: '#111', marginBottom: 8 }}>{String(p.sectionTitle ?? 'Feature product')}</div>
+        <div style={{ padding: '0 10px', display: 'flex', gap: 6, marginBottom: 8, overflowX: 'auto' as const }}>
+          {tabs.map((tab, i) => (
+            <div key={i} style={{
+              padding: '4px 10px', borderRadius: 16, fontSize: 8, fontWeight: tab === String(p.activeTab) ? 700 : 400, whiteSpace: 'nowrap' as const,
+              background: tab === String(p.activeTab) ? '#fff' : 'transparent',
+              color: tab === String(p.activeTab) ? '#111' : '#9CA3AF',
+              border: tab === String(p.activeTab) ? '1px solid #E5E7EB' : '1px solid transparent',
+              boxShadow: tab === String(p.activeTab) ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+            }}>
+              {tab}
+            </div>
+          ))}
+        </div>
+        <div>
+          {funds.map((fund, i) => (
+            <div key={fund.id} style={{ padding: '7px 12px', borderBottom: i < funds.length - 1 ? '1px solid #F3F4F6' : 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 8, color: '#111', lineHeight: 1.3, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{fund.name}</div>
+                <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                  <span style={{ fontSize: 7, color: '#9CA3AF' }}>{fund.code}</span>
+                  {fund.tags.map(tag => (
+                    <span key={tag} style={{ fontSize: 6, padding: '1px 4px', borderRadius: 3, background: '#F0FDF4', color: '#059669', border: '1px solid #D1FAE5' }}>{tag}</span>
+                  ))}
+                </div>
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <div style={{ fontSize: 7, color: '#9CA3AF', marginBottom: 1 }}>{fund.returnLabel}</div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: fund.returnPositive ? '#DC2626' : '#059669' }}>{fund.returnValue}</div>
+              </div>
+              <span style={{ color: '#9CA3AF', fontSize: 12, flexShrink: 0 }}>⋮</span>
+            </div>
+          ))}
+        </div>
+        {p.moreLabel && (
+          <div style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: 8, color: '#374151' }}>{String(p.moreLabel)}</span>
+            <span style={{ fontSize: 10, color: '#9CA3AF' }}>›</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (type === 'WEALTH_STUDIO_CAROUSEL') {
+    const items = Array.isArray(p.items) ? p.items as { id: string; episodeLabel: string; liveBadge: string; title: string; ctaLabel: string; imageColor: string }[] : [];
+    return (
+      <div style={{ background: '#F9FAFB', padding: '10px 0', flexShrink: 0 }}>
+        <div style={{ padding: '0 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <span style={{ fontWeight: 700, fontSize: 11, color: '#111' }}>{String(p.sectionTitle ?? 'Premier Elite Wealth Studio')}</span>
+          <span style={{ fontSize: 8, color: '#DB0011', fontWeight: 600 }}>{String(p.moreLabel ?? 'View all')} ›</span>
+        </div>
+        <div style={{ padding: '0 12px', display: 'flex', gap: 8, overflowX: 'auto' as const }}>
+          {items.map(item => (
+            <div key={item.id} style={{ width: 120, flexShrink: 0, borderRadius: 8, overflow: 'hidden', background: item.imageColor, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
+              <div style={{ padding: '6px 8px' }}>
+                <div style={{ background: '#DB0011', display: 'inline-block', padding: '1px 5px', borderRadius: 3, fontSize: 7, color: '#fff', fontWeight: 700, marginBottom: 4 }}>{item.liveBadge}</div>
+                <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)', marginBottom: 3 }}>{item.episodeLabel}</div>
+                <div style={{ fontSize: 9, fontWeight: 700, color: '#fff', lineHeight: 1.3, marginBottom: 16 }}>{item.title}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                  <div style={{ width: 14, height: 14, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ color: '#fff', fontSize: 6, marginLeft: 1 }}>▶</span>
+                  </div>
+                  <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.85)' }}>{item.ctaLabel}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 3, marginTop: 8 }}>
+          {items.map((_, i) => (
+            <div key={i} style={{ width: i === 0 ? 14 : 5, height: 4, borderRadius: 2, background: i === 0 ? '#111' : '#D1D5DB' }} />
+          ))}
+          {Array.from({ length: Math.max(0, 5 - items.length) }).map((_, i) => (
+            <div key={`dot-${i}`} style={{ width: 5, height: 4, borderRadius: 2, background: '#D1D5DB' }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'GUIDES_INSIGHTS_CAROUSEL') {
+    const items = Array.isArray(p.items) ? p.items as { id: string; title: string; date: string; imageColor: string }[] : [];
+    return (
+      <div style={{ background: '#fff', padding: '10px 0', flexShrink: 0 }}>
+        <div style={{ padding: '0 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <span style={{ fontWeight: 700, fontSize: 11, color: '#111' }}>{String(p.sectionTitle ?? 'Guides and insights')}</span>
+          <span style={{ fontSize: 8, color: '#DB0011', fontWeight: 600 }}>{String(p.moreLabel ?? 'View all')} ›</span>
+        </div>
+        <div style={{ padding: '0 12px', display: 'flex', gap: 8 }}>
+          {items.map(item => (
+            <div key={item.id} style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ height: 60, background: item.imageColor, borderRadius: 6, marginBottom: 5 }} />
+              <div style={{ fontSize: 8, color: '#111', lineHeight: 1.3, marginBottom: 3 }}>{item.title}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                <span style={{ fontSize: 7, color: '#9CA3AF' }}>🕐</span>
+                <span style={{ fontSize: 7, color: '#9CA3AF' }}>{item.date}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 3, marginTop: 8 }}>
+          {[0,1,2,3,4].map(i => (
+            <div key={i} style={{ width: i === 0 ? 14 : 5, height: 4, borderRadius: 2, background: i === 0 ? '#111' : '#D1D5DB' }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'FX_WATCHLIST') {
+    const pairs = Array.isArray(p.pairs) ? p.pairs as { id: string; pair: string; sellLabel: string; sellRate: string; buyLabel: string; buyRate: string }[] : [];
+    return (
+      <div style={{ background: '#fff', padding: '10px 0', flexShrink: 0 }}>
+        <div style={{ padding: '0 12px', fontWeight: 700, fontSize: 11, color: '#111', marginBottom: 8 }}>{String(p.sectionTitle ?? 'FX watchlist')}</div>
+        {p.tierBadge && (
+          <div style={{ margin: '0 12px 8px', background: '#FFFBEB', borderRadius: 8, padding: '8px 10px', display: 'flex', alignItems: 'flex-start', gap: 8, border: '1px solid #FDE68A' }}>
+            <span style={{ fontSize: 18, flexShrink: 0 }}>🏅</span>
+            <div>
+              <div style={{ fontSize: 9, fontWeight: 700, color: '#92400E', marginBottom: 2 }}>{String(p.tierBadge)}</div>
+              <div style={{ fontSize: 8, color: '#B45309' }}>{String(p.tierDescription ?? '')}</div>
+            </div>
+          </div>
+        )}
+        <div style={{ padding: '0 12px' }}>
+          {pairs.map((pair, i) => (
+            <div key={pair.id} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '7px 0', borderBottom: i < pairs.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
+              <span style={{ fontSize: 9, color: '#6B7280', width: 20 }}>📈</span>
+              <span style={{ fontSize: 9, fontWeight: 700, color: '#111', width: 52 }}>{pair.pair}</span>
+              <div style={{ flex: 1, display: 'flex', gap: 6 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 7, color: '#9CA3AF', marginBottom: 1 }}>{pair.sellLabel}</div>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: '#111' }}>{pair.sellRate}</div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 7, color: '#9CA3AF', marginBottom: 1 }}>{pair.buyLabel}</div>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: '#111' }}>{pair.buyRate}</div>
+                </div>
+              </div>
+              <span style={{ color: '#9CA3AF', fontSize: 12 }}>⋮</span>
+            </div>
+          ))}
+        </div>
+        {p.moreLabel && (
+          <div style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: 8, color: '#374151' }}>{String(p.moreLabel)}</span>
+            <span style={{ fontSize: 10, color: '#9CA3AF' }}>›</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (type === 'DISCOVER_MORE_CAROUSEL') {
+    const items = Array.isArray(p.items) ? p.items as { id: string; tag: string; tagColor: string; title: string; subtitle: string; imageColor: string }[] : [];
+    return (
+      <div style={{ background: '#F9FAFB', padding: '10px 0', flexShrink: 0 }}>
+        <div style={{ padding: '0 12px', fontWeight: 700, fontSize: 11, color: '#111', marginBottom: 8 }}>{String(p.sectionTitle ?? 'Discover more')}</div>
+        <div style={{ padding: '0 12px', display: 'flex', gap: 8, overflowX: 'auto' as const }}>
+          {items.map(item => (
+            <div key={item.id} style={{ width: 110, flexShrink: 0, borderRadius: 8, overflow: 'hidden', background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.08)' }}>
+              <div style={{ height: 64, background: item.imageColor, position: 'relative' }}>
+                <div style={{ position: 'absolute', top: 6, left: 6, background: item.tagColor, borderRadius: 3, padding: '1px 5px', fontSize: 7, color: '#fff', fontWeight: 700 }}>{item.tag}</div>
+                <div style={{ position: 'absolute', top: 4, right: 4, width: 16, height: 16, background: 'rgba(255,255,255,0.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ color: '#fff', fontSize: 8 }}>⋮</span>
+                </div>
+              </div>
+              <div style={{ padding: '6px 8px 8px' }}>
+                <div style={{ fontSize: 8, fontWeight: 600, color: '#111', lineHeight: 1.3, marginBottom: 2 }}>{item.title}</div>
+                {item.subtitle && <div style={{ fontSize: 7, color: '#9CA3AF', lineHeight: 1.3 }}>{item.subtitle}</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 3, marginTop: 8 }}>
+          {[0,1,2,3].map(i => (
+            <div key={i} style={{ width: i === 0 ? 14 : 5, height: 4, borderRadius: 2, background: i === 0 ? '#111' : '#D1D5DB' }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   if (type === 'DEPOSIT_FAQ') {
     const faqs = Array.isArray(p.items) ? p.items as { id: string; question: string; answer: string }[] : [];
     return (
@@ -964,7 +1365,7 @@ function Notch({ style, statusColor }: { style: DeviceSpec['notchStyle']; status
 
 // ─── Phone frame ─────────────────────────────────────────────────────────────
 
-function PhoneFrame({ device, slices }: { device: DeviceSpec; slices: CanvasSlice[] }) {
+function PhoneFrame({ device, slices, segment }: { device: DeviceSpec; slices: CanvasSlice[]; segment?: string }) {
   const visibleSlices = slices.filter(s => s.visible);
   return (
     <div style={{
@@ -1000,9 +1401,28 @@ function PhoneFrame({ device, slices }: { device: DeviceSpec; slices: CanvasSlic
           {visibleSlices.length === 0 ? (
             <div style={{ textAlign: 'center', paddingTop: 40, color: '#9CA3AF', fontSize: 9 }}>No components added</div>
           ) : (
-            visibleSlices.map(s => <SliceRow key={s.instanceId} type={s.type} props={s.props as Record<string, unknown>} />)
+            visibleSlices.map(s => <SliceRow key={s.instanceId} type={s.type} props={s.props as Record<string, unknown>} segment={segment} />)
           )}
         </div>
+
+        {/* Bottom tab navigation — shown for WEALTH_HUB pages */}
+        {slices.some(s => ['HOME_SEARCH_HEADER', 'PREMIER_HEADER', 'ELITE_HEADER', 'ADVANCE_HEADER', 'MASS_HEADER', 'HOME_SEARCH_BAR', 'CONTENT_TAB_BAR', 'COMBO_QUICK_ACCESS'].includes(s.type)) && (
+          <div style={{ background: '#fff', borderTop: '1px solid #E5E7EB', padding: '4px 0 2px', display: 'flex', justifyContent: 'space-around', flexShrink: 0 }}>
+            {[
+              { icon: '🏠', label: 'Home',         active: true },
+              { icon: '🌐', label: 'Cross-border',  active: false },
+              { icon: '💎', label: 'Wealth',        active: false },
+              { icon: '🔍', label: 'Discover',      active: false },
+              { icon: '👤', label: 'Me',            active: false },
+            ].map(tab => (
+              <div key={tab.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, paddingBottom: 2 }}>
+                <span style={{ fontSize: 13 }}>{tab.icon}</span>
+                <span style={{ fontSize: 7, fontWeight: tab.active ? 700 : 400, color: tab.active ? '#DB0011' : '#9CA3AF' }}>{tab.label}</span>
+                {tab.active && <div style={{ width: 16, height: 2, background: '#DB0011', borderRadius: 1 }} />}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Bottom home indicator */}
         <div style={{ background: device.statusBar === '#000' ? '#000' : '#fff', height: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -1204,6 +1624,15 @@ export function DevicePreview({ channel, slices, pageName, description, webSlug 
     if (channel === 'WEB_STANDARD') return 'web';
     return 'wechat_browser';
   });
+  const [previewSegment, setPreviewSegment] = useState('premier');
+  const hasSearchHeader = slices.some(s => s.type === 'HOME_SEARCH_HEADER');
+
+  const SEGMENT_OPTIONS = [
+    { value: 'premier', label: 'Premier', color: '#DB0011' },
+    { value: 'elite',   label: 'Elite',   color: '#0D5C3A' },
+    { value: 'advance', label: 'Advance', color: '#D4580A' },
+    { value: 'mass',    label: 'Mass',    color: '#4B5563' },
+  ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -1254,11 +1683,31 @@ export function DevicePreview({ channel, slices, pageName, description, webSlug 
         </div>
       )}
 
+      {/* Segment picker — only shown when page has HOME_SEARCH_HEADER */}
+      {hasSearchHeader && channel === 'SDUI' && (
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Segment Preview</div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {SEGMENT_OPTIONS.map(seg => (
+              <button key={seg.value} onClick={() => setPreviewSegment(seg.value)} style={{
+                padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                background: previewSegment === seg.value ? seg.color : '#F3F4F6',
+                color: previewSegment === seg.value ? '#fff' : '#374151',
+                border: previewSegment === seg.value ? `1px solid ${seg.color}` : '1px solid #E5E7EB',
+                transition: 'all 0.12s',
+              }}>
+                {seg.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Render */}
       <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
         {channel === 'SDUI' && (() => {
           const dev = SDUI_DEVICES.find(d => d.id === selectedDeviceId) ?? SDUI_DEVICES[0];
-          return <PhoneFrame device={dev} slices={slices} />;
+          return <PhoneFrame device={dev} slices={slices} segment={previewSegment} />;
         })()}
 
         {channel === 'WEB_STANDARD' && (

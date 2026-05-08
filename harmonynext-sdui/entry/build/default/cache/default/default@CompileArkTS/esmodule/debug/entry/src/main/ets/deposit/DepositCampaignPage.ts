@@ -665,15 +665,23 @@ class DepositPromoBanner extends ViewPU {
             if (this.props['imageUrl'] !== undefined && this.imageUrl().length > 0) {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        // Full-width image banner
+                        // Full-width image banner — Row constrains width, clip prevents overflow
+                        Row.create();
+                        // Full-width image banner — Row constrains width, clip prevents overflow
+                        Row.width('100%');
+                        // Full-width image banner — Row constrains width, clip prevents overflow
+                        Row.height(200);
+                        // Full-width image banner — Row constrains width, clip prevents overflow
+                        Row.clip(true);
+                    }, Row);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Image.create(this.imageUrl());
-                        // Full-width image banner
                         Image.width('100%');
-                        // Full-width image banner
                         Image.height(200);
-                        // Full-width image banner
                         Image.objectFit(ImageFit.Cover);
                     }, Image);
+                    // Full-width image banner — Row constrains width, clip prevents overflow
+                    Row.pop();
                 });
             }
             else if (this.title().length > 0) {

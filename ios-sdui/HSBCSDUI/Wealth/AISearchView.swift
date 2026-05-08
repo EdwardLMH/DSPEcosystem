@@ -142,6 +142,7 @@ struct AISearchView: View {
                 TextField("搜尋功能、產品", text: $vm.query)
                     .font(.system(size: 14))
                     .foregroundColor(Hive.Color.n900)
+                    .textFieldStyle(.plain)
                     .focused($fieldFocused)
                     .submitLabel(.search)
                     .onSubmit {
@@ -159,7 +160,7 @@ struct AISearchView: View {
                 }
             }
             .padding(.horizontal, 12).padding(.vertical, 9)
-            .background(Hive.Color.n100)
+            .background(Color.white)
             .cornerRadius(20)
             .frame(maxWidth: .infinity)
 
@@ -168,10 +169,10 @@ struct AISearchView: View {
                     action: "search_cancelled", screen: "ai_search", journey: "wealth_hub")
                 isPresented = false
             }
-            .font(.system(size: 14)).foregroundColor(Hive.Color.brandPrimary)
+            .font(.system(size: 14)).foregroundColor(.white)
         }
         .padding(.horizontal, 16).padding(.vertical, 10)
-        .background(Hive.Color.brandWhite)
+        .background(Hive.Color.brandPrimary)
     }
 
     // ── Content area (suggestions / results / empty) ──────────────────────────

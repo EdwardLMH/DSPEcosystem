@@ -185,12 +185,19 @@ function ContactRMBar({ label, subLabel, bgColor = '#DB0011' }: {
   label: string; subLabel?: string; bgColor?: string;
 }) {
   return (
-    <div style={{ ...styles.ctaBar, backgroundColor: bgColor }}>
-      <div>
-        <div style={styles.ctaLabel}>{label}</div>
-        {subLabel && <div style={styles.ctaSubLabel}>{subLabel}</div>}
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 20px', background: '#fff' }}>
+      <div style={{
+        display: 'inline-flex', alignItems: 'center', gap: 8,
+        backgroundColor: bgColor, borderRadius: 24, padding: '9px 20px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.18)', cursor: 'pointer',
+      }}>
+        <span style={{ fontSize: 15 }}>📞</span>
+        <div>
+          <div style={styles.ctaLabel}>{label}</div>
+          {subLabel && <div style={styles.ctaSubLabel}>{subLabel}</div>}
+        </div>
+        <span style={styles.ctaArrow}>›</span>
       </div>
-      <span style={styles.ctaArrow}>›</span>
     </div>
   );
 }
@@ -285,9 +292,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   ctaBar: {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    padding: '14px 20px',
+    padding: '9px 20px',
   },
   ctaLabel: { fontSize: 14, fontWeight: 600, color: '#FFFFFF' },
-  ctaSubLabel: { fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 },
-  ctaArrow: { fontSize: 20, color: '#FFFFFF' },
+  ctaSubLabel: { fontSize: 11, color: 'rgba(255,255,255,0.85)', marginTop: 1 },
+  ctaArrow: { fontSize: 18, color: '#FFFFFF' },
 };

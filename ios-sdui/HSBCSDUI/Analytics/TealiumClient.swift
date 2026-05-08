@@ -358,6 +358,29 @@ public extension TealiumClient {
               label: "OBKYC", screen: "kyc_completion",
               journey: "obkyc", step: "completion")
     }
+
+    // ── Home Hub new slice events ─────────────────────────────────────────────
+
+    static func wealthStudioTapped(title: String, instanceId: String) {
+        track(event: "wealth_studio_tap", category: "Wealth", action: "wealth_studio_tapped",
+              label: title, screen: "wealth_hub_hk",
+              journey: "wealth_hub", componentId: instanceId,
+              custom: ["studio_title": title])
+    }
+
+    static func guidesTapped(title: String, instanceId: String) {
+        track(event: "guides_tap", category: "Wealth", action: "guides_insights_tapped",
+              label: title, screen: "wealth_hub_hk",
+              journey: "wealth_hub", componentId: instanceId,
+              custom: ["guide_title": title])
+    }
+
+    static func discoverMoreTapped(title: String, tag: String) {
+        track(event: "discover_more_tap", category: "Wealth", action: "discover_more_tapped",
+              label: title, screen: "wealth_hub_hk",
+              journey: "wealth_hub",
+              custom: ["card_title": title, "card_tag": tag])
+    }
 }
 
 // CommonCrypto bridging for SHA-256 without CryptoKit dependency on older OS

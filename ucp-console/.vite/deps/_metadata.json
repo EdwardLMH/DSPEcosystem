@@ -1,0 +1,73 @@
+{
+  "hash": "8bb570f6",
+  "configHash": "0a8bc7ce",
+  "lockfileHash": "4da3f409",
+  "browserHash": "3fbea639",
+  "optimized": {
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "aeff05b8",
+      "needsInterop": true
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "18890ede",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "5eca0880",
+      "needsInterop": true
+    },
+    "@electric-sql/pglite": {
+      "src": "../../node_modules/@electric-sql/pglite/dist/index.js",
+      "file": "@electric-sql_pglite.js",
+      "fileHash": "755905c6",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "fs-4XRZSZK2": {
+      "file": "fs-4XRZSZK2.js"
+    },
+    "stream-Z7VMFA7W": {
+      "file": "stream-Z7VMFA7W.js"
+    },
+    "promises-HCKSPJDJ": {
+      "file": "promises-HCKSPJDJ.js"
+    },
+    "nodefs-NQAAYQ6X": {
+      "file": "nodefs-NQAAYQ6X.js"
+    },
+    "chunk-4AGPULGM": {
+      "file": "chunk-4AGPULGM.js"
+    },
+    "opfs-ahp-25IDYRDW": {
+      "file": "opfs-ahp-25IDYRDW.js"
+    },
+    "chunk-WNPTCGAH": {
+      "file": "chunk-WNPTCGAH.js"
+    },
+    "chunk-M3WHHQZF": {
+      "file": "chunk-M3WHHQZF.js"
+    },
+    "promises-BT5WXMBF": {
+      "file": "promises-BT5WXMBF.js"
+    },
+    "util-LKQBIVID": {
+      "file": "util-LKQBIVID.js"
+    },
+    "zlib-OQY22ONI": {
+      "file": "zlib-OQY22ONI.js"
+    },
+    "module-HTMQSBDO": {
+      "file": "module-HTMQSBDO.js"
+    },
+    "chunk-5WRI5ZAA": {
+      "file": "chunk-5WRI5ZAA.js"
+    }
+  }
+}

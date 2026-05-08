@@ -5,14 +5,23 @@ import SwiftUI
 private struct WealthHubPayload: Decodable {
     let pageId: String?
     let screen: String
-    let layout: WealthSDUINode
+    let layout: WealthSDUILayout
 }
 
-private struct WealthSDUINode: Decodable {
+private struct WealthSDUILayout: Decodable {
     let type: String
-    let id: String
+    let children: [WealthSlice]
+}
+
+private struct WealthSlice: Decodable, Identifiable {
+    let instanceId: String
+    let type: String
+    let visible: Bool?
     let props: [String: JSONValue]?
-    let children: [WealthSDUINode]?
+
+    var id: String { instanceId }
+    var isVisible: Bool { visible ?? true }
+    var p: [String: JSONValue] { props ?? [:] }
 }
 
 private enum JSONValue: Decodable {
@@ -29,19 +38,22 @@ private enum JSONValue: Decodable {
         else { self = .object((try? c.decode([String: JSONValue].self)) ?? [:]) }
     }
 
-    var stringValue: String { if case .string(let s) = self { return s }; return "" }
+    var stringValue: String   { if case .string(let s) = self { return s }; return "" }
+    var boolValue: Bool       { if case .bool(let b)   = self { return b }; return false }
+    var doubleValue: Double   { if case .double(let d) = self { return d }
+                                if case .int(let i)    = self { return Double(i) }; return 0 }
+    var arrayValue: [JSONValue]        { if case .array(let a)  = self { return a };  return [] }
+    var objectValue: [String: JSONValue] { if case .object(let o) = self { return o }; return [:] }
 }
 
 // MARK: - ViewModel
 
 @MainActor
 private final class WealthSDUIViewModel: ObservableObject {
-    enum State { case loading, sdui(WealthSDUINode), fallback }
+    enum LoadState { case loading, sdui([WealthSlice]), fallback }
 
-    @Published var state: State = .loading
+    @Published var state: LoadState = .loading
 
-    // Switches to the production URL once the page is approved.
-    // During development the BFF returns 404 → falls back to hardcoded UI.
     #if targetEnvironment(simulator)
     private let baseURL = "http://127.0.0.1:4000"
     #else
@@ -56,9 +68,9 @@ private final class WealthSDUIViewModel: ObservableObject {
             let (data, response) = try await URLSession.shared.data(from: url)
             if let http = response as? HTTPURLResponse, http.statusCode == 200 {
                 let payload = try JSONDecoder().decode(WealthHubPayload.self, from: data)
-                state = .sdui(payload.layout)
+                let visible = payload.layout.children.filter { $0.isVisible }
+                state = visible.isEmpty ? .fallback : .sdui(visible)
             } else {
-                // Page not yet approved to production → show hardcoded UI
                 state = .fallback
             }
         } catch {
@@ -71,7 +83,6 @@ private final class WealthSDUIViewModel: ObservableObject {
 
 struct WealthPageView: View {
     @StateObject private var vm = WealthSDUIViewModel()
-    @State private var adDismissed = false
     @State private var searchPresented = false
 
     var body: some View {
@@ -82,13 +93,11 @@ struct WealthPageView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Hive.Color.n50.ignoresSafeArea())
 
-            case .sdui(let root):
-                WealthSDUIRootView(root: root,
-                                   searchPresented: $searchPresented)
+            case .sdui(let slices):
+                WealthSDUIRootView(slices: slices, searchPresented: $searchPresented)
 
             case .fallback:
-                WealthHardcodedView(adDismissed: $adDismissed,
-                                    searchPresented: $searchPresented)
+                WealthHardcodedView(searchPresented: $searchPresented)
             }
         }
         .task { await vm.load() }
@@ -98,10 +107,10 @@ struct WealthPageView: View {
     }
 }
 
-// MARK: - SDUI-driven render (when page is live on production)
+// MARK: - SDUI-driven render
 
 private struct WealthSDUIRootView: View {
-    let root: WealthSDUINode
+    let slices: [WealthSlice]
     @Binding var searchPresented: Bool
 
     var body: some View {
@@ -110,8 +119,9 @@ private struct WealthSDUIRootView: View {
                 Hive.Color.n50.ignoresSafeArea()
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
-                        WealthNodeView(node: root,
-                                       onSearchTap: { searchPresented = true })
+                        ForEach(slices) { slice in
+                            SDUISliceView(slice: slice, onSearchTap: { searchPresented = true })
+                        }
                         Spacer().frame(height: 40)
                     }
                 }
@@ -122,57 +132,43 @@ private struct WealthSDUIRootView: View {
     }
 }
 
-// Recursive SDUI node renderer — maps BFF component types to native views
-private struct WealthNodeView: View {
-    let node: WealthSDUINode
+private struct SDUISliceView: View {
+    let slice: WealthSlice
     let onSearchTap: () -> Void
+    @State private var adDismissed = false
 
     var body: some View {
-        switch node.type {
-        case "container", "scroll_container":
-            VStack(spacing: 0) {
-                ForEach((node.children ?? []).indices, id: \.self) { i in
-                    WealthNodeView(node: node.children![i], onSearchTap: onSearchTap)
-                }
-            }
-
-        case "header_nav":
-            WHHeaderNav(onSearchTap: onSearchTap)
-
-        case "quick_access":
-            WHQuickAccess()
-
-        case "promo_banner":
-            WHPromoBanner()
-
-        case "function_grid":
-            WHFunctionGrid()
-
-        case "ai_assistant":
-            WHAIAssistant()
-
-        case "flash_loan":
-            WHFlashLoan()
-
-        case "wealth_selection":
-            WHWealthSelection()
-
-        case "featured_rankings":
-            WHFeaturedRankings()
-
-        case "life_deals":
-            WHLifeDeals()
-
+        switch slice.type {
+        case "HOME_SEARCH_HEADER":
+            WHHomeSearchHeader(props: slice.p, onSearchTap: onSearchTap)
+        case "COMBO_QUICK_ACCESS":
+            WHComboQuickAccess(props: slice.p)
+        case "CARD_ACTIVATION_BANNER":
+            WHCardActivationBanner(props: slice.p)
+        case "QUEST_BANNER":
+            WHQuestBanner(props: slice.p)
+        case "FEATURE_PRODUCT":
+            WHFeatureProduct(props: slice.p)
+        case "WEALTH_STUDIO_CAROUSEL":
+            WHWealthStudioCarousel(props: slice.p)
+        case "GUIDES_INSIGHTS_CAROUSEL":
+            WHGuidesInsights(props: slice.p)
+        case "FX_WATCHLIST":
+            WHFXWatchlist(props: slice.p)
+        case "DISCOVER_MORE_CAROUSEL":
+            WHDiscoverMore(props: slice.p)
+        case "SPACER":
+            let h = slice.p["height"]?.doubleValue ?? 16
+            Spacer().frame(height: h)
         default:
             EmptyView()
         }
     }
 }
 
-// MARK: - Hardcoded fallback (used until page is approved on production)
+// MARK: - Hardcoded fallback
 
 private struct WealthHardcodedView: View {
-    @Binding var adDismissed: Bool
     @Binding var searchPresented: Bool
 
     var body: some View {
@@ -181,16 +177,16 @@ private struct WealthHardcodedView: View {
                 Hive.Color.n50.ignoresSafeArea()
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
-                        WHHeaderNav(onSearchTap: { searchPresented = true })
-                        WHQuickAccess()
-                        WHPromoBanner()
-                        WHFunctionGrid()
-                        WHAIAssistant()
-                        if !adDismissed { WHAdBanner(onDismiss: { adDismissed = true }) }
-                        WHFlashLoan()
-                        WHWealthSelection()
-                        WHFeaturedRankings()
-                        WHLifeDeals()
+                        WHHomeSearchHeader(props: defaultSearchHeaderProps, onSearchTap: { searchPresented = true })
+                        WHComboQuickAccess(props: defaultComboQuickAccessProps)
+                        WHCardActivationBanner(props: ["message": JSONValue.string("Your card needs to be activated"),
+                                                       "deepLink": JSONValue.string("hsbc://card/activate")])
+                        WHQuestBanner(props: defaultQuestBannerProps)
+                        WHFeatureProduct(props: defaultFeatureProductProps)
+                        WHWealthStudioCarousel(props: defaultWealthStudioProps)
+                        WHGuidesInsights(props: defaultGuidesInsightsProps)
+                        WHFXWatchlist(props: defaultFXWatchlistProps)
+                        WHDiscoverMore(props: defaultDiscoverMoreProps)
                         Spacer().frame(height: 40)
                     }
                 }
@@ -201,548 +197,918 @@ private struct WealthHardcodedView: View {
     }
 }
 
-// MARK: - 1. Header Nav
+// MARK: - Default prop constants (fallback data matching OCDP mock data)
 
-private struct WHHeaderNav: View {
+private let defaultSearchHeaderProps: [String: JSONValue] = [
+    "premierLabel": .string("HSBC Premier"),
+    "eliteLabel":   .string("HSBC Elite"),
+    "advanceLabel": .string("HSBC One"),
+    "massLabel":    .string("HSBC Personal Banking"),
+    "premierBg":    .string("#DB0011"),
+    "eliteBg":      .string("#0D5C3A"),
+    "advanceBg":    .string("#D4580A"),
+    "massBg":       .string("#4B5563"),
+    "enableNotification":  .bool(true),
+    "enableHeadset":       .bool(true),
+    "placeholder":         .string("Search functions, products & content"),
+    "enableSemanticSearch":.bool(true),
+]
+
+private let defaultComboQuickAccessProps: [String: JSONValue] = [
+    "tabs": .array([
+        .object(["id": .string("my-pick"),  "label": .string("My pick"),  "active": .bool(true)]),
+        .object(["id": .string("invest"),   "label": .string("Invest"),   "active": .bool(false)]),
+        .object(["id": .string("global"),   "label": .string("Global"),   "active": .bool(false)]),
+        .object(["id": .string("hk-daily"), "label": .string("HK Daily"), "active": .bool(false)]),
+    ]),
+    "row1Items": .array([
+        .object(["id": .string("qa-1"), "icon": .string("account"),  "label": .string("Account overview"),  "deepLink": .string("hsbc://accounts")]),
+        .object(["id": .string("qa-2"), "icon": .string("transfer"), "label": .string("Transfer Globally"), "deepLink": .string("hsbc://transfer/global")]),
+        .object(["id": .string("qa-3"), "icon": .string("fx"),       "label": .string("Foreign exchange"),  "deepLink": .string("hsbc://fx")]),
+        .object(["id": .string("qa-4"), "icon": .string("stock"),    "label": .string("Trade stock"),       "deepLink": .string("hsbc://trade/stock")]),
+        .object(["id": .string("qa-5"), "icon": .string("deposit"),  "label": .string("Time deposit"),      "deepLink": .string("hsbc://deposit")]),
+    ]),
+    "row2Items": .array([
+        .object(["id": .string("qa-6"),  "icon": .string("holding"), "label": .string("My holding details"),    "deepLink": .string("hsbc://holdings")]),
+        .object(["id": .string("qa-7"),  "icon": .string("safe"),    "label": .string("Money safe"),             "deepLink": .string("hsbc://money-safe")]),
+        .object(["id": .string("qa-8"),  "icon": .string("fps"),     "label": .string("Local transfer/FPS"),     "deepLink": .string("hsbc://transfer/fps")]),
+        .object(["id": .string("qa-9"),  "icon": .string("scan"),    "label": .string("Scan to pay"),            "deepLink": .string("hsbc://scan-pay")]),
+        .object(["id": .string("qa-10"), "icon": .string("all"),     "label": .string("All product & services"), "deepLink": .string("hsbc://all-services")]),
+    ]),
+]
+
+private let defaultQuestBannerProps: [String: JSONValue] = [
+    "title":       .string("Getting started"),
+    "description": .string("Open investment account and complete the following quests to enjoy reward!"),
+    "ctaLabel":    .string("Check out all 4 quests"),
+    "ctaDeepLink": .string("hsbc://quests"),
+    "totalQuests": .int(4),
+]
+
+private let defaultFeatureProductProps: [String: JSONValue] = [
+    "sectionTitle": .string("Feature product"),
+    "tabs":         .array([.string("Top performers"), .string("Top dividend"), .string("Top selling"), .string("Instalment")]),
+    "activeTab":    .string("Top performers"),
+    "funds": .array([
+        .object(["id": .string("fp-1"), "name": .string("AB SICAV I - LOW VOLATILITY EQUITY PORTFOLIO CLASS AD S..."),
+                 "code": .string("U43120"), "returnLabel": .string("1Y return"), "returnValue": .string("+54.79%"),
+                 "returnPositive": .bool(true), "tags": .array([])]),
+        .object(["id": .string("fp-2"), "name": .string("HANG SENG INDEX FUND CLASS A (HKD)"),
+                 "code": .string("U42272"), "returnLabel": .string("1Y return"), "returnValue": .string("+18.10%"),
+                 "returnPositive": .bool(true), "tags": .array([.string("ESG")])]),
+        .object(["id": .string("fp-3"), "name": .string("ALLIANZ INCOME AND GROWTH CLASS AM DIS (HKD MONTHLY...)"),
+                 "code": .string("U40032"), "returnLabel": .string("1Y return"), "returnValue": .string("+11.45%"),
+                 "returnPositive": .bool(true), "tags": .array([.string("New fund")])]),
+    ]),
+    "moreLabel":    .string("View Best selling fund list (10)"),
+    "moreDeepLink": .string("hsbc://funds/best-selling"),
+]
+
+private let defaultWealthStudioProps: [String: JSONValue] = [
+    "sectionTitle": .string("Premier Elite Wealth Studio"),
+    "moreLabel":    .string("View all"),
+    "moreDeepLink": .string("hsbc://wealth-studio"),
+    "items": .array([
+        .object(["id": .string("ws-1"), "episodeLabel": .string("Episode 13"),
+                 "liveBadge": .string("To-be-live on 1 Feb 15:30"),
+                 "title": .string("How AI experts think about AI?"),
+                 "ctaLabel": .string("Register for live stream"),
+                 "imageColor": .string("#1A1A2E")]),
+        .object(["id": .string("ws-2"), "episodeLabel": .string("Episode 13"),
+                 "liveBadge": .string("To-be-live on 1 Feb 15:3"),
+                 "title": .string("How AI experts think about AI?"),
+                 "ctaLabel": .string("Watch now"),
+                 "imageColor": .string("#0F2040")]),
+    ]),
+]
+
+private let defaultGuidesInsightsProps: [String: JSONValue] = [
+    "sectionTitle": .string("Guides and insights"),
+    "moreLabel":    .string("View all"),
+    "moreDeepLink": .string("hsbc://guides"),
+    "items": .array([
+        .object(["id": .string("gi-1"),
+                 "title": .string("Investment 101 - An investment in knowledge pays the best interest"),
+                 "date": .string("8 Apr 2024"), "imageColor": .string("#2D3748"),
+                 "deepLink": .string("hsbc://guides/investment-101")]),
+        .object(["id": .string("gi-2"), "title": .string("Market outlook Q2 2024"),
+                 "date": .string("2 Apr 2024"), "imageColor": .string("#1A365D"),
+                 "deepLink": .string("hsbc://guides/market-outlook")]),
+    ]),
+]
+
+private let defaultFXWatchlistProps: [String: JSONValue] = [
+    "sectionTitle":   .string("FX watchlist"),
+    "tierBadge":      .string("Gold Forex Club tier"),
+    "tierDescription":.string("15% Spread discount has been applied to your rate."),
+    "pairs": .array([
+        .object(["id": .string("fx-1"), "pair": .string("USD/JPY"), "sellLabel": .string("Sell USD"),
+                 "sellRate": .string("148.44"), "buyLabel": .string("Buy USD"), "buyRate": .string("148.12")]),
+        .object(["id": .string("fx-2"), "pair": .string("HKD/CHF"), "sellLabel": .string("Sell HKD"),
+                 "sellRate": .string("0.1042"), "buyLabel": .string("Buy HKD"), "buyRate": .string("0.1038")]),
+        .object(["id": .string("fx-3"), "pair": .string("HKD/THB"), "sellLabel": .string("Sell HKD"),
+                 "sellRate": .string("4.1055"), "buyLabel": .string("Buy HKD"), "buyRate": .string("4.1132")]),
+    ]),
+    "moreLabel":    .string("View more in FX"),
+    "moreDeepLink": .string("hsbc://fx/watchlist"),
+]
+
+private let defaultDiscoverMoreProps: [String: JSONValue] = [
+    "sectionTitle": .string("Discover more"),
+    "items": .array([
+        .object(["id": .string("dm-1"), "tag": .string("Time Deposit"), "tagColor": .string("#DB0011"),
+                 "title": .string("Up to 15.5% p.a. FX Deposit Rate"),
+                 "subtitle": .string("Earn up to 15.5% p.a. on FX & Time Deposits! T&Cs apply."),
+                 "imageColor": .string("#1A2E4A"), "deepLink": .string("hsbc://deposit/fx")]),
+        .object(["id": .string("dm-2"), "tag": .string("Well+"), "tagColor": .string("#6B46C1"),
+                 "title": .string("PURE Sign up 10-day..."), "subtitle": .string(""),
+                 "imageColor": .string("#2D3748"), "deepLink": .string("hsbc://wellplus")]),
+    ]),
+]
+
+// MARK: - Icon map helper
+
+private let quickIconMap: [String: String] = [
+    "account": "👤", "transfer": "🌐", "fx": "💱", "stock": "📈",
+    "deposit": "⏰", "holding": "📊", "safe": "💰", "fps": "↔️",
+    "scan": "📷", "all": "⊞",
+]
+
+// MARK: - 1. HOME_SEARCH_HEADER
+
+private struct WHHomeSearchHeader: View {
+    let props: [String: JSONValue]
     let onSearchTap: () -> Void
 
     var body: some View {
-        HStack(spacing: 10) {
-            HStack(spacing: 6) {
+        let bgHex = props["premierBg"]?.stringValue ?? "#DB0011"
+        let segLabel = props["premierLabel"]?.stringValue ?? "HSBC Premier"
+        let placeholder = props["placeholder"]?.stringValue ?? "Search functions, products & content"
+        let showBell = props["enableNotification"]?.boolValue ?? true
+        let showHeadset = props["enableHeadset"]?.boolValue ?? true
+
+        VStack(spacing: 0) {
+            // Header row
+            HStack(spacing: 10) {
+                ZStack {
+                    Circle()
+                        .fill(Color.white.opacity(0.25))
+                        .frame(width: 30, height: 30)
+                    Text("H")
+                        .font(.system(size: 13, weight: .black))
+                        .foregroundColor(.white)
+                }
+                Text(segLabel)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.white)
+                Spacer()
+                if showBell {
+                    Image(systemName: "bell")
+                        .font(.system(size: 18))
+                        .foregroundColor(.white)
+                        .onTapGesture {
+                            TealiumClient.track(event: "notification_tap", category: "Wealth",
+                                action: "notification_tapped", screen: "wealth_hub_hk", journey: "wealth_hub")
+                        }
+                }
+                if showHeadset {
+                    Image(systemName: "headphones")
+                        .font(.system(size: 18))
+                        .foregroundColor(.white)
+                }
+            }
+            .padding(.horizontal, 16).padding(.vertical, 12)
+
+            // White pill search bar on red background
+            HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(Hive.Color.n400)
                     .font(.system(size: 13))
-                Text("搜尋功能、產品")
+                Text(placeholder)
                     .font(.system(size: 13)).foregroundColor(Hive.Color.n400)
                 Spacer()
+                Text("AI")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 5).padding(.vertical, 2)
+                    .background(Hive.Color.brandPrimary)
+                    .cornerRadius(4)
             }
-            .padding(.horizontal, 14).padding(.vertical, 8)
-            .background(Hive.Color.n100).cornerRadius(18)
-            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 12).padding(.vertical, 9)
+            .background(Color.white)
+            .cornerRadius(18)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 12)
             .onTapGesture {
                 TealiumClient.track(event: "search_tap", category: "Wealth",
                     action: "search_tapped", screen: "wealth_hub_hk", journey: "wealth_hub")
                 onSearchTap()
             }
-
-            Image(systemName: "bell")
-                .font(.system(size: 20))
-                .foregroundColor(Hive.Color.n800)
-                .onTapGesture {
-                    TealiumClient.track(event: "notification_tap", category: "Wealth",
-                        action: "notification_tapped", screen: "wealth_hub_hk", journey: "wealth_hub")
-                }
-
-            Image(systemName: "qrcode.viewfinder")
-                .font(.system(size: 20))
-                .foregroundColor(Hive.Color.n800)
-                .onTapGesture {
-                    TealiumClient.track(event: "qr_tap", category: "Wealth",
-                        action: "qr_scanner_tapped", screen: "wealth_hub_hk", journey: "wealth_hub")
-                }
         }
-        .padding(.horizontal, 14).padding(.vertical, 8)
-        .background(Hive.Color.brandWhite)
-        .overlay(Rectangle().frame(height: 1).foregroundColor(Hive.Color.n200), alignment: .bottom)
+        .background(Color(hex: bgHex))
         .onAppear {
-            TealiumClient.sliceImpression(sliceType: "HEADER_NAV", instanceId: "slice-header",
-                                          position: 0)
+            TealiumClient.sliceImpression(sliceType: "HOME_SEARCH_HEADER",
+                instanceId: "slice-home-search-header", position: 0)
         }
     }
 }
 
-// MARK: - 2. Quick Access
+// MARK: - 2. COMBO_QUICK_ACCESS
 
-private struct WHQuickAccess: View {
-    private let items: [(icon: String, label: String, deepLink: String)] = [
-        ("🌙", "朝朝寶",   "hsbc://wealth/morning-treasure"),
-        ("💵", "借錢",     "hsbc://loan/apply"),
-        ("↔️", "轉帳",     "hsbc://transfer"),
-        ("📊", "帳戶總覽", "hsbc://accounts"),
-    ]
+private struct WHComboQuickAccess: View {
+    let props: [String: JSONValue]
+
+    private func items(from key: String) -> [[String: JSONValue]] {
+        props[key]?.arrayValue.compactMap { $0.objectValue.isEmpty ? nil : $0.objectValue } ?? []
+    }
 
     var body: some View {
-        HStack {
-            ForEach(items, id: \.label) { item in
-                VStack(spacing: 5) {
-                    ZStack {
-                        LinearGradient(colors: [Color(hex: "#F0F9FF"), Color(hex: "#E0F2FE")],
-                                       startPoint: .topLeading, endPoint: .bottomTrailing)
-                        Text(item.icon).font(.system(size: 22))
+        let tabs   = props["tabs"]?.arrayValue.compactMap { $0.objectValue } ?? []
+        let row1   = items(from: "row1Items")
+        let row2   = items(from: "row2Items")
+        let activeTab = tabs.first(where: { $0["active"]?.boolValue == true })?["label"]?.stringValue ?? "My pick"
+
+        VStack(spacing: 0) {
+            // Tab bar
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(tabs.indices, id: \.self) { i in
+                        let tab = tabs[i]
+                        let label = tab["label"]?.stringValue ?? ""
+                        let isActive = label == activeTab
+                        Text(label)
+                            .font(.system(size: 12, weight: isActive ? .bold : .regular))
+                            .padding(.horizontal, 12).padding(.vertical, 5)
+                            .background(isActive ? Color.black : Color.clear)
+                            .foregroundColor(isActive ? .white : Hive.Color.n500)
+                            .cornerRadius(14)
                     }
-                    .frame(width: 48, height: 48).cornerRadius(14)
-                    .shadow(color: .black.opacity(0.08), radius: 6, y: 2)
-
-                    Text(item.label).font(.system(size: 10)).foregroundColor(Hive.Color.n700)
                 }
-                .frame(maxWidth: .infinity)
-                .onTapGesture {
-                    TealiumClient.quickAccessTapped(label: item.label, deepLink: item.deepLink)
+                .padding(.horizontal, 14).padding(.vertical, 8)
+            }
+            Divider().background(Hive.Color.n100)
+
+            // Row 1
+            HStack(spacing: 0) {
+                ForEach(row1.indices, id: \.self) { i in
+                    let item = row1[i]
+                    quickIconCell(item: item)
                 }
             }
+            .padding(.horizontal, 8).padding(.top, 8)
+
+            // Row 2
+            HStack(spacing: 0) {
+                ForEach(row2.indices, id: \.self) { i in
+                    let item = row2[i]
+                    quickIconCell(item: item)
+                }
+            }
+            .padding(.horizontal, 8).padding(.bottom, 8)
         }
-        .padding(.horizontal, 16).padding(.vertical, 12)
         .background(Hive.Color.brandWhite)
         .onAppear {
-            TealiumClient.sliceImpression(sliceType: "QUICK_ACCESS",
-                                          instanceId: "slice-quick", position: 1)
+            TealiumClient.sliceImpression(sliceType: "COMBO_QUICK_ACCESS",
+                instanceId: "slice-combo-quick-access", position: 1)
         }
     }
-}
 
-// MARK: - 3. Promo Banner
+    @ViewBuilder
+    private func quickIconCell(item: [String: JSONValue]) -> some View {
+        let iconKey  = item["icon"]?.stringValue ?? ""
+        let emoji    = quickIconMap[iconKey] ?? iconKey
+        let label    = item["label"]?.stringValue ?? ""
+        let deepLink = item["deepLink"]?.stringValue ?? ""
 
-private struct WHPromoBanner: View {
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("每月10日開啓")
-                    .font(.system(size: 9, weight: .bold))
-                    .foregroundColor(Hive.Color.brandPrimary)
-                    .padding(.horizontal, 8).padding(.vertical, 2)
-                    .background(Color(hex: "#FFEDED")).cornerRadius(10)
-
-                Text("10分招財日")
-                    .font(.system(size: 16, weight: .heavy))
-                    .foregroundColor(Hive.Color.n900).lineLimit(1)
-
-                Text("查帳單·學投資·優配置")
-                    .font(.system(size: 10)).foregroundColor(Hive.Color.n500)
-
-                Button("點擊參與") {
-                    TealiumClient.promoBannerTapped(title: "10分招財日",
-                        instanceId: "slice-promo-10",
-                        contentId: "promo-10-finance-day")
-                }
-                .font(.system(size: 11, weight: .bold))
-                .padding(.horizontal, 16).padding(.vertical, 6)
-                .background(Hive.Color.brandPrimary).foregroundColor(.white)
-                .cornerRadius(14)
-                .padding(.top, 8)
-            }
-            Spacer()
+        VStack(spacing: 4) {
             ZStack {
-                Color(hex: "#E8F4FD").cornerRadius(12)
-                Text("🎯").font(.system(size: 32))
-            }.frame(width: 80, height: 80)
-        }
-        .padding(.horizontal, 12).padding(.vertical, 12)
-        .background(Color(hex: "#E8F4FD"))
-        .cornerRadius(14)
-        .padding(.horizontal, 12).padding(.vertical, 8)
-        .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
-        .onAppear {
-            TealiumClient.promoBannerImpression(title: "10分招財日",
-                instanceId: "slice-promo-10", contentId: "promo-10-finance-day")
-        }
-    }
-}
-
-// MARK: - 4. Function Grid
-
-private struct WHFunctionGrid: View {
-    private let rows: [[(icon: String, label: String, deepLink: String)]] = [
-        [("💳","信用卡","hsbc://cards"), ("📄","收支明細","hsbc://statements"),
-         ("🔄","他行卡轉入","hsbc://transfer/external"),
-         ("🏙️","城市服務","hsbc://city-services"), ("🔥","熱門活動","hsbc://events")],
-        [("📈","理財","hsbc://wealth"), ("Ⓜ️","M+會員","hsbc://membership"),
-         ("🎬","影票","hsbc://movies"), ("💹","基金","hsbc://funds"),
-         ("⋯","全部","hsbc://all-services")],
-    ]
-
-    var body: some View {
-        VStack(spacing: 6) {
-            ForEach(rows.indices, id: \.self) { ri in
-                HStack {
-                    ForEach(rows[ri], id: \.label) { item in
-                        VStack(spacing: 4) {
-                            ZStack {
-                                Color(hex: "#F5F6F8").cornerRadius(12)
-                                Text(item.icon).font(.system(size: 20))
-                            }.frame(width: 44, height: 44)
-                            Text(item.label)
-                                .font(.system(size: 10))
-                                .foregroundColor(Hive.Color.n700)
-                                .multilineTextAlignment(.center)
-                                .lineLimit(2)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .onTapGesture {
-                            TealiumClient.track(event: "function_tap", category: "Wealth",
-                                action: "function_tapped", label: item.label,
-                                screen: "wealth_hub_hk", journey: "wealth_hub",
-                                custom: ["function_label": item.label,
-                                         "deep_link": item.deepLink])
-                        }
-                    }
-                }
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color(hex: "#F5F5F5"))
+                    .frame(width: 36, height: 36)
+                Text(emoji).font(.system(size: 16))
             }
+            Text(label)
+                .font(.system(size: 9))
+                .foregroundColor(Hive.Color.n700)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .frame(width: 38)
         }
-        .padding(.horizontal, 16).padding(.vertical, 8)
-        .background(Hive.Color.brandWhite)
-        .onAppear {
-            TealiumClient.sliceImpression(sliceType: "FUNCTION_GRID",
-                                          instanceId: "slice-func-grid", position: 3)
-        }
+        .frame(maxWidth: .infinity)
+        .onTapGesture { TealiumClient.quickAccessTapped(label: label, deepLink: deepLink) }
     }
 }
 
-// MARK: - 5. AI Assistant
+// MARK: - 3. CARD_ACTIVATION_BANNER
 
-private struct WHAIAssistant: View {
+private struct WHCardActivationBanner: View {
+    let props: [String: JSONValue]
+
     var body: some View {
-        HStack(spacing: 8) {
-            Text("✉️").font(.system(size: 20))
-            Text("Hi，我是你的智能財富助理")
-                .font(.system(size: 11)).foregroundColor(Hive.Color.n600)
+        HStack(spacing: 10) {
+            Image(systemName: "bell.fill")
+                .font(.system(size: 16))
+                .foregroundColor(Hive.Color.brandPrimary)
+            Text(props["message"]?.stringValue ?? "Your card needs to be activated")
+                .font(.system(size: 12)).foregroundColor(Hive.Color.n700)
             Spacer()
-            Text("›").font(.system(size: 14)).foregroundColor(Hive.Color.n500)
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12)).foregroundColor(Hive.Color.n400)
         }
-        .padding(.horizontal, 12).padding(.vertical, 8)
-        .background(Hive.Color.n50).cornerRadius(10)
-        .padding(.horizontal, 16).padding(.vertical, 4)
-        .onTapGesture { TealiumClient.aiAssistantTapped() }
+        .padding(.horizontal, 14).padding(.vertical, 12)
+        .background(Hive.Color.brandWhite)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Hive.Color.n200, lineWidth: 1)
+        )
+        .cornerRadius(10)
+        .padding(.horizontal, 12).padding(.vertical, 4)
+        .shadow(color: .black.opacity(0.04), radius: 4, y: 1)
         .onAppear {
-            TealiumClient.sliceImpression(sliceType: "AI_ASSISTANT",
-                                          instanceId: "slice-ai", position: 4)
+            TealiumClient.sliceImpression(sliceType: "CARD_ACTIVATION_BANNER",
+                instanceId: "slice-card-activation", position: 2)
         }
     }
 }
 
-// MARK: - 6. Ad Banner
+// MARK: - 4. QUEST_BANNER
 
-private struct WHAdBanner: View {
-    let onDismiss: () -> Void
+private struct WHQuestBanner: View {
+    let props: [String: JSONValue]
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("春季播種黃金期")
-                        .font(.system(size: 13, weight: .bold)).foregroundColor(Color(hex: "#92400E"))
-                    Text("配置正當時，播下「金種子」")
-                        .font(.system(size: 10)).foregroundColor(Color(hex: "#78716C"))
-                    Button("抽體驗禮") {
-                        TealiumClient.sliceTapped(sliceType: "AD_BANNER",
-                            instanceId: "slice-ad-spring",
-                            ctaLabel: "抽體驗禮",
-                            deepLink: "hsbc://campaign/spring-investment")
-                    }
-                    .font(.system(size: 11, weight: .bold))
-                    .padding(.horizontal, 14).padding(.vertical, 5)
-                    .background(Hive.Color.brandPrimary).foregroundColor(.white)
-                    .cornerRadius(12).padding(.top, 8)
-                }
-                Spacer()
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
                 ZStack {
-                    Color.black.opacity(0.08).cornerRadius(10)
-                    Text("🌱").font(.system(size: 28))
-                }.frame(width: 72, height: 72)
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Hive.Color.brandPrimary)
+                        .frame(width: 32, height: 32)
+                    Text("H")
+                        .font(.system(size: 13, weight: .black))
+                        .foregroundColor(.white)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(props["title"]?.stringValue ?? "Getting started")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(Hive.Color.n900)
+                    Text(props["description"]?.stringValue ?? "")
+                        .font(.system(size: 10))
+                        .foregroundColor(Hive.Color.n500)
+                        .lineLimit(2)
+                }
             }
-            .padding(.horizontal, 16).padding(.vertical, 12)
-            .background(LinearGradient(colors: [Color(hex: "#FFFBEB"), Color(hex: "#FEF3C7")],
-                                       startPoint: .topLeading, endPoint: .bottomTrailing))
-            .cornerRadius(14)
-
-            Button(action: {
-                TealiumClient.adBannerDismissed(title: "春季播種黃金期")
-                onDismiss()
-            }) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(Hive.Color.n400)
-                    .padding(8)
-            }
+            Text(props["ctaLabel"]?.stringValue ?? "Check out all quests")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundColor(Hive.Color.brandPrimary)
         }
-        .padding(.horizontal, 12).padding(.vertical, 6)
-        .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
+        .padding(.horizontal, 14).padding(.vertical, 12)
+        .background(Hive.Color.brandWhite)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Hive.Color.n200, lineWidth: 1)
+                .overlay(
+                    Rectangle()
+                        .fill(Hive.Color.brandPrimary)
+                        .frame(width: 4)
+                        .cornerRadius(2),
+                    alignment: .leading
+                )
+        )
+        .cornerRadius(10)
+        .padding(.horizontal, 12).padding(.vertical, 4)
+        .shadow(color: .black.opacity(0.04), radius: 4, y: 1)
+        .onTapGesture {
+            TealiumClient.track(event: "quest_tap", category: "Wealth",
+                action: "quest_banner_tapped", screen: "wealth_hub_hk", journey: "wealth_hub")
+        }
         .onAppear {
-            TealiumClient.sliceImpression(sliceType: "AD_BANNER",
-                                          instanceId: "slice-ad-spring", position: 5)
+            TealiumClient.sliceImpression(sliceType: "QUEST_BANNER",
+                instanceId: "slice-getting-started", position: 3)
         }
     }
 }
 
-// MARK: - 7. Flash Loan
+// MARK: - 5. FEATURE_PRODUCT
 
-private struct WHFlashLoan: View {
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("⚡ 閃電貸 極速放款")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundColor(Hive.Color.brandPrimary)
-                Text("最高可借額度")
-                    .font(.system(size: 10)).foregroundColor(Hive.Color.n500)
-                Text("HKD 300,000.00")
-                    .font(.system(size: 22, weight: .heavy))
-                    .foregroundColor(Hive.Color.n900)
-            }
-            Spacer()
-            Button("獲取額度") {
-                TealiumClient.sliceTapped(sliceType: "FLASH_LOAN",
-                    instanceId: "slice-flash-loan",
-                    ctaLabel: "獲取額度",
-                    deepLink: "hsbc://loan/flash")
-            }
-            .font(.system(size: 12, weight: .bold))
-            .padding(.horizontal, 18).padding(.vertical, 10)
-            .background(
-                LinearGradient(colors: [Hive.Color.brandPrimary, Color(hex: "#FF2233")],
-                               startPoint: .topLeading, endPoint: .bottomTrailing)
+private struct FundItem: Identifiable {
+    let id: String; let name: String; let code: String
+    let returnLabel: String; let returnValue: String
+    let returnPositive: Bool; let tags: [String]
+}
+
+private struct WHFeatureProduct: View {
+    let props: [String: JSONValue]
+    @State private var selectedTab: String = ""
+
+    private func parseFunds() -> [FundItem] {
+        props["funds"]?.arrayValue.compactMap { v -> FundItem? in
+            let o = v.objectValue
+            guard let id = o["id"]?.stringValue, !id.isEmpty else { return nil }
+            return FundItem(
+                id: id,
+                name: o["name"]?.stringValue ?? "",
+                code: o["code"]?.stringValue ?? "",
+                returnLabel: o["returnLabel"]?.stringValue ?? "1Y return",
+                returnValue: o["returnValue"]?.stringValue ?? "",
+                returnPositive: o["returnPositive"]?.boolValue ?? true,
+                tags: o["tags"]?.arrayValue.map { $0.stringValue } ?? []
             )
-            .foregroundColor(.white).cornerRadius(20)
-            .shadow(color: Hive.Color.brandPrimary.opacity(0.3), radius: 12, y: 4)
-        }
-        .padding(.horizontal, 16).padding(.vertical, 12)
-        .background(LinearGradient(colors: [Color(hex: "#FFF5F5"), Color(hex: "#FFE4E4")],
-                                   startPoint: .topLeading, endPoint: .bottomTrailing))
-        .cornerRadius(14)
-        .padding(.horizontal, 12).padding(.vertical, 6)
-        .shadow(color: Hive.Color.brandPrimary.opacity(0.08), radius: 8, y: 2)
-        .onAppear {
-            TealiumClient.sliceImpression(sliceType: "FLASH_LOAN",
-                                          instanceId: "slice-flash-loan", position: 6)
-        }
+        } ?? []
     }
-}
 
-// MARK: - 8. Wealth Selection
-
-private struct WealthProduct {
-    let id: String; let name: String; let tag: String
-    let yield7Day: String; let risk: String; let redemption: String
-    let cta: String; let deepLink: String; let highlighted: Bool
-}
-
-private let wealthProducts: [WealthProduct] = [
-    .init(id:"w1", name:"活錢理財｜歷史天天正收益",  tag:"代碼",  yield7Day:"2.80%",
-          risk:"R1低風險", redemption:"贖回T+1到帳",   cta:"去看看",
-          deepLink:"hsbc://wealth/daily-positive",    highlighted:true),
-    .init(id:"w2", name:"主投債券",                  tag:"代碼",  yield7Day:"3.04%",
-          risk:"歷史周周正", redemption:"成立以來…",    cta:"查看",
-          deepLink:"hsbc://wealth/bond-fund",         highlighted:false),
-    .init(id:"w3", name:"年均收益率",                tag:"收益確定",yield7Day:"2.31%",
-          risk:"保証領取",  redemption:"穩健低波",       cta:"查看",
-          deepLink:"hsbc://wealth/guaranteed",        highlighted:false),
-]
-
-private struct WHWealthSelection: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack {
-                Text("財富精選").font(.system(size: 15, weight: .bold))
-                Spacer()
-                Text("更多 ›").font(.system(size: 12)).foregroundColor(Hive.Color.brandPrimary)
-            }.padding(.bottom, 10)
+        let tabs  = props["tabs"]?.arrayValue.map { $0.stringValue } ?? []
+        let funds = parseFunds()
+        let activeTab = selectedTab.isEmpty ? (props["activeTab"]?.stringValue ?? tabs.first ?? "") : selectedTab
+        let moreLabel = props["moreLabel"]?.stringValue ?? "View more"
 
-            ForEach(wealthProducts.indices, id: \.self) { i in
-                let p = wealthProducts[i]
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(p.name).font(.system(size: 12, weight: .semibold))
+        VStack(alignment: .leading, spacing: 0) {
+            // Section title
+            HStack {
+                Text(props["sectionTitle"]?.stringValue ?? "Feature product")
+                    .font(.system(size: 14, weight: .bold))
+                Spacer()
+            }.padding(.horizontal, 14).padding(.top, 12).padding(.bottom, 8)
+
+            // Tab strip
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(tabs, id: \.self) { tab in
+                        Text(tab)
+                            .font(.system(size: 11, weight: tab == activeTab ? .bold : .regular))
+                            .padding(.horizontal, 12).padding(.vertical, 5)
+                            .background(tab == activeTab ? Hive.Color.brandWhite : Color.clear)
+                            .foregroundColor(tab == activeTab ? Hive.Color.n900 : Hive.Color.n400)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(tab == activeTab ? Hive.Color.n200 : Color.clear, lineWidth: 1)
+                            )
+                            .cornerRadius(14)
+                            .shadow(color: tab == activeTab ? .black.opacity(0.06) : .clear, radius: 3, y: 1)
+                            .onTapGesture { selectedTab = tab }
+                    }
+                }
+                .padding(.horizontal, 12)
+            }
+
+            // Fund rows
+            ForEach(Array(funds.enumerated()), id: \.element.id) { idx, fund in
+                HStack(spacing: 8) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(fund.name)
+                            .font(.system(size: 11))
                             .foregroundColor(Hive.Color.n900)
-                        HStack(spacing: 6) {
-                            riskTag(p.risk)
-                            riskTag(p.redemption)
-                        }
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text(p.yield7Day)
-                            .font(.system(size: 18, weight: .heavy))
-                            .foregroundColor(Hive.Color.brandPrimary)
-                        Text("7日年化").font(.system(size: 9)).foregroundColor(Hive.Color.n400)
-                        if p.highlighted {
-                            Button(p.cta) {
-                                TealiumClient.wealthProductTapped(productName: p.name,
-                                    productId: p.id)
+                            .lineLimit(2)
+                        HStack(spacing: 4) {
+                            Text(fund.code)
+                                .font(.system(size: 9))
+                                .foregroundColor(Hive.Color.n400)
+                            ForEach(fund.tags, id: \.self) { tag in
+                                Text(tag)
+                                    .font(.system(size: 9))
+                                    .padding(.horizontal, 5).padding(.vertical, 1)
+                                    .background(Color(hex: "#F0FDF4"))
+                                    .foregroundColor(Color(hex: "#059669"))
+                                    .overlay(RoundedRectangle(cornerRadius: 3)
+                                        .stroke(Color(hex: "#D1FAE5"), lineWidth: 1))
+                                    .cornerRadius(3)
                             }
-                            .font(.system(size: 10, weight: .bold))
-                            .padding(.horizontal, 12).padding(.vertical, 4)
-                            .background(Hive.Color.brandPrimary).foregroundColor(.white)
-                            .cornerRadius(12).padding(.top, 4)
                         }
-                    }
-                }
-                .padding(.vertical, 10)
-                .overlay(
-                    i < wealthProducts.count - 1
-                        ? Rectangle().frame(height: 1).foregroundColor(Hive.Color.n100)
-                            .padding(.leading, 0) : nil,
-                    alignment: .bottom
-                )
-                .onTapGesture {
-                    if !p.highlighted {
-                        TealiumClient.wealthProductTapped(productName: p.name, productId: p.id)
-                    }
-                }
-            }
-
-            Text("💬 理財產品這么多，哪款適合我？")
-                .font(.system(size: 11)).foregroundColor(Hive.Color.n500)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.top, 10)
-        }
-        .padding(.horizontal, 16).padding(.vertical, 12)
-        .background(Hive.Color.brandWhite)
-        .onAppear {
-            TealiumClient.sliceImpression(sliceType: "WEALTH_SELECTION",
-                                          instanceId: "slice-wealth-sel", position: 7,
-                                          contentId: "wealth-selection-hk-2026")
-        }
-    }
-
-    private func riskTag(_ label: String) -> some View {
-        Text(label).font(.system(size: 9))
-            .foregroundColor(Hive.Color.n500)
-            .padding(.horizontal, 6).padding(.vertical, 1)
-            .background(Hive.Color.n100).cornerRadius(8)
-    }
-}
-
-// MARK: - 9. Featured Rankings
-
-private struct WHRankingItem {
-    let id: String; let icon: String; let badge: String
-    let title: String; let desc: String; let deepLink: String
-}
-
-private let rankingItems: [WHRankingItem] = [
-    .init(id:"r1", icon:"🥇", badge:"優中選優",  title:"3322選基",
-          desc:"近1年漲跌幅高達318.19%",          deepLink:"hsbc://rankings/top-funds"),
-    .init(id:"r2", icon:"🔒", badge:"固收優選",  title:"穩健省心好選擇",
-          desc:"歷史持有3月盈利概率高達98.23%",    deepLink:"hsbc://rankings/fixed-income"),
-    .init(id:"r3", icon:"📈", badge:"屢創新高",  title:"屢創新高榜",
-          desc:"近3年净值創新高次數達152",          deepLink:"hsbc://rankings/all-time-high"),
-]
-
-private struct WHFeaturedRankings: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack {
-                Text("特色榜單").font(.system(size: 15, weight: .bold))
-                Spacer()
-                Text("更多 ›").font(.system(size: 12)).foregroundColor(Hive.Color.brandPrimary)
-            }.padding(.bottom, 10)
-
-            ForEach(rankingItems, id: \.id) { item in
-                HStack(spacing: 12) {
-                    Text(item.icon).font(.system(size: 24))
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(item.badge)
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundColor(Hive.Color.brandPrimary)
-                            .padding(.horizontal, 8).padding(.vertical, 2)
-                            .background(Color(hex: "#FEF2F2")).cornerRadius(10)
-                        Text(item.title)
-                            .font(.system(size: 13, weight: .bold)).foregroundColor(Hive.Color.n900)
-                        Text(item.desc)
-                            .font(.system(size: 10)).foregroundColor(Hive.Color.n500)
                     }
                     Spacer()
-                    Text("›").font(.system(size: 16)).foregroundColor(Hive.Color.n400)
+                    VStack(alignment: .trailing, spacing: 1) {
+                        Text(fund.returnLabel)
+                            .font(.system(size: 9)).foregroundColor(Hive.Color.n400)
+                        Text(fund.returnValue)
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(fund.returnPositive ? Hive.Color.brandPrimary : Color(hex: "#059669"))
+                    }
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 12)).foregroundColor(Hive.Color.n400)
                 }
-                .padding(.vertical, 8)
-                .overlay(
-                    Rectangle().frame(height: 1).foregroundColor(Hive.Color.n50)
-                        .padding(.leading, 36),
-                    alignment: .bottom
-                )
+                .padding(.horizontal, 14).padding(.vertical, 10)
+                if idx < funds.count - 1 {
+                    Divider().padding(.horizontal, 14)
+                }
+            }
+
+            // More link
+            if !moreLabel.isEmpty {
+                HStack(spacing: 4) {
+                    Text(moreLabel)
+                        .font(.system(size: 11)).foregroundColor(Hive.Color.n700)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11)).foregroundColor(Hive.Color.n400)
+                }
+                .padding(.horizontal, 14).padding(.vertical, 10)
                 .onTapGesture {
-                    TealiumClient.rankingsTapped(title: item.title, badge: item.badge)
+                    TealiumClient.track(event: "feature_product_more_tap", category: "Wealth",
+                        action: "feature_product_more_tapped", screen: "wealth_hub_hk", journey: "wealth_hub")
                 }
             }
         }
-        .padding(.horizontal, 16).padding(.vertical, 12)
         .background(Hive.Color.brandWhite)
         .onAppear {
-            TealiumClient.sliceImpression(sliceType: "FEATURED_RANKINGS",
-                                          instanceId: "slice-rankings", position: 8)
+            if selectedTab.isEmpty { selectedTab = props["activeTab"]?.stringValue ?? "" }
+            TealiumClient.sliceImpression(sliceType: "FEATURE_PRODUCT",
+                instanceId: "slice-feature-product", position: 4)
         }
     }
 }
 
-// MARK: - 10. Life Deals
+// MARK: - 6. WEALTH_STUDIO_CAROUSEL
 
-private struct WHDeal {
-    let id: String; let brand: String; let tag: String; let deepLink: String
+private struct StudioItem: Identifiable {
+    let id: String; let episodeLabel: String; let liveBadge: String
+    let title: String; let ctaLabel: String; let imageColor: String
 }
 
-private let lifeDeals: [WHDeal] = [
-    .init(id:"d1", brand:"KFC",           tag:"單品優惠",  deepLink:"hsbc://deals/kfc"),
-    .init(id:"d2", brand:"Luckin Coffee", tag:"5折喝瑞幸", deepLink:"hsbc://deals/luckin"),
-    .init(id:"d3", brand:"DQ",            tag:"5折起",     deepLink:"hsbc://deals/dq"),
-]
+private struct WHWealthStudioCarousel: View {
+    let props: [String: JSONValue]
+    @State private var activeIdx = 0
 
-private let bottomLinks: [(icon: String, label: String, deepLink: String)] = [
-    ("🎁", "達標抽好禮\n丰润守护 健康随行", "hsbc://campaign/health"),
-    ("🏦", "行庆招财日\n享受特惠禮遇",       "hsbc://campaign/anniversary"),
-]
+    private func parseItems() -> [StudioItem] {
+        props["items"]?.arrayValue.compactMap { v -> StudioItem? in
+            let o = v.objectValue
+            guard let id = o["id"]?.stringValue, !id.isEmpty else { return nil }
+            return StudioItem(
+                id: id,
+                episodeLabel: o["episodeLabel"]?.stringValue ?? "",
+                liveBadge: o["liveBadge"]?.stringValue ?? "",
+                title: o["title"]?.stringValue ?? "",
+                ctaLabel: o["ctaLabel"]?.stringValue ?? "Watch now",
+                imageColor: o["imageColor"]?.stringValue ?? "#1A1A2E"
+            )
+        } ?? []
+    }
 
-private struct WHLifeDeals: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        let items = parseItems()
+        let sectionTitle = props["sectionTitle"]?.stringValue ?? "Premier Elite Wealth Studio"
+        let moreLabel    = props["moreLabel"]?.stringValue ?? "View all"
+
+        VStack(spacing: 0) {
             HStack {
-                Text("生活特惠").font(.system(size: 15, weight: .bold))
+                Text(sectionTitle).font(.system(size: 14, weight: .bold))
                 Spacer()
-                Text("更多 ›").font(.system(size: 12)).foregroundColor(Hive.Color.brandPrimary)
-            }
+                Text("\(moreLabel) ›").font(.system(size: 11)).foregroundColor(Hive.Color.brandPrimary)
+            }.padding(.horizontal, 14).padding(.top, 12).padding(.bottom, 8)
 
-            HStack(spacing: 10) {
-                ForEach(lifeDeals, id: \.id) { deal in
-                    VStack(spacing: 0) {
-                        ZStack {
-                            Color(hex: "#E5E7EB")
-                            Text(deal.brand == "KFC" ? "🍗" :
-                                 deal.brand == "DQ"  ? "🍦" : "☕")
-                            .font(.system(size: 24))
+            TabView(selection: $activeIdx) {
+                ForEach(Array(items.enumerated()), id: \.offset) { idx, item in
+                    VStack(alignment: .leading, spacing: 0) {
+                        // Fixed image area
+                        ZStack(alignment: .bottomLeading) {
+                            RoundedRectangle(cornerRadius: 0)
+                                .fill(Color(hex: item.imageColor))
+                                .frame(height: 100)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(item.liveBadge)
+                                    .font(.system(size: 8, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 6).padding(.vertical, 2)
+                                    .background(Hive.Color.brandPrimary)
+                                    .cornerRadius(3)
+                                Text(item.episodeLabel)
+                                    .font(.system(size: 9))
+                                    .foregroundColor(Color.white.opacity(0.7))
+                                Text(item.title)
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .lineLimit(2)
+                            }
+                            .padding(8)
                         }
-                        .frame(height: 64)
-
-                        Text(deal.tag)
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity).padding(.vertical, 4)
-                            .background(Hive.Color.brandPrimary)
+                        // Fixed text area (always 60 pt) so all cards align
+                        HStack(spacing: 5) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.white.opacity(0.2))
+                                    .frame(width: 18, height: 18)
+                                Image(systemName: "play.fill")
+                                    .font(.system(size: 7)).foregroundColor(.white)
+                            }
+                            Text(item.ctaLabel)
+                                .font(.system(size: 9))
+                                .foregroundColor(Color.white.opacity(0.9))
+                            Spacer()
+                        }
+                        .padding(.horizontal, 8).padding(.vertical, 8)
+                        .frame(height: 40)
+                        .background(Color(hex: item.imageColor))
                     }
-                    .frame(maxWidth: .infinity)
-                    .background(Hive.Color.n50)
                     .cornerRadius(12)
-                    .clipped()
-                    .shadow(color: .black.opacity(0.06), radius: 4, y: 1)
+                    .shadow(color: .black.opacity(0.15), radius: 8, y: 2)
+                    .padding(.horizontal, 14)
+                    .tag(idx)
                     .onTapGesture {
-                        TealiumClient.lifeDealTapped(brand: deal.brand, tag: deal.tag)
+                        TealiumClient.wealthStudioTapped(title: item.title, instanceId: item.id)
                     }
                 }
             }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .frame(height: 160)
 
-            HStack(spacing: 10) {
-                ForEach(bottomLinks, id: \.label) { link in
-                    HStack(spacing: 8) {
-                        Text(link.icon).font(.system(size: 24))
-                        Text(link.label)
-                            .font(.system(size: 10)).foregroundColor(Hive.Color.n700)
-                            .lineSpacing(2).fixedSize(horizontal: false, vertical: true)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(10)
-                    .background(Hive.Color.n50).cornerRadius(12)
-                    .onTapGesture {
-                        TealiumClient.track(event: "bottom_link_tap", category: "Wealth",
-                            action: "bottom_link_tapped", label: link.label,
-                            screen: "wealth_hub_hk", journey: "wealth_hub",
-                            custom: ["deep_link": link.deepLink])
-                    }
+            // Pagination dots — active follows swipe
+            HStack(spacing: 4) {
+                ForEach(items.indices, id: \.self) { i in
+                    Capsule()
+                        .fill(i == activeIdx ? Hive.Color.n900 : Hive.Color.n200)
+                        .frame(width: i == activeIdx ? 16 : 6, height: 4)
                 }
-            }
+            }.padding(.vertical, 10)
         }
-        .padding(.horizontal, 16).padding(.vertical, 12)
-        .background(Hive.Color.brandWhite)
+        .background(Hive.Color.n50)
         .onAppear {
-            TealiumClient.sliceImpression(sliceType: "LIFE_DEALS",
-                                          instanceId: "slice-life-deals", position: 9)
+            TealiumClient.sliceImpression(sliceType: "WEALTH_STUDIO_CAROUSEL",
+                instanceId: "slice-wealth-studio", position: 5)
         }
     }
 }
 
+// MARK: - 7. GUIDES_INSIGHTS_CAROUSEL
+
+private struct GuideItem: Identifiable {
+    let id: String; let title: String; let date: String
+    let imageColor: String; let deepLink: String
+}
+
+private struct WHGuidesInsights: View {
+    let props: [String: JSONValue]
+    @State private var activeIdx = 0
+
+    private func parseItems() -> [GuideItem] {
+        props["items"]?.arrayValue.compactMap { v -> GuideItem? in
+            let o = v.objectValue
+            guard let id = o["id"]?.stringValue, !id.isEmpty else { return nil }
+            return GuideItem(id: id,
+                title: o["title"]?.stringValue ?? "",
+                date: o["date"]?.stringValue ?? "",
+                imageColor: o["imageColor"]?.stringValue ?? "#2D3748",
+                deepLink: o["deepLink"]?.stringValue ?? "")
+        } ?? []
+    }
+
+    var body: some View {
+        let items = parseItems()
+        let sectionTitle = props["sectionTitle"]?.stringValue ?? "Guides and insights"
+        let moreLabel    = props["moreLabel"]?.stringValue ?? "View all"
+
+        VStack(spacing: 0) {
+            HStack {
+                Text(sectionTitle).font(.system(size: 14, weight: .bold))
+                Spacer()
+                Text("\(moreLabel) ›").font(.system(size: 11)).foregroundColor(Hive.Color.brandPrimary)
+            }.padding(.horizontal, 14).padding(.top, 12).padding(.bottom, 8)
+
+            TabView(selection: $activeIdx) {
+                ForEach(Array(items.enumerated()), id: \.offset) { idx, item in
+                    VStack(alignment: .leading, spacing: 0) {
+                        // Fixed image area
+                        RoundedRectangle(cornerRadius: 0)
+                            .fill(Color(hex: item.imageColor))
+                            .frame(height: 90)
+                        // Fixed text area
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(item.title)
+                                .font(.system(size: 10))
+                                .foregroundColor(Hive.Color.n900)
+                                .lineLimit(3)
+                            HStack(spacing: 4) {
+                                Image(systemName: "clock")
+                                    .font(.system(size: 9)).foregroundColor(Hive.Color.n400)
+                                Text(item.date)
+                                    .font(.system(size: 9)).foregroundColor(Hive.Color.n400)
+                            }
+                            Spacer()
+                        }
+                        .padding(.horizontal, 10).padding(.top, 8)
+                        .frame(height: 70)
+                        .background(Hive.Color.brandWhite)
+                    }
+                    .cornerRadius(12)
+                    .shadow(color: .black.opacity(0.08), radius: 4, y: 1)
+                    .padding(.horizontal, 14)
+                    .tag(idx)
+                    .onTapGesture {
+                        TealiumClient.guidesTapped(title: item.title, instanceId: item.id)
+                    }
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .frame(height: 174)
+
+            HStack(spacing: 4) {
+                ForEach(items.indices, id: \.self) { i in
+                    Capsule()
+                        .fill(i == activeIdx ? Hive.Color.n900 : Hive.Color.n200)
+                        .frame(width: i == activeIdx ? 16 : 6, height: 4)
+                }
+            }.padding(.vertical, 10)
+        }
+        .background(Hive.Color.brandWhite)
+        .onAppear {
+            TealiumClient.sliceImpression(sliceType: "GUIDES_INSIGHTS_CAROUSEL",
+                instanceId: "slice-guides-insights", position: 6)
+        }
+    }
+}
+
+// MARK: - 8. FX_WATCHLIST
+
+private struct FXPair: Identifiable {
+    let id: String; let pair: String
+    let sellLabel: String; let sellRate: String
+    let buyLabel: String;  let buyRate: String
+}
+
+private struct WHFXWatchlist: View {
+    let props: [String: JSONValue]
+
+    private func parsePairs() -> [FXPair] {
+        props["pairs"]?.arrayValue.compactMap { v -> FXPair? in
+            let o = v.objectValue
+            guard let id = o["id"]?.stringValue, !id.isEmpty else { return nil }
+            return FXPair(id: id,
+                pair: o["pair"]?.stringValue ?? "",
+                sellLabel: o["sellLabel"]?.stringValue ?? "Sell",
+                sellRate:  o["sellRate"]?.stringValue ?? "",
+                buyLabel:  o["buyLabel"]?.stringValue ?? "Buy",
+                buyRate:   o["buyRate"]?.stringValue ?? "")
+        } ?? []
+    }
+
+    var body: some View {
+        let pairs         = parsePairs()
+        let sectionTitle  = props["sectionTitle"]?.stringValue ?? "FX watchlist"
+        let tierBadge     = props["tierBadge"]?.stringValue
+        let tierDesc      = props["tierDescription"]?.stringValue ?? ""
+        let moreLabel     = props["moreLabel"]?.stringValue ?? "View more in FX"
+
+        VStack(alignment: .leading, spacing: 0) {
+            Text(sectionTitle)
+                .font(.system(size: 14, weight: .bold))
+                .padding(.horizontal, 14).padding(.top, 12).padding(.bottom, 8)
+
+            // Tier badge
+            if let badge = tierBadge {
+                HStack(spacing: 10) {
+                    Text("🏅").font(.system(size: 20))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(badge)
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(Color(hex: "#92400E"))
+                        Text(tierDesc)
+                            .font(.system(size: 10))
+                            .foregroundColor(Color(hex: "#B45309"))
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal, 12).padding(.vertical, 10)
+                .background(Color(hex: "#FFFBEB"))
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(hex: "#FDE68A"), lineWidth: 1))
+                .cornerRadius(8)
+                .padding(.horizontal, 14).padding(.bottom, 8)
+            }
+
+            ForEach(Array(pairs.enumerated()), id: \.element.id) { idx, pair in
+                HStack(spacing: 6) {
+                    Text("📈").font(.system(size: 11))
+                    Text(pair.pair)
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(Hive.Color.n900)
+                        .frame(width: 60, alignment: .leading)
+                    Spacer()
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(pair.sellLabel).font(.system(size: 9)).foregroundColor(Hive.Color.n400)
+                        Text(pair.sellRate).font(.system(size: 12, weight: .semibold)).foregroundColor(Hive.Color.n900)
+                    }
+                    Spacer()
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(pair.buyLabel).font(.system(size: 9)).foregroundColor(Hive.Color.n400)
+                        Text(pair.buyRate).font(.system(size: 12, weight: .semibold)).foregroundColor(Hive.Color.n900)
+                    }
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 12)).foregroundColor(Hive.Color.n400)
+                }
+                .padding(.horizontal, 14).padding(.vertical, 10)
+                if idx < pairs.count - 1 {
+                    Divider().padding(.horizontal, 14)
+                }
+            }
+
+            HStack(spacing: 4) {
+                Text(moreLabel).font(.system(size: 11)).foregroundColor(Hive.Color.n700)
+                Image(systemName: "chevron.right").font(.system(size: 11)).foregroundColor(Hive.Color.n400)
+            }
+            .padding(.horizontal, 14).padding(.vertical, 10)
+            .onTapGesture {
+                TealiumClient.track(event: "fx_watchlist_more_tap", category: "Wealth",
+                    action: "fx_watchlist_more_tapped", screen: "wealth_hub_hk", journey: "wealth_hub")
+            }
+        }
+        .background(Hive.Color.brandWhite)
+        .onAppear {
+            TealiumClient.sliceImpression(sliceType: "FX_WATCHLIST",
+                instanceId: "slice-fx-watchlist", position: 7)
+        }
+    }
+}
+
+// MARK: - 9. DISCOVER_MORE_CAROUSEL
+
+private struct DiscoverItem: Identifiable {
+    let id: String; let tag: String; let tagColor: String
+    let title: String; let subtitle: String
+    let imageColor: String; let deepLink: String
+}
+
+private struct WHDiscoverMore: View {
+    let props: [String: JSONValue]
+    @State private var activeIdx = 0
+
+    private func parseItems() -> [DiscoverItem] {
+        props["items"]?.arrayValue.compactMap { v -> DiscoverItem? in
+            let o = v.objectValue
+            guard let id = o["id"]?.stringValue, !id.isEmpty else { return nil }
+            return DiscoverItem(id: id,
+                tag: o["tag"]?.stringValue ?? "",
+                tagColor: o["tagColor"]?.stringValue ?? "#DB0011",
+                title: o["title"]?.stringValue ?? "",
+                subtitle: o["subtitle"]?.stringValue ?? "",
+                imageColor: o["imageColor"]?.stringValue ?? "#1A2E4A",
+                deepLink: o["deepLink"]?.stringValue ?? "")
+        } ?? []
+    }
+
+    var body: some View {
+        let items        = parseItems()
+        let sectionTitle = props["sectionTitle"]?.stringValue ?? "Discover more"
+
+        VStack(spacing: 0) {
+            HStack {
+                Text(sectionTitle).font(.system(size: 14, weight: .bold))
+                Spacer()
+            }.padding(.horizontal, 14).padding(.top, 12).padding(.bottom, 8)
+
+            TabView(selection: $activeIdx) {
+                ForEach(Array(items.enumerated()), id: \.offset) { idx, item in
+                    VStack(alignment: .leading, spacing: 0) {
+                        // Fixed image area with tag chip
+                        ZStack(alignment: .topLeading) {
+                            RoundedRectangle(cornerRadius: 0)
+                                .fill(Color(hex: item.imageColor))
+                                .frame(height: 100)
+                            Text(item.tag)
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 6).padding(.vertical, 2)
+                                .background(Color(hex: item.tagColor))
+                                .cornerRadius(3)
+                                .padding(8)
+                        }
+                        // Fixed text area
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(item.title)
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundColor(Hive.Color.n900)
+                                .lineLimit(2)
+                            if !item.subtitle.isEmpty {
+                                Text(item.subtitle)
+                                    .font(.system(size: 9))
+                                    .foregroundColor(Hive.Color.n400)
+                                    .lineLimit(2)
+                            }
+                            Spacer()
+                        }
+                        .padding(.horizontal, 10).padding(.top, 8)
+                        .frame(height: 68)
+                        .background(Hive.Color.brandWhite)
+                    }
+                    .cornerRadius(12)
+                    .shadow(color: .black.opacity(0.08), radius: 6, y: 2)
+                    .padding(.horizontal, 14)
+                    .tag(idx)
+                    .onTapGesture {
+                        TealiumClient.discoverMoreTapped(title: item.title, tag: item.tag)
+                    }
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .frame(height: 182)
+
+            HStack(spacing: 4) {
+                ForEach(items.indices, id: \.self) { i in
+                    Capsule()
+                        .fill(i == activeIdx ? Hive.Color.n900 : Hive.Color.n200)
+                        .frame(width: i == activeIdx ? 16 : 6, height: 4)
+                }
+            }.padding(.vertical, 10)
+        }
+        .background(Hive.Color.n50)
+        .onAppear {
+            TealiumClient.sliceImpression(sliceType: "DISCOVER_MORE_CAROUSEL",
+                instanceId: "slice-discover-more", position: 8)
+        }
+    }
+}

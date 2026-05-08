@@ -99,24 +99,22 @@ The platform delivers content through **three distinct channels**, each optimise
 ### 3. SDUI Renderers
 
 **Web** — React 18 + TypeScript
-- 24-component registry
-- Tealium analytics auto-instrumentation
+- 9-slice Home Hub renderer matching OCDP canonical design
+- Tealium analytics: impression + click events per slice (`wealthStudioTapped`, `guidesTapped`, `discoverMoreTapped` added)
 - Vite build system
 
-**iOS** �� Swift 5.9 + SwiftUI
-- Component registry with ViewBuilders
-- Combine for reactive data flow
+**iOS** — Swift 5.9 + SwiftUI
+- 9 SwiftUI slice components for Home Hub; `WealthSDUIViewModel` async loader
+- Tealium analytics client with pre-typed wealth & KYC event helpers
 - HIVE design tokens
 
 **Android** — Kotlin + Jetpack Compose
-- Composable-based component registry
-- Coroutines for async operations
-- Material Design 3 with HIVE tokens
+- 9 Composable slice functions; `WealthLoadState` sealed class
+- Colour tokens in `WealthTokens.kt`; Tealium analytics client
 
 **HarmonyOS NEXT** — ArkTS + ArkUI
-- Native HarmonyOS component system
-- SensorData analytics (China data residency)
-- hvigor build system
+- 9 `@Component` structs; if/else slice dispatcher (no `switch` inside `build()`)
+- SensorData analytics (China data residency); hvigor build system
 
 ### 4. Digital Analytics Platform (DAP)
 
@@ -263,7 +261,7 @@ DSPEcosystem/
 │   └── src/
 │
 ��── ios-sdui/                    # Swift/SwiftUI — iOS SDUI Renderer
-│   └── HSBCKyc/
+│   └── HSBCSDUI/
 │
 ├─��� android-sdui/                # Kotlin/Compose — Android Renderer
 │   └─�� app/src/main/java/com/hsbc/sdui/
@@ -334,6 +332,11 @@ See [docs/12_local_dev_environment.md](docs/12_local_dev_environment.md) for det
 - App ships component library + rendering engine
 - Backend composes screens as JSON at runtime
 - CMS publish → live in < 60 seconds
+
+**Implemented Screens:**
+- `home-wealth-hk` — 9-slice Home Hub: `HOME_SEARCH_HEADER`, `COMBO_QUICK_ACCESS`, `CARD_ACTIVATION_BANNER`, `QUEST_BANNER`, `FEATURE_PRODUCT`, `WEALTH_STUDIO_CAROUSEL`, `GUIDES_INSIGHTS`, `FX_WATCHLIST`, `DISCOVER_MORE`
+- `fx-viewpoint-hk` — FX Viewpoint: `VIDEO_PLAYER`, `MARKET_BRIEFING_TEXT`, `CONTACT_RM_CTA`
+- `kyc-step-{id}` — 11-step OBKYC journey
 
 **Versioning Contract:**
 - Client declares supported schema version in headers

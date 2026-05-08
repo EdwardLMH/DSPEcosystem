@@ -497,6 +497,15 @@ function PageDetailDrawer({ page }: { page: PageLayout }) {
               <StatusBadge  status={status} />
               <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 4, background: '#F3F4F6', color: '#6B7280' }}>{page.bizLineId}</span>
               {isCampaign && <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: '#FFF7ED', color: '#C2410C', border: '1px solid #FED7AA' }}>CAMPAIGN</span>}
+              {(isWebStd || (isSDUI && page.nativeTargets.includes('web'))) && (
+                <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4,
+                  background: page.isPublic === true ? '#D1FAE5' : '#F3F4F6',
+                  color:      page.isPublic === true ? '#059669' : '#6B7280',
+                  border:     `1px solid ${page.isPublic === true ? '#A7F3D0' : '#D1D5DB'}`,
+                }}>
+                  {page.isPublic === true ? '🌐 Public' : '🔒 Private'}
+                </span>
+              )}
             </div>
           </div>
           <button onClick={() => dispatch({ type: 'CLOSE_DETAIL' })}
@@ -725,16 +734,13 @@ function PageDetailDrawer({ page }: { page: PageLayout }) {
               {status === 'APPROVED' && (isApprover || isAuthor) && !isCampaign && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Publish to market</div>
-                  {pageTargets.map(tid => {
-                    const tidLive = liveTargets.some(lt => lt.targetId === tid);
-                    return (
-                      <button key={tid} disabled={tidLive}
-                        onClick={() => dispatch({ type: 'PUBLISH_PAGE', pageId: page.pageId, targetId: tid })}
-                        style={actionBtn(tidLive ? '#9CA3AF' : '#1D4ED8', tidLive)}>
-                        {tidLive ? `✓ ${tid} — Already LIVE` : `🚀 Publish to ${tid}`}
-                      </button>
-                    );
-                  })}
+                  {pageTargets.map(tid => (
+                    <button key={tid}
+                      onClick={() => dispatch({ type: 'PUBLISH_PAGE', pageId: page.pageId, targetId: tid })}
+                      style={actionBtn('#1D4ED8')}>
+                      🚀 Publish to {tid}
+                    </button>
+                  ))}
                 </div>
               )}
 
@@ -744,16 +750,13 @@ function PageDetailDrawer({ page }: { page: PageLayout }) {
                   <div style={{ padding: '10px 14px', background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 8, fontSize: 12, color: '#92400E', fontWeight: 600 }}>
                     ⏱ Campaign approved — go to the Timer tab to schedule the auto-release or press Publish to Live
                   </div>
-                  {pageTargets.map(tid => {
-                    const tidLive = liveTargets.some(lt => lt.targetId === tid);
-                    return (
-                      <button key={tid} disabled={tidLive}
-                        onClick={() => dispatch({ type: 'PUBLISH_PAGE', pageId: page.pageId, targetId: tid })}
-                        style={actionBtn(tidLive ? '#9CA3AF' : '#1D4ED8', tidLive)}>
-                        {tidLive ? `✓ ${tid} — Already LIVE` : `🚀 Publish to ${tid}`}
-                      </button>
-                    );
-                  })}
+                  {pageTargets.map(tid => (
+                    <button key={tid}
+                      onClick={() => dispatch({ type: 'PUBLISH_PAGE', pageId: page.pageId, targetId: tid })}
+                      style={actionBtn('#1D4ED8')}>
+                      🚀 Publish to {tid}
+                    </button>
+                  ))}
                 </div>
               )}
 
@@ -937,6 +940,9 @@ export function PageLibraryPanel() {
                           <StatusBadge  status={page.authoringStatus} />
                           {hasSched && (
                             <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: '#FFF7ED', color: '#C2410C', border: '1px solid #FED7AA' }}>⏱ Scheduled</span>
+                          )}
+                          {page.isPublic === true && (
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: '#D1FAE5', color: '#059669', border: '1px solid #A7F3D0' }}>🌐 Public</span>
                           )}
                         </div>
                       </div>

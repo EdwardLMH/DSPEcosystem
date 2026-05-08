@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useOCDP } from '../../store/OCDPStore';
-import type { CanvasSlice, PageLayout, CampaignSchedule, UCPContentAsset, CustomerSegment, VisibilityRule, RuleCondition, RuleOperator, AccountType, CustomerLocation, PreviewContext } from '../../types/ocdp';
+import type { CanvasSlice, PageLayout, CampaignSchedule, UCPContentAsset, CustomerSegment, VisibilityRule, RuleCondition, RuleOperator, AccountType, CustomerLocation, PreviewContext, CustomFieldCondition } from '../../types/ocdp';
 import { PALETTE_COMPONENTS, PALETTE_CATEGORIES, type PaletteComponent } from '../../store/ucpComponents';
 import { FALLBACK_CONTENT_ASSETS } from '../../store/ucpAssets';
 
@@ -108,7 +108,7 @@ function QRScanIcon({ color, size }: { color: string; size: number }) {
   );
 }
 
-function SlicePreview({ slice }: { slice: CanvasSlice }) {
+function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string }) {
   const p = slice.props as Record<string, unknown>;
   const base: React.CSSProperties = {
     width: '100%',
@@ -833,10 +833,19 @@ function SlicePreview({ slice }: { slice: CanvasSlice }) {
       );
     case 'CONTACT_RM_CTA':
       return (
-        <div style={{ ...base, padding: '12px 16px', background: String(p.backgroundColor ?? '#DB0011'), display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-          <div style={{ fontWeight: 700, fontSize: 13, color: String(p.textColor ?? '#FFFFFF') }}>{String(p.label ?? 'Contact Your RM')}</div>
-          {p.subLabel && <div style={{ fontSize: 9, color: `${String(p.textColor ?? '#FFFFFF')}CC`, textAlign: 'center' }}>{String(p.subLabel)}</div>}
-          {p.sticky && <div style={{ marginTop: 4, fontSize: 8, padding: '1px 6px', background: 'rgba(255,255,255,0.2)', borderRadius: 8, color: '#fff', fontWeight: 600 }}>STICKY</div>}
+        <div style={{ ...base, padding: '8px 12px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            background: String(p.backgroundColor ?? '#DB0011'),
+            borderRadius: 20, padding: '6px 14px',
+            boxShadow: '0 2px 6px rgba(219,0,17,0.25)',
+          }}>
+            <span style={{ fontSize: 11, color: '#fff', opacity: 0.9 }}>📞</span>
+            <span style={{ fontWeight: 700, fontSize: 11, color: String(p.textColor ?? '#FFFFFF'), whiteSpace: 'nowrap' }}>
+              {String(p.label ?? 'Contact Your RM')}
+            </span>
+            {p.sticky && <span style={{ fontSize: 8, padding: '1px 5px', background: 'rgba(255,255,255,0.25)', borderRadius: 6, color: '#fff', fontWeight: 600 }}>STICKY</span>}
+          </div>
         </div>
       );
     case 'DEPOSIT_RATE_TABLE': {
@@ -888,6 +897,426 @@ function SlicePreview({ slice }: { slice: CanvasSlice }) {
               </div>
             </div>
           ))}
+        </div>
+      );
+    }
+
+    case 'CAMPAIGN_HERO': {
+      const accent = String(p.accentColor ?? '#C9A84C');
+      const bg = String(p.bgGradient ?? 'linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%)');
+      return (
+        <div style={{ ...base, background: bg, padding: '20px 18px', position: 'relative', overflow: 'hidden', minHeight: 140 }}>
+          {/* Decorative card silhouette */}
+          <div style={{ position: 'absolute', right: -18, top: '50%', transform: 'translateY(-50%) rotate(-10deg)', width: 100, height: 64, background: `linear-gradient(135deg, ${accent}33, ${accent}88)`, borderRadius: 8, border: `1px solid ${accent}66` }}>
+            <div style={{ position: 'absolute', bottom: 8, left: 8, fontSize: 7, color: accent, fontWeight: 800, letterSpacing: 1 }}>VISA</div>
+            <div style={{ position: 'absolute', top: 10, left: 10, width: 14, height: 10, background: accent, borderRadius: 2, opacity: 0.7 }} />
+          </div>
+          {/* Badge */}
+          {p.badge && (
+            <div style={{ display: 'inline-block', background: accent, color: '#fff', fontSize: 7, fontWeight: 700, padding: '2px 7px', borderRadius: 10, marginBottom: 8, letterSpacing: 0.5 }}>
+              {String(p.badge)}
+            </div>
+          )}
+          <div style={{ fontSize: 14, fontWeight: 900, color: '#fff', lineHeight: 1.2, marginBottom: 6, maxWidth: 160 }}>
+            {String(p.headline ?? 'HSBC Visa Platinum')}
+          </div>
+          <div style={{ fontSize: 9, color: `${accent}`, fontWeight: 600, lineHeight: 1.4, maxWidth: 150 }}>
+            {String(p.subHeadline ?? '0% Foreign Transaction Fee')}
+          </div>
+        </div>
+      );
+    }
+
+    case 'CAMPAIGN_BENEFITS': {
+      const benefits = Array.isArray(p.benefits) ? p.benefits as { icon: string; title: string; desc: string }[] : [];
+      return (
+        <div style={{ ...base, background: '#fff', padding: '12px 14px' }}>
+          {p.sectionTitle && (
+            <div style={{ fontSize: 11, fontWeight: 800, color: '#111', marginBottom: 10 }}>{String(p.sectionTitle)}</div>
+          )}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            {benefits.slice(0, 6).map((b, i) => (
+              <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'flex-start', padding: '7px 8px', background: '#F9FAFB', borderRadius: 7, border: '1px solid #E5E7EB' }}>
+                <span style={{ fontSize: 14, flexShrink: 0 }}>{b.icon}</span>
+                <div>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: '#111', lineHeight: 1.2, marginBottom: 2 }}>{b.title}</div>
+                  <div style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.3 }}>{b.desc?.substring(0, 55)}{(b.desc?.length ?? 0) > 55 ? '…' : ''}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          {benefits.length === 0 && <div style={{ fontSize: 9, color: '#9CA3AF', fontStyle: 'italic' }}>No benefits configured</div>}
+        </div>
+      );
+    }
+
+    case 'CAMPAIGN_CTA': {
+      return (
+        <div style={{ ...base, background: '#fff', padding: '14px 16px', textAlign: 'center' }}>
+          {p.offerBadge && (
+            <div style={{ display: 'inline-block', background: '#FEF3C7', border: '1px solid #FCD34D', color: '#92400E', fontSize: 8, fontWeight: 700, padding: '2px 10px', borderRadius: 10, marginBottom: 10 }}>
+              🎁 {String(p.offerBadge)}
+            </div>
+          )}
+          <div style={{ background: '#DB0011', borderRadius: 10, padding: '10px 20px', marginBottom: 6, cursor: 'pointer' }}>
+            <div style={{ color: '#fff', fontSize: 11, fontWeight: 800 }}>{String(p.ctaLabel ?? 'Apply Now')}</div>
+            {p.ctaSubtext && <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 8, marginTop: 2 }}>{String(p.ctaSubtext)}</div>}
+          </div>
+          {p.secondaryLabel && (
+            <div style={{ color: '#DB0011', fontSize: 9, fontWeight: 600, textDecoration: 'underline', cursor: 'pointer' }}>
+              {String(p.secondaryLabel)}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ── Home Hub components ──────────────────────────────────────────────────
+
+    case 'HOME_SEARCH_HEADER': {
+      const segConfig: Record<string, { bg: string; label: string }> = {
+        premier: { bg: String(p.premierBg ?? '#DB0011'), label: String(p.premierLabel ?? 'HSBC Premier') },
+        elite:   { bg: String(p.eliteBg   ?? '#0D5C3A'), label: String(p.eliteLabel   ?? 'HSBC Elite') },
+        advance: { bg: String(p.advanceBg ?? '#D4580A'), label: String(p.advanceLabel ?? 'HSBC One') },
+        mass:    { bg: String(p.massBg    ?? '#4B5563'), label: String(p.massLabel    ?? 'HSBC Personal Banking') },
+      };
+      const { bg, label: segLabel } = segConfig[segment ?? 'premier'] ?? segConfig.premier;
+      const accent = 'rgba(255,255,255,0.9)';
+      return (
+        <div style={{ ...base, background: bg, padding: '10px 14px 12px', borderRadius: 0, border: 'none' }}>
+          {/* Header row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <div style={{ width: 22, height: 22, background: 'rgba(255,255,255,0.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ color: accent, fontSize: 10, fontWeight: 900 }}>H</span>
+            </div>
+            <span style={{ color: accent, fontSize: 11, fontWeight: 700, flex: 1 }}>{segLabel}</span>
+            {p.enableNotification && <span style={{ color: accent, fontSize: 14 }}>🔔</span>}
+            {p.enableHeadset      && <span style={{ color: accent, fontSize: 13 }}>🎧</span>}
+          </div>
+          {/* White search bar — full width, no arc */}
+          <div style={{ background: '#fff', borderRadius: 0, padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 11, color: '#9CA3AF', flexShrink: 0 }}>🔍</span>
+            <span style={{ fontSize: 9, color: '#9CA3AF', flex: 1 }}>
+              {String(p.placeholder ?? 'Search functions, products & content')}
+            </span>
+            {p.enableSemanticSearch !== false && (
+              <span style={{ fontSize: 8, color: '#fff', fontWeight: 700, flexShrink: 0, background: '#DB0011', borderRadius: 4, padding: '1px 4px' }}>AI</span>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    case 'PREMIER_HEADER':
+    case 'ELITE_HEADER':
+    case 'ADVANCE_HEADER':
+    case 'MASS_HEADER': {
+      const headerColors: Record<string, { bg: string; accent: string; label: string }> = {
+        PREMIER_HEADER: { bg: '#DB0011', accent: 'rgba(255,255,255,0.9)', label: String(p.brandLabel ?? 'HSBC Premier') },
+        ELITE_HEADER:   { bg: '#0D5C3A', accent: '#C9A84C',                label: String(p.brandLabel ?? 'HSBC Elite') },
+        ADVANCE_HEADER: { bg: '#D4580A', accent: 'rgba(255,255,255,0.9)', label: String(p.brandLabel ?? 'HSBC Advance') },
+        MASS_HEADER:    { bg: '#4B5563', accent: 'rgba(255,255,255,0.9)', label: String(p.brandLabel ?? 'HSBC Personal Banking') },
+      };
+      const hc = headerColors[slice.type];
+      return (
+        <div style={{ ...base, background: hc.bg, padding: '10px 14px 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 22, height: 22, background: 'rgba(255,255,255,0.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ color: hc.accent, fontSize: 10, fontWeight: 900 }}>H</span>
+          </div>
+          <span style={{ color: hc.accent, fontSize: 11, fontWeight: 700, flex: 1 }}>{hc.label}</span>
+          {p.enableNotification && <span style={{ color: hc.accent, fontSize: 14 }}>🔔</span>}
+          {p.enableHeadset     && <span style={{ color: hc.accent, fontSize: 13 }}>🎧</span>}
+        </div>
+      );
+    }
+
+    case 'HOME_SEARCH_BAR':
+      return (
+        <div style={{ ...base, background: '#fff', padding: '6px 10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            {p.enableQRScan !== false && (
+              <QRScanIcon color="#9CA3AF" size={14} />
+            )}
+            <div style={{ flex: 1, background: '#F5F5F5', borderRadius: 18, padding: '5px 10px', display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
+              <span style={{ fontSize: 11, color: '#9CA3AF', flexShrink: 0 }}>🔍</span>
+              <span style={{ fontSize: 9, color: '#9CA3AF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {String(p.placeholder ?? 'Search functions, products & content')}
+              </span>
+              {p.enableSemanticSearch !== false && (
+                <span style={{ fontSize: 8, color: '#DB0011', fontWeight: 700, flexShrink: 0, marginLeft: 'auto' }}>AI</span>
+              )}
+            </div>
+            {p.enableChatbot !== false && (
+              <span style={{ fontSize: 14, lineHeight: 1, flexShrink: 0 }}>🤖</span>
+            )}
+            {p.enableMessageInbox !== false && (
+              <span style={{ fontSize: 14, lineHeight: 1, flexShrink: 0 }}>✉️</span>
+            )}
+          </div>
+        </div>
+      );
+
+    case 'COMBO_QUICK_ACCESS': {
+      const tabs = Array.isArray(p.tabs) ? p.tabs as { id: string; label: string; active: boolean }[] : [];
+      const row1 = Array.isArray(p.row1Items) ? p.row1Items as { id: string; icon: string; label: string }[] : [];
+      const row2 = Array.isArray(p.row2Items) ? p.row2Items as { id: string; icon: string; label: string }[] : [];
+      const iconMap: Record<string, string> = {
+        account: '👤', transfer: '🌐', fx: '💱', stock: '📈', deposit: '⏰',
+        holding: '📊', safe: '💰', fps: '↔️', scan: '📷', all: '⊞',
+      };
+      return (
+        <div style={{ ...base, background: '#fff' }}>
+          {/* Tab bar */}
+          <div style={{ padding: '6px 12px 0', display: 'flex', gap: 6, borderBottom: '1px solid #F3F4F6' }}>
+            {tabs.map(tab => (
+              <div key={tab.id} style={{
+                padding: '4px 10px', borderRadius: 16, fontSize: 9, fontWeight: tab.active ? 700 : 400,
+                background: tab.active ? '#000' : 'transparent',
+                color: tab.active ? '#fff' : '#6B7280', marginBottom: 4,
+              }}>{tab.label}</div>
+            ))}
+            {tabs.length === 0 && <span style={{ fontSize: 9, color: '#9CA3AF', padding: '4px 0' }}>No tabs</span>}
+          </div>
+          {/* Row 1 icons */}
+          <div style={{ padding: '8px 6px 0', display: 'flex', justifyContent: 'space-around' }}>
+            {(row1.length > 0 ? row1 : [{id:'_',icon:'account',label:'Account'},{id:'__',icon:'transfer',label:'Transfer'},{id:'___',icon:'fx',label:'FX'},{id:'____',icon:'stock',label:'Stock'},{id:'_____',icon:'deposit',label:'Deposit'}]).map(item => (
+              <div key={item.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, width: 42 }}>
+                <div style={{ width: 34, height: 34, borderRadius: 10, background: '#F5F5F5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
+                  {iconMap[item.icon] ?? item.icon ?? '⬜'}
+                </div>
+                <span style={{ fontSize: 8, color: '#374151', textAlign: 'center', lineHeight: 1.2 }}>{item.label}</span>
+              </div>
+            ))}
+          </div>
+          {/* Row 2 icons */}
+          <div style={{ padding: '6px 6px 8px', display: 'flex', justifyContent: 'space-around' }}>
+            {(row2.length > 0 ? row2 : [{id:'a',icon:'holding',label:'Holdings'},{id:'b',icon:'safe',label:'Safe'},{id:'c',icon:'fps',label:'FPS'},{id:'d',icon:'scan',label:'Scan'},{id:'e',icon:'all',label:'All'}]).map(item => (
+              <div key={item.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, width: 42 }}>
+                <div style={{ width: 34, height: 34, borderRadius: 10, background: '#F5F5F5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
+                  {iconMap[item.icon] ?? item.icon ?? '⬜'}
+                </div>
+                <span style={{ fontSize: 8, color: '#374151', textAlign: 'center', lineHeight: 1.2 }}>{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    case 'CONTENT_TAB_BAR': {
+      const tabs = Array.isArray(p.tabs) ? p.tabs as { id: string; label: string; active: boolean }[] : [];
+      return (
+        <div style={{ ...base, background: '#fff', padding: '6px 12px 0', display: 'flex', gap: 6, borderBottom: '1px solid #F3F4F6' }}>
+          {tabs.map(tab => (
+            <div key={tab.id} style={{
+              padding: '4px 10px', borderRadius: 16, fontSize: 9, fontWeight: tab.active ? 700 : 400,
+              background: tab.active ? '#000' : 'transparent',
+              color: tab.active ? '#fff' : '#6B7280',
+              marginBottom: 4,
+            }}>{tab.label}</div>
+          ))}
+          {tabs.length === 0 && <span style={{ fontSize: 9, color: '#9CA3AF', padding: '4px 0' }}>No tabs configured</span>}
+        </div>
+      );
+    }
+
+    case 'QUICK_ACCESS_GRID': {
+      const items = Array.isArray(p.items) ? p.items as { id: string; icon: string; label: string }[] : [];
+      const iconMap: Record<string, string> = {
+        account: '👤', transfer: '🌐', fx: '💱', stock: '📈', deposit: '⏰',
+        holding: '📊', safe: '💰', fps: '↔️', scan: '📷', all: '⊞',
+      };
+      return (
+        <div style={{ ...base, background: '#fff', padding: '8px 6px', display: 'flex', justifyContent: 'space-around' }}>
+          {items.map(item => (
+            <div key={item.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, width: 42 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: '#F5F5F5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>
+                {iconMap[item.icon] ?? item.icon ?? '⬜'}
+              </div>
+              <span style={{ fontSize: 8, color: '#374151', textAlign: 'center', lineHeight: 1.2 }}>{item.label}</span>
+            </div>
+          ))}
+          {items.length === 0 && <span style={{ fontSize: 9, color: '#9CA3AF', padding: 8 }}>No items</span>}
+        </div>
+      );
+    }
+
+    case 'CARD_ACTIVATION_BANNER':
+      return (
+        <div style={{ ...base, background: '#fff', margin: '0 10px', borderRadius: 8, border: '1px solid #E5E7EB', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 14 }}>🔔</span>
+          <span style={{ flex: 1, fontSize: 10, color: '#374151' }}>{String(p.message ?? 'Your card needs to be activated')}</span>
+          <span style={{ fontSize: 12, color: '#9CA3AF' }}>›</span>
+        </div>
+      );
+
+    case 'QUEST_BANNER':
+      return (
+        <div style={{ ...base, background: '#fff', margin: '0 10px', borderRadius: 8, borderLeft: '4px solid #DB0011', border: '1px solid #E5E7EB', padding: '10px 12px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
+            <div style={{ width: 26, height: 26, background: '#DB0011', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ color: '#fff', fontSize: 10, fontWeight: 900 }}>H</span>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#111', marginBottom: 2 }}>{String(p.title ?? 'Getting started')}</div>
+              <div style={{ fontSize: 9, color: '#6B7280', lineHeight: 1.3 }}>{String(p.description ?? 'Complete quests to enjoy rewards!')}</div>
+            </div>
+          </div>
+          <span style={{ color: '#DB0011', fontSize: 10, fontWeight: 700 }}>{String(p.ctaLabel ?? 'Check out all quests')} →</span>
+        </div>
+      );
+
+    case 'FEATURE_PRODUCT': {
+      const funds = Array.isArray(p.funds) ? p.funds as { id: string; name: string; code: string; returnLabel: string; returnValue: string; returnPositive: boolean; tags: string[] }[] : [];
+      const tabs  = Array.isArray(p.tabs) ? p.tabs as string[] : [];
+      return (
+        <div style={{ ...base, background: '#fff', padding: '10px 0' }}>
+          <div style={{ padding: '0 12px', fontWeight: 700, fontSize: 12, color: '#111', marginBottom: 8 }}>{String(p.sectionTitle ?? 'Feature product')}</div>
+          <div style={{ padding: '0 10px', display: 'flex', gap: 6, marginBottom: 8, overflowX: 'hidden' }}>
+            {tabs.map((tab, i) => (
+              <div key={i} style={{
+                padding: '3px 9px', borderRadius: 14, fontSize: 9,
+                fontWeight: tab === String(p.activeTab) ? 700 : 400,
+                background: tab === String(p.activeTab) ? '#fff' : 'transparent',
+                color: tab === String(p.activeTab) ? '#111' : '#9CA3AF',
+                border: tab === String(p.activeTab) ? '1px solid #E5E7EB' : '1px solid transparent',
+                boxShadow: tab === String(p.activeTab) ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                whiteSpace: 'nowrap' as const,
+              }}>{tab}</div>
+            ))}
+          </div>
+          {funds.map((fund, i) => (
+            <div key={fund.id} style={{ padding: '7px 12px', borderBottom: i < funds.length - 1 ? '1px solid #F3F4F6' : 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 9, color: '#111', lineHeight: 1.3, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{fund.name}</div>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  <span style={{ fontSize: 8, color: '#9CA3AF' }}>{fund.code}</span>
+                  {(fund.tags ?? []).map((tag: string) => (
+                    <span key={tag} style={{ fontSize: 7, padding: '1px 4px', borderRadius: 3, background: '#F0FDF4', color: '#059669' }}>{tag}</span>
+                  ))}
+                </div>
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <div style={{ fontSize: 8, color: '#9CA3AF' }}>{fund.returnLabel}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: fund.returnPositive ? '#DC2626' : '#059669' }}>{fund.returnValue}</div>
+              </div>
+            </div>
+          ))}
+          {funds.length === 0 && <div style={{ padding: '8px 12px', fontSize: 9, color: '#9CA3AF', fontStyle: 'italic' }}>No funds configured</div>}
+          {p.moreLabel && (
+            <div style={{ padding: '6px 12px', fontSize: 9, color: '#374151' }}>{String(p.moreLabel)} ›</div>
+          )}
+        </div>
+      );
+    }
+
+    case 'WEALTH_STUDIO_CAROUSEL': {
+      const items = Array.isArray(p.items) ? p.items as { id: string; episodeLabel: string; liveBadge: string; title: string; ctaLabel: string; imageColor: string }[] : [];
+      return (
+        <div style={{ ...base, background: '#F9FAFB', padding: '10px 0' }}>
+          <div style={{ padding: '0 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontWeight: 700, fontSize: 12, color: '#111' }}>{String(p.sectionTitle ?? 'Premier Elite Wealth Studio')}</span>
+            <span style={{ fontSize: 9, color: '#DB0011', fontWeight: 600 }}>{String(p.moreLabel ?? 'View all')} ›</span>
+          </div>
+          <div style={{ padding: '0 12px', display: 'flex', gap: 8 }}>
+            {items.map(item => (
+              <div key={item.id} style={{ width: 130, flexShrink: 0, borderRadius: 8, overflow: 'hidden', background: item.imageColor ?? '#1A1A2E', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
+                <div style={{ padding: '8px 8px 10px' }}>
+                  <div style={{ background: '#DB0011', display: 'inline-block', padding: '1px 5px', borderRadius: 3, fontSize: 7, color: '#fff', fontWeight: 700, marginBottom: 4 }}>{item.liveBadge}</div>
+                  <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)', marginBottom: 2 }}>{item.episodeLabel}</div>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: '#fff', lineHeight: 1.3, marginBottom: 10 }}>{item.title}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                    <div style={{ width: 14, height: 14, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ color: '#fff', fontSize: 6, marginLeft: 1 }}>▶</span>
+                    </div>
+                    <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.85)' }}>{item.ctaLabel}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {items.length === 0 && <div style={{ fontSize: 9, color: '#9CA3AF', fontStyle: 'italic', padding: '8px 0' }}>No episodes configured</div>}
+          </div>
+        </div>
+      );
+    }
+
+    case 'GUIDES_INSIGHTS_CAROUSEL': {
+      const items = Array.isArray(p.items) ? p.items as { id: string; title: string; date: string; imageColor: string }[] : [];
+      return (
+        <div style={{ ...base, background: '#fff', padding: '10px 0' }}>
+          <div style={{ padding: '0 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontWeight: 700, fontSize: 12, color: '#111' }}>{String(p.sectionTitle ?? 'Guides and insights')}</span>
+            <span style={{ fontSize: 9, color: '#DB0011', fontWeight: 600 }}>{String(p.moreLabel ?? 'View all')} ›</span>
+          </div>
+          <div style={{ padding: '0 12px', display: 'flex', gap: 10 }}>
+            {items.map(item => (
+              <div key={item.id} style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ height: 64, background: item.imageColor ?? '#2D3748', borderRadius: 6, marginBottom: 5 }} />
+                <div style={{ fontSize: 9, color: '#111', lineHeight: 1.3, marginBottom: 3 }}>{item.title}</div>
+                <div style={{ fontSize: 8, color: '#9CA3AF' }}>🕐 {item.date}</div>
+              </div>
+            ))}
+            {items.length === 0 && <div style={{ fontSize: 9, color: '#9CA3AF', fontStyle: 'italic', padding: '8px 0' }}>No articles configured</div>}
+          </div>
+        </div>
+      );
+    }
+
+    case 'FX_WATCHLIST': {
+      const pairs = Array.isArray(p.pairs) ? p.pairs as { id: string; pair: string; sellLabel: string; sellRate: string; buyLabel: string; buyRate: string }[] : [];
+      return (
+        <div style={{ ...base, background: '#fff', padding: '10px 0' }}>
+          <div style={{ padding: '0 12px', fontWeight: 700, fontSize: 12, color: '#111', marginBottom: 8 }}>{String(p.sectionTitle ?? 'FX watchlist')}</div>
+          {p.tierBadge && (
+            <div style={{ margin: '0 12px 8px', background: '#FFFBEB', borderRadius: 8, padding: '6px 10px', display: 'flex', alignItems: 'flex-start', gap: 6, border: '1px solid #FDE68A' }}>
+              <span style={{ fontSize: 16, flexShrink: 0 }}>🏅</span>
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#92400E', marginBottom: 1 }}>{String(p.tierBadge)}</div>
+                <div style={{ fontSize: 9, color: '#B45309' }}>{String(p.tierDescription ?? '')}</div>
+              </div>
+            </div>
+          )}
+          <div style={{ padding: '0 12px' }}>
+            {pairs.map((pair, i) => (
+              <div key={pair.id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 0', borderBottom: i < pairs.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
+                <span style={{ fontSize: 9, color: '#374151', fontWeight: 700, width: 56 }}>{pair.pair}</span>
+                <div style={{ flex: 1, display: 'flex', gap: 8 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 8, color: '#9CA3AF' }}>{pair.sellLabel}</div>
+                    <div style={{ fontSize: 10, fontWeight: 600 }}>{pair.sellRate}</div>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 8, color: '#9CA3AF' }}>{pair.buyLabel}</div>
+                    <div style={{ fontSize: 10, fontWeight: 600 }}>{pair.buyRate}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {pairs.length === 0 && <div style={{ fontSize: 9, color: '#9CA3AF', fontStyle: 'italic' }}>No pairs configured</div>}
+          </div>
+          {p.moreLabel && <div style={{ padding: '6px 12px', fontSize: 9, color: '#374151' }}>{String(p.moreLabel)} ›</div>}
+        </div>
+      );
+    }
+
+    case 'DISCOVER_MORE_CAROUSEL': {
+      const items = Array.isArray(p.items) ? p.items as { id: string; tag: string; tagColor: string; title: string; imageColor: string }[] : [];
+      return (
+        <div style={{ ...base, background: '#F9FAFB', padding: '10px 0' }}>
+          <div style={{ padding: '0 12px', fontWeight: 700, fontSize: 12, color: '#111', marginBottom: 8 }}>{String(p.sectionTitle ?? 'Discover more')}</div>
+          <div style={{ padding: '0 12px', display: 'flex', gap: 8 }}>
+            {items.map(item => (
+              <div key={item.id} style={{ width: 110, flexShrink: 0, borderRadius: 8, overflow: 'hidden', background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.08)' }}>
+                <div style={{ height: 64, background: item.imageColor ?? '#1A2E4A', position: 'relative' }}>
+                  <div style={{ position: 'absolute', top: 5, left: 5, background: item.tagColor ?? '#DB0011', borderRadius: 3, padding: '1px 5px', fontSize: 7, color: '#fff', fontWeight: 700 }}>{item.tag}</div>
+                </div>
+                <div style={{ padding: '6px 8px 8px' }}>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: '#111', lineHeight: 1.3 }}>{item.title}</div>
+                </div>
+              </div>
+            ))}
+            {items.length === 0 && <div style={{ fontSize: 9, color: '#9CA3AF', fontStyle: 'italic', padding: '8px 0' }}>No items configured</div>}
+          </div>
         </div>
       );
     }
@@ -958,8 +1387,8 @@ function useUCPSidebar(activeTab: SidebarTab) {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setState(s => ({ ...s, components: data.components ?? [], componentsLoading: false }));
-    } catch {
-      setState(s => ({ ...s, componentsLoading: false }));
+    } catch (err) {
+      setState(s => ({ ...s, componentsLoading: false, componentsError: (err as Error).message ?? 'UCP unreachable' }));
     }
   }, []);
 
@@ -1084,13 +1513,13 @@ function CanvasCard({
   onRemove, onToggleVisible, onToggleLock,
   onMoveUp, onMoveDown,
   selected, onSelect, readOnly,
-  onDropAsset,
+  onDropAsset, segment,
 }: {
   slice: CanvasSlice; index: number; total: number;
   onRemove: () => void; onToggleVisible: () => void; onToggleLock: () => void;
   onMoveUp: () => void; onMoveDown: () => void;
   selected: boolean; onSelect: () => void; readOnly?: boolean;
-  onDropAsset?: () => void;
+  onDropAsset?: () => void; segment?: string;
 }) {
   const [dragOver, setDragOver] = useState(false);
   const isVideoSlice = slice.type === 'VIDEO_PLAYER';
@@ -1117,7 +1546,7 @@ function CanvasCard({
           ↓ Drop to load video into this player
         </div>
       )}
-      <SlicePreview slice={slice} />
+      <SlicePreview slice={slice} segment={segment} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', background: '#F9FAFB', borderTop: '1px solid #E5E7EB', borderRadius: '0 0 8px 8px' }}>
         <span style={{ fontSize: 10, color: '#6B7280', flex: 1, fontWeight: 600 }}>{slice.type}</span>
         {!readOnly && (
@@ -1314,6 +1743,92 @@ const SLICE_PROP_FIELDS: Partial<Record<string, PropField[]>> = {
     { key: 'showNotificationBell', label: 'Show Notification Bell', type: 'boolean' },
     { key: 'showQRScanner',        label: 'Show QR Scanner',        type: 'boolean' },
   ],
+  HOME_SEARCH_HEADER: [
+    { key: 'premierLabel',         label: 'Premier Brand Label',        type: 'text',    placeholder: 'HSBC Premier' },
+    { key: 'premierBg',            label: 'Premier Header Color',       type: 'color' },
+    { key: 'eliteLabel',           label: 'Elite Brand Label',          type: 'text',    placeholder: 'HSBC Elite' },
+    { key: 'eliteBg',              label: 'Elite Header Color',         type: 'color' },
+    { key: 'advanceLabel',         label: 'Advance Brand Label',        type: 'text',    placeholder: 'HSBC One' },
+    { key: 'advanceBg',            label: 'Advance Header Color',       type: 'color' },
+    { key: 'massLabel',            label: 'Mass Brand Label',           type: 'text',    placeholder: 'HSBC Personal Banking' },
+    { key: 'massBg',               label: 'Mass Header Color',          type: 'color' },
+    { key: 'enableNotification',   label: 'Show Notification Bell',     type: 'boolean' },
+    { key: 'enableHeadset',        label: 'Show Headset Icon',          type: 'boolean' },
+    { key: 'placeholder',          label: 'Search Placeholder',         type: 'text',    placeholder: 'Search functions, products & content' },
+    { key: 'enableSemanticSearch', label: 'Enable AI Semantic Search',  type: 'boolean' },
+    { key: 'searchApiEndpoint',    label: 'Search API Endpoint',        type: 'url',     placeholder: '/api/v1/search/semantic' },
+  ],
+  PREMIER_HEADER: [
+    { key: 'brandLabel',        label: 'Brand Label',         type: 'text',    placeholder: 'HSBC Premier' },
+    { key: 'enableNotification', label: 'Show Notification', type: 'boolean' },
+    { key: 'enableHeadset',      label: 'Show Headset',      type: 'boolean' },
+  ],
+  ELITE_HEADER: [
+    { key: 'brandLabel',        label: 'Brand Label',         type: 'text',    placeholder: 'HSBC Elite' },
+    { key: 'enableNotification', label: 'Show Notification', type: 'boolean' },
+    { key: 'enableHeadset',      label: 'Show Headset',      type: 'boolean' },
+  ],
+  ADVANCE_HEADER: [
+    { key: 'brandLabel',        label: 'Brand Label',         type: 'text',    placeholder: 'HSBC Advance' },
+    { key: 'enableNotification', label: 'Show Notification', type: 'boolean' },
+    { key: 'enableHeadset',      label: 'Show Headset',      type: 'boolean' },
+  ],
+  MASS_HEADER: [
+    { key: 'brandLabel',        label: 'Brand Label',         type: 'text',    placeholder: 'HSBC Personal Banking' },
+    { key: 'enableNotification', label: 'Show Notification', type: 'boolean' },
+    { key: 'enableHeadset',      label: 'Show Headset',      type: 'boolean' },
+  ],
+  COMBO_QUICK_ACCESS: [],
+  HOME_SEARCH_BAR: [
+    { key: 'placeholder',          label: 'Search Placeholder',     type: 'text',    placeholder: 'Search functions, products & content' },
+    { key: 'enableSemanticSearch', label: 'Enable AI Semantic Search', type: 'boolean' },
+    { key: 'enableQRScan',         label: 'Enable QR Scan',         type: 'boolean' },
+    { key: 'enableChatbot',        label: 'Enable Chatbot',         type: 'boolean' },
+    { key: 'enableMessageInbox',   label: 'Enable Message Inbox',   type: 'boolean' },
+    { key: 'searchApiEndpoint',    label: 'Search API Endpoint',    type: 'url',     placeholder: '/api/v1/search/semantic' },
+  ],
+  CARD_ACTIVATION_BANNER: [
+    { key: 'message',  label: 'Message Text', type: 'text', placeholder: 'Your card needs to be activated' },
+    { key: 'deepLink', label: 'Deep Link',    type: 'url',  placeholder: 'hsbc://card/activate' },
+  ],
+  QUEST_BANNER: [
+    { key: 'title',       label: 'Title',         type: 'text',     placeholder: 'Getting started' },
+    { key: 'description', label: 'Description',   type: 'textarea', placeholder: 'Complete quests to enjoy rewards!' },
+    { key: 'ctaLabel',    label: 'CTA Label',     type: 'text',     placeholder: 'Check out all quests' },
+    { key: 'ctaDeepLink', label: 'CTA Deep Link', type: 'url',      placeholder: 'hsbc://quests' },
+    { key: 'totalQuests', label: 'Total Quests',  type: 'number',   placeholder: '4' },
+  ],
+  FEATURE_PRODUCT: [
+    { key: 'sectionTitle',  label: 'Section Title',   type: 'text', placeholder: 'Feature product' },
+    { key: 'activeTab',     label: 'Active Tab',      type: 'select', options: [
+      { value: 'Top performers', label: 'Top performers' },
+      { value: 'Top dividend',   label: 'Top dividend' },
+      { value: 'Top selling',    label: 'Top selling' },
+      { value: 'Instalment',     label: 'Instalment' },
+    ]},
+    { key: 'moreLabel',     label: 'More Link Label', type: 'text', placeholder: 'View Best selling fund list (10)' },
+    { key: 'moreDeepLink',  label: 'More Deep Link',  type: 'url',  placeholder: 'hsbc://funds/best-selling' },
+  ],
+  WEALTH_STUDIO_CAROUSEL: [
+    { key: 'sectionTitle', label: 'Section Title',   type: 'text', placeholder: 'Premier Elite Wealth Studio' },
+    { key: 'moreLabel',    label: 'More Link Label', type: 'text', placeholder: 'View all' },
+    { key: 'moreDeepLink', label: 'More Deep Link',  type: 'url',  placeholder: 'hsbc://wealth-studio' },
+  ],
+  GUIDES_INSIGHTS_CAROUSEL: [
+    { key: 'sectionTitle', label: 'Section Title',   type: 'text', placeholder: 'Guides and insights' },
+    { key: 'moreLabel',    label: 'More Link Label', type: 'text', placeholder: 'View all' },
+    { key: 'moreDeepLink', label: 'More Deep Link',  type: 'url',  placeholder: 'hsbc://guides' },
+  ],
+  FX_WATCHLIST: [
+    { key: 'sectionTitle',     label: 'Section Title',    type: 'text',     placeholder: 'FX watchlist' },
+    { key: 'tierBadge',        label: 'Tier Badge Label', type: 'text',     placeholder: 'Gold Forex Club tier' },
+    { key: 'tierDescription',  label: 'Tier Description', type: 'textarea', placeholder: '15% Spread discount has been applied.' },
+    { key: 'moreLabel',        label: 'More Link Label',  type: 'text',     placeholder: 'View more in FX' },
+    { key: 'moreDeepLink',     label: 'More Deep Link',   type: 'url',      placeholder: 'hsbc://fx/watchlist' },
+  ],
+  DISCOVER_MORE_CAROUSEL: [
+    { key: 'sectionTitle', label: 'Section Title', type: 'text', placeholder: 'Discover more' },
+  ],
   AI_SEARCH_BAR: [
     { key: 'placeholder',          label: 'Search Placeholder',     type: 'text',    placeholder: '搜尋功能、產品' },
     { key: 'enableSemanticSearch', label: 'Enable Semantic Search', type: 'boolean' },
@@ -1438,6 +1953,23 @@ const SLICE_PROP_FIELDS: Partial<Record<string, PropField[]>> = {
   DEPOSIT_FAQ: [
     { key: 'sectionTitle', label: 'Section Title', type: 'text', placeholder: 'Frequently Asked Questions' },
   ],
+  CAMPAIGN_HERO: [
+    { key: 'headline',    label: 'Headline',      type: 'text',  placeholder: 'HSBC Visa Platinum Credit Card' },
+    { key: 'subHeadline', label: 'Sub-headline',  type: 'text',  placeholder: 'Your World, No Limits' },
+    { key: 'badge',       label: 'Offer Badge',   type: 'text',  placeholder: 'Limited Time Offer · Q3 2026' },
+    { key: 'accentColor', label: 'Accent Colour', type: 'color' },
+  ],
+  CAMPAIGN_BENEFITS: [
+    { key: 'sectionTitle', label: 'Section Title', type: 'text', placeholder: 'Why Choose This Card?' },
+  ],
+  CAMPAIGN_CTA: [
+    { key: 'ctaLabel',     label: 'CTA Label',     type: 'text', placeholder: 'Apply Now' },
+    { key: 'ctaSubtext',   label: 'CTA Sub-text',  type: 'text', placeholder: 'Takes 5 minutes' },
+    { key: 'offerBadge',   label: 'Offer Badge',   type: 'text', placeholder: 'First Year Fee Waived' },
+    { key: 'ctaUrl',       label: 'CTA URL',       type: 'url',  placeholder: '/apply/visa-platinum' },
+    { key: 'secondaryLabel', label: 'Secondary Link', type: 'text', placeholder: 'Compare Cards' },
+    { key: 'secondaryUrl',   label: 'Secondary URL',  type: 'url',  placeholder: '/credit-cards/compare' },
+  ],
 };
 
 const SLICE_LABELS: Partial<Record<string, string>> = {
@@ -1453,6 +1985,26 @@ const SLICE_LABELS: Partial<Record<string, string>> = {
   DEPOSIT_RATE_TABLE: 'Deposit Rate Table',
   DEPOSIT_OPEN_CTA: 'Button CTA',
   DEPOSIT_FAQ: 'General FAQ',
+  CAMPAIGN_HERO: 'Campaign Hero Banner',
+  CAMPAIGN_BENEFITS: 'Benefits Grid',
+  CAMPAIGN_CTA: 'Apply / CTA Block',
+  // Home Hub
+  HOME_SEARCH_HEADER: 'Home Search Header (All Segments)',
+  PREMIER_HEADER: 'Premier Header',
+  ELITE_HEADER: 'Elite Header',
+  ADVANCE_HEADER: 'Advance Header',
+  MASS_HEADER: 'Personal Banking Header',
+  COMBO_QUICK_ACCESS: 'Quick Access + Tab Bar (Combo)',
+  HOME_SEARCH_BAR: 'Home Search Bar',
+  CONTENT_TAB_BAR: 'Content Tab Bar',
+  QUICK_ACCESS_GRID: 'Quick Access Grid (5-icon)',
+  CARD_ACTIVATION_BANNER: 'Card Activation Banner',
+  QUEST_BANNER: 'Quest / Getting Started Banner',
+  FEATURE_PRODUCT: 'Feature Product (Fund List)',
+  WEALTH_STUDIO_CAROUSEL: 'Wealth Studio Carousel',
+  GUIDES_INSIGHTS_CAROUSEL: 'Guides & Insights',
+  FX_WATCHLIST: 'FX Watchlist',
+  DISCOVER_MORE_CAROUSEL: 'Discover More',
 };
 
 function PropFieldInput({ field, value, onChange }: {
@@ -1737,6 +2289,251 @@ function DepositFAQEditor({ items, onChange }: {
   );
 }
 
+// ─── Combo Quick Access editor ────────────────────────────────────────────────
+
+type ComboTabId = 'my-pick' | 'invest' | 'global' | 'hk-daily';
+
+interface ComboItem {
+  id: string;
+  icon: string;
+  label: string;
+  deepLink: string;
+  group: ComboTabId;
+}
+
+const COMBO_GROUPS: { id: ComboTabId; label: string }[] = [
+  { id: 'my-pick',  label: 'My Pick' },
+  { id: 'invest',   label: 'Invest' },
+  { id: 'global',   label: 'Global' },
+  { id: 'hk-daily', label: 'HK Daily' },
+];
+
+const ALL_ITEM_ID = 'qa-all';
+
+function migrateComboItems(row1: unknown[], row2: unknown[]): ComboItem[] {
+  const items: ComboItem[] = [];
+  const fromRow = (arr: unknown[], group: ComboTabId) => {
+    for (const raw of arr) {
+      const it = raw as { id?: string; icon?: string; label?: string; deepLink?: string };
+      if (it.id === ALL_ITEM_ID || it.icon === 'all') continue;
+      items.push({ id: it.id ?? `qa-${Date.now()}-${Math.random()}`, icon: it.icon ?? '⚡', label: it.label ?? 'Item', deepLink: it.deepLink ?? '', group });
+    }
+  };
+  const allRow = [...row1, ...row2] as { id?: string; icon?: string; label?: string; deepLink?: string }[];
+  const allEntry = allRow.find(r => (r as { id?: string; icon?: string }).id === ALL_ITEM_ID || (r as { id?: string; icon?: string }).icon === 'all');
+  fromRow(row1, 'my-pick');
+  fromRow(row2, 'invest');
+  return items.concat(allEntry ? [] : []).concat([{
+    id: ALL_ITEM_ID, icon: 'all', label: allEntry?.label ?? 'All product & services', deepLink: allEntry?.deepLink ?? 'hsbc://all-services', group: 'my-pick',
+  }]);
+}
+
+function buildComboRows(items: ComboItem[]): { row1Items: ComboItem[]; row2Items: ComboItem[] } {
+  const regular = items.filter(it => it.id !== ALL_ITEM_ID);
+  const allItem = items.find(it => it.id === ALL_ITEM_ID)!;
+  const combined = [...regular, allItem];
+  return { row1Items: combined.slice(0, 5), row2Items: combined.slice(5) };
+}
+
+const ICON_MAP: Record<string, string> = {
+  account: '👤', transfer: '🌐', fx: '💱', stock: '📈', deposit: '⏰',
+  holding: '📊', safe: '💰', fps: '↔️', scan: '📷', all: '⊞',
+};
+
+function ComboQuickAccessEditor({
+  items: rawItems,
+  onChange,
+}: {
+  items: ComboItem[];
+  onChange: (items: ComboItem[], rows: { row1Items: ComboItem[]; row2Items: ComboItem[] }) => void;
+}) {
+  const [myPickModify, setMyPickModify] = useState(false);
+
+  const regular = rawItems.filter(it => it.id !== ALL_ITEM_ID);
+  const allItem = rawItems.find(it => it.id === ALL_ITEM_ID) ?? {
+    id: ALL_ITEM_ID, icon: 'all', label: 'All product & services', deepLink: 'hsbc://all-services', group: 'my-pick' as ComboTabId,
+  };
+
+  function emit(next: ComboItem[]) {
+    const withAll = [...next.filter(it => it.id !== ALL_ITEM_ID), allItem];
+    onChange(withAll, buildComboRows(withAll));
+  }
+
+  function update(idx: number, patch: Partial<ComboItem>) {
+    emit(regular.map((it, i) => i !== idx ? it : { ...it, ...patch }));
+  }
+
+  function remove(idx: number) {
+    emit(regular.filter((_, i) => i !== idx));
+  }
+
+  function moveUp(idx: number) {
+    if (idx === 0) return;
+    const next = [...regular];
+    [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+    emit(next);
+  }
+
+  function moveDown(idx: number) {
+    if (idx >= regular.length - 1) return;
+    const next = [...regular];
+    [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+    emit(next);
+  }
+
+  function addItem() {
+    const newItem: ComboItem = { id: `qa-${Date.now()}`, icon: '⚡', label: 'New entry', deepLink: '', group: 'my-pick' };
+    emit([...regular, newItem]);
+  }
+
+  const inp: React.CSSProperties = {
+    boxSizing: 'border-box', padding: '3px 6px', border: '1px solid #E5E7EB',
+    borderRadius: 4, fontSize: 11, fontFamily: 'var(--font-family)', outline: 'none',
+  };
+  const btnSm: React.CSSProperties = {
+    padding: '2px 5px', border: '1px solid #E5E7EB', borderRadius: 3,
+    background: '#fff', color: '#6B7280', cursor: 'pointer', fontSize: 10, lineHeight: 1,
+  };
+  const groupColor: Record<ComboTabId, string> = {
+    'my-pick': '#DB0011', invest: '#1D4ED8', global: '#0D5C3A', 'hk-daily': '#D97706',
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {/* Section header */}
+      <div style={{ fontSize: 10, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 2 }}>
+        Function Entry Points
+      </div>
+
+      {/* Items list */}
+      {regular.map((item, idx) => {
+        const isMyPick = item.group === 'my-pick';
+        return (
+          <div key={item.id} style={{ border: '1px solid #E5E7EB', borderRadius: 7, padding: '7px 8px', background: '#F9FAFB', display: 'flex', flexDirection: 'column', gap: 5 }}>
+            {/* Row 1: icon, label, group badge, move/remove controls */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <input value={item.icon} onChange={e => update(idx, { icon: e.target.value })}
+                style={{ ...inp, width: 32, textAlign: 'center' }} placeholder="icon" title="Emoji or icon key" />
+              <input value={item.label} onChange={e => update(idx, { label: e.target.value })}
+                style={{ ...inp, flex: 1 }} placeholder="Label" />
+              {/* Group pill */}
+              <select
+                value={item.group}
+                onChange={e => update(idx, { group: e.target.value as ComboTabId })}
+                style={{ ...inp, padding: '2px 4px', color: groupColor[item.group], fontWeight: 700, fontSize: 10, background: '#fff', borderColor: groupColor[item.group] }}
+              >
+                {COMBO_GROUPS.map(g => (
+                  <option key={g.id} value={g.id}>{g.label}</option>
+                ))}
+              </select>
+              {/* Move up/down */}
+              <button onClick={() => moveUp(idx)} disabled={idx === 0}
+                style={{ ...btnSm, opacity: idx === 0 ? 0.3 : 1 }} title="Move up">↑</button>
+              <button onClick={() => moveDown(idx)} disabled={idx >= regular.length - 1}
+                style={{ ...btnSm, opacity: idx >= regular.length - 1 ? 0.3 : 1 }} title="Move down">↓</button>
+              {/* Remove */}
+              <button onClick={() => remove(idx)}
+                style={{ ...btnSm, border: '1px solid #FECACA', background: '#FEF2F2', color: '#DC2626' }} title="Remove">✕</button>
+              {/* My Pick: Modify icon */}
+              {isMyPick && (
+                <button onClick={() => setMyPickModify(true)}
+                  style={{ ...btnSm, border: '1px solid #DB0011', color: '#DB0011', background: '#FFF5F5' }} title="Modify My Pick group">✏️</button>
+              )}
+            </div>
+            {/* Row 2: deeplink */}
+            <input value={item.deepLink} onChange={e => update(idx, { deepLink: e.target.value })}
+              style={{ ...inp, width: '100%' }} placeholder="hsbc://..." />
+          </div>
+        );
+      })}
+
+      {/* Pinned "All" item */}
+      <div style={{ border: '1px solid #D1D5DB', borderRadius: 7, padding: '7px 8px', background: '#F3F4F6', display: 'flex', alignItems: 'center', gap: 6, opacity: 0.85 }}>
+        <span style={{ fontSize: 14 }}>{ICON_MAP[allItem.icon] ?? allItem.icon}</span>
+        <span style={{ fontSize: 11, color: '#374151', flex: 1 }}>{allItem.label}</span>
+        <span style={{ fontSize: 10, color: '#9CA3AF', fontStyle: 'italic' }}>Always last · fixed</span>
+      </div>
+
+      {/* Add button */}
+      <button onClick={addItem}
+        style={{ padding: '5px 10px', border: '1px dashed #D1D5DB', borderRadius: 6, background: '#F9FAFB', color: '#6B7280', cursor: 'pointer', fontSize: 11, fontWeight: 600, marginTop: 2 }}>
+        + Add entry point
+      </button>
+
+      {/* My Pick Modify panel (inline modal) */}
+      {myPickModify && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 2000,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: 14, padding: 24, width: 380, maxHeight: '80vh',
+            overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>✏️ My Pick — Modify</div>
+                <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>Customer-facing view of My Pick shortcut panel</div>
+              </div>
+              <button onClick={() => setMyPickModify(false)}
+                style={{ padding: '4px 10px', border: '1px solid #E5E7EB', borderRadius: 6, background: '#fff', cursor: 'pointer', fontSize: 12, color: '#6B7280' }}>✕</button>
+            </div>
+
+            {/* Current My Pick items */}
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#DB0011', marginBottom: 8 }}>Current My Pick shortcuts</div>
+            {regular.filter(it => it.group === 'my-pick').length === 0 && (
+              <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12, fontStyle: 'italic' }}>No items in My Pick yet.</div>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
+              {regular.map((item, idx) => item.group !== 'my-pick' ? null : (
+                <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', border: '1px solid #FECACA', borderRadius: 8, background: '#FFF5F5' }}>
+                  <span style={{ fontSize: 16, width: 28, textAlign: 'center' }}>{ICON_MAP[item.icon] ?? item.icon}</span>
+                  <span style={{ fontSize: 12, color: '#374151', flex: 1 }}>{item.label}</span>
+                  <button
+                    onClick={() => remove(idx)}
+                    style={{ padding: '3px 8px', border: '1px solid #FECACA', borderRadius: 5, background: '#FEF2F2', color: '#DC2626', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+                    title="Remove from My Pick"
+                  >✕</button>
+                </div>
+              ))}
+            </div>
+
+            {/* Available items to add to My Pick */}
+            {regular.filter(it => it.group !== 'my-pick').length > 0 && (
+              <>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 8 }}>Add to My Pick</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {regular.map((item, idx) => item.group === 'my-pick' ? null : (
+                    <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', border: '1px solid #E5E7EB', borderRadius: 8, background: '#F9FAFB' }}>
+                      <span style={{ fontSize: 16, width: 28, textAlign: 'center' }}>{ICON_MAP[item.icon] ?? item.icon}</span>
+                      <span style={{ fontSize: 12, color: '#374151', flex: 1 }}>{item.label}</span>
+                      <span style={{ fontSize: 10, color: groupColor[item.group], fontWeight: 600 }}>
+                        {COMBO_GROUPS.find(g => g.id === item.group)?.label}
+                      </span>
+                      <button
+                        onClick={() => update(idx, { group: 'my-pick' })}
+                        style={{ padding: '3px 8px', border: '1px solid #BBF7D0', borderRadius: 5, background: '#F0FDF4', color: '#15803D', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+                        title="Add to My Pick"
+                      >✚</button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
+              <button onClick={() => setMyPickModify(false)}
+                style={{ padding: '9px 20px', borderRadius: 8, border: 'none', background: '#DB0011', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SlicePropEditor({ slice, readOnly, onPropChange, onDeselect }: {
   slice: CanvasSlice;
   readOnly: boolean;
@@ -1873,7 +2670,34 @@ function SlicePropEditor({ slice, readOnly, onPropChange, onDeselect }: {
           </div>
         )}
 
-        {fields.length === 0 && slice.type !== 'FUNCTION_GRID' && slice.type !== 'QUICK_ACCESS' && slice.type !== 'MARKET_BRIEFING_TEXT' && slice.type !== 'DEPOSIT_RATE_TABLE' && slice.type !== 'DEPOSIT_FAQ' && (
+        {slice.type === 'COMBO_QUICK_ACCESS' && (() => {
+          const row1 = Array.isArray(props.row1Items) ? props.row1Items as ComboItem[] : [];
+          const row2 = Array.isArray(props.row2Items) ? props.row2Items as ComboItem[] : [];
+          const allItems: ComboItem[] = (() => {
+            const seen = new Set<string>();
+            const combined: ComboItem[] = [];
+            for (const it of [...row1, ...row2]) {
+              if (!seen.has(it.id)) { seen.add(it.id); combined.push({ group: 'my-pick', ...it }); }
+            }
+            if (!combined.find(it => it.id === ALL_ITEM_ID)) {
+              combined.push({ id: ALL_ITEM_ID, icon: 'all', label: 'All product & services', deepLink: 'hsbc://all-services', group: 'my-pick' });
+            }
+            return combined;
+          })();
+          return readOnly ? (
+            <div style={{ fontSize: 11, color: '#6B7280' }}>{allItems.length} entry point(s)</div>
+          ) : (
+            <ComboQuickAccessEditor
+              items={allItems}
+              onChange={(_items, rows) => {
+                onPropChange('row1Items', rows.row1Items);
+                onPropChange('row2Items', rows.row2Items);
+              }}
+            />
+          );
+        })()}
+
+        {fields.length === 0 && !['FUNCTION_GRID','QUICK_ACCESS','QUICK_ACCESS_GRID','COMBO_QUICK_ACCESS','MARKET_BRIEFING_TEXT','DEPOSIT_RATE_TABLE','DEPOSIT_FAQ','CAMPAIGN_BENEFITS','CONTENT_TAB_BAR','FEATURE_PRODUCT','WEALTH_STUDIO_CAROUSEL','GUIDES_INSIGHTS_CAROUSEL','FX_WATCHLIST','DISCOVER_MORE_CAROUSEL'].includes(slice.type) && (
           <div style={{ textAlign: 'center', color: '#9CA3AF', fontSize: 11, padding: 20 }}>
             No editable properties for this component type.
           </div>
@@ -1950,7 +2774,7 @@ function CampaignTimerMeta({ schedule, onChange }: { schedule?: CampaignSchedule
 
 const SEGMENT_META: Record<CustomerSegment, { label: string; bg: string; text: string; border: string }> = {
   premier: { label: '🏆 Premier',   bg: '#FFF8E1', text: '#B45309', border: '#F59E0B' },
-  jade:    { label: '🟢 Jade',      bg: '#F0FDF4', text: '#15803D', border: '#22C55E' },
+  elite:   { label: '💎 Elite',     bg: '#F0FDF4', text: '#15803D', border: '#22C55E' },
   advance: { label: '🔵 Advance',   bg: '#EFF6FF', text: '#1D4ED8', border: '#3B82F6' },
   mass:    { label: '👤 Mass',      bg: '#F9FAFB', text: '#374151', border: '#9CA3AF' },
 };
@@ -1973,14 +2797,15 @@ const LOCATION_META: Record<CustomerLocation, { label: string; flag: string }> =
   other:          { label: 'Other',               flag: '🌍' },
 };
 
-const SEGMENTS:  CustomerSegment[]  = ['premier', 'jade', 'advance', 'mass'];
+const SEGMENTS:  CustomerSegment[]  = ['premier', 'elite', 'advance', 'mass'];
 const ACCT_TYPES: AccountType[]     = ['wealth_account', 'credit_card', 'current_account', 'savings_account', 'mortgage', 'time_deposit'];
 const LOCATIONS:  CustomerLocation[] = ['HK', 'mainland_china', 'macau', 'singapore', 'uk', 'other'];
 
 const FIELD_META = {
-  customerSegment: { label: 'Customer Segment', icon: '👥' },
-  accountType:     { label: 'Account Type',     icon: '💳' },
-  customerLocation:{ label: 'Customer Location',icon: '🌍' },
+  customerSegment:  { label: 'Customer Segment',  icon: '👥' },
+  accountType:      { label: 'Account Type',      icon: '💳' },
+  customerLocation: { label: 'Customer Location', icon: '🌍' },
+  custom:           { label: 'Custom Field',      icon: '✏️' },
 } as const;
 
 type ConditionField = keyof typeof FIELD_META;
@@ -1996,7 +2821,7 @@ function valuesForField(field: ConditionField): { value: string; label: string }
   if (field === 'customerSegment')  return SEGMENTS.map(v => ({ value: v, label: SEGMENT_META[v].label }));
   if (field === 'accountType')      return ACCT_TYPES.map(v => ({ value: v, label: `${ACCOUNT_META[v].icon} ${ACCOUNT_META[v].label}` }));
   if (field === 'customerLocation') return LOCATIONS.map(v => ({ value: v, label: `${LOCATION_META[v].flag} ${LOCATION_META[v].label}` }));
-  return [];
+  return []; // custom: no predefined values
 }
 
 function defaultValueForField(field: ConditionField): string {
@@ -2013,6 +2838,17 @@ export function evaluateSliceVisible(slice: CanvasSlice, ctx: PreviewContext | n
   if (!rule || !ctx) return true;
 
   const evalOne = (cond: RuleCondition): boolean => {
+    if (cond.field === 'custom') {
+      const custom = cond as CustomFieldCondition;
+      const fieldVal = ctx.customFields?.[custom.customFieldName] ?? '';
+      switch (custom.operator) {
+        case 'is':     return fieldVal === custom.value;
+        case 'is_not': return fieldVal !== custom.value;
+        case 'in':     return custom.value.split(',').map(v => v.trim()).includes(fieldVal);
+        case 'not_in': return !custom.value.split(',').map(v => v.trim()).includes(fieldVal);
+        default:       return true;
+      }
+    }
     const fieldVal = ctx[cond.field as keyof PreviewContext] as string;
     const condVal  = cond.value;
     switch (cond.operator) {
@@ -2140,11 +2976,16 @@ function RuleConsolePanel({
 
   function changeConditionField(idx: number, field: ConditionField) {
     if (!rule) return;
-    const defVal = defaultValueForField(field);
-    const newCond: RuleCondition = { field, operator: 'is', value: defVal } as RuleCondition;
+    let newCond: RuleCondition;
+    if (field === 'custom') {
+      newCond = { field: 'custom', customFieldName: '', operator: 'equals', value: '' } as CustomFieldCondition;
+    } else {
+      const defVal = defaultValueForField(field);
+      newCond = { field, operator: 'is', value: defVal } as RuleCondition;
+    }
     const conditions = rule.conditions.map((c, i) => i === idx ? newCond : c);
     patchRule({ conditions });
-    setMatrixField(field);
+    if (field !== 'custom') setMatrixField(field);
   }
 
   function addCondition() {
@@ -2166,6 +3007,11 @@ function RuleConsolePanel({
   function ruleSummary(): string {
     if (!rule) return '';
     const condStr = rule.conditions.map(c => {
+      if (c.field === 'custom') {
+        const cc = c as CustomFieldCondition;
+        const opLabel = cc.operator === 'is' ? '=' : cc.operator === 'is_not' ? '≠' : cc.operator === 'in' ? 'in' : 'not in';
+        return `✏️ ${cc.customFieldName || '?'} ${opLabel} "${cc.value}"`;
+      }
       const valStr = Array.isArray(c.value)
         ? c.value.map(v => fieldValueLabel(c.field as ConditionField, v)).join(' / ')
         : fieldValueLabel(c.field as ConditionField, String(c.value));
@@ -2262,7 +3108,11 @@ function RuleConsolePanel({
                 {rule.conditions.map((cond, idx) => {
                   const fieldKey = cond.field as ConditionField;
                   const values = valuesForField(fieldKey);
-                  const currentVal = Array.isArray(cond.value) ? (cond.value as string[])[0] : String(cond.value);
+                  const currentVal = fieldKey === 'custom'
+                    ? ''
+                    : Array.isArray((cond as { value: unknown }).value)
+                      ? ((cond as { value: string[] }).value)[0]
+                      : String((cond as { value: unknown }).value);
                   return (
                     <div key={idx}>
                       {/* AND/OR badge between conditions */}
@@ -2306,9 +3156,19 @@ function RuleConsolePanel({
 
                         {readOnly ? (
                           <div style={{ fontSize: 11, color: '#374151' }}>
-                            <span style={{ fontWeight: 600 }}>{FIELD_META[fieldKey].icon} {FIELD_META[fieldKey].label}</span>
-                            {' '}{cond.operator === 'is' ? 'is' : cond.operator === 'is_not' ? 'is not' : cond.operator}{' '}
-                            <strong>{fieldValueLabel(fieldKey, currentVal)}</strong>
+                            {fieldKey === 'custom' ? (
+                              <>
+                                <span style={{ fontWeight: 600 }}>✏️ {(cond as CustomFieldCondition).customFieldName || '(field)'}</span>
+                                {' '}{(cond as CustomFieldCondition).operator === 'is' ? '=' : (cond as CustomFieldCondition).operator === 'is_not' ? '≠' : (cond as CustomFieldCondition).operator}{' '}
+                                <strong>"{(cond as CustomFieldCondition).value}"</strong>
+                              </>
+                            ) : (
+                              <>
+                                <span style={{ fontWeight: 600 }}>{FIELD_META[fieldKey].icon} {FIELD_META[fieldKey].label}</span>
+                                {' '}{cond.operator === 'is' ? 'is' : cond.operator === 'is_not' ? 'is not' : cond.operator}{' '}
+                                <strong>{fieldValueLabel(fieldKey, currentVal)}</strong>
+                              </>
+                            )}
                           </div>
                         ) : (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
@@ -2318,15 +3178,48 @@ function RuleConsolePanel({
                                 <option key={f} value={f}>{FIELD_META[f].icon} {FIELD_META[f].label}</option>
                               ))}
                             </select>
-                            {/* Operator */}
-                            <select value={cond.operator} onChange={e => patchCondition(idx, { operator: e.target.value as RuleOperator })} style={sel}>
-                              <option value="is">is</option>
-                              <option value="is_not">is not</option>
-                            </select>
-                            {/* Value */}
-                            <select value={currentVal} onChange={e => patchCondition(idx, { value: e.target.value } as Partial<RuleCondition>)} style={sel}>
-                              {values.map(v => <option key={v.value} value={v.value}>{v.label}</option>)}
-                            </select>
+
+                            {fieldKey === 'custom' ? (
+                              <>
+                                {/* Custom field name */}
+                                <input
+                                  value={(cond as CustomFieldCondition).customFieldName}
+                                  onChange={e => patchCondition(idx, { customFieldName: e.target.value } as Partial<CustomFieldCondition>)}
+                                  placeholder="Field name (e.g. request.body.flag)"
+                                  style={{ ...inp, fontFamily: 'monospace', fontSize: 10 }}
+                                />
+                                {/* Operator */}
+                                <select
+                                  value={(cond as CustomFieldCondition).operator}
+                                  onChange={e => patchCondition(idx, { operator: e.target.value as RuleOperator } as Partial<CustomFieldCondition>)}
+                                  style={sel}
+                                >
+                                  <option value="is">is</option>
+                                  <option value="is_not">is not</option>
+                                  <option value="in">in (comma-separated)</option>
+                                  <option value="not_in">not in (comma-separated)</option>
+                                </select>
+                                {/* Value */}
+                                <input
+                                  value={(cond as CustomFieldCondition).value}
+                                  onChange={e => patchCondition(idx, { value: e.target.value } as Partial<CustomFieldCondition>)}
+                                  placeholder="Value to compare"
+                                  style={inp}
+                                />
+                              </>
+                            ) : (
+                              <>
+                                {/* Operator */}
+                                <select value={cond.operator} onChange={e => patchCondition(idx, { operator: e.target.value as RuleOperator })} style={sel}>
+                                  <option value="is">is</option>
+                                  <option value="is_not">is not</option>
+                                </select>
+                                {/* Value */}
+                                <select value={currentVal} onChange={e => patchCondition(idx, { value: e.target.value } as Partial<RuleCondition>)} style={sel}>
+                                  {values.map(v => <option key={v.value} value={v.value}>{v.label}</option>)}
+                                </select>
+                              </>
+                            )}
                           </div>
                         )}
                       </div>
@@ -2418,11 +3311,21 @@ function PreviewContextPicker({
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const draft: PreviewContext = context ?? {
+  // Local draft — always kept up to date with context
+  const [draft, setDraft] = useState<PreviewContext>(context ?? {
     customerSegment: 'premier',
     accountType:     'wealth_account',
     customerLocation:'HK',
-  };
+    customFields:    {},
+  });
+
+  // New custom field entry row
+  const [newCustomKey, setNewCustomKey] = useState('');
+  const [newCustomVal, setNewCustomVal] = useState('');
+
+  useEffect(() => {
+    if (context) setDraft(context);
+  }, [context]);
 
   useEffect(() => {
     function outside(e: MouseEvent) {
@@ -2442,7 +3345,35 @@ function PreviewContextPicker({
     backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center', paddingRight: 22,
   };
 
+  const inpStyle: React.CSSProperties = {
+    padding: '5px 8px', border: '1px solid #D1D5DB', borderRadius: 6,
+    fontSize: 11, outline: 'none', boxSizing: 'border-box',
+  };
+
   const fieldLbl: React.CSSProperties = { fontSize: 10, fontWeight: 600, color: '#374151', marginBottom: 3, display: 'block' };
+
+  function patchDraft(patch: Partial<PreviewContext>) {
+    const next = { ...draft, ...patch };
+    setDraft(next);
+    if (active) onChange(next); // live update when already active
+  }
+
+  function addCustomField() {
+    if (!newCustomKey.trim()) return;
+    const next: PreviewContext = { ...draft, customFields: { ...draft.customFields, [newCustomKey.trim()]: newCustomVal } };
+    setDraft(next);
+    setNewCustomKey('');
+    setNewCustomVal('');
+    if (active) onChange(next);
+  }
+
+  function removeCustomField(key: string) {
+    const fields = { ...draft.customFields };
+    delete fields[key];
+    patchDraft({ customFields: fields });
+  }
+
+  const customEntries = Object.entries(draft.customFields ?? {});
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
@@ -2464,7 +3395,8 @@ function PreviewContextPicker({
         <div style={{
           position: 'absolute', top: '110%', right: 0, zIndex: 999,
           background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.14)', padding: 14, width: 230,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.14)', padding: 14, width: 260,
+          maxHeight: 480, overflowY: 'auto',
         }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#111', marginBottom: 10 }}>
             🎯 Simulate User Profile
@@ -2472,29 +3404,72 @@ function PreviewContextPicker({
 
           <div style={{ marginBottom: 8 }}>
             <label style={fieldLbl}>👥 Customer Segment</label>
-            <select value={draft.customerSegment} onChange={e => onChange({ ...draft, customerSegment: e.target.value as CustomerSegment })} style={selStyle}>
+            <select value={draft.customerSegment} onChange={e => patchDraft({ customerSegment: e.target.value as CustomerSegment })} style={selStyle}>
               {SEGMENTS.map(s => <option key={s} value={s}>{SEGMENT_META[s].label}</option>)}
             </select>
           </div>
 
           <div style={{ marginBottom: 8 }}>
             <label style={fieldLbl}>💳 Account Type</label>
-            <select value={draft.accountType} onChange={e => onChange({ ...draft, accountType: e.target.value as AccountType })} style={selStyle}>
+            <select value={draft.accountType} onChange={e => patchDraft({ accountType: e.target.value as AccountType })} style={selStyle}>
               {ACCT_TYPES.map(a => <option key={a} value={a}>{ACCOUNT_META[a].icon} {ACCOUNT_META[a].label}</option>)}
             </select>
           </div>
 
-          <div style={{ marginBottom: 12 }}>
+          <div style={{ marginBottom: 10 }}>
             <label style={fieldLbl}>🌍 Customer Location</label>
-            <select value={draft.customerLocation} onChange={e => onChange({ ...draft, customerLocation: e.target.value as CustomerLocation })} style={selStyle}>
+            <select value={draft.customerLocation} onChange={e => patchDraft({ customerLocation: e.target.value as CustomerLocation })} style={selStyle}>
               {LOCATIONS.map(l => <option key={l} value={l}>{LOCATION_META[l].flag} {LOCATION_META[l].label}</option>)}
             </select>
+          </div>
+
+          {/* Custom fields section */}
+          <div style={{ marginBottom: 10, borderTop: '1px solid #E5E7EB', paddingTop: 10 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+              ✏️ Custom Fields
+            </div>
+            {customEntries.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 6 }}>
+                {customEntries.map(([k, v]) => (
+                  <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 5, padding: '3px 6px' }}>
+                    <span style={{ fontFamily: 'monospace', fontSize: 10, color: '#4338CA', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{k}</span>
+                    <span style={{ fontSize: 10, color: '#6B7280' }}>=</span>
+                    <input
+                      value={v}
+                      onChange={e => patchDraft({ customFields: { ...draft.customFields, [k]: e.target.value } })}
+                      style={{ ...inpStyle, width: 70, padding: '2px 4px', fontSize: 10 }}
+                    />
+                    <button onClick={() => removeCustomField(k)} style={{ fontSize: 10, color: '#DC2626', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {/* Add new custom field */}
+            <div style={{ display: 'flex', gap: 4 }}>
+              <input
+                value={newCustomKey}
+                onChange={e => setNewCustomKey(e.target.value)}
+                placeholder="field name"
+                style={{ ...inpStyle, flex: 2, fontFamily: 'monospace', fontSize: 10 }}
+                onKeyDown={e => e.key === 'Enter' && addCustomField()}
+              />
+              <input
+                value={newCustomVal}
+                onChange={e => setNewCustomVal(e.target.value)}
+                placeholder="value"
+                style={{ ...inpStyle, flex: 1, fontSize: 10 }}
+                onKeyDown={e => e.key === 'Enter' && addCustomField()}
+              />
+              <button onClick={addCustomField} style={{ padding: '3px 7px', background: '#6366F1', color: '#fff', border: 'none', borderRadius: 5, fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>+</button>
+            </div>
+            <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 4 }}>Press Enter or + to add. Matches Custom Field conditions.</div>
           </div>
 
           {/* Active context summary */}
           {active && (
             <div style={{ marginBottom: 10, padding: '6px 8px', background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 6, fontSize: 10, color: '#1D4ED8' }}>
               {SEGMENT_META[draft.customerSegment].label} · {ACCOUNT_META[draft.accountType].icon} {ACCOUNT_META[draft.accountType].label} · {LOCATION_META[draft.customerLocation].flag} {LOCATION_META[draft.customerLocation].label}
+              {customEntries.length > 0 && <> · {customEntries.length} custom field{customEntries.length > 1 ? 's' : ''}</>}
             </div>
           )}
 
@@ -2569,6 +3544,117 @@ export function PageEditorView() {
 
   function addSlice(comp: PaletteComponent, atIndex?: number) {
     const defaultProps: Record<string, unknown> = {};
+    if (comp.sliceType === 'COMBO_QUICK_ACCESS') Object.assign(defaultProps, {
+      tabs: [
+        { id: 'my-pick',  label: 'My pick',  active: true },
+        { id: 'invest',   label: 'Invest',   active: false },
+        { id: 'global',   label: 'Global',   active: false },
+        { id: 'hk-daily', label: 'HK Daily', active: false },
+      ],
+      row1Items: [
+        { id: 'qa-1', icon: 'account',  label: 'Account overview',  deepLink: 'hsbc://accounts' },
+        { id: 'qa-2', icon: 'transfer', label: 'Transfer Globally', deepLink: 'hsbc://transfer/global' },
+        { id: 'qa-3', icon: 'fx',       label: 'Foreign exchange',  deepLink: 'hsbc://fx' },
+        { id: 'qa-4', icon: 'stock',    label: 'Trade stock',       deepLink: 'hsbc://trade/stock' },
+        { id: 'qa-5', icon: 'deposit',  label: 'Time deposit',      deepLink: 'hsbc://deposit' },
+      ],
+      row2Items: [
+        { id: 'qa-6', icon: 'holding', label: 'My holding details',     deepLink: 'hsbc://holdings' },
+        { id: 'qa-7', icon: 'safe',    label: 'Money safe',              deepLink: 'hsbc://money-safe' },
+        { id: 'qa-8', icon: 'fps',     label: 'Local transfer/FPS',      deepLink: 'hsbc://transfer/fps' },
+        { id: 'qa-9', icon: 'scan',    label: 'Scan to pay',             deepLink: 'hsbc://scan-pay' },
+        { id: 'qa-10', icon: 'all',    label: 'All product & services',  deepLink: 'hsbc://all-services' },
+      ],
+    });
+    if (comp.sliceType === 'HOME_SEARCH_HEADER') Object.assign(defaultProps, {
+      premierLabel: 'HSBC Premier', eliteLabel: 'HSBC Elite', advanceLabel: 'HSBC One', massLabel: 'HSBC Personal Banking',
+      premierBg: '#DB0011', eliteBg: '#0D5C3A', advanceBg: '#D4580A', massBg: '#4B5563',
+      enableNotification: true, enableHeadset: true,
+      placeholder: 'Search functions, products & content',
+      enableSemanticSearch: true,
+      searchApiEndpoint: '/api/v1/search/semantic',
+    });
+    if (comp.sliceType === 'PREMIER_HEADER') Object.assign(defaultProps, { brandLabel: 'HSBC Premier', enableNotification: true, enableHeadset: true });
+    if (comp.sliceType === 'ELITE_HEADER')   Object.assign(defaultProps, { brandLabel: 'HSBC Elite',   enableNotification: true, enableHeadset: true });
+    if (comp.sliceType === 'ADVANCE_HEADER') Object.assign(defaultProps, { brandLabel: 'HSBC Advance', enableNotification: true, enableHeadset: true });
+    if (comp.sliceType === 'MASS_HEADER')    Object.assign(defaultProps, { brandLabel: 'HSBC Personal Banking', enableNotification: true, enableHeadset: false });
+    if (comp.sliceType === 'HOME_SEARCH_BAR') Object.assign(defaultProps, {
+      placeholder: 'Search functions, products & content',
+      enableSemanticSearch: true,
+      enableQRScan: true,
+      enableChatbot: true,
+      enableMessageInbox: true,
+      searchApiEndpoint: '/api/v1/search/semantic',
+    });
+    if (comp.sliceType === 'CONTENT_TAB_BAR') Object.assign(defaultProps, {
+      tabs: [
+        { id: 'my-pick',  label: 'My pick',  active: true },
+        { id: 'invest',   label: 'Invest',   active: false },
+        { id: 'global',   label: 'Global',   active: false },
+        { id: 'hk-daily', label: 'HK Daily', active: false },
+      ],
+    });
+    if (comp.sliceType === 'QUICK_ACCESS_GRID') Object.assign(defaultProps, {
+      items: [
+        { id: 'qa-1', icon: 'account',  label: 'Account overview',  deepLink: 'hsbc://accounts' },
+        { id: 'qa-2', icon: 'transfer', label: 'Transfer Globally', deepLink: 'hsbc://transfer/global' },
+        { id: 'qa-3', icon: 'fx',       label: 'Foreign exchange',  deepLink: 'hsbc://fx' },
+        { id: 'qa-4', icon: 'stock',    label: 'Trade stock',       deepLink: 'hsbc://trade/stock' },
+        { id: 'qa-5', icon: 'deposit',  label: 'Time deposit',      deepLink: 'hsbc://deposit' },
+      ],
+    });
+    if (comp.sliceType === 'CARD_ACTIVATION_BANNER') Object.assign(defaultProps, { message: 'Your card needs to be activated', deepLink: 'hsbc://card/activate' });
+    if (comp.sliceType === 'QUEST_BANNER') Object.assign(defaultProps, {
+      title: 'Getting started',
+      description: 'Open investment account and complete the following quests to enjoy reward!',
+      ctaLabel: 'Check out all 4 quests',
+      ctaDeepLink: 'hsbc://quests',
+      totalQuests: 4,
+    });
+    if (comp.sliceType === 'FEATURE_PRODUCT') Object.assign(defaultProps, {
+      sectionTitle: 'Feature product',
+      tabs: ['Top performers', 'Top dividend', 'Top selling', 'Instalment'],
+      activeTab: 'Top performers',
+      funds: [
+        { id: 'fp-1', name: 'AB SICAV I - LOW VOLATILITY EQUITY PORTFOLIO CLASS AD S...', code: 'U43120', returnLabel: '1Y return', returnValue: '+54.79%', returnPositive: true, tags: [] },
+        { id: 'fp-2', name: 'HANG SENG INDEX FUND CLASS A (HKD)', code: 'U42272', returnLabel: '1Y return', returnValue: '+18.10%', returnPositive: true, tags: ['ESG'] },
+      ],
+      moreLabel: 'View Best selling fund list (10)',
+      moreDeepLink: 'hsbc://funds/best-selling',
+    });
+    if (comp.sliceType === 'WEALTH_STUDIO_CAROUSEL') Object.assign(defaultProps, {
+      sectionTitle: 'Premier Elite Wealth Studio',
+      moreLabel: 'View all',
+      moreDeepLink: 'hsbc://wealth-studio',
+      items: [
+        { id: 'ws-1', episodeLabel: 'Episode 13', liveBadge: 'To-be-live on 1 Feb 15:30', title: 'How AI experts think about AI?', ctaLabel: 'Register for live stream', imageColor: '#1A1A2E' },
+      ],
+    });
+    if (comp.sliceType === 'GUIDES_INSIGHTS_CAROUSEL') Object.assign(defaultProps, {
+      sectionTitle: 'Guides and insights',
+      moreLabel: 'View all',
+      moreDeepLink: 'hsbc://guides',
+      items: [
+        { id: 'gi-1', title: 'Investment 101 - An investment in knowledge pays the best interest', date: '8 Apr 2024', imageColor: '#2D3748', deepLink: 'hsbc://guides/investment-101' },
+      ],
+    });
+    if (comp.sliceType === 'FX_WATCHLIST') Object.assign(defaultProps, {
+      sectionTitle: 'FX watchlist',
+      tierBadge: 'Gold Forex Club tier',
+      tierDescription: '15% Spread discount has been applied to your rate.',
+      pairs: [
+        { id: 'fx-1', pair: 'USD/JPY', sellLabel: 'Sell USD', sellRate: '148.44', buyLabel: 'Buy USD', buyRate: '148.12' },
+        { id: 'fx-2', pair: 'HKD/CHF', sellLabel: 'Sell HKD', sellRate: '0.1042', buyLabel: 'Buy HKD', buyRate: '0.1038' },
+      ],
+      moreLabel: 'View more in FX',
+      moreDeepLink: 'hsbc://fx/watchlist',
+    });
+    if (comp.sliceType === 'DISCOVER_MORE_CAROUSEL') Object.assign(defaultProps, {
+      sectionTitle: 'Discover more',
+      items: [
+        { id: 'dm-1', tag: 'Time Deposit', tagColor: '#DB0011', title: 'Up to 15.5% p.a. FX Deposit Rate', subtitle: 'Earn up to 15.5% p.a. on FX & Time Deposits!', imageColor: '#1A2E4A', deepLink: 'hsbc://deposit/fx' },
+      ],
+    });
     if (comp.sliceType === 'HEADER_NAV') Object.assign(defaultProps, { title: 'Page Title', searchPlaceholder: 'Search...', showNotificationBell: true, showQRScanner: false });
     if (comp.sliceType === 'AI_SEARCH_BAR') Object.assign(defaultProps, { placeholder: '搜尋功能、產品', enableSemanticSearch: true, enableQRScan: true, enableChatbot: true, enableMessageInbox: true, searchApiEndpoint: '/api/v1/search/semantic' });
     if (comp.sliceType === 'PROMO_BANNER') Object.assign(defaultProps, { title: 'Promotion Title', subtitle: 'Subtitle text', ctaLabel: 'Learn More', ctaDeepLink: '', imageUrl: '', backgroundColor: '#E8F4FD' });
@@ -2611,6 +3697,28 @@ export function PageEditorView() {
         { id: 'faq-3', question: 'How long can I keep a time deposit?', answer: 'Banks usually offer terms like 3 months, 6 months, 1 year, 2 years, 3 years, 5 years, or even 10 years. Longer terms usually have higher interest rates. The most popular choices are 6-month or 12-month plans.' },
         { id: 'faq-4', question: 'Why is the interest rate higher for time deposits than regular savings accounts?', answer: 'Banks can offer better rates because they know you\'ll keep your money in the account for a fixed period. This lets them use the funds for longer-term investments, so they share more of the profit with you as interest.' },
       ],
+    });
+    if (comp.sliceType === 'CAMPAIGN_HERO') Object.assign(defaultProps, {
+      headline: 'HSBC Visa Platinum Credit Card',
+      subHeadline: 'Your World, No Limits — 0% Foreign Transaction Fee',
+      badge: 'Limited Time Offer',
+      bgGradient: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+      accentColor: '#C9A84C',
+    });
+    if (comp.sliceType === 'CAMPAIGN_BENEFITS') Object.assign(defaultProps, {
+      sectionTitle: 'Card Benefits',
+      benefits: [
+        { icon: '🌍', title: '0% Foreign Transaction Fee', desc: 'Spend anywhere globally with no hidden charges.' },
+        { icon: '✈️', title: '2x Miles on Travel & Dining', desc: 'Earn double Asia Miles on flights and restaurants.' },
+      ],
+    });
+    if (comp.sliceType === 'CAMPAIGN_CTA') Object.assign(defaultProps, {
+      ctaLabel: 'Apply Now',
+      ctaSubtext: 'Takes 5 minutes · Approval in 60 seconds',
+      offerBadge: 'First Year Annual Fee Waived',
+      ctaUrl: '/apply',
+      secondaryLabel: 'Compare Cards',
+      secondaryUrl: '/credit-cards/compare',
     });
 
     const newSlice = { type: comp.sliceType, props: defaultProps, visible: true, locked: false };
@@ -3006,6 +4114,7 @@ export function PageEditorView() {
                       slice={slice} index={i} total={slices.length}
                       selected={selectedSliceId === slice.instanceId}
                       readOnly={editorReadOnly}
+                      segment={previewContext?.customerSegment}
                       onSelect={() => { setSelectedSliceId(slice.instanceId); setRightTab('props'); }}
                       onRemove={() => removeSlice(slice.instanceId)}
                       onToggleVisible={() => toggleVisible(slice.instanceId)}
@@ -3035,40 +4144,42 @@ export function PageEditorView() {
         <div style={{ width: 260, flexShrink: 0, background: 'var(--surface-panel)', borderLeft: '1px solid var(--border-light)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           {selectedSliceId && slices.find(s => s.instanceId === selectedSliceId) ? (
             <>
-              {/* Props / Rules tab bar */}
-              <div style={{ display: 'flex', borderBottom: '1px solid #E5E7EB', flexShrink: 0 }}>
-                {(['props', 'rules'] as const).map(t => {
-                  const selectedSlice = slices.find(s => s.instanceId === selectedSliceId)!;
-                  const hasRule = !!selectedSlice.visibilityRule;
-                  return (
-                    <button key={t} onClick={() => setRightTab(t)} style={{
-                      flex: 1, padding: '8px 4px', border: 'none', background: 'none',
-                      fontSize: 11, fontWeight: rightTab === t ? 700 : 500,
-                      color: rightTab === t ? '#DB0011' : '#6B7280',
-                      borderBottom: rightTab === t ? '2px solid #DB0011' : '2px solid transparent',
-                      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
-                    }}>
-                      {t === 'props' ? '⚙️ Properties' : (
-                        <>🎯 Rules{hasRule && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#DB0011', display: 'inline-block' }} />}</>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-              {rightTab === 'props' ? (
-                <SlicePropEditor
-                  slice={slices.find(s => s.instanceId === selectedSliceId)!}
-                  readOnly={editorReadOnly}
-                  onPropChange={(key, value) => updateSliceProp(selectedSliceId, key, value)}
-                  onDeselect={() => setSelectedSliceId(null)}
-                />
-              ) : (
+              {/* Props / Rules tab bar — always available */}
+              {(() => {
+                const selectedSlice = slices.find(s => s.instanceId === selectedSliceId)!;
+                const hasRule = !!selectedSlice.visibilityRule;
+                return (
+                  <div style={{ display: 'flex', borderBottom: '1px solid #E5E7EB', flexShrink: 0 }}>
+                    {(['props', 'rules'] as const).map(t => (
+                      <button key={t} onClick={() => setRightTab(t)} style={{
+                        flex: 1, padding: '8px 4px', border: 'none', background: 'none',
+                        fontSize: 11, fontWeight: rightTab === t ? 700 : 500,
+                        color: rightTab === t ? '#DB0011' : '#6B7280',
+                        borderBottom: rightTab === t ? '2px solid #DB0011' : '2px solid transparent',
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+                      }}>
+                        {t === 'props' ? '⚙️ Properties' : (
+                          <>🎯 Rules{hasRule && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#DB0011', display: 'inline-block' }} />}</>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()}
+              {rightTab === 'rules' ? (
                 <RuleConsolePanel
                   slice={slices.find(s => s.instanceId === selectedSliceId)!}
                   readOnly={editorReadOnly}
                   onRuleChange={rule => updateSliceRule(selectedSliceId, rule)}
                   onDeselect={() => setSelectedSliceId(null)}
                   previewContext={previewContext}
+                />
+              ) : (
+                <SlicePropEditor
+                  slice={slices.find(s => s.instanceId === selectedSliceId)!}
+                  readOnly={editorReadOnly}
+                  onPropChange={(key, value) => updateSliceProp(selectedSliceId, key, value)}
+                  onDeselect={() => setSelectedSliceId(null)}
                 />
               )}
             </>

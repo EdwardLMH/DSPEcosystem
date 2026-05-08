@@ -1,8 +1,19 @@
 // WealthPage.ets
-// HarmonyNext ArkTS — Home Hub HK page
-// Loads slice layout from the UCP BFF (GET /api/v1/screen/home-wealth-hk) when a
+// HarmonyNext ArkTS — Home Hub HK page (OCDP "Home Hub (HK)" design)
+// Loads slice layout from the OCDP BFF (GET /api/v1/screen/home-wealth-hk) when a
 // LIVE page has been approved and published.  Falls back to the static layout when
 // the BFF has no live page yet (404 / connection refused).
+//
+// Slice order (OCDP design):
+//   1. HOME_SEARCH_HEADER       — red header + search bar
+//   2. COMBO_QUICK_ACCESS       — tab bar + 2×5 quick-access icons
+//   3. CARD_ACTIVATION_BANNER   — card activation notification strip
+//   4. QUEST_BANNER             — "Getting started" quest card
+//   5. FEATURE_PRODUCT          — featured fund list with tabs
+//   6. WEALTH_STUDIO_CAROUSEL   — Premier Elite Wealth Studio episodes
+//   7. GUIDES_INSIGHTS_CAROUSEL          — Guides and insights card carousel
+//   8. FX_WATCHLIST             — FX watchlist with tier badge + table
+//   9. DISCOVER_MORE_CAROUSEL            — Discover more campaign card carousel
 
 import { Hive } from '../common/HiveTokens'
 import { SensorDataClient } from '../network/SensorDataClient'
@@ -11,78 +22,110 @@ import { fetchWealthScreen, WealthSlice } from '../network/KYCNetworkService'
 
 // ─── Data models ──────────────────────────────────────────────────────────────
 
-interface QuickItem    { icon: string; label: string; deepLink: string }
-interface FuncItem     { icon: string; label: string; deepLink: string }
-interface WealthProd   { id: string; name: string; tag: string; yield7Day: string
-                         risk: string; redemption: string; cta: string
-                         deepLink: string; highlighted: boolean }
-interface RankingItem  { id: string; icon: string; badge: string; title: string
-                         desc: string; deepLink: string }
-interface DealItem     { id: string; brand: string; emoji: string; tag: string; deepLink: string }
-interface BottomLink   { icon: string; label: string; deepLink: string }
+interface QuickItem  { icon: string; label: string; deepLink: string }
+interface FundItem   { id: string; name: string; code: string; return1Y: string
+                       tags: string[]; deepLink: string }
+interface EpisodeItem { id: string; title: string; duration: string
+                        thumbnail: string; deepLink: string }
+interface GuideItem  { id: string; title: string; category: string
+                       imageEmoji: string; deepLink: string; date?: string }
+interface FXPair     { base: string; quote: string; rate: string
+                       change: string; positive: boolean }
+interface CampaignCard { id: string; title: string; tag: string
+                         imageEmoji: string; deepLink: string }
 
-const QUICK_ITEMS: QuickItem[] = [
-  { icon: '🌙', label: '朝朝寶',   deepLink: 'hsbc://wealth/morning-treasure' },
-  { icon: '💵', label: '借錢',     deepLink: 'hsbc://loan/apply' },
-  { icon: '↔️', label: '轉帳',     deepLink: 'hsbc://transfer' },
-  { icon: '📊', label: '帳戶總覽', deepLink: 'hsbc://accounts' },
+// ─── Static fallback data ─────────────────────────────────────────────────────
+// Mirrors OCDP mockData.ts — used on LOAD_ERROR path.
+
+const QUICK_ROW1: QuickItem[] = [
+  { icon: '👤', label: 'Account',  deepLink: 'hsbc://accounts' },
+  { icon: '🌐', label: 'Transfer', deepLink: 'hsbc://transfer' },
+  { icon: '💱', label: 'FX',       deepLink: 'hsbc://fx' },
+  { icon: '📈', label: 'Stock',    deepLink: 'hsbc://stock' },
+  { icon: '⏰', label: 'Deposit',  deepLink: 'hsbc://deposit' },
 ]
 
-const FUNC_ROWS: FuncItem[][] = [
-  [{ icon:'💳', label:'信用卡',   deepLink:'hsbc://cards' },
-   { icon:'📄', label:'收支明細', deepLink:'hsbc://statements' },
-   { icon:'🔄', label:'他行卡轉入', deepLink:'hsbc://transfer/external' },
-   { icon:'🏙️', label:'城市服務', deepLink:'hsbc://city-services' },
-   { icon:'🔥', label:'熱門活動', deepLink:'hsbc://events' }],
-  [{ icon:'📈', label:'理財',     deepLink:'hsbc://wealth' },
-   { icon:'Ⓜ️', label:'M+會員',  deepLink:'hsbc://membership' },
-   { icon:'🎬', label:'影票',     deepLink:'hsbc://movies' },
-   { icon:'💹', label:'基金',     deepLink:'hsbc://funds' },
-   { icon:'⋯',  label:'全部',    deepLink:'hsbc://all-services' }],
+const QUICK_ROW2: QuickItem[] = [
+  { icon: '📊', label: 'Holding', deepLink: 'hsbc://holding' },
+  { icon: '💰', label: 'Safe',    deepLink: 'hsbc://safe' },
+  { icon: '↔️', label: 'FPS',     deepLink: 'hsbc://fps' },
+  { icon: '📷', label: 'Scan',    deepLink: 'hsbc://scan' },
+  { icon: '⊞',  label: 'All',     deepLink: 'hsbc://all-services' },
 ]
 
-const WEALTH_PRODUCTS: WealthProd[] = [
-  { id:'w1', name:'活錢理財｜歷史天天正收益', tag:'代碼',   yield7Day:'2.80%',
-    risk:'R1低風險', redemption:'贖回T+1到帳', cta:'去看看',
-    deepLink:'hsbc://wealth/daily-positive', highlighted:true },
-  { id:'w2', name:'主投債券', tag:'代碼', yield7Day:'3.04%',
-    risk:'歷史周周正', redemption:'成立以來…', cta:'查看',
-    deepLink:'hsbc://wealth/bond-fund', highlighted:false },
-  { id:'w3', name:'年均收益率', tag:'收益確定', yield7Day:'2.31%',
-    risk:'保証領取', redemption:'穩健低波', cta:'查看',
-    deepLink:'hsbc://wealth/guaranteed', highlighted:false },
+const STATIC_FUNDS: FundItem[] = [
+  { id: 'f1', name: 'HSBC GIF – Asia ex Japan Equity',
+    code: 'HKAIEX', return1Y: '+18.4%',
+    tags: ['Equity', 'Asia'],
+    deepLink: 'hsbc://funds/HKAIEX' },
+  { id: 'f2', name: 'HSBC GIF – Global Bond Fund',
+    code: 'HKGBF', return1Y: '+4.2%',
+    tags: ['Bond', 'Global'],
+    deepLink: 'hsbc://funds/HKGBF' },
+  { id: 'f3', name: 'HSBC GIF – Multi-Asset Growth',
+    code: 'HKMAG', return1Y: '+9.7%',
+    tags: ['Multi-Asset'],
+    deepLink: 'hsbc://funds/HKMAG' },
 ]
 
-const RANKINGS: RankingItem[] = [
-  { id:'r1', icon:'🥇', badge:'優中選優', title:'3322選基',
-    desc:'近1年漲跌幅高達318.19%', deepLink:'hsbc://rankings/top-funds' },
-  { id:'r2', icon:'🔒', badge:'固收優選', title:'穩健省心好選擇',
-    desc:'歷史持有3月盈利概率高達98.23%', deepLink:'hsbc://rankings/fixed-income' },
-  { id:'r3', icon:'📈', badge:'屢創新高', title:'屢創新高榜',
-    desc:'近3年净值創新高次數達152', deepLink:'hsbc://rankings/all-time-high' },
+const STATIC_EPISODES: EpisodeItem[] = [
+  { id: 'e1', title: 'Market Outlook Q2 2026',
+    duration: '18 min', thumbnail: '📹',
+    deepLink: 'hsbc://studio/market-outlook-q2-2026' },
+  { id: 'e2', title: 'Diversification in Volatile Markets',
+    duration: '24 min', thumbnail: '📹',
+    deepLink: 'hsbc://studio/diversification' },
+  { id: 'e3', title: 'Premier Elite: Bespoke Portfolio',
+    duration: '31 min', thumbnail: '📹',
+    deepLink: 'hsbc://studio/bespoke-portfolio' },
 ]
 
-const DEALS: DealItem[] = [
-  { id:'d1', brand:'KFC',           emoji:'🍗', tag:'單品優惠',  deepLink:'hsbc://deals/kfc' },
-  { id:'d2', brand:'Luckin Coffee', emoji:'☕', tag:'5折喝瑞幸', deepLink:'hsbc://deals/luckin' },
-  { id:'d3', brand:'DQ',            emoji:'🍦', tag:'5折起',     deepLink:'hsbc://deals/dq' },
+const STATIC_GUIDES: GuideItem[] = [
+  { id: 'g1', title: 'Getting the most from your Premier account',
+    category: 'Premier Tips', imageEmoji: '🏦', date: '8 Apr 2024',
+    deepLink: 'hsbc://guides/premier-tips' },
+  { id: 'g2', title: 'Understanding fund risk levels',
+    category: 'Investments', imageEmoji: '📊', date: '2 Apr 2024',
+    deepLink: 'hsbc://guides/fund-risk' },
+  { id: 'g3', title: 'FX strategy: hedging your HKD exposure',
+    category: 'FX', imageEmoji: '💱', date: '28 Mar 2024',
+    deepLink: 'hsbc://guides/fx-hedging' },
+]
+
+const STATIC_FX_PAIRS: FXPair[] = [
+  { base: 'USD', quote: 'HKD', rate: '7.7851', change: '+0.02%', positive: true },
+  { base: 'EUR', quote: 'HKD', rate: '8.4302', change: '-0.11%', positive: false },
+  { base: 'GBP', quote: 'HKD', rate: '9.8154', change: '+0.08%', positive: true },
+  { base: 'JPY', quote: 'HKD', rate: '0.0514', change: '-0.05%', positive: false },
+  { base: 'CNH', quote: 'HKD', rate: '1.0722', change: '+0.01%', positive: true },
+]
+
+const STATIC_CAMPAIGNS: CampaignCard[] = [
+  { id: 'c1', title: 'Earn up to 5% p.a. on new funds',
+    tag: 'Time-limited', imageEmoji: '💎',
+    deepLink: 'hsbc://campaign/new-funds-promo' },
+  { id: 'c2', title: 'Premier Elite — exclusive art advisory',
+    tag: 'Premier Elite', imageEmoji: '🖼️',
+    deepLink: 'hsbc://campaign/art-advisory' },
+  { id: 'c3', title: 'Global Reach: open a UK account',
+    tag: 'Global Banking', imageEmoji: '🌍',
+    deepLink: 'hsbc://campaign/global-reach' },
 ]
 
 // ─── Load-state enum ──────────────────────────────────────────────────────────
-// ArkTS forbids string-union @State — use a plain number enum instead.
+// ArkTS forbids string-union @State — use plain number constants.
 const LOAD_IDLE    = 0
 const LOAD_LOADING = 1
 const LOAD_DONE    = 2
 const LOAD_ERROR   = 3
 
-// ─── SDUI slice renderer ──────────────────────────────────────────────────────
-// Renders one SDUI slice from the BFF payload.  Only slice types present in the
-// UCP schema are handled; unknown types are skipped silently.
+// ─── SDUI slice dispatcher ────────────────────────────────────────────────────
+// Renders one BFF-supplied slice by type.  Unknown types are silently skipped.
 
 @Component
 struct SDUISliceView {
   slice: WealthSlice = { instanceId: '', type: '', props: {}, visible: true }
-  @State adDismissed: boolean = false
+  onSearchTap: () => void = () => {}
 
   build() {
     if (!this.slice.visible) {
@@ -93,30 +136,25 @@ struct SDUISliceView {
   }
 
   @Builder renderSlice() {
-    if (this.slice.type === 'HEADER_NAV') {
-      SDUIHeaderNav({ props: this.slice.props })
-    } else if (this.slice.type === 'AI_SEARCH_BAR') {
-      SDUIAISearchBar({ props: this.slice.props })
-    } else if (this.slice.type === 'QUICK_ACCESS') {
-      SDUIQuickAccess({ props: this.slice.props })
-    } else if (this.slice.type === 'PROMO_BANNER') {
-      SDUIPromoBanner({ props: this.slice.props })
-    } else if (this.slice.type === 'FUNCTION_GRID') {
-      SDUIFunctionGrid({ props: this.slice.props })
-    } else if (this.slice.type === 'AI_ASSISTANT') {
-      SDUIAIAssistant({ props: this.slice.props })
-    } else if (this.slice.type === 'AD_BANNER') {
-      if (!this.adDismissed) {
-        SDUIAdBanner({ props: this.slice.props, onDismiss: () => { this.adDismissed = true } })
-      }
-    } else if (this.slice.type === 'FLASH_LOAN') {
-      SDUIFlashLoan({ props: this.slice.props })
-    } else if (this.slice.type === 'WEALTH_SELECTION') {
-      SDUIWealthSelection({ props: this.slice.props })
-    } else if (this.slice.type === 'FEATURED_RANKINGS') {
-      SDUIFeaturedRankings({ props: this.slice.props })
-    } else if (this.slice.type === 'LIFE_DEALS') {
-      SDUILifeDeals({ props: this.slice.props })
+    if (this.slice.type === 'HOME_SEARCH_HEADER') {
+      SDUIHomeSearchHeader({ props: this.slice.props,
+        onSearchTap: () => { this.onSearchTap() } })
+    } else if (this.slice.type === 'COMBO_QUICK_ACCESS') {
+      SDUIComboQuickAccess({ props: this.slice.props })
+    } else if (this.slice.type === 'CARD_ACTIVATION_BANNER') {
+      SDUICardActivationBanner({ props: this.slice.props })
+    } else if (this.slice.type === 'QUEST_BANNER') {
+      SDUIQuestBanner({ props: this.slice.props })
+    } else if (this.slice.type === 'FEATURE_PRODUCT') {
+      SDUIFeatureProduct({ props: this.slice.props })
+    } else if (this.slice.type === 'WEALTH_STUDIO_CAROUSEL') {
+      SDUIWealthStudioCarousel({ props: this.slice.props })
+    } else if (this.slice.type === 'GUIDES_INSIGHTS_CAROUSEL') {
+      SDUIGuidesInsights({ props: this.slice.props })
+    } else if (this.slice.type === 'FX_WATCHLIST') {
+      SDUIFXWatchlist({ props: this.slice.props })
+    } else if (this.slice.type === 'DISCOVER_MORE_CAROUSEL') {
+      SDUIDiscoverMore({ props: this.slice.props })
     } else if (this.slice.type === 'SPACER') {
       Blank().height(this.slice.props['height'] as number ?? 16)
     }
@@ -128,10 +166,9 @@ struct SDUISliceView {
 
 @Component
 export struct WealthPageView {
-  @State adDismissed: boolean   = false
-  @State searchOpen: boolean    = false
-  @State loadState: number      = LOAD_IDLE      // LOAD_* constants
-  @State sdui: WealthSlice[]    = []             // BFF slices when loaded
+  @State searchOpen: boolean  = false
+  @State loadState: number    = LOAD_IDLE    // LOAD_* constants
+  @State sdui: WealthSlice[]  = []           // BFF slices when loaded
 
   aboutToAppear() {
     SensorDataClient.wealthHubViewed()
@@ -156,31 +193,28 @@ export struct WealthPageView {
         Column({ space: 0 }) {
           if (this.loadState === LOAD_LOADING) {
             // Minimal loading state — show header so page doesn't flash blank
-            WHHeaderNav({ onSearchTap: () => { this.searchOpen = true } })
+            WHHomeSearchHeader({ onSearchTap: () => { this.searchOpen = true } })
             Row() {
-              Text('載入中…').fontSize(13).fontColor(Hive.Color.n400)
+              Text('Loading…').fontSize(13).fontColor(Hive.Color.n400)
             }
             .width('100%').height(80)
             .justifyContent(FlexAlign.Center)
           } else if (this.loadState === LOAD_DONE && this.sdui.length > 0) {
             // ── SDUI path: render slices from BFF ──────────────────────────
             ForEach(this.sdui, (slice: WealthSlice) => {
-              SDUISliceView({ slice: slice })
+              SDUISliceView({ slice: slice, onSearchTap: () => { this.searchOpen = true } })
             })
           } else {
-            // ── Static fallback: BFF not live yet ──────────────────────────
-            WHHeaderNav({ onSearchTap: () => { this.searchOpen = true } })
-            WHQuickAccess()
-            WHPromoBanner()
-            WHFunctionGrid()
-            WHAIAssistant()
-            if (!this.adDismissed) {
-              WHAdBanner({ onDismiss: () => { this.adDismissed = true } })
-            }
-            WHFlashLoan()
-            WHWealthSelection()
-            WHFeaturedRankings()
-            WHLifeDeals()
+            // ── Static fallback: BFF not live yet (LOAD_IDLE or LOAD_ERROR) ─
+            WHHomeSearchHeader({ onSearchTap: () => { this.searchOpen = true } })
+            WHComboQuickAccess()
+            WHCardActivationBanner()
+            WHQuestBanner()
+            WHFeatureProduct()
+            WHWealthStudioCarousel()
+            WHGuidesInsights()
+            WHFXWatchlist()
+            WHDiscoverMore()
           }
           Blank().height(40)
         }.width('100%')
@@ -196,902 +230,1202 @@ export struct WealthPageView {
   }
 }
 
-// ─── SDUI slice components (BFF-driven) ───────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// SDUI slice components — BFF-driven renderers
 // Each reads from props: Record<string, ESObject> delivered by the BFF.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── 1. HOME_SEARCH_HEADER ─────────────────────────────────────────────────────
+// Segment-adaptive red header with "HSBC Premier", notification bell,
+// headset icon, and a frosted white search bar with AI badge below.
 
 @Component
-struct SDUIHeaderNav {
-  props: Record<string, ESObject> = {}
-
-  build() {
-    Column() {
-      Row({ space: 10 }) {
-        Row({ space: 6 }) {
-          Text('🔍').fontSize(13).fontColor(Hive.Color.n400)
-          Text(this.props['searchPlaceholder'] as string ?? '搜尋功能、產品')
-            .fontSize(13).fontColor(Hive.Color.n400).layoutWeight(1)
-        }
-        .layoutWeight(1).height(36).padding({ left: 14, right: 14 })
-        .borderRadius(18).backgroundColor(Hive.Color.n100)
-        .onClick(() => {
-          SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '',
-            'wealth_hub_hk', 'wealth_hub')
-        })
-
-        if (this.props['showNotificationBell'] as boolean !== false) {
-          Text('🔔').fontSize(20).onClick(() => {
-            SensorDataClient.track('notification_tap', 'Wealth', 'notification_tapped', '',
-              'wealth_hub_hk', 'wealth_hub')
-          })
-        }
-        if (this.props['showQRScanner'] as boolean !== false) {
-          Text('⬛').fontSize(18).onClick(() => {
-            SensorDataClient.track('qr_tap', 'Wealth', 'qr_scanner_tapped', '',
-              'wealth_hub_hk', 'wealth_hub')
-          })
-        }
-      }.width('100%').height(50)
-      .padding({ left: 14, right: 14, top: 8, bottom: 8 })
-      .backgroundColor(Hive.Color.brandWhite)
-
-      Divider().color(Hive.Color.n200)
-    }
-  }
-}
-
-// SDUIAISearchBar — SDUI renderer for AI_SEARCH_BAR slice type.
-// HSBC-red bar with semantic search, QR scan, chatbot and message inbox.
-// Tapping the search input opens the AISearchPage overlay.
-@Component
-struct SDUIAISearchBar {
+struct SDUIHomeSearchHeader {
   props: Record<string, ESObject> = {}
   onSearchTap: () => void = () => {}
 
-  private placeholder(): string {
-    return this.props['placeholder'] as string ?? '搜尋功能、產品'
-  }
-  private enableQRScan(): boolean   { return this.props['enableQRScan'] as boolean ?? true }
-  private enableChatbot(): boolean  { return this.props['enableChatbot'] as boolean ?? true }
-  private enableInbox(): boolean    { return this.props['enableMessageInbox'] as boolean ?? true }
-
-  build() {
-    Row({ space: 8 }) {
-      if (this.enableQRScan()) {
-        Text('⬜').fontSize(20).fontColor('#E6FFFFFF')
-          .onClick(() => {
-            SensorDataClient.track('qr_tap', 'Wealth', 'qr_scanner_tapped', '',
-              'ai_search_bar', 'wealth_hub')
-          })
-      }
-
-      Row({ space: 6 }) {
-        Text('🔍').fontSize(13).fontColor('#99FFFFFF')
-        Text(this.placeholder()).fontSize(13).fontColor('#A6FFFFFF').layoutWeight(1)
-      }
-      .layoutWeight(1).height(36)
-      .padding({ left: 12, right: 12 })
-      .borderRadius(18)
-      .backgroundColor('#26FFFFFF')
-      .onClick(() => {
-        SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '',
-          'ai_search_bar', 'wealth_hub')
-        this.onSearchTap()
-      })
-
-      if (this.enableChatbot()) {
-        Text('🤖').fontSize(20).fontColor('#E6FFFFFF')
-          .onClick(() => {
-            SensorDataClient.track('chatbot_tap', 'Wealth', 'chatbot_tapped', '',
-              'ai_search_bar', 'wealth_hub')
-          })
-      }
-      if (this.enableInbox()) {
-        Text('✉️').fontSize(20).fontColor('#E6FFFFFF')
-          .onClick(() => {
-            SensorDataClient.track('inbox_tap', 'Wealth', 'inbox_tapped', '',
-              'ai_search_bar', 'wealth_hub')
-          })
-      }
-    }
-    .width('100%').height(50)
-    .padding({ left: 12, right: 12, top: 7, bottom: 7 })
-    .backgroundColor('#DB0011')
-    .alignItems(VerticalAlign.Center)
-  }
-}
-
-@Component
-struct SDUIQuickAccess {
-  props: Record<string, ESObject> = {}
-
-  private items(): ESObject[] { return this.props['items'] as ESObject[] ?? [] as ESObject[] }
-
-  build() {
-    Row() {
-      ForEach(this.items(), (raw: ESObject) => {
-        Column({ space: 5 }) {
-          Text((raw as Record<string, string>)['icon'] ?? '').fontSize(22)
-            .width(48).height(48).textAlign(TextAlign.Center)
-            .borderRadius(14)
-            .linearGradient({ direction: GradientDirection.LeftTop,
-              colors: [['#F0F9FF', 0], ['#E0F2FE', 1]] })
-          Text((raw as Record<string, string>)['label'] ?? '').fontSize(10).fontColor(Hive.Color.n700).textAlign(TextAlign.Center)
-        }
-        .layoutWeight(1).alignItems(HorizontalAlign.Center)
-        .onClick(() => {
-          SensorDataClient.quickAccessTapped(
-            (raw as Record<string, string>)['label'] ?? '',
-            (raw as Record<string, string>)['deepLink'] ?? '')
-        })
-      })
-    }
-    .width('100%').backgroundColor(Hive.Color.brandWhite)
-    .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-  }
-}
-
-@Component
-struct SDUIPromoBanner {
-  props: Record<string, ESObject> = {}
-
-  private title(): string    { return this.props['title'] as string ?? '' }
-  private subtitle(): string { return this.props['subtitle'] as string ?? '' }
-  private ctaLabel(): string { return this.props['ctaLabel'] as string ?? '' }
-  private badgeText(): string { return this.props['badgeText'] as string ?? '' }
-  private deepLink(): string { return this.props['ctaDeepLink'] as string ?? '' }
-
-  build() {
-    Row({ space: 0 }) {
-      Column({ space: 4 }) {
-        if (this.badgeText().length > 0) {
-          Text(this.badgeText())
-            .fontSize(9).fontWeight(FontWeight.Bold).fontColor('#DB0011')
-            .padding({ left: 8, right: 8, top: 2, bottom: 2 })
-            .borderRadius(10).backgroundColor('#FFEDED')
-        }
-        Text(this.title()).fontSize(16).fontWeight(FontWeight.Bolder).fontColor(Hive.Color.n900)
-        Text(this.subtitle()).fontSize(10).fontColor(Hive.Color.n500)
-        Button(this.ctaLabel())
-          .height(32).padding({ left: 16, right: 16 })
-          .borderRadius(14).backgroundColor(Hive.Color.brandPrimary)
-          .fontColor(Hive.Color.brandWhite).fontSize(11).fontWeight(FontWeight.Bold)
-          .margin({ top: 8 })
-          .onClick(() => {
-            SensorDataClient.promoBannerTapped(this.title(), this.props['instanceId'] as string ?? '', this.deepLink())
-          })
-      }.layoutWeight(1).alignItems(HorizontalAlign.Start)
-
-      Text('🎯').fontSize(32)
-        .width(80).height(80).textAlign(TextAlign.Center)
-        .borderRadius(12).backgroundColor('#14000000')
-    }
-    .width('100%').padding({ left: 12, right: 12, top: 12, bottom: 12 })
-    .margin({ left: 12, right: 12, top: 8, bottom: 0 })
-    .borderRadius(14)
-    .backgroundColor(this.props['backgroundColor'] as string ?? '#E8F4FD')
-    .alignItems(VerticalAlign.Center)
-  }
-}
-
-@Component
-struct SDUIFunctionGrid {
-  props: Record<string, ESObject> = {}
-
-  private rows(): ESObject[] { return this.props['rows'] as ESObject[] ?? [] as ESObject[] }
-
-  build() {
-    Column({ space: 6 }) {
-      ForEach(this.rows(), (rawRow: ESObject) => {
-        Row() {
-          ForEach(rawRow as ESObject[], (raw: ESObject) => {
-            Column({ space: 4 }) {
-              Text((raw as Record<string, string>)['icon'] ?? '').fontSize(20)
-                .width(44).height(44).textAlign(TextAlign.Center)
-                .borderRadius(12).backgroundColor(Hive.Color.n100)
-              Text((raw as Record<string, string>)['label'] ?? '').fontSize(10).fontColor(Hive.Color.n700)
-                .textAlign(TextAlign.Center).lineHeight(14)
-            }
-            .layoutWeight(1).alignItems(HorizontalAlign.Center)
-            .onClick(() => {
-              const extra: Record<string, ESObject> = {}
-              extra['function_label'] = ((raw as Record<string, string>)['label'] ?? '') as ESObject
-              extra['deep_link']      = ((raw as Record<string, string>)['deepLink'] ?? '') as ESObject
-              SensorDataClient.track('function_tap', 'Wealth', 'function_tapped',
-                (raw as Record<string, string>)['label'] ?? '', 'wealth_hub_hk', 'wealth_hub',
-                '', '', '', '', '', '', '', '', extra)
-            })
-          })
-        }.width('100%')
-      })
-    }
-    .width('100%').backgroundColor(Hive.Color.brandWhite)
-    .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-  }
-}
-
-@Component
-struct SDUIAIAssistant {
-  props: Record<string, ESObject> = {}
-
-  build() {
-    Row({ space: 8 }) {
-      Text('✉️').fontSize(20)
-      Text(this.props['greeting'] as string ?? 'Hi，我是你的智能財富助理')
-        .fontSize(11).fontColor(Hive.Color.n600).layoutWeight(1)
-      Text('›').fontSize(14).fontColor(Hive.Color.n400)
-    }
-    .width('100%').height(44)
-    .padding({ left: 12, right: 12 })
-    .margin({ left: 16, right: 16, top: 4, bottom: 4 })
-    .borderRadius(10).backgroundColor(Hive.Color.n50)
-    .alignItems(VerticalAlign.Center)
-    .onClick(() => { SensorDataClient.aiAssistantTapped() })
-  }
-}
-
-@Component
-struct SDUIAdBanner {
-  props: Record<string, ESObject> = {}
-  onDismiss: () => void = () => {}
-
-  private title(): string    { return this.props['title'] as string ?? '' }
-  private subtitle(): string { return this.props['subtitle'] as string ?? '' }
-  private ctaLabel(): string { return this.props['ctaLabel'] as string ?? '' }
-  private deepLink(): string { return this.props['ctaDeepLink'] as string ?? '' }
-
-  build() {
-    Stack({ alignContent: Alignment.TopEnd }) {
-      Row({ space: 12 }) {
-        Column({ space: 4 }) {
-          Text(this.title()).fontSize(13).fontWeight(FontWeight.Bold).fontColor('#92400E')
-          Text(this.subtitle()).fontSize(10).fontColor('#78716C')
-          Button(this.ctaLabel())
-            .height(30).padding({ left: 14, right: 14 })
-            .borderRadius(12).backgroundColor(Hive.Color.brandPrimary)
-            .fontColor(Hive.Color.brandWhite).fontSize(11).fontWeight(FontWeight.Bold)
-            .margin({ top: 8 })
-            .onClick(() => {
-              SensorDataClient.sliceTapped('AD_BANNER', 'slice-ad', this.ctaLabel(), this.deepLink())
-            })
-        }.layoutWeight(1).alignItems(HorizontalAlign.Start)
-
-        Text('🌱').fontSize(28)
-          .width(72).height(72).textAlign(TextAlign.Center)
-          .borderRadius(10).backgroundColor('#14000000')
-      }
-      .width('100%')
-      .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-      .borderRadius(14)
-      .linearGradient({ direction: GradientDirection.LeftTop,
-        colors: [['#FFFBEB', 0], ['#FEF3C7', 1]] })
-      .alignItems(VerticalAlign.Center)
-
-      Text('✕').fontSize(13).fontColor(Hive.Color.n400)
-        .width(32).height(32).textAlign(TextAlign.Center)
-        .onClick(() => {
-          SensorDataClient.adBannerDismissed(this.title())
-          this.onDismiss()
-        })
-    }
-    .margin({ left: 12, right: 12, top: 6, bottom: 6 })
-  }
-}
-
-@Component
-struct SDUIFlashLoan {
-  props: Record<string, ESObject> = {}
-
-  private productName(): string { return this.props['productName'] as string ?? '閃電貸 極速放款' }
-  private tagline(): string     { return this.props['tagline'] as string ?? '最高可借額度' }
-  private currency(): string    { return this.props['currency'] as string ?? 'HKD' }
-  private maxAmount(): number   { return this.props['maxAmount'] as number ?? 300000 }
-  private ctaLabel(): string    { return this.props['ctaLabel'] as string ?? '獲取額度' }
-  private deepLink(): string    { return this.props['ctaDeepLink'] as string ?? 'hsbc://loan/flash' }
-
-  build() {
-    Row() {
-      Column({ space: 2 }) {
-        Text(`⚡ ${this.productName()}`).fontSize(11).fontWeight(FontWeight.Bold)
-          .fontColor(Hive.Color.brandPrimary)
-        Text(this.tagline()).fontSize(10).fontColor(Hive.Color.n500)
-        Text(`${this.currency()} ${this.maxAmount().toLocaleString()}.00`).fontSize(22)
-          .fontWeight(FontWeight.Bolder).fontColor(Hive.Color.n900)
-      }.layoutWeight(1).alignItems(HorizontalAlign.Start)
-
-      Button(this.ctaLabel())
-        .height(44).padding({ left: 18, right: 18 })
-        .borderRadius(20).backgroundColor(Hive.Color.brandPrimary)
-        .fontColor(Hive.Color.brandWhite).fontSize(12).fontWeight(FontWeight.Bold)
-        .onClick(() => {
-          SensorDataClient.sliceTapped('FLASH_LOAN', 'slice-flash-loan', this.ctaLabel(), this.deepLink())
-        })
-    }
-    .width('100%').padding({ left: 16, right: 16, top: 12, bottom: 12 })
-    .margin({ left: 12, right: 12, top: 6, bottom: 6 })
-    .borderRadius(14)
-    .linearGradient({ direction: GradientDirection.LeftTop,
-      colors: [['#FFF5F5', 0], ['#FFE4E4', 1]] })
-    .alignItems(VerticalAlign.Center)
-  }
-}
-
-@Component
-struct SDUIWealthSelection {
-  props: Record<string, ESObject> = {}
-
-  private sectionTitle(): string  { return this.props['sectionTitle'] as string ?? '財富精選' }
-  private products(): ESObject[]  { return this.props['products'] as ESObject[] ?? [] as ESObject[] }
+  private title(): string       { return this.props['title'] as string ?? 'HSBC Premier' }
+  private placeholder(): string { return this.props['searchPlaceholder'] as string ?? 'Search with AI' }
+  private showBell(): boolean   { return this.props['showNotificationBell'] as boolean ?? true }
+  private showHeadset(): boolean { return this.props['showHeadset'] as boolean ?? true }
 
   build() {
     Column({ space: 0 }) {
-      Row() {
-        Text(this.sectionTitle()).fontSize(15).fontWeight(FontWeight.Bold)
-        Blank().layoutWeight(1)
-        Text('更多 ›').fontSize(12).fontColor(Hive.Color.brandPrimary)
-      }.width('100%').margin({ bottom: 10 })
-
-      ForEach(this.products(), (raw: ESObject, index: number) => {
-        Row() {
-          Column({ space: 2 }) {
-            Text((raw as Record<string, ESObject>)['productName'] as string ?? '').fontSize(12)
-              .fontWeight(FontWeight.Medium).fontColor(Hive.Color.n900)
-            Row({ space: 6 }) {
-              Text((raw as Record<string, ESObject>)['riskLevel'] as string ?? '').fontSize(9).fontColor(Hive.Color.n500)
-                .padding({ left: 6, right: 6, top: 1, bottom: 1 })
-                .borderRadius(8).backgroundColor(Hive.Color.n100)
-              Text((raw as Record<string, ESObject>)['redemption'] as string ?? '').fontSize(9).fontColor(Hive.Color.n500)
-                .padding({ left: 6, right: 6, top: 1, bottom: 1 })
-                .borderRadius(8).backgroundColor(Hive.Color.n100)
-            }
-          }.layoutWeight(1).alignItems(HorizontalAlign.Start)
-
-          Column({ space: 2 }) {
-            Text((raw as Record<string, ESObject>)['yield7Day'] as string ?? '').fontSize(18).fontWeight(FontWeight.Bolder)
-              .fontColor(Hive.Color.brandPrimary)
-            Text('7日年化').fontSize(9).fontColor(Hive.Color.n400)
-            if ((raw as Record<string, ESObject>)['highlighted'] as boolean === true) {
-              Button((raw as Record<string, ESObject>)['ctaLabel'] as string ?? '查看')
-                .height(28).padding({ left: 12, right: 12 })
-                .borderRadius(12).backgroundColor(Hive.Color.brandPrimary)
-                .fontColor(Hive.Color.brandWhite).fontSize(10).fontWeight(FontWeight.Bold)
-                .margin({ top: 4 })
-                .onClick(() => {
-                  SensorDataClient.wealthProductTapped(
-                    (raw as Record<string, ESObject>)['productName'] as string ?? '',
-                    (raw as Record<string, ESObject>)['id'] as string ?? '')
-                })
-            }
-          }.alignItems(HorizontalAlign.End)
+      // Top bar: segment label + bell + headset
+      Row({ space: 0 }) {
+        Text(this.title())
+          .fontSize(17).fontWeight(FontWeight.Bold).fontColor(Hive.Color.brandWhite)
+          .layoutWeight(1)
+        if (this.showBell()) {
+          Text('🔔').fontSize(20).fontColor(Hive.Color.brandWhite)
+            .margin({ right: 12 })
+            .onClick(() => {
+              SensorDataClient.track('notification_tap', 'Wealth', 'notification_tapped', '',
+                'home_search_header', 'wealth_hub')
+            })
         }
-        .width('100%').padding({ top: 10, bottom: 10 })
+        if (this.showHeadset()) {
+          Text('🎧').fontSize(20).fontColor(Hive.Color.brandWhite)
+            .onClick(() => {
+              SensorDataClient.track('headset_tap', 'Wealth', 'headset_tapped', '',
+                'home_search_header', 'wealth_hub')
+            })
+        }
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 14, bottom: 8 })
+
+      // Search bar row with AI badge
+      Row({ space: 8 }) {
+        Row({ space: 6 }) {
+          Text('🔍').fontSize(13).fontColor(Hive.Color.n500)
+          Text(this.placeholder()).fontSize(13).fontColor(Hive.Color.n400).layoutWeight(1)
+          // AI badge
+          Text('AI')
+            .fontSize(9).fontWeight(FontWeight.Bold).fontColor('#DB0011')
+            .padding({ left: 5, right: 5, top: 2, bottom: 2 })
+            .borderRadius(6).backgroundColor('#FFEDED')
+        }
+        .layoutWeight(1).height(36)
+        .padding({ left: 12, right: 12 })
+        .borderRadius(18)
+        .backgroundColor(Hive.Color.brandWhite)
         .onClick(() => {
-          SensorDataClient.wealthProductTapped(
-            (raw as Record<string, ESObject>)['productName'] as string ?? '',
-            (raw as Record<string, ESObject>)['id'] as string ?? '')
+          SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '',
+            'home_search_header', 'wealth_hub')
+          this.onSearchTap()
         })
-
-        if (index < this.products().length - 1) {
-          Divider().color(Hive.Color.n100)
-        }
-      })
-
-      Blank().height(10)
-      Text('💬 理財產品這么多，哪款適合我？')
-        .fontSize(11).fontColor(Hive.Color.n500).textAlign(TextAlign.Center).width('100%')
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, bottom: 12 })
     }
-    .width('100%').backgroundColor(Hive.Color.brandWhite)
-    .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+    .width('100%')
+    .backgroundColor('#DB0011')
   }
 }
 
+// ── 2. COMBO_QUICK_ACCESS ─────────────────────────────────────────────────────
+// Tab bar (My pick / Invest / Global / HK Daily) + 2 rows of 5 quick-access icons.
+
 @Component
-struct SDUIFeaturedRankings {
+struct SDUIComboQuickAccess {
+  props: Record<string, ESObject> = {}
+  @State activeTab: number = 0
+
+  private tabs(): string[] {
+    const raw: ESObject[] = this.props['tabs'] as ESObject[]
+    if (raw && raw.length > 0) {
+      return raw.map((t: ESObject) => (t as Record<string, string>)['label'] ?? '')
+    }
+    return ['My pick', 'Invest', 'Global', 'HK Daily']
+  }
+
+  private row1(): ESObject[] { return this.props['row1Items'] as ESObject[] ?? [] as ESObject[] }
+  private row2(): ESObject[] { return this.props['row2Items'] as ESObject[] ?? [] as ESObject[] }
+
+  // Map BFF icon identifier strings to display emojis
+  private resolveIcon(id: string): string {
+    if (id === 'account')  return '👤'
+    if (id === 'transfer') return '🌐'
+    if (id === 'fx')       return '💱'
+    if (id === 'stock')    return '📈'
+    if (id === 'deposit')  return '⏰'
+    if (id === 'holding')  return '📊'
+    if (id === 'safe')     return '💰'
+    if (id === 'fps')      return '↔️'
+    if (id === 'scan')     return '📷'
+    if (id === 'all')      return '⊞'
+    return id  // fallback: render as-is (emoji or unknown)
+  }
+
+  // Shorten long BFF labels to fit under icon
+  private shortLabel(label: string): string {
+    if (label === 'Account overview')     return 'Account'
+    if (label === 'Transfer Globally')    return 'Transfer'
+    if (label === 'Foreign exchange')     return 'FX'
+    if (label === 'Trade stock')          return 'Stock'
+    if (label === 'Time deposit')         return 'Deposit'
+    if (label === 'My holding details')   return 'Holding'
+    if (label === 'Money safe')           return 'Safe'
+    if (label === 'Local transfer/FPS')   return 'FPS'
+    if (label === 'Scan to pay')          return 'Scan'
+    if (label === 'All product & services') return 'All'
+    return label
+  }
+
+  build() {
+    Column({ space: 0 }) {
+      // Tab bar — pill/capsule style (active=red, inactive=gray)
+      Scroll() {
+        Row({ space: 8 }) {
+          ForEach(this.tabs(), (tab: string, idx: number) => {
+            Text(tab)
+              .fontSize(13)
+              .fontWeight(this.activeTab === idx ? FontWeight.Bold : FontWeight.Normal)
+              .fontColor(this.activeTab === idx ? Hive.Color.brandWhite : Hive.Color.n700)
+              .padding({ left: 16, right: 16, top: 7, bottom: 7 })
+              .borderRadius(18)
+              .backgroundColor(this.activeTab === idx ? '#DB0011' : '#E4E4E4')
+              .onClick(() => { this.activeTab = idx })
+          })
+        }
+        .padding({ left: 16, right: 16, top: 10, bottom: 10 })
+      }
+      .scrollable(ScrollDirection.Horizontal)
+      .scrollBar(BarState.Off)
+      .width('100%')
+      .backgroundColor(Hive.Color.brandWhite)
+
+      // Row 1 — 5 icons
+      Row({ space: 0 }) {
+        ForEach(this.row1(), (raw: ESObject) => {
+          Column({ space: 5 }) {
+            Text(this.resolveIcon((raw as Record<string, string>)['icon'] ?? '')).fontSize(22)
+              .width(48).height(48).textAlign(TextAlign.Center)
+              .borderRadius(14).backgroundColor(Hive.Color.n100)
+            Text(this.shortLabel((raw as Record<string, string>)['label'] ?? ''))
+              .fontSize(10).fontColor(Hive.Color.n700).textAlign(TextAlign.Center)
+          }
+          .layoutWeight(1).alignItems(HorizontalAlign.Center)
+          .padding({ top: 10 })
+          .onClick(() => {
+            SensorDataClient.quickAccessTapped(
+              (raw as Record<string, string>)['label'] ?? '',
+              (raw as Record<string, string>)['deepLink'] ?? '')
+          })
+        })
+      }
+      .width('100%').backgroundColor(Hive.Color.brandWhite)
+      .padding({ left: 8, right: 8 })
+
+      // Row 2 — 5 icons
+      Row({ space: 0 }) {
+        ForEach(this.row2(), (raw: ESObject) => {
+          Column({ space: 5 }) {
+            Text(this.resolveIcon((raw as Record<string, string>)['icon'] ?? '')).fontSize(22)
+              .width(48).height(48).textAlign(TextAlign.Center)
+              .borderRadius(14).backgroundColor(Hive.Color.n100)
+            Text(this.shortLabel((raw as Record<string, string>)['label'] ?? ''))
+              .fontSize(10).fontColor(Hive.Color.n700).textAlign(TextAlign.Center)
+          }
+          .layoutWeight(1).alignItems(HorizontalAlign.Center)
+          .padding({ bottom: 10 })
+          .onClick(() => {
+            SensorDataClient.quickAccessTapped(
+              (raw as Record<string, string>)['label'] ?? '',
+              (raw as Record<string, string>)['deepLink'] ?? '')
+          })
+        })
+      }
+      .width('100%').backgroundColor(Hive.Color.brandWhite)
+      .padding({ left: 8, right: 8 })
+    }
+    .width('100%')
+  }
+}
+
+// ── 3. CARD_ACTIVATION_BANNER ─────────────────────────────────────────────────
+// "Your card needs to be activated" notification strip.
+
+@Component
+struct SDUICardActivationBanner {
   props: Record<string, ESObject> = {}
 
-  private sectionTitle(): string { return this.props['sectionTitle'] as string ?? '特色榜單' }
+  private message(): string  { return this.props['message'] as string ?? 'Your card needs to be activated' }
+  private ctaLabel(): string { return this.props['ctaLabel'] as string ?? 'Activate now' }
+  private deepLink(): string { return this.props['deepLink'] as string ?? 'hsbc://cards/activate' }
+
+  build() {
+    Row({ space: 10 }) {
+      Text('💳').fontSize(18)
+      Text(this.message())
+        .fontSize(13).fontColor(Hive.Color.n900).layoutWeight(1)
+      Text(this.ctaLabel())
+        .fontSize(12).fontWeight(FontWeight.Bold).fontColor('#DB0011')
+        .onClick(() => {
+          SensorDataClient.sliceTapped('CARD_ACTIVATION_BANNER',
+            this.props['instanceId'] as string ?? 'slice-card-activation',
+            this.ctaLabel(), this.deepLink())
+        })
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 10, bottom: 10 })
+    .backgroundColor('#FFF5F5')
+    .borderWidth({ bottom: 1 }).borderColor(Hive.Color.n100)
+    .alignItems(VerticalAlign.Center)
+  }
+}
+
+// ── 4. QUEST_BANNER ───────────────────────────────────────────────────────────
+// "Getting started" quest card with HSBC icon, description, CTA.
+
+@Component
+struct SDUIQuestBanner {
+  props: Record<string, ESObject> = {}
+
+  private questTitle(): string { return this.props['questTitle'] as string ?? 'Getting started' }
+  private desc(): string       { return this.props['description'] as string ?? 'Complete setup to unlock your full Premier benefits' }
+  private ctaLabel(): string   { return this.props['ctaLabel'] as string ?? 'Continue' }
+  private deepLink(): string   { return this.props['deepLink'] as string ?? 'hsbc://onboarding/checklist' }
+  private progress(): number   { return this.props['progress'] as number ?? 40 }
+
+  build() {
+    Row({ space: 12 }) {
+      // HSBC hexagon icon
+      Text('🏦')
+        .fontSize(28).width(52).height(52)
+        .textAlign(TextAlign.Center)
+        .borderRadius(14)
+        .backgroundColor('#FEF2F2')
+
+      Column({ space: 6 }) {
+        Text(this.questTitle())
+          .fontSize(14).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
+        Text(this.desc())
+          .fontSize(11).fontColor(Hive.Color.n500).maxLines(2)
+
+        // Progress bar
+        Stack({ alignContent: Alignment.Start }) {
+          Row().width('100%').height(4).borderRadius(2).backgroundColor(Hive.Color.n100)
+          Row().width(`${this.progress()}%`).height(4).borderRadius(2).backgroundColor('#DB0011')
+        }
+
+        Button(this.ctaLabel())
+          .height(30).padding({ left: 16, right: 16 })
+          .borderRadius(14).backgroundColor('#DB0011')
+          .fontColor(Hive.Color.brandWhite).fontSize(11).fontWeight(FontWeight.Bold)
+          .onClick(() => {
+            SensorDataClient.sliceTapped('QUEST_BANNER',
+              this.props['instanceId'] as string ?? 'slice-quest',
+              this.ctaLabel(), this.deepLink())
+          })
+      }.layoutWeight(1).alignItems(HorizontalAlign.Start)
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+    .margin({ top: 8, bottom: 0 })
+    .backgroundColor(Hive.Color.brandWhite)
+    .alignItems(VerticalAlign.Top)
+  }
+}
+
+// ── 5. FEATURE_PRODUCT ────────────────────────────────────────────────────────
+// "Feature product" section with tabs + fund list (name, code, 1Y return, tags).
+
+@Component
+struct SDUIFeatureProduct {
+  props: Record<string, ESObject> = {}
+  @State activeTab: number = 0
+
+  private sectionTitle(): string { return this.props['sectionTitle'] as string ?? 'Feature product' }
+  private tabs(): string[] {
+    const raw: Array<string> = this.props['tabs'] as Array<string>
+    if (raw && raw.length > 0) { return raw }
+    return ['All', 'Equity', 'Bond', 'Multi-Asset']
+  }
+  private funds(): ESObject[] { return this.props['funds'] as ESObject[] ?? [] as ESObject[] }
+
+  private fundTags(fund: ESObject): Array<string> {
+    const tags: Array<string> = (fund as Record<string, ESObject>)['tags'] as Array<string>
+    return tags ?? []
+  }
+
+  build() {
+    Column({ space: 0 }) {
+      // Section header
+      Row() {
+        Text(this.sectionTitle())
+          .fontSize(16).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
+        Blank().layoutWeight(1)
+        Text('More ›').fontSize(12).fontColor('#DB0011')
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 14, bottom: 8 })
+
+      // Sub-tabs
+      Scroll() {
+        Row({ space: 8 }) {
+          ForEach(this.tabs(), (tab: string, idx: number) => {
+            Text(tab)
+              .fontSize(12)
+              .fontWeight(this.activeTab === idx ? FontWeight.Bold : FontWeight.Normal)
+              .fontColor(this.activeTab === idx ? Hive.Color.brandWhite : Hive.Color.n700)
+              .padding({ left: 14, right: 14, top: 6, bottom: 6 })
+              .borderRadius(16)
+              .backgroundColor(this.activeTab === idx ? '#DB0011' : Hive.Color.n100)
+              .onClick(() => { this.activeTab = idx })
+          })
+        }
+        .padding({ left: 16, right: 16, bottom: 8 })
+      }
+      .scrollable(ScrollDirection.Horizontal)
+      .scrollBar(BarState.Off)
+      .width('100%')
+
+      // Fund rows
+      Column({ space: 0 }) {
+        ForEach(this.funds(), (raw: ESObject, index: number) => {
+          Row({ space: 12 }) {
+            Column({ space: 4 }) {
+              Text((raw as Record<string, string>)['name'] ?? '')
+                .fontSize(13).fontWeight(FontWeight.Medium).fontColor(Hive.Color.n900)
+                .maxLines(2)
+              Text((raw as Record<string, string>)['code'] ?? '')
+                .fontSize(11).fontColor(Hive.Color.n500)
+              // Tags
+              Row({ space: 4 }) {
+                ForEach(this.fundTags(raw), (tag: string) => {
+                  Text(tag)
+                    .fontSize(9).fontColor('#DB0011')
+                    .padding({ left: 6, right: 6, top: 2, bottom: 2 })
+                    .borderRadius(8).backgroundColor('#FEF2F2')
+                })
+              }
+            }.layoutWeight(1).alignItems(HorizontalAlign.Start)
+
+            Column({ space: 2 }) {
+              Text((raw as Record<string, string>)['return1Y'] ?? '')
+                .fontSize(18).fontWeight(FontWeight.Bold)
+                .fontColor((raw as Record<string, string>)['return1Y']?.startsWith('+') ? '#16A34A' : '#DC2626')
+              Text('1Y return').fontSize(9).fontColor(Hive.Color.n400)
+            }.alignItems(HorizontalAlign.End)
+          }
+          .width('100%')
+          .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+          .onClick(() => {
+            SensorDataClient.wealthProductTapped(
+              (raw as Record<string, string>)['name'] ?? '',
+              (raw as Record<string, string>)['id'] ?? '')
+          })
+
+          if (index < this.funds().length - 1) {
+            Divider().color(Hive.Color.n100).margin({ left: 16, right: 16 })
+          }
+        })
+      }
+    }
+    .width('100%').backgroundColor(Hive.Color.brandWhite)
+    .margin({ top: 8 })
+  }
+}
+
+// ── 6. WEALTH_STUDIO_CAROUSEL ─────────────────────────────────────────────────
+// "Premier Elite Wealth Studio" horizontal carousel with episode cards.
+
+@Component
+struct SDUIWealthStudioCarousel {
+  props: Record<string, ESObject> = {}
+
+  private sectionTitle(): string { return this.props['sectionTitle'] as string ?? 'Premier Elite Wealth Studio' }
+  private moreLabel(): string    { return this.props['moreLabel'] as string ?? 'View all' }
   private items(): ESObject[]    { return this.props['items'] as ESObject[] ?? [] as ESObject[] }
 
   build() {
     Column({ space: 0 }) {
       Row() {
-        Text(this.sectionTitle()).fontSize(15).fontWeight(FontWeight.Bold)
+        Text(this.sectionTitle())
+          .fontSize(16).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
         Blank().layoutWeight(1)
-        Text('更多 ›').fontSize(12).fontColor(Hive.Color.brandPrimary)
-      }.width('100%').margin({ bottom: 10 })
+        Text(`${this.moreLabel()} ›`).fontSize(12).fontColor('#DB0011')
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 14, bottom: 10 })
 
-      ForEach(this.items(), (raw: ESObject) => {
+      Scroll() {
         Row({ space: 12 }) {
-          Text((raw as Record<string, string>)['icon'] ?? '').fontSize(24)
-          Column({ space: 2 }) {
-            Text((raw as Record<string, string>)['badge'] ?? '').fontSize(9).fontWeight(FontWeight.Bold)
-              .fontColor(Hive.Color.brandPrimary)
-              .padding({ left: 8, right: 8, top: 2, bottom: 2 })
-              .borderRadius(10).backgroundColor('#FEF2F2')
-            Text((raw as Record<string, string>)['title'] ?? '').fontSize(13).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
-            Text((raw as Record<string, string>)['description'] ?? '').fontSize(10).fontColor(Hive.Color.n500)
-          }.layoutWeight(1).alignItems(HorizontalAlign.Start)
-          Text('›').fontSize(16).fontColor(Hive.Color.n400)
+          ForEach(this.items(), (raw: ESObject) => {
+            Column({ space: 0 }) {
+              // Image area — fixed 100px height
+              Stack({ alignContent: Alignment.BottomStart }) {
+                Text('📹')
+                  .fontSize(32)
+                  .width(180).height(100)
+                  .textAlign(TextAlign.Center)
+                  .backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n700)
+                  .borderRadius({ topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 })
+                // Play button centred
+                Text('▶')
+                  .fontSize(20).fontColor(Hive.Color.brandWhite)
+                  .width(36).height(36).textAlign(TextAlign.Center)
+                  .borderRadius(18).backgroundColor('#80000000')
+                  .position({ x: 72, y: 32 })
+                // Live badge bottom-left
+                Text((raw as Record<string, string>)['liveBadge'] ?? '')
+                  .fontSize(8).fontWeight(FontWeight.Bold).fontColor(Hive.Color.brandWhite)
+                  .padding({ left: 6, right: 6, top: 2, bottom: 2 })
+                  .borderRadius(3).backgroundColor('#DB0011')
+                  .margin({ left: 8, bottom: 8 })
+              }
+              // Text area — fixed 72px height so cards align
+              Column({ space: 4 }) {
+                Text((raw as Record<string, string>)['episodeLabel'] ?? '')
+                  .fontSize(9).fontColor(Hive.Color.n400)
+                Text((raw as Record<string, string>)['title'] ?? '')
+                  .fontSize(11).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
+                  .maxLines(2).width(180)
+              }
+              .alignItems(HorizontalAlign.Start)
+              .width(180).height(72)
+              .padding({ left: 10, right: 10, top: 8, bottom: 8 })
+              .backgroundColor(Hive.Color.brandWhite)
+              .borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 10, bottomRight: 10 })
+            }
+            .borderRadius(10).clip(true)
+            .shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 })
+            .onClick(() => {
+              SensorDataClient.wealthStudioTapped(
+                (raw as Record<string, string>)['title'] ?? '',
+                (raw as Record<string, string>)['id'] ?? '')
+            })
+          })
         }
-        .width('100%').padding({ top: 8, bottom: 8 })
-        .onClick(() => {
-          SensorDataClient.rankingsTapped(
-            (raw as Record<string, string>)['title'] ?? '',
-            (raw as Record<string, string>)['badge'] ?? '')
-        })
-
-        Divider().color('#F9FAFB')
-      })
+        .padding({ left: 16, right: 16, bottom: 14 })
+      }
+      .scrollable(ScrollDirection.Horizontal)
+      .scrollBar(BarState.Off)
+      .width('100%')
     }
     .width('100%').backgroundColor(Hive.Color.brandWhite)
-    .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+    .margin({ top: 8 })
   }
 }
 
+// ── 7. GUIDES_INSIGHTS_CAROUSEL ────────────────────────────────────────────────────────
+// "Guides and insights" horizontal card carousel.
+
 @Component
-struct SDUILifeDeals {
+struct SDUIGuidesInsights {
   props: Record<string, ESObject> = {}
 
-  private sectionTitle(): string { return this.props['sectionTitle'] as string ?? '生活特惠' }
-  private deals(): ESObject[]    { return this.props['deals'] as ESObject[] ?? [] as ESObject[] }
-  private links(): ESObject[]    { return this.props['bottomLinks'] as ESObject[] ?? [] as ESObject[] }
+  private sectionTitle(): string { return this.props['sectionTitle'] as string ?? 'Guides and insights' }
+  private moreLabel(): string    { return this.props['moreLabel'] as string ?? 'View all' }
+  private items(): ESObject[]    { return this.props['items'] as ESObject[] ?? [] as ESObject[] }
 
   build() {
-    Column({ space: 10 }) {
+    Column({ space: 0 }) {
       Row() {
-        Text(this.sectionTitle()).fontSize(15).fontWeight(FontWeight.Bold)
+        Text(this.sectionTitle())
+          .fontSize(16).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
         Blank().layoutWeight(1)
-        Text('更多 ›').fontSize(12).fontColor(Hive.Color.brandPrimary)
-      }.width('100%')
+        Text(`${this.moreLabel()} ›`).fontSize(12).fontColor('#DB0011')
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 14, bottom: 10 })
 
-      Row({ space: 10 }) {
-        ForEach(this.deals(), (raw: ESObject) => {
-          Column({ space: 0 }) {
-            Text((raw as Record<string, string>)['logoUrl'] || '🏷').fontSize(24)
-              .width('100%').height(64).textAlign(TextAlign.Center)
-              .backgroundColor(Hive.Color.n100)
-            Text((raw as Record<string, string>)['tag'] ?? '').fontSize(9).fontWeight(FontWeight.Bold)
-              .fontColor(Hive.Color.brandWhite)
-              .width('100%').textAlign(TextAlign.Center).padding({ top: 4, bottom: 4 })
-              .backgroundColor(Hive.Color.brandPrimary)
-          }
-          .layoutWeight(1).borderRadius(12).clip(true)
-          .backgroundColor(Hive.Color.n50)
-          .onClick(() => {
-            SensorDataClient.lifeDealTapped(
-              (raw as Record<string, string>)['brandName'] ?? '',
-              (raw as Record<string, string>)['tag'] ?? '')
+      Scroll() {
+        Row({ space: 12 }) {
+          ForEach(this.items(), (raw: ESObject) => {
+            Column({ space: 0 }) {
+              // Fixed-height image area
+              Text('📖')
+                .fontSize(36)
+                .width(160).height(90)
+                .textAlign(TextAlign.Center)
+                .backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n100)
+                .borderRadius({ topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 })
+              // Fixed-height text area so cards stay same height
+              Column({ space: 4 }) {
+                Text((raw as Record<string, string>)['title'] ?? '')
+                  .fontSize(11).fontWeight(FontWeight.Medium).fontColor(Hive.Color.n900)
+                  .maxLines(3).width(160)
+                Text((raw as Record<string, string>)['date'] ?? '')
+                  .fontSize(9).fontColor(Hive.Color.n400)
+              }
+              .alignItems(HorizontalAlign.Start)
+              .width(160).height(72)
+              .padding({ left: 8, right: 8, top: 8, bottom: 8 })
+              .backgroundColor(Hive.Color.brandWhite)
+              .borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 10, bottomRight: 10 })
+            }
+            .borderRadius(10).clip(true)
+            .shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 })
+            .onClick(() => {
+              SensorDataClient.guidesTapped(
+                (raw as Record<string, string>)['title'] ?? '',
+                (raw as Record<string, string>)['id'] ?? '')
+            })
           })
-        })
-      }.width('100%')
-
-      Row({ space: 10 }) {
-        ForEach(this.links(), (raw: ESObject) => {
-          Row({ space: 8 }) {
-            Text((raw as Record<string, string>)['icon'] ?? '').fontSize(24)
-            Text((raw as Record<string, string>)['label'] ?? '').fontSize(10).fontColor(Hive.Color.n700).lineHeight(16)
-          }
-          .layoutWeight(1).padding(10).borderRadius(12)
-          .backgroundColor(Hive.Color.n50)
-          .alignItems(VerticalAlign.Center)
-          .onClick(() => {
-            const extra: Record<string, ESObject> = {}
-            extra['deep_link'] = ((raw as Record<string, string>)['deepLink'] ?? '') as ESObject
-            SensorDataClient.track('bottom_link_tap', 'Wealth', 'bottom_link_tapped',
-              (raw as Record<string, string>)['label'] ?? '', 'wealth_hub_hk', 'wealth_hub',
-              '', '', '', '', '', '', '', '', extra)
-          })
-        })
-      }.width('100%')
+        }
+        .padding({ left: 16, right: 16, bottom: 14 })
+      }
+      .scrollable(ScrollDirection.Horizontal)
+      .scrollBar(BarState.Off)
+      .width('100%')
     }
     .width('100%').backgroundColor(Hive.Color.brandWhite)
-    .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+    .margin({ top: 8 })
   }
 }
 
-// ─── Static fallback components ────────────────────────────────────────────────
-// Used when the BFF has no LIVE page published yet.
+// ── 8. FX_WATCHLIST ───────────────────────────────────────────────────────────
+// "FX watchlist" with tier badge and currency pair table.
 
 @Component
-struct WHHeaderNav {
+struct SDUIFXWatchlist {
+  props: Record<string, ESObject> = {}
+
+  private sectionTitle(): string { return this.props['sectionTitle'] as string ?? 'FX watchlist' }
+  private tierBadge(): string    { return this.props['tierBadge'] as string ?? 'Premier' }
+  private pairs(): ESObject[]    { return this.props['pairs'] as ESObject[] ?? [] as ESObject[] }
+
+  build() {
+    Column({ space: 0 }) {
+      // Header row
+      Row({ space: 8 }) {
+        Text(this.sectionTitle())
+          .fontSize(16).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
+        Text(this.tierBadge())
+          .fontSize(9).fontWeight(FontWeight.Bold).fontColor('#DB0011')
+          .padding({ left: 8, right: 8, top: 3, bottom: 3 })
+          .borderRadius(10).backgroundColor('#FEF2F2')
+        Blank().layoutWeight(1)
+        Text('View all ›').fontSize(12).fontColor('#DB0011')
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 14, bottom: 8 })
+
+      // Column headers
+      Row() {
+        Text('Currency pair').fontSize(11).fontColor(Hive.Color.n400).layoutWeight(2)
+        Text('Rate').fontSize(11).fontColor(Hive.Color.n400).layoutWeight(1).textAlign(TextAlign.End)
+        Text('Change').fontSize(11).fontColor(Hive.Color.n400).layoutWeight(1).textAlign(TextAlign.End)
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, bottom: 6 })
+
+      Divider().color(Hive.Color.n100).margin({ left: 16, right: 16 })
+
+      // FX rows
+      ForEach(this.pairs(), (raw: ESObject, index: number) => {
+        Row({ space: 0 }) {
+          Text(`${(raw as Record<string, string>)['base'] ?? ''} / ${(raw as Record<string, string>)['quote'] ?? ''}`)
+            .fontSize(13).fontWeight(FontWeight.Medium).fontColor(Hive.Color.n900).layoutWeight(2)
+          Text((raw as Record<string, string>)['rate'] ?? '')
+            .fontSize(13).fontColor(Hive.Color.n900).layoutWeight(1).textAlign(TextAlign.End)
+          Text((raw as Record<string, string>)['change'] ?? '')
+            .fontSize(13).fontWeight(FontWeight.Medium)
+            .fontColor((raw as Record<string, boolean>)['positive'] ? '#16A34A' : '#DC2626')
+            .layoutWeight(1).textAlign(TextAlign.End)
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 10, bottom: 10 })
+        .onClick(() => {
+          SensorDataClient.track('fx_pair_tap', 'Wealth', 'fx_pair_tapped',
+            `${(raw as Record<string, string>)['base'] ?? ''}/${(raw as Record<string, string>)['quote'] ?? ''}`,
+            'fx_watchlist', 'wealth_hub')
+        })
+
+        if (index < this.pairs().length - 1) {
+          Divider().color(Hive.Color.n100).margin({ left: 16, right: 16 })
+        }
+      })
+
+      Blank().height(12)
+    }
+    .width('100%').backgroundColor(Hive.Color.brandWhite)
+    .margin({ top: 8 })
+  }
+}
+
+// ── 9. DISCOVER_MORE_CAROUSEL ──────────────────────────────────────────────────────────
+// "Discover more" horizontal campaign card carousel.
+
+@Component
+struct SDUIDiscoverMore {
+  props: Record<string, ESObject> = {}
+
+  private sectionTitle(): string   { return this.props['sectionTitle'] as string ?? 'Discover more' }
+  private items(): ESObject[]      { return this.props['items'] as ESObject[] ?? [] as ESObject[] }
+
+  build() {
+    Column({ space: 0 }) {
+      Row() {
+        Text(this.sectionTitle())
+          .fontSize(16).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
+        Blank().layoutWeight(1)
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 14, bottom: 10 })
+
+      Scroll() {
+        Row({ space: 12 }) {
+          ForEach(this.items(), (raw: ESObject) => {
+            Column({ space: 0 }) {
+              // Fixed-height image area with tag chip
+              Stack({ alignContent: Alignment.TopStart }) {
+                Text('🏦')
+                  .fontSize(40)
+                  .width(200).height(110)
+                  .textAlign(TextAlign.Center)
+                  .backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n700)
+                  .borderRadius({ topLeft: 12, topRight: 12, bottomLeft: 0, bottomRight: 0 })
+                Text((raw as Record<string, string>)['tag'] ?? '')
+                  .fontSize(9).fontWeight(FontWeight.Bold).fontColor(Hive.Color.brandWhite)
+                  .padding({ left: 8, right: 8, top: 4, bottom: 4 })
+                  .borderRadius(10)
+                  .backgroundColor((raw as Record<string, string>)['tagColor'] ?? '#DB0011')
+                  .margin({ left: 10, top: 10 })
+              }
+              // Fixed-height text area
+              Column({ space: 4 }) {
+                Text((raw as Record<string, string>)['title'] ?? '')
+                  .fontSize(12).fontWeight(FontWeight.Medium).fontColor(Hive.Color.n900)
+                  .maxLines(2).width(200)
+                Text((raw as Record<string, string>)['subtitle'] ?? '')
+                  .fontSize(10).fontColor(Hive.Color.n400).maxLines(2).width(200)
+              }
+              .alignItems(HorizontalAlign.Start)
+              .width(200).height(72)
+              .padding({ left: 10, right: 10, top: 8, bottom: 8 })
+              .backgroundColor(Hive.Color.brandWhite)
+              .borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 12, bottomRight: 12 })
+            }
+            .borderRadius(12).clip(true)
+            .backgroundColor(Hive.Color.brandWhite)
+            .shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 })
+            .onClick(() => {
+              SensorDataClient.discoverMoreTapped(
+                (raw as Record<string, string>)['title'] ?? '',
+                (raw as Record<string, string>)['tag'] ?? '')
+            })
+          })
+        }
+        .padding({ left: 16, right: 16, bottom: 14 })
+      }
+      .scrollable(ScrollDirection.Horizontal)
+      .scrollBar(BarState.Off)
+      .width('100%')
+    }
+    .width('100%').backgroundColor(Hive.Color.n50)
+    .margin({ top: 8 })
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Static fallback components — WHxxx
+// Used when the BFF has no LIVE page published yet (LOAD_IDLE or LOAD_ERROR).
+// Hardcoded data mirrors OCDP mockData.ts.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── WH 1: WHHomeSearchHeader ──────────────────────────────────────────────────
+
+@Component
+struct WHHomeSearchHeader {
   onSearchTap: () => void = () => {}
 
   aboutToAppear() {
-    SensorDataClient.sliceImpression('AI_SEARCH_BAR', 'slice-header', 0)
+    SensorDataClient.sliceImpression('HOME_SEARCH_HEADER', 'slice-home-search-hdr', 0)
   }
 
   build() {
-    Row({ space: 8 }) {
-      Text('⬜').fontSize(20).fontColor('#E6FFFFFF')
-        .onClick(() => {
-          SensorDataClient.track('qr_tap', 'Wealth', 'qr_scanner_tapped', '',
-            'ai_search_bar', 'wealth_hub')
-        })
-
-      Row({ space: 6 }) {
-        Text('🔍').fontSize(13).fontColor('#99FFFFFF')
-        Text('搜尋功能、產品').fontSize(13).fontColor('#A6FFFFFF').layoutWeight(1)
-      }
-      .layoutWeight(1).height(36)
-      .padding({ left: 12, right: 12 })
-      .borderRadius(18)
-      .backgroundColor('#26FFFFFF')
-      .onClick(() => {
-        SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '',
-          'ai_search_bar', 'wealth_hub')
-        this.onSearchTap()
-      })
-
-      Text('🤖').fontSize(20).fontColor('#E6FFFFFF')
-        .onClick(() => {
-          SensorDataClient.track('chatbot_tap', 'Wealth', 'chatbot_tapped', '',
-            'ai_search_bar', 'wealth_hub')
-        })
-      Text('✉️').fontSize(20).fontColor('#E6FFFFFF')
-        .onClick(() => {
-          SensorDataClient.track('inbox_tap', 'Wealth', 'inbox_tapped', '',
-            'ai_search_bar', 'wealth_hub')
-        })
-    }
-    .width('100%').height(50)
-    .padding({ left: 12, right: 12, top: 7, bottom: 7 })
-    .backgroundColor('#DB0011')
-    .alignItems(VerticalAlign.Center)
-  }
-}
-
-@Component
-struct WHQuickAccess {
-  aboutToAppear() {
-    SensorDataClient.sliceImpression('QUICK_ACCESS', 'slice-quick', 1)
-  }
-
-  build() {
-    Row() {
-      ForEach(QUICK_ITEMS, (item: QuickItem) => {
-        Column({ space: 5 }) {
-          Text(item.icon).fontSize(22)
-            .width(48).height(48).textAlign(TextAlign.Center)
-            .borderRadius(14)
-            .linearGradient({ direction: GradientDirection.LeftTop,
-              colors: [['#F0F9FF', 0], ['#E0F2FE', 1]] })
-          Text(item.label).fontSize(10).fontColor(Hive.Color.n700).textAlign(TextAlign.Center)
-        }
-        .layoutWeight(1).alignItems(HorizontalAlign.Center)
-        .onClick(() => { SensorDataClient.quickAccessTapped(item.label, item.deepLink) })
-      })
-    }
-    .width('100%').backgroundColor(Hive.Color.brandWhite)
-    .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-  }
-}
-
-@Component
-struct WHPromoBanner {
-  aboutToAppear() {
-    SensorDataClient.promoBannerImpression('10分招財日', 'slice-promo-10', 'promo-10-finance-day')
-  }
-
-  build() {
-    Row({ space: 0 }) {
-      Column({ space: 4 }) {
-        Text('每月10日開啓')
-          .fontSize(9).fontWeight(FontWeight.Bold).fontColor('#DB0011')
-          .padding({ left: 8, right: 8, top: 2, bottom: 2 })
-          .borderRadius(10).backgroundColor('#FFEDED')
-        Text('10分招財日').fontSize(16).fontWeight(FontWeight.Bolder).fontColor(Hive.Color.n900)
-        Text('查帳單·學投資·優配置').fontSize(10).fontColor(Hive.Color.n500)
-        Button('點擊參與')
-          .height(32).padding({ left: 16, right: 16 })
-          .borderRadius(14).backgroundColor(Hive.Color.brandPrimary)
-          .fontColor(Hive.Color.brandWhite).fontSize(11).fontWeight(FontWeight.Bold)
-          .margin({ top: 8 })
+    Column({ space: 0 }) {
+      // Top bar
+      Row({ space: 0 }) {
+        Text('HSBC Premier')
+          .fontSize(17).fontWeight(FontWeight.Bold).fontColor(Hive.Color.brandWhite)
+          .layoutWeight(1)
+        Text('🔔').fontSize(20).fontColor(Hive.Color.brandWhite)
+          .margin({ right: 12 })
           .onClick(() => {
-            SensorDataClient.promoBannerTapped('10分招財日', 'slice-promo-10', 'promo-10-finance-day')
+            SensorDataClient.track('notification_tap', 'Wealth', 'notification_tapped', '',
+              'home_search_header', 'wealth_hub')
           })
-      }.layoutWeight(1).alignItems(HorizontalAlign.Start)
-
-      Text('🎯').fontSize(32)
-        .width(80).height(80).textAlign(TextAlign.Center)
-        .borderRadius(12).backgroundColor('#14000000')
-    }
-    .width('100%').padding({ left: 12, right: 12, top: 12, bottom: 12 })
-    .margin({ left: 12, right: 12, top: 8, bottom: 0 })
-    .borderRadius(14).backgroundColor('#E8F4FD')
-    .alignItems(VerticalAlign.Center)
-  }
-}
-
-@Component
-struct WHFunctionGrid {
-  aboutToAppear() {
-    SensorDataClient.sliceImpression('FUNCTION_GRID', 'slice-func-grid', 3)
-  }
-
-  build() {
-    Column({ space: 6 }) {
-      ForEach(FUNC_ROWS, (row: FuncItem[]) => {
-        Row() {
-          ForEach(row, (item: FuncItem) => {
-            Column({ space: 4 }) {
-              Text(item.icon).fontSize(20)
-                .width(44).height(44).textAlign(TextAlign.Center)
-                .borderRadius(12).backgroundColor(Hive.Color.n100)
-              Text(item.label).fontSize(10).fontColor(Hive.Color.n700)
-                .textAlign(TextAlign.Center).lineHeight(14)
-            }
-            .layoutWeight(1).alignItems(HorizontalAlign.Center)
-            .onClick(() => {
-              const extra: Record<string, ESObject> = {}
-              extra['function_label'] = item.label   as ESObject
-              extra['deep_link']      = item.deepLink as ESObject
-              SensorDataClient.track('function_tap', 'Wealth', 'function_tapped', item.label,
-                'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '', '', '',
-                extra)
-            })
+        Text('🎧').fontSize(20).fontColor(Hive.Color.brandWhite)
+          .onClick(() => {
+            SensorDataClient.track('headset_tap', 'Wealth', 'headset_tapped', '',
+              'home_search_header', 'wealth_hub')
           })
-        }.width('100%')
-      })
-    }
-    .width('100%').backgroundColor(Hive.Color.brandWhite)
-    .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-  }
-}
-
-@Component
-struct WHAIAssistant {
-  aboutToAppear() {
-    SensorDataClient.sliceImpression('AI_ASSISTANT', 'slice-ai', 4)
-  }
-
-  build() {
-    Row({ space: 8 }) {
-      Text('✉️').fontSize(20)
-      Text('Hi，我是你的智能財富助理').fontSize(11).fontColor(Hive.Color.n600).layoutWeight(1)
-      Text('›').fontSize(14).fontColor(Hive.Color.n400)
-    }
-    .width('100%').height(44)
-    .padding({ left: 12, right: 12 })
-    .margin({ left: 16, right: 16, top: 4, bottom: 4 })
-    .borderRadius(10).backgroundColor(Hive.Color.n50)
-    .alignItems(VerticalAlign.Center)
-    .onClick(() => { SensorDataClient.aiAssistantTapped() })
-  }
-}
-
-@Component
-struct WHAdBanner {
-  onDismiss: () => void = () => {}
-
-  aboutToAppear() {
-    SensorDataClient.sliceImpression('AD_BANNER', 'slice-ad-spring', 5)
-  }
-
-  build() {
-    Stack({ alignContent: Alignment.TopEnd }) {
-      Row({ space: 12 }) {
-        Column({ space: 4 }) {
-          Text('春季播種黃金期').fontSize(13).fontWeight(FontWeight.Bold).fontColor('#92400E')
-          Text('配置正當時，播下「金種子」').fontSize(10).fontColor('#78716C')
-          Button('抽體驗禮')
-            .height(30).padding({ left: 14, right: 14 })
-            .borderRadius(12).backgroundColor(Hive.Color.brandPrimary)
-            .fontColor(Hive.Color.brandWhite).fontSize(11).fontWeight(FontWeight.Bold)
-            .margin({ top: 8 })
-            .onClick(() => {
-              SensorDataClient.sliceTapped('AD_BANNER', 'slice-ad-spring',
-                '抽體驗禮', 'hsbc://campaign/spring-investment')
-            })
-        }.layoutWeight(1).alignItems(HorizontalAlign.Start)
-
-        Text('🌱').fontSize(28)
-          .width(72).height(72).textAlign(TextAlign.Center)
-          .borderRadius(10).backgroundColor('#14000000')
       }
       .width('100%')
-      .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-      .borderRadius(14)
-      .linearGradient({ direction: GradientDirection.LeftTop,
-        colors: [['#FFFBEB', 0], ['#FEF3C7', 1]] })
-      .alignItems(VerticalAlign.Center)
+      .padding({ left: 16, right: 16, top: 14, bottom: 8 })
 
-      Text('✕').fontSize(13).fontColor(Hive.Color.n400)
-        .width(32).height(32).textAlign(TextAlign.Center)
+      // Search bar
+      Row({ space: 8 }) {
+        Row({ space: 6 }) {
+          Text('🔍').fontSize(13).fontColor(Hive.Color.n500)
+          Text('Search with AI').fontSize(13).fontColor(Hive.Color.n400).layoutWeight(1)
+          Text('AI')
+            .fontSize(9).fontWeight(FontWeight.Bold).fontColor('#DB0011')
+            .padding({ left: 5, right: 5, top: 2, bottom: 2 })
+            .borderRadius(6).backgroundColor('#FFEDED')
+        }
+        .layoutWeight(1).height(36)
+        .padding({ left: 12, right: 12 })
+        .borderRadius(18)
+        .backgroundColor(Hive.Color.brandWhite)
         .onClick(() => {
-          SensorDataClient.adBannerDismissed('春季播種黃金期')
-          this.onDismiss()
+          SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '',
+            'home_search_header', 'wealth_hub')
+          this.onSearchTap()
         })
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, bottom: 12 })
     }
-    .margin({ left: 12, right: 12, top: 6, bottom: 6 })
+    .width('100%')
+    .backgroundColor('#DB0011')
   }
 }
 
+// ── WH 2: WHComboQuickAccess ──────────────────────────────────────────────────
+
 @Component
-struct WHFlashLoan {
+struct WHComboQuickAccess {
+  @State activeTab: number = 0
+  private tabs: string[] = ['My pick', 'Invest', 'Global', 'HK Daily']
+
   aboutToAppear() {
-    SensorDataClient.sliceImpression('FLASH_LOAN', 'slice-flash-loan', 6)
+    SensorDataClient.sliceImpression('COMBO_QUICK_ACCESS', 'slice-combo-quick', 1)
   }
 
   build() {
-    Row() {
-      Column({ space: 2 }) {
-        Text('⚡ 閃電貸 極速放款').fontSize(11).fontWeight(FontWeight.Bold)
-          .fontColor(Hive.Color.brandPrimary)
-        Text('最高可借額度').fontSize(10).fontColor(Hive.Color.n500)
-        Text('HKD 300,000.00').fontSize(22).fontWeight(FontWeight.Bolder)
-          .fontColor(Hive.Color.n900)
-      }.layoutWeight(1).alignItems(HorizontalAlign.Start)
+    Column({ space: 0 }) {
+      // Tab bar — pill/capsule style (active=red, inactive=gray)
+      Scroll() {
+        Row({ space: 8 }) {
+          ForEach(this.tabs, (tab: string, idx: number) => {
+            Text(tab)
+              .fontSize(13)
+              .fontWeight(this.activeTab === idx ? FontWeight.Bold : FontWeight.Normal)
+              .fontColor(this.activeTab === idx ? Hive.Color.brandWhite : Hive.Color.n700)
+              .padding({ left: 16, right: 16, top: 7, bottom: 7 })
+              .borderRadius(18)
+              .backgroundColor(this.activeTab === idx ? '#DB0011' : '#E4E4E4')
+              .onClick(() => { this.activeTab = idx })
+          })
+        }
+        .padding({ left: 16, right: 16, top: 10, bottom: 10 })
+      }
+      .scrollable(ScrollDirection.Horizontal)
+      .scrollBar(BarState.Off)
+      .width('100%')
+      .backgroundColor(Hive.Color.brandWhite)
 
-      Button('獲取額度')
-        .height(44).padding({ left: 18, right: 18 })
-        .borderRadius(20).backgroundColor(Hive.Color.brandPrimary)
-        .fontColor(Hive.Color.brandWhite).fontSize(12).fontWeight(FontWeight.Bold)
+      // Row 1
+      Row({ space: 0 }) {
+        ForEach(QUICK_ROW1, (item: QuickItem) => {
+          Column({ space: 5 }) {
+            Text(item.icon).fontSize(22)
+              .width(48).height(48).textAlign(TextAlign.Center)
+              .borderRadius(14).backgroundColor(Hive.Color.n100)
+            Text(item.label).fontSize(10).fontColor(Hive.Color.n700).textAlign(TextAlign.Center)
+          }
+          .layoutWeight(1).alignItems(HorizontalAlign.Center)
+          .padding({ top: 10 })
+          .onClick(() => { SensorDataClient.quickAccessTapped(item.label, item.deepLink) })
+        })
+      }
+      .width('100%').backgroundColor(Hive.Color.brandWhite)
+      .padding({ left: 8, right: 8 })
+
+      // Row 2
+      Row({ space: 0 }) {
+        ForEach(QUICK_ROW2, (item: QuickItem) => {
+          Column({ space: 5 }) {
+            Text(item.icon).fontSize(22)
+              .width(48).height(48).textAlign(TextAlign.Center)
+              .borderRadius(14).backgroundColor(Hive.Color.n100)
+            Text(item.label).fontSize(10).fontColor(Hive.Color.n700).textAlign(TextAlign.Center)
+          }
+          .layoutWeight(1).alignItems(HorizontalAlign.Center)
+          .padding({ bottom: 10 })
+          .onClick(() => { SensorDataClient.quickAccessTapped(item.label, item.deepLink) })
+        })
+      }
+      .width('100%').backgroundColor(Hive.Color.brandWhite)
+      .padding({ left: 8, right: 8 })
+    }
+    .width('100%')
+  }
+}
+
+// ── WH 3: WHCardActivationBanner ─────────────────────────────────────────────
+
+@Component
+struct WHCardActivationBanner {
+  aboutToAppear() {
+    SensorDataClient.sliceImpression('CARD_ACTIVATION_BANNER', 'slice-card-act', 2)
+  }
+
+  build() {
+    Row({ space: 10 }) {
+      Text('💳').fontSize(18)
+      Text('Your card needs to be activated')
+        .fontSize(13).fontColor(Hive.Color.n900).layoutWeight(1)
+      Text('Activate now')
+        .fontSize(12).fontWeight(FontWeight.Bold).fontColor('#DB0011')
         .onClick(() => {
-          SensorDataClient.sliceTapped('FLASH_LOAN', 'slice-flash-loan',
-            '獲取額度', 'hsbc://loan/flash')
+          SensorDataClient.sliceTapped('CARD_ACTIVATION_BANNER', 'slice-card-act',
+            'Activate now', 'hsbc://cards/activate')
         })
     }
-    .width('100%').padding({ left: 16, right: 16, top: 12, bottom: 12 })
-    .margin({ left: 12, right: 12, top: 6, bottom: 6 })
-    .borderRadius(14)
-    .linearGradient({ direction: GradientDirection.LeftTop,
-      colors: [['#FFF5F5', 0], ['#FFE4E4', 1]] })
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 10, bottom: 10 })
+    .backgroundColor('#FFF5F5')
+    .borderWidth({ bottom: 1 }).borderColor(Hive.Color.n100)
     .alignItems(VerticalAlign.Center)
   }
 }
 
+// ── WH 4: WHQuestBanner ───────────────────────────────────────────────────────
+
 @Component
-struct WHWealthSelection {
+struct WHQuestBanner {
   aboutToAppear() {
-    SensorDataClient.sliceImpression('WEALTH_SELECTION', 'slice-wealth-sel', 7,
-      'wealth-selection-hk-2026')
+    SensorDataClient.sliceImpression('QUEST_BANNER', 'slice-quest', 3)
   }
 
   build() {
-    Column({ space: 0 }) {
-      Row() {
-        Text('財富精選').fontSize(15).fontWeight(FontWeight.Bold)
-        Blank().layoutWeight(1)
-        Text('更多 ›').fontSize(12).fontColor(Hive.Color.brandPrimary)
-      }.width('100%').margin({ bottom: 10 })
+    Row({ space: 12 }) {
+      Text('🏦')
+        .fontSize(28).width(52).height(52)
+        .textAlign(TextAlign.Center)
+        .borderRadius(14).backgroundColor('#FEF2F2')
 
-      ForEach(WEALTH_PRODUCTS, (p: WealthProd, index: number) => {
-        Row() {
-          Column({ space: 2 }) {
-            Text(p.name).fontSize(12).fontWeight(FontWeight.Medium).fontColor(Hive.Color.n900)
-            Row({ space: 6 }) {
-              Text(p.risk).fontSize(9).fontColor(Hive.Color.n500)
-                .padding({ left: 6, right: 6, top: 1, bottom: 1 })
-                .borderRadius(8).backgroundColor(Hive.Color.n100)
-              Text(p.redemption).fontSize(9).fontColor(Hive.Color.n500)
-                .padding({ left: 6, right: 6, top: 1, bottom: 1 })
-                .borderRadius(8).backgroundColor(Hive.Color.n100)
-            }
-          }.layoutWeight(1).alignItems(HorizontalAlign.Start)
+      Column({ space: 6 }) {
+        Text('Getting started')
+          .fontSize(14).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
+        Text('Complete setup to unlock your full Premier benefits')
+          .fontSize(11).fontColor(Hive.Color.n500).maxLines(2)
 
-          Column({ space: 2 }) {
-            Text(p.yield7Day).fontSize(18).fontWeight(FontWeight.Bolder)
-              .fontColor(Hive.Color.brandPrimary)
-            Text('7日年化').fontSize(9).fontColor(Hive.Color.n400)
-            if (p.highlighted) {
-              Button(p.cta)
-                .height(28).padding({ left: 12, right: 12 })
-                .borderRadius(12).backgroundColor(Hive.Color.brandPrimary)
-                .fontColor(Hive.Color.brandWhite).fontSize(10).fontWeight(FontWeight.Bold)
-                .margin({ top: 4 })
-                .onClick(() => { SensorDataClient.wealthProductTapped(p.name, p.id) })
-            }
-          }.alignItems(HorizontalAlign.End)
+        // Progress bar at 40%
+        Stack({ alignContent: Alignment.Start }) {
+          Row().width('100%').height(4).borderRadius(2).backgroundColor(Hive.Color.n100)
+          Row().width('40%').height(4).borderRadius(2).backgroundColor('#DB0011')
         }
-        .width('100%').padding({ top: 10, bottom: 10 })
-        .onClick(() => { SensorDataClient.wealthProductTapped(p.name, p.id) })
 
-        if (index < WEALTH_PRODUCTS.length - 1) {
-          Divider().color(Hive.Color.n100)
-        }
-      })
-
-      Blank().height(10)
-      Text('💬 理財產品這么多，哪款適合我？')
-        .fontSize(11).fontColor(Hive.Color.n500).textAlign(TextAlign.Center).width('100%')
-    }
-    .width('100%').backgroundColor(Hive.Color.brandWhite)
-    .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-  }
-}
-
-@Component
-struct WHFeaturedRankings {
-  aboutToAppear() {
-    SensorDataClient.sliceImpression('FEATURED_RANKINGS', 'slice-rankings', 8)
-  }
-
-  build() {
-    Column({ space: 0 }) {
-      Row() {
-        Text('特色榜單').fontSize(15).fontWeight(FontWeight.Bold)
-        Blank().layoutWeight(1)
-        Text('更多 ›').fontSize(12).fontColor(Hive.Color.brandPrimary)
-      }.width('100%').margin({ bottom: 10 })
-
-      ForEach(RANKINGS, (item: RankingItem) => {
-        Row({ space: 12 }) {
-          Text(item.icon).fontSize(24)
-          Column({ space: 2 }) {
-            Text(item.badge).fontSize(9).fontWeight(FontWeight.Bold)
-              .fontColor(Hive.Color.brandPrimary)
-              .padding({ left: 8, right: 8, top: 2, bottom: 2 })
-              .borderRadius(10).backgroundColor('#FEF2F2')
-            Text(item.title).fontSize(13).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
-            Text(item.desc).fontSize(10).fontColor(Hive.Color.n500)
-          }.layoutWeight(1).alignItems(HorizontalAlign.Start)
-          Text('›').fontSize(16).fontColor(Hive.Color.n400)
-        }
-        .width('100%').padding({ top: 8, bottom: 8 })
-        .onClick(() => { SensorDataClient.rankingsTapped(item.title, item.badge) })
-
-        Divider().color('#F9FAFB')
-      })
-    }
-    .width('100%').backgroundColor(Hive.Color.brandWhite)
-    .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-  }
-}
-
-@Component
-struct WHLifeDeals {
-  private bottomLinks: BottomLink[] = [
-    { icon: '🎁', label: '達標抽好禮\n丰润守护 健康随行', deepLink: 'hsbc://campaign/health' },
-    { icon: '🏦', label: '行庆招财日\n享受特惠禮遇',       deepLink: 'hsbc://campaign/anniversary' },
-  ]
-
-  aboutToAppear() {
-    SensorDataClient.sliceImpression('LIFE_DEALS', 'slice-life-deals', 9)
-  }
-
-  build() {
-    Column({ space: 10 }) {
-      Row() {
-        Text('生活特惠').fontSize(15).fontWeight(FontWeight.Bold)
-        Blank().layoutWeight(1)
-        Text('更多 ›').fontSize(12).fontColor(Hive.Color.brandPrimary)
-      }.width('100%')
-
-      Row({ space: 10 }) {
-        ForEach(DEALS, (d: DealItem) => {
-          Column({ space: 0 }) {
-            Text(d.emoji).fontSize(24)
-              .width('100%').height(64).textAlign(TextAlign.Center)
-              .backgroundColor(Hive.Color.n100)
-            Text(d.tag).fontSize(9).fontWeight(FontWeight.Bold).fontColor(Hive.Color.brandWhite)
-              .width('100%').textAlign(TextAlign.Center).padding({ top: 4, bottom: 4 })
-              .backgroundColor(Hive.Color.brandPrimary)
-          }
-          .layoutWeight(1).borderRadius(12).clip(true)
-          .backgroundColor(Hive.Color.n50)
-          .onClick(() => { SensorDataClient.lifeDealTapped(d.brand, d.tag) })
-        })
-      }.width('100%')
-
-      Row({ space: 10 }) {
-        ForEach(this.bottomLinks, (link: BottomLink) => {
-          Row({ space: 8 }) {
-            Text(link.icon).fontSize(24)
-            Text(link.label).fontSize(10).fontColor(Hive.Color.n700).lineHeight(16)
-          }
-          .layoutWeight(1).padding(10).borderRadius(12)
-          .backgroundColor(Hive.Color.n50)
-          .alignItems(VerticalAlign.Center)
+        Button('Continue')
+          .height(30).padding({ left: 16, right: 16 })
+          .borderRadius(14).backgroundColor('#DB0011')
+          .fontColor(Hive.Color.brandWhite).fontSize(11).fontWeight(FontWeight.Bold)
           .onClick(() => {
-            const extra: Record<string, ESObject> = {}
-            extra['deep_link'] = link.deepLink as ESObject
-            SensorDataClient.track('bottom_link_tap', 'Wealth', 'bottom_link_tapped',
-              link.label, 'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '', '', '',
-              extra)
+            SensorDataClient.sliceTapped('QUEST_BANNER', 'slice-quest',
+              'Continue', 'hsbc://onboarding/checklist')
           })
+      }.layoutWeight(1).alignItems(HorizontalAlign.Start)
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+    .margin({ top: 8 })
+    .backgroundColor(Hive.Color.brandWhite)
+    .alignItems(VerticalAlign.Top)
+  }
+}
+
+// ── WH 5: WHFeatureProduct ────────────────────────────────────────────────────
+
+@Component
+struct WHFeatureProduct {
+  @State activeTab: number = 0
+  private fundTabs: string[] = ['All', 'Equity', 'Bond', 'Multi-Asset']
+
+  aboutToAppear() {
+    SensorDataClient.sliceImpression('FEATURE_PRODUCT', 'slice-feature-product', 4)
+  }
+
+  build() {
+    Column({ space: 0 }) {
+      Row() {
+        Text('Feature product')
+          .fontSize(16).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
+        Blank().layoutWeight(1)
+        Text('More ›').fontSize(12).fontColor('#DB0011')
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 14, bottom: 8 })
+
+      Scroll() {
+        Row({ space: 8 }) {
+          ForEach(this.fundTabs, (tab: string, idx: number) => {
+            Text(tab)
+              .fontSize(12)
+              .fontWeight(this.activeTab === idx ? FontWeight.Bold : FontWeight.Normal)
+              .fontColor(this.activeTab === idx ? Hive.Color.brandWhite : Hive.Color.n700)
+              .padding({ left: 14, right: 14, top: 6, bottom: 6 })
+              .borderRadius(16)
+              .backgroundColor(this.activeTab === idx ? '#DB0011' : Hive.Color.n100)
+              .onClick(() => { this.activeTab = idx })
+          })
+        }
+        .padding({ left: 16, right: 16, bottom: 8 })
+      }
+      .scrollable(ScrollDirection.Horizontal).scrollBar(BarState.Off).width('100%')
+
+      Column({ space: 0 }) {
+        ForEach(STATIC_FUNDS, (fund: FundItem, index: number) => {
+          Row({ space: 12 }) {
+            Column({ space: 4 }) {
+              Text(fund.name)
+                .fontSize(13).fontWeight(FontWeight.Medium).fontColor(Hive.Color.n900).maxLines(2)
+              Text(fund.code).fontSize(11).fontColor(Hive.Color.n500)
+              Row({ space: 4 }) {
+                ForEach(fund.tags, (tag: string) => {
+                  Text(tag)
+                    .fontSize(9).fontColor('#DB0011')
+                    .padding({ left: 6, right: 6, top: 2, bottom: 2 })
+                    .borderRadius(8).backgroundColor('#FEF2F2')
+                })
+              }
+            }.layoutWeight(1).alignItems(HorizontalAlign.Start)
+
+            Column({ space: 2 }) {
+              Text(fund.return1Y)
+                .fontSize(18).fontWeight(FontWeight.Bold)
+                .fontColor(fund.return1Y.startsWith('+') ? '#16A34A' : '#DC2626')
+              Text('1Y return').fontSize(9).fontColor(Hive.Color.n400)
+            }.alignItems(HorizontalAlign.End)
+          }
+          .width('100%')
+          .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+          .onClick(() => { SensorDataClient.wealthProductTapped(fund.name, fund.id) })
+
+          if (index < STATIC_FUNDS.length - 1) {
+            Divider().color(Hive.Color.n100).margin({ left: 16, right: 16 })
+          }
         })
-      }.width('100%')
+      }
     }
     .width('100%').backgroundColor(Hive.Color.brandWhite)
-    .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+    .margin({ top: 8 })
+  }
+}
+
+// ── WH 6: WHWealthStudioCarousel ──────────────────────────────────────────────
+
+@Component
+struct WHWealthStudioCarousel {
+  aboutToAppear() {
+    SensorDataClient.sliceImpression('WEALTH_STUDIO_CAROUSEL', 'slice-wealth-studio', 5)
+  }
+
+  build() {
+    Column({ space: 0 }) {
+      Row() {
+        Text('Premier Elite Wealth Studio')
+          .fontSize(16).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
+        Blank().layoutWeight(1)
+        Text('All ›').fontSize(12).fontColor('#DB0011')
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 14, bottom: 10 })
+
+      Scroll() {
+        Row({ space: 12 }) {
+          ForEach(STATIC_EPISODES, (ep: EpisodeItem) => {
+            Column({ space: 0 }) {
+              // Fixed-height image area
+              Stack({ alignContent: Alignment.BottomStart }) {
+                Text(ep.thumbnail).fontSize(32)
+                  .width(180).height(100).textAlign(TextAlign.Center)
+                  .backgroundColor(Hive.Color.n700)
+                  .borderRadius({ topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 })
+                Text('▶').fontSize(20).fontColor(Hive.Color.brandWhite)
+                  .width(36).height(36).textAlign(TextAlign.Center)
+                  .borderRadius(18).backgroundColor('#80000000')
+                  .position({ x: 72, y: 32 })
+              }
+              // Fixed-height text area
+              Column({ space: 4 }) {
+                Text(ep.title)
+                  .fontSize(11).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
+                  .maxLines(2).width(180)
+                Row({ space: 4 }) {
+                  Text('⏱').fontSize(10).fontColor(Hive.Color.n400)
+                  Text(ep.duration).fontSize(10).fontColor(Hive.Color.n400)
+                }
+              }
+              .alignItems(HorizontalAlign.Start)
+              .width(180).height(72)
+              .padding({ left: 10, right: 10, top: 8, bottom: 8 })
+              .backgroundColor(Hive.Color.brandWhite)
+              .borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 10, bottomRight: 10 })
+            }
+            .borderRadius(10).clip(true)
+            .shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 })
+            .onClick(() => { SensorDataClient.wealthStudioTapped(ep.title, ep.id) })
+          })
+        }
+        .padding({ left: 16, right: 16, bottom: 14 })
+      }
+      .scrollable(ScrollDirection.Horizontal).scrollBar(BarState.Off).width('100%')
+    }
+    .width('100%').backgroundColor(Hive.Color.brandWhite)
+    .margin({ top: 8 })
+  }
+}
+
+// ── WH 7: WHGuidesInsights ────────────────────────────────────────────────────
+
+@Component
+struct WHGuidesInsights {
+  aboutToAppear() {
+    SensorDataClient.sliceImpression('GUIDES_INSIGHTS_CAROUSEL', 'slice-guides', 6)
+  }
+
+  build() {
+    Column({ space: 0 }) {
+      Row() {
+        Text('Guides and insights')
+          .fontSize(16).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
+        Blank().layoutWeight(1)
+        Text('More ›').fontSize(12).fontColor('#DB0011')
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 14, bottom: 10 })
+
+      Scroll() {
+        Row({ space: 12 }) {
+          ForEach(STATIC_GUIDES, (guide: GuideItem) => {
+            Column({ space: 0 }) {
+              Text(guide.imageEmoji).fontSize(36)
+                .width(160).height(90).textAlign(TextAlign.Center)
+                .backgroundColor(Hive.Color.n100)
+                .borderRadius({ topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 })
+              Column({ space: 4 }) {
+                Text(guide.title)
+                  .fontSize(11).fontWeight(FontWeight.Medium).fontColor(Hive.Color.n900)
+                  .maxLines(3).width(160)
+                Text(guide.date ?? '')
+                  .fontSize(9).fontColor(Hive.Color.n400)
+              }
+              .alignItems(HorizontalAlign.Start)
+              .width(160).height(72)
+              .padding({ left: 8, right: 8, top: 8, bottom: 8 })
+              .backgroundColor(Hive.Color.brandWhite)
+              .borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 10, bottomRight: 10 })
+            }
+            .borderRadius(10).clip(true)
+            .shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 })
+            .onClick(() => { SensorDataClient.guidesTapped(guide.title, guide.id) })
+          })
+        }
+        .padding({ left: 16, right: 16, bottom: 14 })
+      }
+      .scrollable(ScrollDirection.Horizontal).scrollBar(BarState.Off).width('100%')
+    }
+    .width('100%').backgroundColor(Hive.Color.brandWhite)
+    .margin({ top: 8 })
+  }
+}
+
+// ── WH 8: WHFXWatchlist ───────────────────────────────────────────────────────
+
+@Component
+struct WHFXWatchlist {
+  aboutToAppear() {
+    SensorDataClient.sliceImpression('FX_WATCHLIST', 'slice-fx-watchlist', 7)
+  }
+
+  build() {
+    Column({ space: 0 }) {
+      Row({ space: 8 }) {
+        Text('FX watchlist')
+          .fontSize(16).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
+        Text('Premier')
+          .fontSize(9).fontWeight(FontWeight.Bold).fontColor('#DB0011')
+          .padding({ left: 8, right: 8, top: 3, bottom: 3 })
+          .borderRadius(10).backgroundColor('#FEF2F2')
+        Blank().layoutWeight(1)
+        Text('View all ›').fontSize(12).fontColor('#DB0011')
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 14, bottom: 8 })
+
+      Row() {
+        Text('Currency pair').fontSize(11).fontColor(Hive.Color.n400).layoutWeight(2)
+        Text('Rate').fontSize(11).fontColor(Hive.Color.n400).layoutWeight(1).textAlign(TextAlign.End)
+        Text('Change').fontSize(11).fontColor(Hive.Color.n400).layoutWeight(1).textAlign(TextAlign.End)
+      }
+      .width('100%').padding({ left: 16, right: 16, bottom: 6 })
+
+      Divider().color(Hive.Color.n100).margin({ left: 16, right: 16 })
+
+      ForEach(STATIC_FX_PAIRS, (pair: FXPair, index: number) => {
+        Row({ space: 0 }) {
+          Text(`${pair.base} / ${pair.quote}`)
+            .fontSize(13).fontWeight(FontWeight.Medium).fontColor(Hive.Color.n900).layoutWeight(2)
+          Text(pair.rate)
+            .fontSize(13).fontColor(Hive.Color.n900).layoutWeight(1).textAlign(TextAlign.End)
+          Text(pair.change)
+            .fontSize(13).fontWeight(FontWeight.Medium)
+            .fontColor(pair.positive ? '#16A34A' : '#DC2626')
+            .layoutWeight(1).textAlign(TextAlign.End)
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 10, bottom: 10 })
+        .onClick(() => {
+          SensorDataClient.track('fx_pair_tap', 'Wealth', 'fx_pair_tapped',
+            `${pair.base}/${pair.quote}`, 'fx_watchlist', 'wealth_hub')
+        })
+
+        if (index < STATIC_FX_PAIRS.length - 1) {
+          Divider().color(Hive.Color.n100).margin({ left: 16, right: 16 })
+        }
+      })
+
+      Blank().height(12)
+    }
+    .width('100%').backgroundColor(Hive.Color.brandWhite)
+    .margin({ top: 8 })
+  }
+}
+
+// ── WH 9: WHDiscoverMore ─────────────────────────────────────────────────────
+
+@Component
+struct WHDiscoverMore {
+  aboutToAppear() {
+    SensorDataClient.sliceImpression('DISCOVER_MORE_CAROUSEL', 'slice-discover-more', 8)
+  }
+
+  build() {
+    Column({ space: 0 }) {
+      Row() {
+        Text('Discover more')
+          .fontSize(16).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
+        Blank().layoutWeight(1)
+        Text('All ›').fontSize(12).fontColor('#DB0011')
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 14, bottom: 10 })
+
+      Scroll() {
+        Row({ space: 12 }) {
+          ForEach(STATIC_CAMPAIGNS, (card: CampaignCard) => {
+            Column({ space: 0 }) {
+              Stack({ alignContent: Alignment.TopStart }) {
+                Text(card.imageEmoji).fontSize(40)
+                  .width(200).height(110).textAlign(TextAlign.Center)
+                  .backgroundColor(Hive.Color.n700)
+                  .borderRadius({ topLeft: 12, topRight: 12, bottomLeft: 0, bottomRight: 0 })
+                Text(card.tag)
+                  .fontSize(9).fontWeight(FontWeight.Bold).fontColor(Hive.Color.brandWhite)
+                  .padding({ left: 8, right: 8, top: 4, bottom: 4 })
+                  .borderRadius(10).backgroundColor('#DB0011')
+                  .margin({ left: 10, top: 10 })
+              }
+              Column({ space: 4 }) {
+                Text(card.title)
+                  .fontSize(12).fontWeight(FontWeight.Medium).fontColor(Hive.Color.n900)
+                  .maxLines(2).width(200)
+              }
+              .alignItems(HorizontalAlign.Start)
+              .width(200).height(60)
+              .padding({ left: 10, right: 10, top: 8, bottom: 8 })
+              .backgroundColor(Hive.Color.brandWhite)
+              .borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 12, bottomRight: 12 })
+            }
+            .borderRadius(12).clip(true)
+            .backgroundColor(Hive.Color.brandWhite)
+            .shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 })
+            .onClick(() => { SensorDataClient.discoverMoreTapped(card.title, card.tag) })
+          })
+        }
+        .padding({ left: 16, right: 16, bottom: 14 })
+      }
+      .scrollable(ScrollDirection.Horizontal).scrollBar(BarState.Off).width('100%')
+    }
+    .width('100%').backgroundColor(Hive.Color.n50)
+    .margin({ top: 8 })
   }
 }

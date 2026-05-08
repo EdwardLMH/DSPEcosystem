@@ -86,22 +86,42 @@ export type SliceType =
   | 'MARKET_BRIEFING_TEXT'    // Rich-text market briefing sourced from UCP content
   | 'CONTACT_RM_CTA'          // Sticky CTA button — routes to RM finder deep link
   | 'DEPOSIT_RATE_TABLE'      // Time deposit interest rate table (rates only, no CTA)
-  | 'DEPOSIT_OPEN_CTA'       // Full-width "Open a Deposit" CTA button for deposit campaigns
+  | 'DEPOSIT_OPEN_CTA'        // Full-width "Open a Deposit" CTA button for deposit campaigns
   | 'DEPOSIT_FAQ'             // Collapsible FAQ accordion for deposit products
+  | 'CAMPAIGN_HERO'           // Full-width hero banner with headline + sub-copy (campaign pages)
+  | 'CAMPAIGN_BENEFITS'       // Icon + text benefit grid (campaign pages)
+  | 'CAMPAIGN_CTA'            // Primary CTA button block (campaign pages)
+  // Home Hub components (new design)
+  | 'HOME_SEARCH_HEADER'      // Segment-adaptive header (red/jade/orange/silver) + AI search bar combined
+  | 'PREMIER_HEADER'          // Red HSBC Premier top header bar
+  | 'ELITE_HEADER'            // Jade-coloured HSBC Elite top header bar
+  | 'ADVANCE_HEADER'          // Orange HSBC Advance top header bar
+  | 'MASS_HEADER'             // Silver HSBC Personal Banking top header bar
+  | 'HOME_SEARCH_BAR'         // White pill search bar below header
+  | 'CONTENT_TAB_BAR'         // Horizontal pill tab switcher (My pick / Invest / Global…)
+  | 'QUICK_ACCESS_GRID'       // 5-icon quick-access row (row 1 or row 2)
+  | 'COMBO_QUICK_ACCESS'      // Combined: tab bar + row-1 icons + row-2 icons (single card)
+  | 'CARD_ACTIVATION_BANNER'  // Notification banner for card activation prompt
+  | 'QUEST_BANNER'            // Getting-started quest progress banner
+  | 'FEATURE_PRODUCT'         // Fund tab list with returns (Top performers etc.)
+  | 'WEALTH_STUDIO_CAROUSEL'  // Premier Elite Wealth Studio horizontal video carousel
+  | 'GUIDES_INSIGHTS_CAROUSEL'         // Guides and insights article card carousel
+  | 'FX_WATCHLIST'            // FX currency pair watchlist with tier badge
+  | 'DISCOVER_MORE_CAROUSEL'           // Discover more horizontal campaign cards
   | 'KYC_NAME_DOB' | 'KYC_SINGLE_SELECT' | 'KYC_ID_CAPTURE' | 'KYC_DOC_UPLOAD'
   | 'KYC_CONTACT' | 'KYC_ADDRESS' | 'KYC_EMPLOYMENT' | 'KYC_SOURCE_OF_FUNDS'
   | 'KYC_LIVENESS' | 'KYC_OPEN_BANKING' | 'KYC_DECLARATION'
   // Web KYC — compound steps for wider viewport (groups multiple mobile steps into one page)
-  | 'KYC_WEB_IDENTITY'    // Personal info + nationality + ID document (mobile steps 1–3)
-  | 'KYC_WEB_UPLOAD_CONTACT' // Doc upload + contact details (mobile steps 4–5)
-  | 'KYC_WEB_BACKGROUND'  // Address + employment + source of funds (mobile steps 6–8)
-  | 'KYC_WEB_LIVENESS'    // Liveness check — same as mobile but with wider layout
-  | 'KYC_WEB_OPEN_BANKING' // Open banking — wider layout with bank cards
-  | 'KYC_WEB_DECLARATION'; // Legal declarations — two-column review + sign
+  | 'KYC_WEB_IDENTITY'        // Personal info + nationality + ID document (mobile steps 1–3)
+  | 'KYC_WEB_UPLOAD_CONTACT'  // Doc upload + contact details (mobile steps 4–5)
+  | 'KYC_WEB_BACKGROUND'      // Address + employment + source of funds (mobile steps 6–8)
+  | 'KYC_WEB_LIVENESS'        // Liveness check — same as mobile but with wider layout
+  | 'KYC_WEB_OPEN_BANKING'    // Open banking — wider layout with bank cards
+  | 'KYC_WEB_DECLARATION';    // Legal declarations — two-column review + sign
 
 // ─── Rule Engine ──────────────────────────────────────────────────────────────
 
-export type CustomerSegment = 'premier' | 'jade' | 'mass' | 'advance';
+export type CustomerSegment = 'premier' | 'elite' | 'advance' | 'mass';
 
 export type AccountType =
   | 'wealth_account'
@@ -139,7 +159,15 @@ export interface LocationCondition {
   value: CustomerLocation | CustomerLocation[];
 }
 
-export type RuleCondition = SegmentCondition | AccountTypeCondition | LocationCondition;
+// Free-form condition: match any field path in the request JSON by name
+export interface CustomFieldCondition {
+  field: 'custom';
+  customFieldName: string;   // e.g. "request.body.isPremiumUser"
+  operator: RuleOperator;
+  value: string;             // string to compare against
+}
+
+export type RuleCondition = SegmentCondition | AccountTypeCondition | LocationCondition | CustomFieldCondition;
 
 export type RuleAction = 'show' | 'hide';
 
@@ -151,11 +179,13 @@ export interface VisibilityRule {
   action: RuleAction;
 }
 
-// Preview context for the editor — simulates a user profile for rule evaluation
+// Preview context for the editor — simulates a user profile for rule evaluation.
+// `customFields` holds free-form key→value pairs used by CustomFieldCondition.
 export interface PreviewContext {
   customerSegment: CustomerSegment;
   accountType: AccountType;
   customerLocation: CustomerLocation;
+  customFields?: Record<string, string>;
 }
 
 export interface CanvasSlice {
@@ -198,6 +228,8 @@ export interface PageLayout {
   groupId: string;
   authoringStatus: AuthoringStatus;
   slices: CanvasSlice[];
+  // WEB_STANDARD only: whether the page is publicly accessible (indexed, SEO/AEO assessed)
+  isPublic?: boolean;
   webSlug?: string;
   webMetaTitle?: string;
   webMetaDescription?: string;
@@ -285,11 +317,41 @@ export interface AEOScore {
 export interface PageUsageStat {
   pageId: string;
   targetId: string;
-  daily: number;
-  weekly: number;
-  monthly: number;
+  // Traffic
+  dau: number;           // Daily Active Users
+  wau: number;           // Weekly Active Users
+  mau: number;           // Monthly Active Users
+  newUsers: number;      // New users in current month
+  returningUsers: number;
+  // Engagement
   avgSessionSec: number;
-  bounceRate: number;
+  avgPageDepth: number;  // avg pages viewed per session
+  bounceRate: number;    // 0..1 fraction
+  // Conversion
+  conversionRate: number; // 0..1 fraction
+  ctr: number;            // click-through rate on primary CTA, 0..1
+  // Quality
+  errorRate: number;      // 0..1 fraction of sessions with errors
+}
+
+export interface JourneyUsageStat {
+  journeyId: string;
+  targetId: string;
+  // Traffic
+  dau: number;
+  wau: number;
+  mau: number;
+  newUsers: number;
+  returningUsers: number;
+  // Funnel
+  journeyStartRate: number;  // % of page visitors who start the journey, 0..1
+  completionRate: number;    // % who complete all steps, 0..1
+  dropOffStep: number;       // 1-based step index with highest drop-off
+  avgCompletionSec: number;  // avg time to complete full journey in seconds
+  // Conversion
+  conversionRate: number;    // end-goal conversion (e.g. account opened), 0..1
+  // Quality
+  errorRate: number;
 }
 
 export interface ServiceAccountMessage {

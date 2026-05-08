@@ -1,73 +1,67 @@
 if (!("finalizeConstruction" in ViewPU.prototype)) {
     Reflect.set(ViewPU.prototype, "finalizeConstruction", () => { });
 }
-interface WHLifeDeals_Params {
-    bottomLinks?: BottomLink[];
+interface WHDiscoverMore_Params {
 }
-interface WHFeaturedRankings_Params {
+interface WHFXWatchlist_Params {
 }
-interface WHWealthSelection_Params {
+interface WHGuidesInsights_Params {
 }
-interface WHFlashLoan_Params {
+interface WHWealthStudioCarousel_Params {
 }
-interface WHAdBanner_Params {
-    onDismiss?: () => void;
+interface WHFeatureProduct_Params {
+    activeTab?: number;
+    fundTabs?: string[];
 }
-interface WHAIAssistant_Params {
+interface WHQuestBanner_Params {
 }
-interface WHFunctionGrid_Params {
+interface WHCardActivationBanner_Params {
 }
-interface WHPromoBanner_Params {
+interface WHComboQuickAccess_Params {
+    activeTab?: number;
+    tabs?: string[];
 }
-interface WHQuickAccess_Params {
-}
-interface WHHeaderNav_Params {
+interface WHHomeSearchHeader_Params {
     onSearchTap?: () => void;
 }
-interface SDUILifeDeals_Params {
+interface SDUIDiscoverMore_Params {
     props?: Record<string, ESObject>;
 }
-interface SDUIFeaturedRankings_Params {
+interface SDUIFXWatchlist_Params {
     props?: Record<string, ESObject>;
 }
-interface SDUIWealthSelection_Params {
+interface SDUIGuidesInsights_Params {
     props?: Record<string, ESObject>;
 }
-interface SDUIFlashLoan_Params {
+interface SDUIWealthStudioCarousel_Params {
     props?: Record<string, ESObject>;
 }
-interface SDUIAdBanner_Params {
+interface SDUIFeatureProduct_Params {
     props?: Record<string, ESObject>;
-    onDismiss?: () => void;
+    activeTab?: number;
 }
-interface SDUIAIAssistant_Params {
-    props?: Record<string, ESObject>;
-}
-interface SDUIFunctionGrid_Params {
+interface SDUIQuestBanner_Params {
     props?: Record<string, ESObject>;
 }
-interface SDUIPromoBanner_Params {
+interface SDUICardActivationBanner_Params {
     props?: Record<string, ESObject>;
 }
-interface SDUIQuickAccess_Params {
+interface SDUIComboQuickAccess_Params {
     props?: Record<string, ESObject>;
+    activeTab?: number;
 }
-interface SDUIAISearchBar_Params {
+interface SDUIHomeSearchHeader_Params {
     props?: Record<string, ESObject>;
     onSearchTap?: () => void;
-}
-interface SDUIHeaderNav_Params {
-    props?: Record<string, ESObject>;
 }
 interface WealthPageView_Params {
-    adDismissed?: boolean;
     searchOpen?: boolean;
     loadState?: number;
     sdui?: WealthSlice[];
 }
 interface SDUISliceView_Params {
     slice?: WealthSlice;
-    adDismissed?: boolean;
+    onSearchTap?: () => void;
 }
 import { Hive } from "@normalized:N&&&entry/src/main/ets/common/HiveTokens&";
 import { SensorDataClient } from "@normalized:N&&&entry/src/main/ets/network/SensorDataClient&";
@@ -80,86 +74,115 @@ interface QuickItem {
     label: string;
     deepLink: string;
 }
-interface FuncItem {
-    icon: string;
-    label: string;
-    deepLink: string;
-}
-interface WealthProd {
+interface FundItem {
     id: string;
     name: string;
-    tag: string;
-    yield7Day: string;
-    risk: string;
-    redemption: string;
-    cta: string;
+    code: string;
+    return1Y: string;
+    tags: string[];
     deepLink: string;
-    highlighted: boolean;
 }
-interface RankingItem {
+interface EpisodeItem {
     id: string;
-    icon: string;
-    badge: string;
     title: string;
-    desc: string;
+    duration: string;
+    thumbnail: string;
     deepLink: string;
 }
-interface DealItem {
+interface GuideItem {
     id: string;
-    brand: string;
-    emoji: string;
+    title: string;
+    category: string;
+    imageEmoji: string;
+    deepLink: string;
+    date?: string;
+}
+interface FXPair {
+    base: string;
+    quote: string;
+    rate: string;
+    change: string;
+    positive: boolean;
+}
+interface CampaignCard {
+    id: string;
+    title: string;
     tag: string;
+    imageEmoji: string;
     deepLink: string;
 }
-interface BottomLink {
-    icon: string;
-    label: string;
-    deepLink: string;
-}
-const QUICK_ITEMS: QuickItem[] = [
-    { icon: '🌙', label: '朝朝寶', deepLink: 'hsbc://wealth/morning-treasure' },
-    { icon: '💵', label: '借錢', deepLink: 'hsbc://loan/apply' },
-    { icon: '↔️', label: '轉帳', deepLink: 'hsbc://transfer' },
-    { icon: '📊', label: '帳戶總覽', deepLink: 'hsbc://accounts' },
+// ─── Static fallback data ─────────────────────────────────────────────────────
+// Mirrors OCDP mockData.ts — used on LOAD_ERROR path.
+const QUICK_ROW1: QuickItem[] = [
+    { icon: '👤', label: 'Account', deepLink: 'hsbc://accounts' },
+    { icon: '🌐', label: 'Transfer', deepLink: 'hsbc://transfer' },
+    { icon: '💱', label: 'FX', deepLink: 'hsbc://fx' },
+    { icon: '📈', label: 'Stock', deepLink: 'hsbc://stock' },
+    { icon: '⏰', label: 'Deposit', deepLink: 'hsbc://deposit' },
 ];
-const FUNC_ROWS: FuncItem[][] = [
-    [{ icon: '💳', label: '信用卡', deepLink: 'hsbc://cards' },
-        { icon: '📄', label: '收支明細', deepLink: 'hsbc://statements' },
-        { icon: '🔄', label: '他行卡轉入', deepLink: 'hsbc://transfer/external' },
-        { icon: '🏙️', label: '城市服務', deepLink: 'hsbc://city-services' },
-        { icon: '🔥', label: '熱門活動', deepLink: 'hsbc://events' }],
-    [{ icon: '📈', label: '理財', deepLink: 'hsbc://wealth' },
-        { icon: 'Ⓜ️', label: 'M+會員', deepLink: 'hsbc://membership' },
-        { icon: '🎬', label: '影票', deepLink: 'hsbc://movies' },
-        { icon: '💹', label: '基金', deepLink: 'hsbc://funds' },
-        { icon: '⋯', label: '全部', deepLink: 'hsbc://all-services' }],
+const QUICK_ROW2: QuickItem[] = [
+    { icon: '📊', label: 'Holding', deepLink: 'hsbc://holding' },
+    { icon: '💰', label: 'Safe', deepLink: 'hsbc://safe' },
+    { icon: '↔️', label: 'FPS', deepLink: 'hsbc://fps' },
+    { icon: '📷', label: 'Scan', deepLink: 'hsbc://scan' },
+    { icon: '⊞', label: 'All', deepLink: 'hsbc://all-services' },
 ];
-const WEALTH_PRODUCTS: WealthProd[] = [
-    { id: 'w1', name: '活錢理財｜歷史天天正收益', tag: '代碼', yield7Day: '2.80%',
-        risk: 'R1低風險', redemption: '贖回T+1到帳', cta: '去看看',
-        deepLink: 'hsbc://wealth/daily-positive', highlighted: true },
-    { id: 'w2', name: '主投債券', tag: '代碼', yield7Day: '3.04%',
-        risk: '歷史周周正', redemption: '成立以來…', cta: '查看',
-        deepLink: 'hsbc://wealth/bond-fund', highlighted: false },
-    { id: 'w3', name: '年均收益率', tag: '收益確定', yield7Day: '2.31%',
-        risk: '保証領取', redemption: '穩健低波', cta: '查看',
-        deepLink: 'hsbc://wealth/guaranteed', highlighted: false },
+const STATIC_FUNDS: FundItem[] = [
+    { id: 'f1', name: 'HSBC GIF – Asia ex Japan Equity',
+        code: 'HKAIEX', return1Y: '+18.4%',
+        tags: ['Equity', 'Asia'],
+        deepLink: 'hsbc://funds/HKAIEX' },
+    { id: 'f2', name: 'HSBC GIF – Global Bond Fund',
+        code: 'HKGBF', return1Y: '+4.2%',
+        tags: ['Bond', 'Global'],
+        deepLink: 'hsbc://funds/HKGBF' },
+    { id: 'f3', name: 'HSBC GIF – Multi-Asset Growth',
+        code: 'HKMAG', return1Y: '+9.7%',
+        tags: ['Multi-Asset'],
+        deepLink: 'hsbc://funds/HKMAG' },
 ];
-const RANKINGS: RankingItem[] = [
-    { id: 'r1', icon: '🥇', badge: '優中選優', title: '3322選基',
-        desc: '近1年漲跌幅高達318.19%', deepLink: 'hsbc://rankings/top-funds' },
-    { id: 'r2', icon: '🔒', badge: '固收優選', title: '穩健省心好選擇',
-        desc: '歷史持有3月盈利概率高達98.23%', deepLink: 'hsbc://rankings/fixed-income' },
-    { id: 'r3', icon: '📈', badge: '屢創新高', title: '屢創新高榜',
-        desc: '近3年净值創新高次數達152', deepLink: 'hsbc://rankings/all-time-high' },
+const STATIC_EPISODES: EpisodeItem[] = [
+    { id: 'e1', title: 'Market Outlook Q2 2026',
+        duration: '18 min', thumbnail: '📹',
+        deepLink: 'hsbc://studio/market-outlook-q2-2026' },
+    { id: 'e2', title: 'Diversification in Volatile Markets',
+        duration: '24 min', thumbnail: '📹',
+        deepLink: 'hsbc://studio/diversification' },
+    { id: 'e3', title: 'Premier Elite: Bespoke Portfolio',
+        duration: '31 min', thumbnail: '📹',
+        deepLink: 'hsbc://studio/bespoke-portfolio' },
 ];
-const DEALS: DealItem[] = [
-    { id: 'd1', brand: 'KFC', emoji: '🍗', tag: '單品優惠', deepLink: 'hsbc://deals/kfc' },
-    { id: 'd2', brand: 'Luckin Coffee', emoji: '☕', tag: '5折喝瑞幸', deepLink: 'hsbc://deals/luckin' },
-    { id: 'd3', brand: 'DQ', emoji: '🍦', tag: '5折起', deepLink: 'hsbc://deals/dq' },
+const STATIC_GUIDES: GuideItem[] = [
+    { id: 'g1', title: 'Getting the most from your Premier account',
+        category: 'Premier Tips', imageEmoji: '🏦', date: '8 Apr 2024',
+        deepLink: 'hsbc://guides/premier-tips' },
+    { id: 'g2', title: 'Understanding fund risk levels',
+        category: 'Investments', imageEmoji: '📊', date: '2 Apr 2024',
+        deepLink: 'hsbc://guides/fund-risk' },
+    { id: 'g3', title: 'FX strategy: hedging your HKD exposure',
+        category: 'FX', imageEmoji: '💱', date: '28 Mar 2024',
+        deepLink: 'hsbc://guides/fx-hedging' },
+];
+const STATIC_FX_PAIRS: FXPair[] = [
+    { base: 'USD', quote: 'HKD', rate: '7.7851', change: '+0.02%', positive: true },
+    { base: 'EUR', quote: 'HKD', rate: '8.4302', change: '-0.11%', positive: false },
+    { base: 'GBP', quote: 'HKD', rate: '9.8154', change: '+0.08%', positive: true },
+    { base: 'JPY', quote: 'HKD', rate: '0.0514', change: '-0.05%', positive: false },
+    { base: 'CNH', quote: 'HKD', rate: '1.0722', change: '+0.01%', positive: true },
+];
+const STATIC_CAMPAIGNS: CampaignCard[] = [
+    { id: 'c1', title: 'Earn up to 5% p.a. on new funds',
+        tag: 'Time-limited', imageEmoji: '💎',
+        deepLink: 'hsbc://campaign/new-funds-promo' },
+    { id: 'c2', title: 'Premier Elite — exclusive art advisory',
+        tag: 'Premier Elite', imageEmoji: '🖼️',
+        deepLink: 'hsbc://campaign/art-advisory' },
+    { id: 'c3', title: 'Global Reach: open a UK account',
+        tag: 'Global Banking', imageEmoji: '🌍',
+        deepLink: 'hsbc://campaign/global-reach' },
 ];
 // ─── Load-state enum ──────────────────────────────────────────────────────────
-// ArkTS forbids string-union @State — use a plain number enum instead.
+// ArkTS forbids string-union @State — use plain number constants.
 const LOAD_IDLE = 0;
 const LOAD_LOADING = 1;
 const LOAD_DONE = 2;
@@ -171,7 +194,7 @@ class SDUISliceView extends ViewPU {
             this.paramsGenerator_ = paramsLambda;
         }
         this.slice = { instanceId: '', type: '', props: {}, visible: true };
-        this.__adDismissed = new ObservedPropertySimplePU(false, this, "adDismissed");
+        this.onSearchTap = () => { };
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
@@ -179,28 +202,20 @@ class SDUISliceView extends ViewPU {
         if (params.slice !== undefined) {
             this.slice = params.slice;
         }
-        if (params.adDismissed !== undefined) {
-            this.adDismissed = params.adDismissed;
+        if (params.onSearchTap !== undefined) {
+            this.onSearchTap = params.onSearchTap;
         }
     }
     updateStateVars(params: SDUISliceView_Params) {
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
-        this.__adDismissed.purgeDependencyOnElmtId(rmElmtId);
     }
     aboutToBeDeleted() {
-        this.__adDismissed.aboutToBeDeleted();
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
     private slice: WealthSlice;
-    private __adDismissed: ObservedPropertySimplePU<boolean>;
-    get adDismissed() {
-        return this.__adDismissed.get();
-    }
-    set adDismissed(newValue: boolean) {
-        this.__adDismissed.set(newValue);
-    }
+    private onSearchTap: () => void;
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             If.create();
@@ -223,16 +238,18 @@ class SDUISliceView extends ViewPU {
     renderSlice(parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             If.create();
-            if (this.slice.type === 'HEADER_NAV') {
+            if (this.slice.type === 'HOME_SEARCH_HEADER') {
                 this.ifElseBranchUpdateFunction(0, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIHeaderNav(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 97, col: 7 });
+                                let componentCall = new SDUIHomeSearchHeader(this, { props: this.slice.props,
+                                    onSearchTap: () => { this.onSearchTap(); } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 140, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
-                                        props: this.slice.props
+                                        props: this.slice.props,
+                                        onSearchTap: () => { this.onSearchTap(); }
                                     };
                                 };
                                 componentCall.paramsGenerator_ = paramsLambda;
@@ -240,16 +257,16 @@ class SDUISliceView extends ViewPU {
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {});
                             }
-                        }, { name: "SDUIHeaderNav" });
+                        }, { name: "SDUIHomeSearchHeader" });
                     }
                 });
             }
-            else if (this.slice.type === 'AI_SEARCH_BAR') {
+            else if (this.slice.type === 'COMBO_QUICK_ACCESS') {
                 this.ifElseBranchUpdateFunction(1, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIAISearchBar(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 99, col: 7 });
+                                let componentCall = new SDUIComboQuickAccess(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 143, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -261,16 +278,16 @@ class SDUISliceView extends ViewPU {
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {});
                             }
-                        }, { name: "SDUIAISearchBar" });
+                        }, { name: "SDUIComboQuickAccess" });
                     }
                 });
             }
-            else if (this.slice.type === 'QUICK_ACCESS') {
+            else if (this.slice.type === 'CARD_ACTIVATION_BANNER') {
                 this.ifElseBranchUpdateFunction(2, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIQuickAccess(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 101, col: 7 });
+                                let componentCall = new SDUICardActivationBanner(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 145, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -282,16 +299,16 @@ class SDUISliceView extends ViewPU {
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {});
                             }
-                        }, { name: "SDUIQuickAccess" });
+                        }, { name: "SDUICardActivationBanner" });
                     }
                 });
             }
-            else if (this.slice.type === 'PROMO_BANNER') {
+            else if (this.slice.type === 'QUEST_BANNER') {
                 this.ifElseBranchUpdateFunction(3, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIPromoBanner(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 103, col: 7 });
+                                let componentCall = new SDUIQuestBanner(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 147, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -303,16 +320,16 @@ class SDUISliceView extends ViewPU {
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {});
                             }
-                        }, { name: "SDUIPromoBanner" });
+                        }, { name: "SDUIQuestBanner" });
                     }
                 });
             }
-            else if (this.slice.type === 'FUNCTION_GRID') {
+            else if (this.slice.type === 'FEATURE_PRODUCT') {
                 this.ifElseBranchUpdateFunction(4, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIFunctionGrid(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 105, col: 7 });
+                                let componentCall = new SDUIFeatureProduct(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 149, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -324,16 +341,16 @@ class SDUISliceView extends ViewPU {
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {});
                             }
-                        }, { name: "SDUIFunctionGrid" });
+                        }, { name: "SDUIFeatureProduct" });
                     }
                 });
             }
-            else if (this.slice.type === 'AI_ASSISTANT') {
+            else if (this.slice.type === 'WEALTH_STUDIO_CAROUSEL') {
                 this.ifElseBranchUpdateFunction(5, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIAIAssistant(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 107, col: 7 });
+                                let componentCall = new SDUIWealthStudioCarousel(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 151, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -345,50 +362,37 @@ class SDUISliceView extends ViewPU {
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {});
                             }
-                        }, { name: "SDUIAIAssistant" });
+                        }, { name: "SDUIWealthStudioCarousel" });
                     }
                 });
             }
-            else if (this.slice.type === 'AD_BANNER') {
+            else if (this.slice.type === 'GUIDES_INSIGHTS_CAROUSEL') {
                 this.ifElseBranchUpdateFunction(6, () => {
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        If.create();
-                        if (!this.adDismissed) {
-                            this.ifElseBranchUpdateFunction(0, () => {
-                                {
-                                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                                        if (isInitialRender) {
-                                            let componentCall = new SDUIAdBanner(this, { props: this.slice.props, onDismiss: () => { this.adDismissed = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 110, col: 9 });
-                                            ViewPU.create(componentCall);
-                                            let paramsLambda = () => {
-                                                return {
-                                                    props: this.slice.props,
-                                                    onDismiss: () => { this.adDismissed = true; }
-                                                };
-                                            };
-                                            componentCall.paramsGenerator_ = paramsLambda;
-                                        }
-                                        else {
-                                            this.updateStateVarsOfChildByElmtId(elmtId, {});
-                                        }
-                                    }, { name: "SDUIAdBanner" });
-                                }
-                            });
-                        }
-                        else {
-                            this.ifElseBranchUpdateFunction(1, () => {
-                            });
-                        }
-                    }, If);
-                    If.pop();
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new SDUIGuidesInsights(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 153, col: 7 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {
+                                        props: this.slice.props
+                                    };
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "SDUIGuidesInsights" });
+                    }
                 });
             }
-            else if (this.slice.type === 'FLASH_LOAN') {
+            else if (this.slice.type === 'FX_WATCHLIST') {
                 this.ifElseBranchUpdateFunction(7, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIFlashLoan(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 113, col: 7 });
+                                let componentCall = new SDUIFXWatchlist(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 155, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -400,16 +404,16 @@ class SDUISliceView extends ViewPU {
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {});
                             }
-                        }, { name: "SDUIFlashLoan" });
+                        }, { name: "SDUIFXWatchlist" });
                     }
                 });
             }
-            else if (this.slice.type === 'WEALTH_SELECTION') {
+            else if (this.slice.type === 'DISCOVER_MORE_CAROUSEL') {
                 this.ifElseBranchUpdateFunction(8, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIWealthSelection(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 115, col: 7 });
+                                let componentCall = new SDUIDiscoverMore(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 157, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -421,54 +425,12 @@ class SDUISliceView extends ViewPU {
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {});
                             }
-                        }, { name: "SDUIWealthSelection" });
-                    }
-                });
-            }
-            else if (this.slice.type === 'FEATURED_RANKINGS') {
-                this.ifElseBranchUpdateFunction(9, () => {
-                    {
-                        this.observeComponentCreation2((elmtId, isInitialRender) => {
-                            if (isInitialRender) {
-                                let componentCall = new SDUIFeaturedRankings(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 117, col: 7 });
-                                ViewPU.create(componentCall);
-                                let paramsLambda = () => {
-                                    return {
-                                        props: this.slice.props
-                                    };
-                                };
-                                componentCall.paramsGenerator_ = paramsLambda;
-                            }
-                            else {
-                                this.updateStateVarsOfChildByElmtId(elmtId, {});
-                            }
-                        }, { name: "SDUIFeaturedRankings" });
-                    }
-                });
-            }
-            else if (this.slice.type === 'LIFE_DEALS') {
-                this.ifElseBranchUpdateFunction(10, () => {
-                    {
-                        this.observeComponentCreation2((elmtId, isInitialRender) => {
-                            if (isInitialRender) {
-                                let componentCall = new SDUILifeDeals(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 119, col: 7 });
-                                ViewPU.create(componentCall);
-                                let paramsLambda = () => {
-                                    return {
-                                        props: this.slice.props
-                                    };
-                                };
-                                componentCall.paramsGenerator_ = paramsLambda;
-                            }
-                            else {
-                                this.updateStateVarsOfChildByElmtId(elmtId, {});
-                            }
-                        }, { name: "SDUILifeDeals" });
+                        }, { name: "SDUIDiscoverMore" });
                     }
                 });
             }
             else if (this.slice.type === 'SPACER') {
-                this.ifElseBranchUpdateFunction(11, () => {
+                this.ifElseBranchUpdateFunction(9, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Blank.create();
                         Blank.height(this.slice.props['height'] as number ?? 16);
@@ -478,7 +440,7 @@ class SDUISliceView extends ViewPU {
             }
             // unknown types silently omitted
             else {
-                this.ifElseBranchUpdateFunction(12, () => {
+                this.ifElseBranchUpdateFunction(10, () => {
                 });
             }
         }, If);
@@ -494,7 +456,6 @@ export class WealthPageView extends ViewPU {
         if (typeof paramsLambda === "function") {
             this.paramsGenerator_ = paramsLambda;
         }
-        this.__adDismissed = new ObservedPropertySimplePU(false, this, "adDismissed");
         this.__searchOpen = new ObservedPropertySimplePU(false, this, "searchOpen");
         this.__loadState = new ObservedPropertySimplePU(LOAD_IDLE // LOAD_* constants
         , this, "loadState");
@@ -504,9 +465,6 @@ export class WealthPageView extends ViewPU {
         this.finalizeConstruction();
     }
     setInitiallyProvidedValue(params: WealthPageView_Params) {
-        if (params.adDismissed !== undefined) {
-            this.adDismissed = params.adDismissed;
-        }
         if (params.searchOpen !== undefined) {
             this.searchOpen = params.searchOpen;
         }
@@ -520,25 +478,16 @@ export class WealthPageView extends ViewPU {
     updateStateVars(params: WealthPageView_Params) {
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
-        this.__adDismissed.purgeDependencyOnElmtId(rmElmtId);
         this.__searchOpen.purgeDependencyOnElmtId(rmElmtId);
         this.__loadState.purgeDependencyOnElmtId(rmElmtId);
         this.__sdui.purgeDependencyOnElmtId(rmElmtId);
     }
     aboutToBeDeleted() {
-        this.__adDismissed.aboutToBeDeleted();
         this.__searchOpen.aboutToBeDeleted();
         this.__loadState.aboutToBeDeleted();
         this.__sdui.aboutToBeDeleted();
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
-    }
-    private __adDismissed: ObservedPropertySimplePU<boolean>;
-    get adDismissed() {
-        return this.__adDismissed.get();
-    }
-    set adDismissed(newValue: boolean) {
-        this.__adDismissed.set(newValue);
     }
     private __searchOpen: ObservedPropertySimplePU<boolean>;
     get searchOpen() {
@@ -602,7 +551,7 @@ export class WealthPageView extends ViewPU {
                             if (isInitialRender) {
                                 let componentCall = new 
                                 // Minimal loading state — show header so page doesn't flash blank
-                                WHHeaderNav(this, { onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 159, col: 13 });
+                                WHHomeSearchHeader(this, { onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 196, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -614,7 +563,7 @@ export class WealthPageView extends ViewPU {
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {});
                             }
-                        }, { name: "WHHeaderNav" });
+                        }, { name: "WHHomeSearchHeader" });
                     }
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Row.create();
@@ -623,7 +572,7 @@ export class WealthPageView extends ViewPU {
                         Row.justifyContent(FlexAlign.Center);
                     }, Row);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create('載入中…');
+                        Text.create('Loading…');
                         Text.fontSize(13);
                         Text.fontColor(Hive.Color.n400);
                     }, Text);
@@ -641,11 +590,12 @@ export class WealthPageView extends ViewPU {
                             {
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     if (isInitialRender) {
-                                        let componentCall = new SDUISliceView(this, { slice: slice }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 168, col: 15 });
+                                        let componentCall = new SDUISliceView(this, { slice: slice, onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 205, col: 15 });
                                         ViewPU.create(componentCall);
                                         let paramsLambda = () => {
                                             return {
-                                                slice: slice
+                                                slice: slice,
+                                                onSearchTap: () => { this.searchOpen = true; }
                                             };
                                         };
                                         componentCall.paramsGenerator_ = paramsLambda;
@@ -668,8 +618,8 @@ export class WealthPageView extends ViewPU {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
                                 let componentCall = new 
-                                // ── Static fallback: BFF not live yet ──────────────────────────
-                                WHHeaderNav(this, { onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 172, col: 13 });
+                                // ── Static fallback: BFF not live yet (LOAD_IDLE or LOAD_ERROR) ─
+                                WHHomeSearchHeader(this, { onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 209, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -681,12 +631,12 @@ export class WealthPageView extends ViewPU {
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {});
                             }
-                        }, { name: "WHHeaderNav" });
+                        }, { name: "WHHomeSearchHeader" });
                     }
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHQuickAccess(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 173, col: 13 });
+                                let componentCall = new WHComboQuickAccess(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 210, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -696,12 +646,12 @@ export class WealthPageView extends ViewPU {
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {});
                             }
-                        }, { name: "WHQuickAccess" });
+                        }, { name: "WHComboQuickAccess" });
                     }
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHPromoBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 174, col: 13 });
+                                let componentCall = new WHCardActivationBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 211, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -711,12 +661,12 @@ export class WealthPageView extends ViewPU {
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {});
                             }
-                        }, { name: "WHPromoBanner" });
+                        }, { name: "WHCardActivationBanner" });
                     }
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHFunctionGrid(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 175, col: 13 });
+                                let componentCall = new WHQuestBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 212, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -726,12 +676,12 @@ export class WealthPageView extends ViewPU {
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {});
                             }
-                        }, { name: "WHFunctionGrid" });
+                        }, { name: "WHQuestBanner" });
                     }
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHAIAssistant(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 176, col: 13 });
+                                let componentCall = new WHFeatureProduct(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 213, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -741,41 +691,12 @@ export class WealthPageView extends ViewPU {
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {});
                             }
-                        }, { name: "WHAIAssistant" });
+                        }, { name: "WHFeatureProduct" });
                     }
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        If.create();
-                        if (!this.adDismissed) {
-                            this.ifElseBranchUpdateFunction(0, () => {
-                                {
-                                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                                        if (isInitialRender) {
-                                            let componentCall = new WHAdBanner(this, { onDismiss: () => { this.adDismissed = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 178, col: 15 });
-                                            ViewPU.create(componentCall);
-                                            let paramsLambda = () => {
-                                                return {
-                                                    onDismiss: () => { this.adDismissed = true; }
-                                                };
-                                            };
-                                            componentCall.paramsGenerator_ = paramsLambda;
-                                        }
-                                        else {
-                                            this.updateStateVarsOfChildByElmtId(elmtId, {});
-                                        }
-                                    }, { name: "WHAdBanner" });
-                                }
-                            });
-                        }
-                        else {
-                            this.ifElseBranchUpdateFunction(1, () => {
-                            });
-                        }
-                    }, If);
-                    If.pop();
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHFlashLoan(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 180, col: 13 });
+                                let componentCall = new WHWealthStudioCarousel(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 214, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -785,12 +706,12 @@ export class WealthPageView extends ViewPU {
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {});
                             }
-                        }, { name: "WHFlashLoan" });
+                        }, { name: "WHWealthStudioCarousel" });
                     }
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHWealthSelection(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 181, col: 13 });
+                                let componentCall = new WHGuidesInsights(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 215, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -800,12 +721,12 @@ export class WealthPageView extends ViewPU {
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {});
                             }
-                        }, { name: "WHWealthSelection" });
+                        }, { name: "WHGuidesInsights" });
                     }
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHFeaturedRankings(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 182, col: 13 });
+                                let componentCall = new WHFXWatchlist(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 216, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -815,12 +736,12 @@ export class WealthPageView extends ViewPU {
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {});
                             }
-                        }, { name: "WHFeaturedRankings" });
+                        }, { name: "WHFXWatchlist" });
                     }
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHLifeDeals(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 183, col: 13 });
+                                let componentCall = new WHDiscoverMore(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 217, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -830,7 +751,7 @@ export class WealthPageView extends ViewPU {
                             else {
                                 this.updateStateVarsOfChildByElmtId(elmtId, {});
                             }
-                        }, { name: "WHLifeDeals" });
+                        }, { name: "WHDiscoverMore" });
                     }
                 });
             }
@@ -857,7 +778,7 @@ export class WealthPageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new AISearchPage(this, { onDismiss: () => { this.searchOpen = false; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 190, col: 9 });
+                                let componentCall = new AISearchPage(this, { onDismiss: () => { this.searchOpen = false; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 224, col: 9 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -886,118 +807,7 @@ export class WealthPageView extends ViewPU {
         this.updateDirtyElements();
     }
 }
-class SDUIHeaderNav extends ViewPU {
-    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
-        super(parent, __localStorage, elmtId, extraInfo);
-        if (typeof paramsLambda === "function") {
-            this.paramsGenerator_ = paramsLambda;
-        }
-        this.props = {};
-        this.setInitiallyProvidedValue(params);
-        this.finalizeConstruction();
-    }
-    setInitiallyProvidedValue(params: SDUIHeaderNav_Params) {
-        if (params.props !== undefined) {
-            this.props = params.props;
-        }
-    }
-    updateStateVars(params: SDUIHeaderNav_Params) {
-    }
-    purgeVariableDependenciesOnElmtId(rmElmtId) {
-    }
-    aboutToBeDeleted() {
-        SubscriberManager.Get().delete(this.id__());
-        this.aboutToBeDeletedInternal();
-    }
-    private props: Record<string, any>;
-    initialRender() {
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create();
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create({ space: 10 });
-            Row.width('100%');
-            Row.height(50);
-            Row.padding({ left: 14, right: 14, top: 8, bottom: 8 });
-            Row.backgroundColor(Hive.Color.brandWhite);
-        }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create({ space: 6 });
-            Row.layoutWeight(1);
-            Row.height(36);
-            Row.padding({ left: 14, right: 14 });
-            Row.borderRadius(18);
-            Row.backgroundColor(Hive.Color.n100);
-            Row.onClick(() => {
-                SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '', 'wealth_hub_hk', 'wealth_hub');
-            });
-        }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('🔍');
-            Text.fontSize(13);
-            Text.fontColor(Hive.Color.n400);
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(this.props['searchPlaceholder'] as string ?? '搜尋功能、產品');
-            Text.fontSize(13);
-            Text.fontColor(Hive.Color.n400);
-            Text.layoutWeight(1);
-        }, Text);
-        Text.pop();
-        Row.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            If.create();
-            if (this.props['showNotificationBell'] as boolean !== false) {
-                this.ifElseBranchUpdateFunction(0, () => {
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create('🔔');
-                        Text.fontSize(20);
-                        Text.onClick(() => {
-                            SensorDataClient.track('notification_tap', 'Wealth', 'notification_tapped', '', 'wealth_hub_hk', 'wealth_hub');
-                        });
-                    }, Text);
-                    Text.pop();
-                });
-            }
-            else {
-                this.ifElseBranchUpdateFunction(1, () => {
-                });
-            }
-        }, If);
-        If.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            If.create();
-            if (this.props['showQRScanner'] as boolean !== false) {
-                this.ifElseBranchUpdateFunction(0, () => {
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create('⬛');
-                        Text.fontSize(18);
-                        Text.onClick(() => {
-                            SensorDataClient.track('qr_tap', 'Wealth', 'qr_scanner_tapped', '', 'wealth_hub_hk', 'wealth_hub');
-                        });
-                    }, Text);
-                    Text.pop();
-                });
-            }
-            else {
-                this.ifElseBranchUpdateFunction(1, () => {
-                });
-            }
-        }, If);
-        If.pop();
-        Row.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Divider.create();
-            Divider.color(Hive.Color.n200);
-        }, Divider);
-        Column.pop();
-    }
-    rerender() {
-        this.updateDirtyElements();
-    }
-}
-class SDUIAISearchBar extends ViewPU {
+class SDUIHomeSearchHeader extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
         super(parent, __localStorage, elmtId, extraInfo);
         if (typeof paramsLambda === "function") {
@@ -1008,7 +818,7 @@ class SDUIAISearchBar extends ViewPU {
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
-    setInitiallyProvidedValue(params: SDUIAISearchBar_Params) {
+    setInitiallyProvidedValue(params: SDUIHomeSearchHeader_Params) {
         if (params.props !== undefined) {
             this.props = params.props;
         }
@@ -1016,7 +826,7 @@ class SDUIAISearchBar extends ViewPU {
             this.onSearchTap = params.onSearchTap;
         }
     }
-    updateStateVars(params: SDUIAISearchBar_Params) {
+    updateStateVars(params: SDUIHomeSearchHeader_Params) {
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
     }
@@ -1026,31 +836,43 @@ class SDUIAISearchBar extends ViewPU {
     }
     private props: Record<string, any>;
     private onSearchTap: () => void;
-    private placeholder(): string {
-        return this.props['placeholder'] as string ?? '搜尋功能、產品';
-    }
-    private enableQRScan(): boolean { return this.props['enableQRScan'] as boolean ?? true; }
-    private enableChatbot(): boolean { return this.props['enableChatbot'] as boolean ?? true; }
-    private enableInbox(): boolean { return this.props['enableMessageInbox'] as boolean ?? true; }
+    private title(): string { return this.props['title'] as string ?? 'HSBC Premier'; }
+    private placeholder(): string { return this.props['searchPlaceholder'] as string ?? 'Search with AI'; }
+    private showBell(): boolean { return this.props['showNotificationBell'] as boolean ?? true; }
+    private showHeadset(): boolean { return this.props['showHeadset'] as boolean ?? true; }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create({ space: 8 });
+            Column.create({ space: 0 });
+            Column.width('100%');
+            Column.backgroundColor('#DB0011');
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Top bar: segment label + bell + headset
+            Row.create({ space: 0 });
+            // Top bar: segment label + bell + headset
             Row.width('100%');
-            Row.height(50);
-            Row.padding({ left: 12, right: 12, top: 7, bottom: 7 });
-            Row.backgroundColor('#DB0011');
-            Row.alignItems(VerticalAlign.Center);
+            // Top bar: segment label + bell + headset
+            Row.padding({ left: 16, right: 16, top: 14, bottom: 8 });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.title());
+            Text.fontSize(17);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor(Hive.Color.brandWhite);
+            Text.layoutWeight(1);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
             If.create();
-            if (this.enableQRScan()) {
+            if (this.showBell()) {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create('⬜');
+                        Text.create('🔔');
                         Text.fontSize(20);
-                        Text.fontColor('#E6FFFFFF');
+                        Text.fontColor(Hive.Color.brandWhite);
+                        Text.margin({ right: 12 });
                         Text.onClick(() => {
-                            SensorDataClient.track('qr_tap', 'Wealth', 'qr_scanner_tapped', '', 'ai_search_bar', 'wealth_hub');
+                            SensorDataClient.track('notification_tap', 'Wealth', 'notification_tapped', '', 'home_search_header', 'wealth_hub');
                         });
                     }, Text);
                     Text.pop();
@@ -1062,111 +884,235 @@ class SDUIAISearchBar extends ViewPU {
             }
         }, If);
         If.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            If.create();
+            if (this.showHeadset()) {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create('🎧');
+                        Text.fontSize(20);
+                        Text.fontColor(Hive.Color.brandWhite);
+                        Text.onClick(() => {
+                            SensorDataClient.track('headset_tap', 'Wealth', 'headset_tapped', '', 'home_search_header', 'wealth_hub');
+                        });
+                    }, Text);
+                    Text.pop();
+                });
+            }
+            else {
+                this.ifElseBranchUpdateFunction(1, () => {
+                });
+            }
+        }, If);
+        If.pop();
+        // Top bar: segment label + bell + headset
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Search bar row with AI badge
+            Row.create({ space: 8 });
+            // Search bar row with AI badge
+            Row.width('100%');
+            // Search bar row with AI badge
+            Row.padding({ left: 16, right: 16, bottom: 12 });
+        }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create({ space: 6 });
             Row.layoutWeight(1);
             Row.height(36);
             Row.padding({ left: 12, right: 12 });
             Row.borderRadius(18);
-            Row.backgroundColor('#26FFFFFF');
+            Row.backgroundColor(Hive.Color.brandWhite);
             Row.onClick(() => {
-                SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '', 'ai_search_bar', 'wealth_hub');
+                SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '', 'home_search_header', 'wealth_hub');
                 this.onSearchTap();
             });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create('🔍');
             Text.fontSize(13);
-            Text.fontColor('#99FFFFFF');
+            Text.fontColor(Hive.Color.n500);
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(this.placeholder());
             Text.fontSize(13);
-            Text.fontColor('#A6FFFFFF');
+            Text.fontColor(Hive.Color.n400);
             Text.layoutWeight(1);
         }, Text);
         Text.pop();
-        Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            If.create();
-            if (this.enableChatbot()) {
-                this.ifElseBranchUpdateFunction(0, () => {
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create('🤖');
-                        Text.fontSize(20);
-                        Text.fontColor('#E6FFFFFF');
-                        Text.onClick(() => {
-                            SensorDataClient.track('chatbot_tap', 'Wealth', 'chatbot_tapped', '', 'ai_search_bar', 'wealth_hub');
-                        });
-                    }, Text);
-                    Text.pop();
-                });
-            }
-            else {
-                this.ifElseBranchUpdateFunction(1, () => {
-                });
-            }
-        }, If);
-        If.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            If.create();
-            if (this.enableInbox()) {
-                this.ifElseBranchUpdateFunction(0, () => {
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create('✉️');
-                        Text.fontSize(20);
-                        Text.fontColor('#E6FFFFFF');
-                        Text.onClick(() => {
-                            SensorDataClient.track('inbox_tap', 'Wealth', 'inbox_tapped', '', 'ai_search_bar', 'wealth_hub');
-                        });
-                    }, Text);
-                    Text.pop();
-                });
-            }
-            else {
-                this.ifElseBranchUpdateFunction(1, () => {
-                });
-            }
-        }, If);
-        If.pop();
+            // AI badge
+            Text.create('AI');
+            // AI badge
+            Text.fontSize(9);
+            // AI badge
+            Text.fontWeight(FontWeight.Bold);
+            // AI badge
+            Text.fontColor('#DB0011');
+            // AI badge
+            Text.padding({ left: 5, right: 5, top: 2, bottom: 2 });
+            // AI badge
+            Text.borderRadius(6);
+            // AI badge
+            Text.backgroundColor('#FFEDED');
+        }, Text);
+        // AI badge
+        Text.pop();
         Row.pop();
+        // Search bar row with AI badge
+        Row.pop();
+        Column.pop();
     }
     rerender() {
         this.updateDirtyElements();
     }
 }
-class SDUIQuickAccess extends ViewPU {
+class SDUIComboQuickAccess extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
         super(parent, __localStorage, elmtId, extraInfo);
         if (typeof paramsLambda === "function") {
             this.paramsGenerator_ = paramsLambda;
         }
         this.props = {};
+        this.__activeTab = new ObservedPropertySimplePU(0, this, "activeTab");
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
-    setInitiallyProvidedValue(params: SDUIQuickAccess_Params) {
+    setInitiallyProvidedValue(params: SDUIComboQuickAccess_Params) {
         if (params.props !== undefined) {
             this.props = params.props;
         }
+        if (params.activeTab !== undefined) {
+            this.activeTab = params.activeTab;
+        }
     }
-    updateStateVars(params: SDUIQuickAccess_Params) {
+    updateStateVars(params: SDUIComboQuickAccess_Params) {
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
+        this.__activeTab.purgeDependencyOnElmtId(rmElmtId);
     }
     aboutToBeDeleted() {
+        this.__activeTab.aboutToBeDeleted();
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
     private props: Record<string, any>;
-    private items(): any[] { return this.props['items'] as any[] ?? [] as any[]; }
+    private __activeTab: ObservedPropertySimplePU<number>;
+    get activeTab() {
+        return this.__activeTab.get();
+    }
+    set activeTab(newValue: number) {
+        this.__activeTab.set(newValue);
+    }
+    private tabs(): string[] {
+        const raw: any[] = this.props['tabs'] as any[];
+        if (raw && raw.length > 0) {
+            return raw.map((t: any) => (t as Record<string, string>)['label'] ?? '');
+        }
+        return ['My pick', 'Invest', 'Global', 'HK Daily'];
+    }
+    private row1(): any[] { return this.props['row1Items'] as any[] ?? [] as any[]; }
+    private row2(): any[] { return this.props['row2Items'] as any[] ?? [] as any[]; }
+    // Map BFF icon identifier strings to display emojis
+    private resolveIcon(id: string): string {
+        if (id === 'account')
+            return '👤';
+        if (id === 'transfer')
+            return '🌐';
+        if (id === 'fx')
+            return '💱';
+        if (id === 'stock')
+            return '📈';
+        if (id === 'deposit')
+            return '⏰';
+        if (id === 'holding')
+            return '📊';
+        if (id === 'safe')
+            return '💰';
+        if (id === 'fps')
+            return '↔️';
+        if (id === 'scan')
+            return '📷';
+        if (id === 'all')
+            return '⊞';
+        return id; // fallback: render as-is (emoji or unknown)
+    }
+    // Shorten long BFF labels to fit under icon
+    private shortLabel(label: string): string {
+        if (label === 'Account overview')
+            return 'Account';
+        if (label === 'Transfer Globally')
+            return 'Transfer';
+        if (label === 'Foreign exchange')
+            return 'FX';
+        if (label === 'Trade stock')
+            return 'Stock';
+        if (label === 'Time deposit')
+            return 'Deposit';
+        if (label === 'My holding details')
+            return 'Holding';
+        if (label === 'Money safe')
+            return 'Safe';
+        if (label === 'Local transfer/FPS')
+            return 'FPS';
+        if (label === 'Scan to pay')
+            return 'Scan';
+        if (label === 'All product & services')
+            return 'All';
+        return label;
+    }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create();
+            Column.create({ space: 0 });
+            Column.width('100%');
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Tab bar — pill/capsule style (active=red, inactive=gray)
+            Scroll.create();
+            // Tab bar — pill/capsule style (active=red, inactive=gray)
+            Scroll.scrollable(ScrollDirection.Horizontal);
+            // Tab bar — pill/capsule style (active=red, inactive=gray)
+            Scroll.scrollBar(BarState.Off);
+            // Tab bar — pill/capsule style (active=red, inactive=gray)
+            Scroll.width('100%');
+            // Tab bar — pill/capsule style (active=red, inactive=gray)
+            Scroll.backgroundColor(Hive.Color.brandWhite);
+        }, Scroll);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 8 });
+            Row.padding({ left: 16, right: 16, top: 10, bottom: 10 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            ForEach.create();
+            const forEachItemGenFunction = (_item, idx: number) => {
+                const tab = _item;
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create(tab);
+                    Text.fontSize(13);
+                    Text.fontWeight(this.activeTab === idx ? FontWeight.Bold : FontWeight.Normal);
+                    Text.fontColor(this.activeTab === idx ? Hive.Color.brandWhite : Hive.Color.n700);
+                    Text.padding({ left: 16, right: 16, top: 7, bottom: 7 });
+                    Text.borderRadius(18);
+                    Text.backgroundColor(this.activeTab === idx ? '#DB0011' : '#E4E4E4');
+                    Text.onClick(() => { this.activeTab = idx; });
+                }, Text);
+                Text.pop();
+            };
+            this.forEachUpdateFunction(elmtId, this.tabs(), forEachItemGenFunction, undefined, true, false);
+        }, ForEach);
+        ForEach.pop();
+        Row.pop();
+        // Tab bar — pill/capsule style (active=red, inactive=gray)
+        Scroll.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Row 1 — 5 icons
+            Row.create({ space: 0 });
+            // Row 1 — 5 icons
             Row.width('100%');
+            // Row 1 — 5 icons
             Row.backgroundColor(Hive.Color.brandWhite);
-            Row.padding({ left: 16, right: 16, top: 12, bottom: 12 });
+            // Row 1 — 5 icons
+            Row.padding({ left: 8, right: 8 });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             ForEach.create();
@@ -1176,23 +1122,23 @@ class SDUIQuickAccess extends ViewPU {
                     Column.create({ space: 5 });
                     Column.layoutWeight(1);
                     Column.alignItems(HorizontalAlign.Center);
+                    Column.padding({ top: 10 });
                     Column.onClick(() => {
                         SensorDataClient.quickAccessTapped((raw as Record<string, string>)['label'] ?? '', (raw as Record<string, string>)['deepLink'] ?? '');
                     });
                 }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, string>)['icon'] ?? '');
+                    Text.create(this.resolveIcon((raw as Record<string, string>)['icon'] ?? ''));
                     Text.fontSize(22);
                     Text.width(48);
                     Text.height(48);
                     Text.textAlign(TextAlign.Center);
                     Text.borderRadius(14);
-                    Text.linearGradient({ direction: GradientDirection.LeftTop,
-                        colors: [['#F0F9FF', 0], ['#E0F2FE', 1]] });
+                    Text.backgroundColor(Hive.Color.n100);
                 }, Text);
                 Text.pop();
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, string>)['label'] ?? '');
+                    Text.create(this.shortLabel((raw as Record<string, string>)['label'] ?? ''));
                     Text.fontSize(10);
                     Text.fontColor(Hive.Color.n700);
                     Text.textAlign(TextAlign.Center);
@@ -1200,216 +1146,65 @@ class SDUIQuickAccess extends ViewPU {
                 Text.pop();
                 Column.pop();
             };
-            this.forEachUpdateFunction(elmtId, this.items(), forEachItemGenFunction);
+            this.forEachUpdateFunction(elmtId, this.row1(), forEachItemGenFunction);
         }, ForEach);
         ForEach.pop();
+        // Row 1 — 5 icons
         Row.pop();
-    }
-    rerender() {
-        this.updateDirtyElements();
-    }
-}
-class SDUIPromoBanner extends ViewPU {
-    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
-        super(parent, __localStorage, elmtId, extraInfo);
-        if (typeof paramsLambda === "function") {
-            this.paramsGenerator_ = paramsLambda;
-        }
-        this.props = {};
-        this.setInitiallyProvidedValue(params);
-        this.finalizeConstruction();
-    }
-    setInitiallyProvidedValue(params: SDUIPromoBanner_Params) {
-        if (params.props !== undefined) {
-            this.props = params.props;
-        }
-    }
-    updateStateVars(params: SDUIPromoBanner_Params) {
-    }
-    purgeVariableDependenciesOnElmtId(rmElmtId) {
-    }
-    aboutToBeDeleted() {
-        SubscriberManager.Get().delete(this.id__());
-        this.aboutToBeDeletedInternal();
-    }
-    private props: Record<string, any>;
-    private title(): string { return this.props['title'] as string ?? ''; }
-    private subtitle(): string { return this.props['subtitle'] as string ?? ''; }
-    private ctaLabel(): string { return this.props['ctaLabel'] as string ?? ''; }
-    private badgeText(): string { return this.props['badgeText'] as string ?? ''; }
-    private deepLink(): string { return this.props['ctaDeepLink'] as string ?? ''; }
-    initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Row 2 — 5 icons
             Row.create({ space: 0 });
+            // Row 2 — 5 icons
             Row.width('100%');
-            Row.padding({ left: 12, right: 12, top: 12, bottom: 12 });
-            Row.margin({ left: 12, right: 12, top: 8, bottom: 0 });
-            Row.borderRadius(14);
-            Row.backgroundColor(this.props['backgroundColor'] as string ?? '#E8F4FD');
-            Row.alignItems(VerticalAlign.Center);
+            // Row 2 — 5 icons
+            Row.backgroundColor(Hive.Color.brandWhite);
+            // Row 2 — 5 icons
+            Row.padding({ left: 8, right: 8 });
         }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 4 });
-            Column.layoutWeight(1);
-            Column.alignItems(HorizontalAlign.Start);
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            If.create();
-            if (this.badgeText().length > 0) {
-                this.ifElseBranchUpdateFunction(0, () => {
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create(this.badgeText());
-                        Text.fontSize(9);
-                        Text.fontWeight(FontWeight.Bold);
-                        Text.fontColor('#DB0011');
-                        Text.padding({ left: 8, right: 8, top: 2, bottom: 2 });
-                        Text.borderRadius(10);
-                        Text.backgroundColor('#FFEDED');
-                    }, Text);
-                    Text.pop();
-                });
-            }
-            else {
-                this.ifElseBranchUpdateFunction(1, () => {
-                });
-            }
-        }, If);
-        If.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(this.title());
-            Text.fontSize(16);
-            Text.fontWeight(FontWeight.Bolder);
-            Text.fontColor(Hive.Color.n900);
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(this.subtitle());
-            Text.fontSize(10);
-            Text.fontColor(Hive.Color.n500);
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Button.createWithLabel(this.ctaLabel());
-            Button.height(32);
-            Button.padding({ left: 16, right: 16 });
-            Button.borderRadius(14);
-            Button.backgroundColor(Hive.Color.brandPrimary);
-            Button.fontColor(Hive.Color.brandWhite);
-            Button.fontSize(11);
-            Button.fontWeight(FontWeight.Bold);
-            Button.margin({ top: 8 });
-            Button.onClick(() => {
-                SensorDataClient.promoBannerTapped(this.title(), this.props['instanceId'] as string ?? '', this.deepLink());
-            });
-        }, Button);
-        Button.pop();
-        Column.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('🎯');
-            Text.fontSize(32);
-            Text.width(80);
-            Text.height(80);
-            Text.textAlign(TextAlign.Center);
-            Text.borderRadius(12);
-            Text.backgroundColor('#14000000');
-        }, Text);
-        Text.pop();
-        Row.pop();
-    }
-    rerender() {
-        this.updateDirtyElements();
-    }
-}
-class SDUIFunctionGrid extends ViewPU {
-    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
-        super(parent, __localStorage, elmtId, extraInfo);
-        if (typeof paramsLambda === "function") {
-            this.paramsGenerator_ = paramsLambda;
-        }
-        this.props = {};
-        this.setInitiallyProvidedValue(params);
-        this.finalizeConstruction();
-    }
-    setInitiallyProvidedValue(params: SDUIFunctionGrid_Params) {
-        if (params.props !== undefined) {
-            this.props = params.props;
-        }
-    }
-    updateStateVars(params: SDUIFunctionGrid_Params) {
-    }
-    purgeVariableDependenciesOnElmtId(rmElmtId) {
-    }
-    aboutToBeDeleted() {
-        SubscriberManager.Get().delete(this.id__());
-        this.aboutToBeDeletedInternal();
-    }
-    private props: Record<string, any>;
-    private rows(): any[] { return this.props['rows'] as any[] ?? [] as any[]; }
-    initialRender() {
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 6 });
-            Column.width('100%');
-            Column.backgroundColor(Hive.Color.brandWhite);
-            Column.padding({ left: 16, right: 16, top: 8, bottom: 8 });
-        }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             ForEach.create();
             const forEachItemGenFunction = _item => {
-                const rawRow = _item;
+                const raw = _item;
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Row.create();
-                    Row.width('100%');
-                }, Row);
+                    Column.create({ space: 5 });
+                    Column.layoutWeight(1);
+                    Column.alignItems(HorizontalAlign.Center);
+                    Column.padding({ bottom: 10 });
+                    Column.onClick(() => {
+                        SensorDataClient.quickAccessTapped((raw as Record<string, string>)['label'] ?? '', (raw as Record<string, string>)['deepLink'] ?? '');
+                    });
+                }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    ForEach.create();
-                    const forEachItemGenFunction = _item => {
-                        const raw = _item;
-                        this.observeComponentCreation2((elmtId, isInitialRender) => {
-                            Column.create({ space: 4 });
-                            Column.layoutWeight(1);
-                            Column.alignItems(HorizontalAlign.Center);
-                            Column.onClick(() => {
-                                const extra: Record<string, any> = {};
-                                extra['function_label'] = ((raw as Record<string, string>)['label'] ?? '') as any;
-                                extra['deep_link'] = ((raw as Record<string, string>)['deepLink'] ?? '') as any;
-                                SensorDataClient.track('function_tap', 'Wealth', 'function_tapped', (raw as Record<string, string>)['label'] ?? '', 'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '', '', '', extra);
-                            });
-                        }, Column);
-                        this.observeComponentCreation2((elmtId, isInitialRender) => {
-                            Text.create((raw as Record<string, string>)['icon'] ?? '');
-                            Text.fontSize(20);
-                            Text.width(44);
-                            Text.height(44);
-                            Text.textAlign(TextAlign.Center);
-                            Text.borderRadius(12);
-                            Text.backgroundColor(Hive.Color.n100);
-                        }, Text);
-                        Text.pop();
-                        this.observeComponentCreation2((elmtId, isInitialRender) => {
-                            Text.create((raw as Record<string, string>)['label'] ?? '');
-                            Text.fontSize(10);
-                            Text.fontColor(Hive.Color.n700);
-                            Text.textAlign(TextAlign.Center);
-                            Text.lineHeight(14);
-                        }, Text);
-                        Text.pop();
-                        Column.pop();
-                    };
-                    this.forEachUpdateFunction(elmtId, rawRow as any[], forEachItemGenFunction);
-                }, ForEach);
-                ForEach.pop();
-                Row.pop();
+                    Text.create(this.resolveIcon((raw as Record<string, string>)['icon'] ?? ''));
+                    Text.fontSize(22);
+                    Text.width(48);
+                    Text.height(48);
+                    Text.textAlign(TextAlign.Center);
+                    Text.borderRadius(14);
+                    Text.backgroundColor(Hive.Color.n100);
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create(this.shortLabel((raw as Record<string, string>)['label'] ?? ''));
+                    Text.fontSize(10);
+                    Text.fontColor(Hive.Color.n700);
+                    Text.textAlign(TextAlign.Center);
+                }, Text);
+                Text.pop();
+                Column.pop();
             };
-            this.forEachUpdateFunction(elmtId, this.rows(), forEachItemGenFunction);
+            this.forEachUpdateFunction(elmtId, this.row2(), forEachItemGenFunction);
         }, ForEach);
         ForEach.pop();
+        // Row 2 — 5 icons
+        Row.pop();
         Column.pop();
     }
     rerender() {
         this.updateDirtyElements();
     }
 }
-class SDUIAIAssistant extends ViewPU {
+class SDUICardActivationBanner extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
         super(parent, __localStorage, elmtId, extraInfo);
         if (typeof paramsLambda === "function") {
@@ -1419,12 +1214,12 @@ class SDUIAIAssistant extends ViewPU {
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
-    setInitiallyProvidedValue(params: SDUIAIAssistant_Params) {
+    setInitiallyProvidedValue(params: SDUICardActivationBanner_Params) {
         if (params.props !== undefined) {
             this.props = params.props;
         }
     }
-    updateStateVars(params: SDUIAIAssistant_Params) {
+    updateStateVars(params: SDUICardActivationBanner_Params) {
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
     }
@@ -1433,34 +1228,39 @@ class SDUIAIAssistant extends ViewPU {
         this.aboutToBeDeletedInternal();
     }
     private props: Record<string, any>;
+    private message(): string { return this.props['message'] as string ?? 'Your card needs to be activated'; }
+    private ctaLabel(): string { return this.props['ctaLabel'] as string ?? 'Activate now'; }
+    private deepLink(): string { return this.props['deepLink'] as string ?? 'hsbc://cards/activate'; }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create({ space: 8 });
+            Row.create({ space: 10 });
             Row.width('100%');
-            Row.height(44);
-            Row.padding({ left: 12, right: 12 });
-            Row.margin({ left: 16, right: 16, top: 4, bottom: 4 });
-            Row.borderRadius(10);
-            Row.backgroundColor(Hive.Color.n50);
+            Row.padding({ left: 16, right: 16, top: 10, bottom: 10 });
+            Row.backgroundColor('#FFF5F5');
+            Row.borderWidth({ bottom: 1 });
+            Row.borderColor(Hive.Color.n100);
             Row.alignItems(VerticalAlign.Center);
-            Row.onClick(() => { SensorDataClient.aiAssistantTapped(); });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('✉️');
-            Text.fontSize(20);
+            Text.create('💳');
+            Text.fontSize(18);
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(this.props['greeting'] as string ?? 'Hi，我是你的智能財富助理');
-            Text.fontSize(11);
-            Text.fontColor(Hive.Color.n600);
+            Text.create(this.message());
+            Text.fontSize(13);
+            Text.fontColor(Hive.Color.n900);
             Text.layoutWeight(1);
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('›');
-            Text.fontSize(14);
-            Text.fontColor(Hive.Color.n400);
+            Text.create(this.ctaLabel());
+            Text.fontSize(12);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor('#DB0011');
+            Text.onClick(() => {
+                SensorDataClient.sliceTapped('CARD_ACTIVATION_BANNER', this.props['instanceId'] as string ?? 'slice-card-activation', this.ctaLabel(), this.deepLink());
+            });
         }, Text);
         Text.pop();
         Row.pop();
@@ -1469,26 +1269,22 @@ class SDUIAIAssistant extends ViewPU {
         this.updateDirtyElements();
     }
 }
-class SDUIAdBanner extends ViewPU {
+class SDUIQuestBanner extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
         super(parent, __localStorage, elmtId, extraInfo);
         if (typeof paramsLambda === "function") {
             this.paramsGenerator_ = paramsLambda;
         }
         this.props = {};
-        this.onDismiss = () => { };
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
-    setInitiallyProvidedValue(params: SDUIAdBanner_Params) {
+    setInitiallyProvidedValue(params: SDUIQuestBanner_Params) {
         if (params.props !== undefined) {
             this.props = params.props;
         }
-        if (params.onDismiss !== undefined) {
-            this.onDismiss = params.onDismiss;
-        }
     }
-    updateStateVars(params: SDUIAdBanner_Params) {
+    updateStateVars(params: SDUIQuestBanner_Params) {
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
     }
@@ -1497,218 +1293,170 @@ class SDUIAdBanner extends ViewPU {
         this.aboutToBeDeletedInternal();
     }
     private props: Record<string, any>;
-    private onDismiss: () => void;
-    private title(): string { return this.props['title'] as string ?? ''; }
-    private subtitle(): string { return this.props['subtitle'] as string ?? ''; }
-    private ctaLabel(): string { return this.props['ctaLabel'] as string ?? ''; }
-    private deepLink(): string { return this.props['ctaDeepLink'] as string ?? ''; }
+    private questTitle(): string { return this.props['questTitle'] as string ?? 'Getting started'; }
+    private desc(): string { return this.props['description'] as string ?? 'Complete setup to unlock your full Premier benefits'; }
+    private ctaLabel(): string { return this.props['ctaLabel'] as string ?? 'Continue'; }
+    private deepLink(): string { return this.props['deepLink'] as string ?? 'hsbc://onboarding/checklist'; }
+    private progress(): number { return this.props['progress'] as number ?? 40; }
     initialRender() {
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Stack.create({ alignContent: Alignment.TopEnd });
-            Stack.margin({ left: 12, right: 12, top: 6, bottom: 6 });
-        }, Stack);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create({ space: 12 });
             Row.width('100%');
-            Row.padding({ left: 16, right: 16, top: 12, bottom: 12 });
-            Row.borderRadius(14);
-            Row.linearGradient({ direction: GradientDirection.LeftTop,
-                colors: [['#FFFBEB', 0], ['#FEF3C7', 1]] });
-            Row.alignItems(VerticalAlign.Center);
+            Row.padding({ left: 16, right: 16, top: 14, bottom: 14 });
+            Row.margin({ top: 8, bottom: 0 });
+            Row.backgroundColor(Hive.Color.brandWhite);
+            Row.alignItems(VerticalAlign.Top);
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 4 });
-            Column.layoutWeight(1);
-            Column.alignItems(HorizontalAlign.Start);
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(this.title());
-            Text.fontSize(13);
-            Text.fontWeight(FontWeight.Bold);
-            Text.fontColor('#92400E');
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(this.subtitle());
-            Text.fontSize(10);
-            Text.fontColor('#78716C');
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Button.createWithLabel(this.ctaLabel());
-            Button.height(30);
-            Button.padding({ left: 14, right: 14 });
-            Button.borderRadius(12);
-            Button.backgroundColor(Hive.Color.brandPrimary);
-            Button.fontColor(Hive.Color.brandWhite);
-            Button.fontSize(11);
-            Button.fontWeight(FontWeight.Bold);
-            Button.margin({ top: 8 });
-            Button.onClick(() => {
-                SensorDataClient.sliceTapped('AD_BANNER', 'slice-ad', this.ctaLabel(), this.deepLink());
-            });
-        }, Button);
-        Button.pop();
-        Column.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('🌱');
+            // HSBC hexagon icon
+            Text.create('🏦');
+            // HSBC hexagon icon
             Text.fontSize(28);
-            Text.width(72);
-            Text.height(72);
+            // HSBC hexagon icon
+            Text.width(52);
+            // HSBC hexagon icon
+            Text.height(52);
+            // HSBC hexagon icon
             Text.textAlign(TextAlign.Center);
-            Text.borderRadius(10);
-            Text.backgroundColor('#14000000');
+            // HSBC hexagon icon
+            Text.borderRadius(14);
+            // HSBC hexagon icon
+            Text.backgroundColor('#FEF2F2');
         }, Text);
+        // HSBC hexagon icon
         Text.pop();
-        Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('✕');
-            Text.fontSize(13);
-            Text.fontColor(Hive.Color.n400);
-            Text.width(32);
-            Text.height(32);
-            Text.textAlign(TextAlign.Center);
-            Text.onClick(() => {
-                SensorDataClient.adBannerDismissed(this.title());
-                this.onDismiss();
-            });
-        }, Text);
-        Text.pop();
-        Stack.pop();
-    }
-    rerender() {
-        this.updateDirtyElements();
-    }
-}
-class SDUIFlashLoan extends ViewPU {
-    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
-        super(parent, __localStorage, elmtId, extraInfo);
-        if (typeof paramsLambda === "function") {
-            this.paramsGenerator_ = paramsLambda;
-        }
-        this.props = {};
-        this.setInitiallyProvidedValue(params);
-        this.finalizeConstruction();
-    }
-    setInitiallyProvidedValue(params: SDUIFlashLoan_Params) {
-        if (params.props !== undefined) {
-            this.props = params.props;
-        }
-    }
-    updateStateVars(params: SDUIFlashLoan_Params) {
-    }
-    purgeVariableDependenciesOnElmtId(rmElmtId) {
-    }
-    aboutToBeDeleted() {
-        SubscriberManager.Get().delete(this.id__());
-        this.aboutToBeDeletedInternal();
-    }
-    private props: Record<string, any>;
-    private productName(): string { return this.props['productName'] as string ?? '閃電貸 極速放款'; }
-    private tagline(): string { return this.props['tagline'] as string ?? '最高可借額度'; }
-    private currency(): string { return this.props['currency'] as string ?? 'HKD'; }
-    private maxAmount(): number { return this.props['maxAmount'] as number ?? 300000; }
-    private ctaLabel(): string { return this.props['ctaLabel'] as string ?? '獲取額度'; }
-    private deepLink(): string { return this.props['ctaDeepLink'] as string ?? 'hsbc://loan/flash'; }
-    initialRender() {
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create();
-            Row.width('100%');
-            Row.padding({ left: 16, right: 16, top: 12, bottom: 12 });
-            Row.margin({ left: 12, right: 12, top: 6, bottom: 6 });
-            Row.borderRadius(14);
-            Row.linearGradient({ direction: GradientDirection.LeftTop,
-                colors: [['#FFF5F5', 0], ['#FFE4E4', 1]] });
-            Row.alignItems(VerticalAlign.Center);
-        }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 2 });
+            Column.create({ space: 6 });
             Column.layoutWeight(1);
             Column.alignItems(HorizontalAlign.Start);
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(`⚡ ${this.productName()}`);
-            Text.fontSize(11);
+            Text.create(this.questTitle());
+            Text.fontSize(14);
             Text.fontWeight(FontWeight.Bold);
-            Text.fontColor(Hive.Color.brandPrimary);
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(this.tagline());
-            Text.fontSize(10);
-            Text.fontColor(Hive.Color.n500);
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(`${this.currency()} ${this.maxAmount().toLocaleString()}.00`);
-            Text.fontSize(22);
-            Text.fontWeight(FontWeight.Bolder);
             Text.fontColor(Hive.Color.n900);
         }, Text);
         Text.pop();
-        Column.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.desc());
+            Text.fontSize(11);
+            Text.fontColor(Hive.Color.n500);
+            Text.maxLines(2);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Progress bar
+            Stack.create({ alignContent: Alignment.Start });
+        }, Stack);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.width('100%');
+            Row.height(4);
+            Row.borderRadius(2);
+            Row.backgroundColor(Hive.Color.n100);
+        }, Row);
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.width(`${this.progress()}%`);
+            Row.height(4);
+            Row.borderRadius(2);
+            Row.backgroundColor('#DB0011');
+        }, Row);
+        Row.pop();
+        // Progress bar
+        Stack.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Button.createWithLabel(this.ctaLabel());
-            Button.height(44);
-            Button.padding({ left: 18, right: 18 });
-            Button.borderRadius(20);
-            Button.backgroundColor(Hive.Color.brandPrimary);
+            Button.height(30);
+            Button.padding({ left: 16, right: 16 });
+            Button.borderRadius(14);
+            Button.backgroundColor('#DB0011');
             Button.fontColor(Hive.Color.brandWhite);
-            Button.fontSize(12);
+            Button.fontSize(11);
             Button.fontWeight(FontWeight.Bold);
             Button.onClick(() => {
-                SensorDataClient.sliceTapped('FLASH_LOAN', 'slice-flash-loan', this.ctaLabel(), this.deepLink());
+                SensorDataClient.sliceTapped('QUEST_BANNER', this.props['instanceId'] as string ?? 'slice-quest', this.ctaLabel(), this.deepLink());
             });
         }, Button);
         Button.pop();
+        Column.pop();
         Row.pop();
     }
     rerender() {
         this.updateDirtyElements();
     }
 }
-class SDUIWealthSelection extends ViewPU {
+class SDUIFeatureProduct extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
         super(parent, __localStorage, elmtId, extraInfo);
         if (typeof paramsLambda === "function") {
             this.paramsGenerator_ = paramsLambda;
         }
         this.props = {};
+        this.__activeTab = new ObservedPropertySimplePU(0, this, "activeTab");
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
-    setInitiallyProvidedValue(params: SDUIWealthSelection_Params) {
+    setInitiallyProvidedValue(params: SDUIFeatureProduct_Params) {
         if (params.props !== undefined) {
             this.props = params.props;
         }
+        if (params.activeTab !== undefined) {
+            this.activeTab = params.activeTab;
+        }
     }
-    updateStateVars(params: SDUIWealthSelection_Params) {
+    updateStateVars(params: SDUIFeatureProduct_Params) {
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
+        this.__activeTab.purgeDependencyOnElmtId(rmElmtId);
     }
     aboutToBeDeleted() {
+        this.__activeTab.aboutToBeDeleted();
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
     private props: Record<string, any>;
-    private sectionTitle(): string { return this.props['sectionTitle'] as string ?? '財富精選'; }
-    private products(): any[] { return this.props['products'] as any[] ?? [] as any[]; }
+    private __activeTab: ObservedPropertySimplePU<number>;
+    get activeTab() {
+        return this.__activeTab.get();
+    }
+    set activeTab(newValue: number) {
+        this.__activeTab.set(newValue);
+    }
+    private sectionTitle(): string { return this.props['sectionTitle'] as string ?? 'Feature product'; }
+    private tabs(): string[] {
+        const raw: Array<string> = this.props['tabs'] as Array<string>;
+        if (raw && raw.length > 0) {
+            return raw;
+        }
+        return ['All', 'Equity', 'Bond', 'Multi-Asset'];
+    }
+    private funds(): any[] { return this.props['funds'] as any[] ?? [] as any[]; }
+    private fundTags(fund: any): Array<string> {
+        const tags: Array<string> = (fund as Record<string, any>)['tags'] as Array<string>;
+        return tags ?? [];
+    }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 0 });
             Column.width('100%');
             Column.backgroundColor(Hive.Color.brandWhite);
-            Column.padding({ left: 16, right: 16, top: 12, bottom: 12 });
+            Column.margin({ top: 8 });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Section header
             Row.create();
+            // Section header
             Row.width('100%');
-            Row.margin({ bottom: 10 });
+            // Section header
+            Row.padding({ left: 16, right: 16, top: 14, bottom: 8 });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(this.sectionTitle());
-            Text.fontSize(15);
+            Text.fontSize(16);
             Text.fontWeight(FontWeight.Bold);
+            Text.fontColor(Hive.Color.n900);
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1717,57 +1465,106 @@ class SDUIWealthSelection extends ViewPU {
         }, Blank);
         Blank.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('更多 ›');
+            Text.create('More ›');
             Text.fontSize(12);
-            Text.fontColor(Hive.Color.brandPrimary);
+            Text.fontColor('#DB0011');
         }, Text);
         Text.pop();
+        // Section header
         Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Sub-tabs
+            Scroll.create();
+            // Sub-tabs
+            Scroll.scrollable(ScrollDirection.Horizontal);
+            // Sub-tabs
+            Scroll.scrollBar(BarState.Off);
+            // Sub-tabs
+            Scroll.width('100%');
+        }, Scroll);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 8 });
+            Row.padding({ left: 16, right: 16, bottom: 8 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            ForEach.create();
+            const forEachItemGenFunction = (_item, idx: number) => {
+                const tab = _item;
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create(tab);
+                    Text.fontSize(12);
+                    Text.fontWeight(this.activeTab === idx ? FontWeight.Bold : FontWeight.Normal);
+                    Text.fontColor(this.activeTab === idx ? Hive.Color.brandWhite : Hive.Color.n700);
+                    Text.padding({ left: 14, right: 14, top: 6, bottom: 6 });
+                    Text.borderRadius(16);
+                    Text.backgroundColor(this.activeTab === idx ? '#DB0011' : Hive.Color.n100);
+                    Text.onClick(() => { this.activeTab = idx; });
+                }, Text);
+                Text.pop();
+            };
+            this.forEachUpdateFunction(elmtId, this.tabs(), forEachItemGenFunction, undefined, true, false);
+        }, ForEach);
+        ForEach.pop();
+        Row.pop();
+        // Sub-tabs
+        Scroll.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Fund rows
+            Column.create({ space: 0 });
+        }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             ForEach.create();
             const forEachItemGenFunction = (_item, index: number) => {
                 const raw = _item;
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Row.create();
+                    Row.create({ space: 12 });
                     Row.width('100%');
-                    Row.padding({ top: 10, bottom: 10 });
+                    Row.padding({ left: 16, right: 16, top: 12, bottom: 12 });
                     Row.onClick(() => {
-                        SensorDataClient.wealthProductTapped((raw as Record<string, any>)['productName'] as string ?? '', (raw as Record<string, any>)['id'] as string ?? '');
+                        SensorDataClient.wealthProductTapped((raw as Record<string, string>)['name'] ?? '', (raw as Record<string, string>)['id'] ?? '');
                     });
                 }, Row);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Column.create({ space: 2 });
+                    Column.create({ space: 4 });
                     Column.layoutWeight(1);
                     Column.alignItems(HorizontalAlign.Start);
                 }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, any>)['productName'] as string ?? '');
-                    Text.fontSize(12);
+                    Text.create((raw as Record<string, string>)['name'] ?? '');
+                    Text.fontSize(13);
                     Text.fontWeight(FontWeight.Medium);
                     Text.fontColor(Hive.Color.n900);
+                    Text.maxLines(2);
                 }, Text);
                 Text.pop();
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Row.create({ space: 6 });
+                    Text.create((raw as Record<string, string>)['code'] ?? '');
+                    Text.fontSize(11);
+                    Text.fontColor(Hive.Color.n500);
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    // Tags
+                    Row.create({ space: 4 });
                 }, Row);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, any>)['riskLevel'] as string ?? '');
-                    Text.fontSize(9);
-                    Text.fontColor(Hive.Color.n500);
-                    Text.padding({ left: 6, right: 6, top: 1, bottom: 1 });
-                    Text.borderRadius(8);
-                    Text.backgroundColor(Hive.Color.n100);
-                }, Text);
-                Text.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, any>)['redemption'] as string ?? '');
-                    Text.fontSize(9);
-                    Text.fontColor(Hive.Color.n500);
-                    Text.padding({ left: 6, right: 6, top: 1, bottom: 1 });
-                    Text.borderRadius(8);
-                    Text.backgroundColor(Hive.Color.n100);
-                }, Text);
-                Text.pop();
+                    ForEach.create();
+                    const forEachItemGenFunction = _item => {
+                        const tag = _item;
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            Text.create(tag);
+                            Text.fontSize(9);
+                            Text.fontColor('#DB0011');
+                            Text.padding({ left: 6, right: 6, top: 2, bottom: 2 });
+                            Text.borderRadius(8);
+                            Text.backgroundColor('#FEF2F2');
+                        }, Text);
+                        Text.pop();
+                    };
+                    this.forEachUpdateFunction(elmtId, this.fundTags(raw), forEachItemGenFunction);
+                }, ForEach);
+                ForEach.pop();
+                // Tags
                 Row.pop();
                 Column.pop();
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1775,54 +1572,28 @@ class SDUIWealthSelection extends ViewPU {
                     Column.alignItems(HorizontalAlign.End);
                 }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, any>)['yield7Day'] as string ?? '');
+                    Text.create((raw as Record<string, string>)['return1Y'] ?? '');
                     Text.fontSize(18);
-                    Text.fontWeight(FontWeight.Bolder);
-                    Text.fontColor(Hive.Color.brandPrimary);
+                    Text.fontWeight(FontWeight.Bold);
+                    Text.fontColor((raw as Record<string, string>)['return1Y']?.startsWith('+') ? '#16A34A' : '#DC2626');
                 }, Text);
                 Text.pop();
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create('7日年化');
+                    Text.create('1Y return');
                     Text.fontSize(9);
                     Text.fontColor(Hive.Color.n400);
                 }, Text);
                 Text.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    If.create();
-                    if ((raw as Record<string, any>)['highlighted'] as boolean === true) {
-                        this.ifElseBranchUpdateFunction(0, () => {
-                            this.observeComponentCreation2((elmtId, isInitialRender) => {
-                                Button.createWithLabel((raw as Record<string, any>)['ctaLabel'] as string ?? '查看');
-                                Button.height(28);
-                                Button.padding({ left: 12, right: 12 });
-                                Button.borderRadius(12);
-                                Button.backgroundColor(Hive.Color.brandPrimary);
-                                Button.fontColor(Hive.Color.brandWhite);
-                                Button.fontSize(10);
-                                Button.fontWeight(FontWeight.Bold);
-                                Button.margin({ top: 4 });
-                                Button.onClick(() => {
-                                    SensorDataClient.wealthProductTapped((raw as Record<string, any>)['productName'] as string ?? '', (raw as Record<string, any>)['id'] as string ?? '');
-                                });
-                            }, Button);
-                            Button.pop();
-                        });
-                    }
-                    else {
-                        this.ifElseBranchUpdateFunction(1, () => {
-                        });
-                    }
-                }, If);
-                If.pop();
                 Column.pop();
                 Row.pop();
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     If.create();
-                    if (index < this.products().length - 1) {
+                    if (index < this.funds().length - 1) {
                         this.ifElseBranchUpdateFunction(0, () => {
                             this.observeComponentCreation2((elmtId, isInitialRender) => {
                                 Divider.create();
                                 Divider.color(Hive.Color.n100);
+                                Divider.margin({ left: 16, right: 16 });
                             }, Divider);
                         });
                     }
@@ -1833,29 +1604,18 @@ class SDUIWealthSelection extends ViewPU {
                 }, If);
                 If.pop();
             };
-            this.forEachUpdateFunction(elmtId, this.products(), forEachItemGenFunction, undefined, true, false);
+            this.forEachUpdateFunction(elmtId, this.funds(), forEachItemGenFunction, undefined, true, false);
         }, ForEach);
         ForEach.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Blank.create();
-            Blank.height(10);
-        }, Blank);
-        Blank.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('💬 理財產品這么多，哪款適合我？');
-            Text.fontSize(11);
-            Text.fontColor(Hive.Color.n500);
-            Text.textAlign(TextAlign.Center);
-            Text.width('100%');
-        }, Text);
-        Text.pop();
+        // Fund rows
+        Column.pop();
         Column.pop();
     }
     rerender() {
         this.updateDirtyElements();
     }
 }
-class SDUIFeaturedRankings extends ViewPU {
+class SDUIWealthStudioCarousel extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
         super(parent, __localStorage, elmtId, extraInfo);
         if (typeof paramsLambda === "function") {
@@ -1865,12 +1625,12 @@ class SDUIFeaturedRankings extends ViewPU {
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
-    setInitiallyProvidedValue(params: SDUIFeaturedRankings_Params) {
+    setInitiallyProvidedValue(params: SDUIWealthStudioCarousel_Params) {
         if (params.props !== undefined) {
             this.props = params.props;
         }
     }
-    updateStateVars(params: SDUIFeaturedRankings_Params) {
+    updateStateVars(params: SDUIWealthStudioCarousel_Params) {
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
     }
@@ -1879,24 +1639,26 @@ class SDUIFeaturedRankings extends ViewPU {
         this.aboutToBeDeletedInternal();
     }
     private props: Record<string, any>;
-    private sectionTitle(): string { return this.props['sectionTitle'] as string ?? '特色榜單'; }
+    private sectionTitle(): string { return this.props['sectionTitle'] as string ?? 'Premier Elite Wealth Studio'; }
+    private moreLabel(): string { return this.props['moreLabel'] as string ?? 'View all'; }
     private items(): any[] { return this.props['items'] as any[] ?? [] as any[]; }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 0 });
             Column.width('100%');
             Column.backgroundColor(Hive.Color.brandWhite);
-            Column.padding({ left: 16, right: 16, top: 12, bottom: 12 });
+            Column.margin({ top: 8 });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create();
             Row.width('100%');
-            Row.margin({ bottom: 10 });
+            Row.padding({ left: 16, right: 16, top: 14, bottom: 10 });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(this.sectionTitle());
-            Text.fontSize(15);
+            Text.fontSize(16);
             Text.fontWeight(FontWeight.Bold);
+            Text.fontColor(Hive.Color.n900);
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1905,138 +1667,21 @@ class SDUIFeaturedRankings extends ViewPU {
         }, Blank);
         Blank.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('更多 ›');
+            Text.create(`${this.moreLabel()} ›`);
             Text.fontSize(12);
-            Text.fontColor(Hive.Color.brandPrimary);
+            Text.fontColor('#DB0011');
         }, Text);
         Text.pop();
         Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            ForEach.create();
-            const forEachItemGenFunction = _item => {
-                const raw = _item;
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Row.create({ space: 12 });
-                    Row.width('100%');
-                    Row.padding({ top: 8, bottom: 8 });
-                    Row.onClick(() => {
-                        SensorDataClient.rankingsTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['badge'] ?? '');
-                    });
-                }, Row);
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, string>)['icon'] ?? '');
-                    Text.fontSize(24);
-                }, Text);
-                Text.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Column.create({ space: 2 });
-                    Column.layoutWeight(1);
-                    Column.alignItems(HorizontalAlign.Start);
-                }, Column);
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, string>)['badge'] ?? '');
-                    Text.fontSize(9);
-                    Text.fontWeight(FontWeight.Bold);
-                    Text.fontColor(Hive.Color.brandPrimary);
-                    Text.padding({ left: 8, right: 8, top: 2, bottom: 2 });
-                    Text.borderRadius(10);
-                    Text.backgroundColor('#FEF2F2');
-                }, Text);
-                Text.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, string>)['title'] ?? '');
-                    Text.fontSize(13);
-                    Text.fontWeight(FontWeight.Bold);
-                    Text.fontColor(Hive.Color.n900);
-                }, Text);
-                Text.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, string>)['description'] ?? '');
-                    Text.fontSize(10);
-                    Text.fontColor(Hive.Color.n500);
-                }, Text);
-                Text.pop();
-                Column.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create('›');
-                    Text.fontSize(16);
-                    Text.fontColor(Hive.Color.n400);
-                }, Text);
-                Text.pop();
-                Row.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Divider.create();
-                    Divider.color('#F9FAFB');
-                }, Divider);
-            };
-            this.forEachUpdateFunction(elmtId, this.items(), forEachItemGenFunction);
-        }, ForEach);
-        ForEach.pop();
-        Column.pop();
-    }
-    rerender() {
-        this.updateDirtyElements();
-    }
-}
-class SDUILifeDeals extends ViewPU {
-    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
-        super(parent, __localStorage, elmtId, extraInfo);
-        if (typeof paramsLambda === "function") {
-            this.paramsGenerator_ = paramsLambda;
-        }
-        this.props = {};
-        this.setInitiallyProvidedValue(params);
-        this.finalizeConstruction();
-    }
-    setInitiallyProvidedValue(params: SDUILifeDeals_Params) {
-        if (params.props !== undefined) {
-            this.props = params.props;
-        }
-    }
-    updateStateVars(params: SDUILifeDeals_Params) {
-    }
-    purgeVariableDependenciesOnElmtId(rmElmtId) {
-    }
-    aboutToBeDeleted() {
-        SubscriberManager.Get().delete(this.id__());
-        this.aboutToBeDeletedInternal();
-    }
-    private props: Record<string, any>;
-    private sectionTitle(): string { return this.props['sectionTitle'] as string ?? '生活特惠'; }
-    private deals(): any[] { return this.props['deals'] as any[] ?? [] as any[]; }
-    private links(): any[] { return this.props['bottomLinks'] as any[] ?? [] as any[]; }
-    initialRender() {
+            Scroll.create();
+            Scroll.scrollable(ScrollDirection.Horizontal);
+            Scroll.scrollBar(BarState.Off);
+            Scroll.width('100%');
+        }, Scroll);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 10 });
-            Column.width('100%');
-            Column.backgroundColor(Hive.Color.brandWhite);
-            Column.padding({ left: 16, right: 16, top: 12, bottom: 12 });
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create();
-            Row.width('100%');
-        }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(this.sectionTitle());
-            Text.fontSize(15);
-            Text.fontWeight(FontWeight.Bold);
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Blank.create();
-            Blank.layoutWeight(1);
-        }, Blank);
-        Blank.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('更多 ›');
-            Text.fontSize(12);
-            Text.fontColor(Hive.Color.brandPrimary);
-        }, Text);
-        Text.pop();
-        Row.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create({ space: 10 });
-            Row.width('100%');
+            Row.create({ space: 12 });
+            Row.padding({ left: 16, right: 16, bottom: 14 });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             ForEach.create();
@@ -2044,21 +1689,531 @@ class SDUILifeDeals extends ViewPU {
                 const raw = _item;
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     Column.create({ space: 0 });
-                    Column.layoutWeight(1);
-                    Column.borderRadius(12);
+                    Column.borderRadius(10);
                     Column.clip(true);
-                    Column.backgroundColor(Hive.Color.n50);
+                    Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
                     Column.onClick(() => {
-                        SensorDataClient.lifeDealTapped((raw as Record<string, string>)['brandName'] ?? '', (raw as Record<string, string>)['tag'] ?? '');
+                        SensorDataClient.wealthStudioTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['id'] ?? '');
                     });
                 }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, string>)['logoUrl'] || '🏷');
-                    Text.fontSize(24);
-                    Text.width('100%');
-                    Text.height(64);
+                    // Image area — fixed 100px height
+                    Stack.create({ alignContent: Alignment.BottomStart });
+                }, Stack);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create('📹');
+                    Text.fontSize(32);
+                    Text.width(180);
+                    Text.height(100);
                     Text.textAlign(TextAlign.Center);
-                    Text.backgroundColor(Hive.Color.n100);
+                    Text.backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n700);
+                    Text.borderRadius({ topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 });
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    // Play button centred
+                    Text.create('▶');
+                    // Play button centred
+                    Text.fontSize(20);
+                    // Play button centred
+                    Text.fontColor(Hive.Color.brandWhite);
+                    // Play button centred
+                    Text.width(36);
+                    // Play button centred
+                    Text.height(36);
+                    // Play button centred
+                    Text.textAlign(TextAlign.Center);
+                    // Play button centred
+                    Text.borderRadius(18);
+                    // Play button centred
+                    Text.backgroundColor('#80000000');
+                    // Play button centred
+                    Text.position({ x: 72, y: 32 });
+                }, Text);
+                // Play button centred
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    // Live badge bottom-left
+                    Text.create((raw as Record<string, string>)['liveBadge'] ?? '');
+                    // Live badge bottom-left
+                    Text.fontSize(8);
+                    // Live badge bottom-left
+                    Text.fontWeight(FontWeight.Bold);
+                    // Live badge bottom-left
+                    Text.fontColor(Hive.Color.brandWhite);
+                    // Live badge bottom-left
+                    Text.padding({ left: 6, right: 6, top: 2, bottom: 2 });
+                    // Live badge bottom-left
+                    Text.borderRadius(3);
+                    // Live badge bottom-left
+                    Text.backgroundColor('#DB0011');
+                    // Live badge bottom-left
+                    Text.margin({ left: 8, bottom: 8 });
+                }, Text);
+                // Live badge bottom-left
+                Text.pop();
+                // Image area — fixed 100px height
+                Stack.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    // Text area — fixed 72px height so cards align
+                    Column.create({ space: 4 });
+                    // Text area — fixed 72px height so cards align
+                    Column.alignItems(HorizontalAlign.Start);
+                    // Text area — fixed 72px height so cards align
+                    Column.width(180);
+                    // Text area — fixed 72px height so cards align
+                    Column.height(72);
+                    // Text area — fixed 72px height so cards align
+                    Column.padding({ left: 10, right: 10, top: 8, bottom: 8 });
+                    // Text area — fixed 72px height so cards align
+                    Column.backgroundColor(Hive.Color.brandWhite);
+                    // Text area — fixed 72px height so cards align
+                    Column.borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 10, bottomRight: 10 });
+                }, Column);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, string>)['episodeLabel'] ?? '');
+                    Text.fontSize(9);
+                    Text.fontColor(Hive.Color.n400);
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, string>)['title'] ?? '');
+                    Text.fontSize(11);
+                    Text.fontWeight(FontWeight.Bold);
+                    Text.fontColor(Hive.Color.n900);
+                    Text.maxLines(2);
+                    Text.width(180);
+                }, Text);
+                Text.pop();
+                // Text area — fixed 72px height so cards align
+                Column.pop();
+                Column.pop();
+            };
+            this.forEachUpdateFunction(elmtId, this.items(), forEachItemGenFunction);
+        }, ForEach);
+        ForEach.pop();
+        Row.pop();
+        Scroll.pop();
+        Column.pop();
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+}
+class SDUIGuidesInsights extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.props = {};
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params: SDUIGuidesInsights_Params) {
+        if (params.props !== undefined) {
+            this.props = params.props;
+        }
+    }
+    updateStateVars(params: SDUIGuidesInsights_Params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+    }
+    aboutToBeDeleted() {
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    private props: Record<string, any>;
+    private sectionTitle(): string { return this.props['sectionTitle'] as string ?? 'Guides and insights'; }
+    private moreLabel(): string { return this.props['moreLabel'] as string ?? 'View all'; }
+    private items(): any[] { return this.props['items'] as any[] ?? [] as any[]; }
+    initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 0 });
+            Column.width('100%');
+            Column.backgroundColor(Hive.Color.brandWhite);
+            Column.margin({ top: 8 });
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.width('100%');
+            Row.padding({ left: 16, right: 16, top: 14, bottom: 10 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.sectionTitle());
+            Text.fontSize(16);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor(Hive.Color.n900);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Blank.create();
+            Blank.layoutWeight(1);
+        }, Blank);
+        Blank.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(`${this.moreLabel()} ›`);
+            Text.fontSize(12);
+            Text.fontColor('#DB0011');
+        }, Text);
+        Text.pop();
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Scroll.create();
+            Scroll.scrollable(ScrollDirection.Horizontal);
+            Scroll.scrollBar(BarState.Off);
+            Scroll.width('100%');
+        }, Scroll);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 12 });
+            Row.padding({ left: 16, right: 16, bottom: 14 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            ForEach.create();
+            const forEachItemGenFunction = _item => {
+                const raw = _item;
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Column.create({ space: 0 });
+                    Column.borderRadius(10);
+                    Column.clip(true);
+                    Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
+                    Column.onClick(() => {
+                        SensorDataClient.guidesTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['id'] ?? '');
+                    });
+                }, Column);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    // Fixed-height image area
+                    Text.create('📖');
+                    // Fixed-height image area
+                    Text.fontSize(36);
+                    // Fixed-height image area
+                    Text.width(160);
+                    // Fixed-height image area
+                    Text.height(90);
+                    // Fixed-height image area
+                    Text.textAlign(TextAlign.Center);
+                    // Fixed-height image area
+                    Text.backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n100);
+                    // Fixed-height image area
+                    Text.borderRadius({ topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 });
+                }, Text);
+                // Fixed-height image area
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    // Fixed-height text area so cards stay same height
+                    Column.create({ space: 4 });
+                    // Fixed-height text area so cards stay same height
+                    Column.alignItems(HorizontalAlign.Start);
+                    // Fixed-height text area so cards stay same height
+                    Column.width(160);
+                    // Fixed-height text area so cards stay same height
+                    Column.height(72);
+                    // Fixed-height text area so cards stay same height
+                    Column.padding({ left: 8, right: 8, top: 8, bottom: 8 });
+                    // Fixed-height text area so cards stay same height
+                    Column.backgroundColor(Hive.Color.brandWhite);
+                    // Fixed-height text area so cards stay same height
+                    Column.borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 10, bottomRight: 10 });
+                }, Column);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, string>)['title'] ?? '');
+                    Text.fontSize(11);
+                    Text.fontWeight(FontWeight.Medium);
+                    Text.fontColor(Hive.Color.n900);
+                    Text.maxLines(3);
+                    Text.width(160);
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, string>)['date'] ?? '');
+                    Text.fontSize(9);
+                    Text.fontColor(Hive.Color.n400);
+                }, Text);
+                Text.pop();
+                // Fixed-height text area so cards stay same height
+                Column.pop();
+                Column.pop();
+            };
+            this.forEachUpdateFunction(elmtId, this.items(), forEachItemGenFunction);
+        }, ForEach);
+        ForEach.pop();
+        Row.pop();
+        Scroll.pop();
+        Column.pop();
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+}
+class SDUIFXWatchlist extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.props = {};
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params: SDUIFXWatchlist_Params) {
+        if (params.props !== undefined) {
+            this.props = params.props;
+        }
+    }
+    updateStateVars(params: SDUIFXWatchlist_Params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+    }
+    aboutToBeDeleted() {
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    private props: Record<string, any>;
+    private sectionTitle(): string { return this.props['sectionTitle'] as string ?? 'FX watchlist'; }
+    private tierBadge(): string { return this.props['tierBadge'] as string ?? 'Premier'; }
+    private pairs(): any[] { return this.props['pairs'] as any[] ?? [] as any[]; }
+    initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 0 });
+            Column.width('100%');
+            Column.backgroundColor(Hive.Color.brandWhite);
+            Column.margin({ top: 8 });
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Header row
+            Row.create({ space: 8 });
+            // Header row
+            Row.width('100%');
+            // Header row
+            Row.padding({ left: 16, right: 16, top: 14, bottom: 8 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.sectionTitle());
+            Text.fontSize(16);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor(Hive.Color.n900);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.tierBadge());
+            Text.fontSize(9);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor('#DB0011');
+            Text.padding({ left: 8, right: 8, top: 3, bottom: 3 });
+            Text.borderRadius(10);
+            Text.backgroundColor('#FEF2F2');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Blank.create();
+            Blank.layoutWeight(1);
+        }, Blank);
+        Blank.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('View all ›');
+            Text.fontSize(12);
+            Text.fontColor('#DB0011');
+        }, Text);
+        Text.pop();
+        // Header row
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Column headers
+            Row.create();
+            // Column headers
+            Row.width('100%');
+            // Column headers
+            Row.padding({ left: 16, right: 16, bottom: 6 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('Currency pair');
+            Text.fontSize(11);
+            Text.fontColor(Hive.Color.n400);
+            Text.layoutWeight(2);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('Rate');
+            Text.fontSize(11);
+            Text.fontColor(Hive.Color.n400);
+            Text.layoutWeight(1);
+            Text.textAlign(TextAlign.End);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('Change');
+            Text.fontSize(11);
+            Text.fontColor(Hive.Color.n400);
+            Text.layoutWeight(1);
+            Text.textAlign(TextAlign.End);
+        }, Text);
+        Text.pop();
+        // Column headers
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Divider.create();
+            Divider.color(Hive.Color.n100);
+            Divider.margin({ left: 16, right: 16 });
+        }, Divider);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // FX rows
+            ForEach.create();
+            const forEachItemGenFunction = (_item, index: number) => {
+                const raw = _item;
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Row.create({ space: 0 });
+                    Row.width('100%');
+                    Row.padding({ left: 16, right: 16, top: 10, bottom: 10 });
+                    Row.onClick(() => {
+                        SensorDataClient.track('fx_pair_tap', 'Wealth', 'fx_pair_tapped', `${(raw as Record<string, string>)['base'] ?? ''}/${(raw as Record<string, string>)['quote'] ?? ''}`, 'fx_watchlist', 'wealth_hub');
+                    });
+                }, Row);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create(`${(raw as Record<string, string>)['base'] ?? ''} / ${(raw as Record<string, string>)['quote'] ?? ''}`);
+                    Text.fontSize(13);
+                    Text.fontWeight(FontWeight.Medium);
+                    Text.fontColor(Hive.Color.n900);
+                    Text.layoutWeight(2);
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, string>)['rate'] ?? '');
+                    Text.fontSize(13);
+                    Text.fontColor(Hive.Color.n900);
+                    Text.layoutWeight(1);
+                    Text.textAlign(TextAlign.End);
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, string>)['change'] ?? '');
+                    Text.fontSize(13);
+                    Text.fontWeight(FontWeight.Medium);
+                    Text.fontColor((raw as Record<string, boolean>)['positive'] ? '#16A34A' : '#DC2626');
+                    Text.layoutWeight(1);
+                    Text.textAlign(TextAlign.End);
+                }, Text);
+                Text.pop();
+                Row.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    If.create();
+                    if (index < this.pairs().length - 1) {
+                        this.ifElseBranchUpdateFunction(0, () => {
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Divider.create();
+                                Divider.color(Hive.Color.n100);
+                                Divider.margin({ left: 16, right: 16 });
+                            }, Divider);
+                        });
+                    }
+                    else {
+                        this.ifElseBranchUpdateFunction(1, () => {
+                        });
+                    }
+                }, If);
+                If.pop();
+            };
+            this.forEachUpdateFunction(elmtId, this.pairs(), forEachItemGenFunction, undefined, true, false);
+        }, ForEach);
+        // FX rows
+        ForEach.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Blank.create();
+            Blank.height(12);
+        }, Blank);
+        Blank.pop();
+        Column.pop();
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+}
+class SDUIDiscoverMore extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.props = {};
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params: SDUIDiscoverMore_Params) {
+        if (params.props !== undefined) {
+            this.props = params.props;
+        }
+    }
+    updateStateVars(params: SDUIDiscoverMore_Params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+    }
+    aboutToBeDeleted() {
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    private props: Record<string, any>;
+    private sectionTitle(): string { return this.props['sectionTitle'] as string ?? 'Discover more'; }
+    private items(): any[] { return this.props['items'] as any[] ?? [] as any[]; }
+    initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 0 });
+            Column.width('100%');
+            Column.backgroundColor(Hive.Color.n50);
+            Column.margin({ top: 8 });
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.width('100%');
+            Row.padding({ left: 16, right: 16, top: 14, bottom: 10 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.sectionTitle());
+            Text.fontSize(16);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor(Hive.Color.n900);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Blank.create();
+            Blank.layoutWeight(1);
+        }, Blank);
+        Blank.pop();
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Scroll.create();
+            Scroll.scrollable(ScrollDirection.Horizontal);
+            Scroll.scrollBar(BarState.Off);
+            Scroll.width('100%');
+        }, Scroll);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 12 });
+            Row.padding({ left: 16, right: 16, bottom: 14 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            ForEach.create();
+            const forEachItemGenFunction = _item => {
+                const raw = _item;
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Column.create({ space: 0 });
+                    Column.borderRadius(12);
+                    Column.clip(true);
+                    Column.backgroundColor(Hive.Color.brandWhite);
+                    Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
+                    Column.onClick(() => {
+                        SensorDataClient.discoverMoreTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['tag'] ?? '');
+                    });
+                }, Column);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    // Fixed-height image area with tag chip
+                    Stack.create({ alignContent: Alignment.TopStart });
+                }, Stack);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create('🏦');
+                    Text.fontSize(40);
+                    Text.width(200);
+                    Text.height(110);
+                    Text.textAlign(TextAlign.Center);
+                    Text.backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n700);
+                    Text.borderRadius({ topLeft: 12, topRight: 12, bottomLeft: 0, bottomRight: 0 });
                 }, Text);
                 Text.pop();
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -2066,64 +2221,63 @@ class SDUILifeDeals extends ViewPU {
                     Text.fontSize(9);
                     Text.fontWeight(FontWeight.Bold);
                     Text.fontColor(Hive.Color.brandWhite);
-                    Text.width('100%');
-                    Text.textAlign(TextAlign.Center);
-                    Text.padding({ top: 4, bottom: 4 });
-                    Text.backgroundColor(Hive.Color.brandPrimary);
+                    Text.padding({ left: 8, right: 8, top: 4, bottom: 4 });
+                    Text.borderRadius(10);
+                    Text.backgroundColor((raw as Record<string, string>)['tagColor'] ?? '#DB0011');
+                    Text.margin({ left: 10, top: 10 });
                 }, Text);
                 Text.pop();
+                // Fixed-height image area with tag chip
+                Stack.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    // Fixed-height text area
+                    Column.create({ space: 4 });
+                    // Fixed-height text area
+                    Column.alignItems(HorizontalAlign.Start);
+                    // Fixed-height text area
+                    Column.width(200);
+                    // Fixed-height text area
+                    Column.height(72);
+                    // Fixed-height text area
+                    Column.padding({ left: 10, right: 10, top: 8, bottom: 8 });
+                    // Fixed-height text area
+                    Column.backgroundColor(Hive.Color.brandWhite);
+                    // Fixed-height text area
+                    Column.borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 12, bottomRight: 12 });
+                }, Column);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, string>)['title'] ?? '');
+                    Text.fontSize(12);
+                    Text.fontWeight(FontWeight.Medium);
+                    Text.fontColor(Hive.Color.n900);
+                    Text.maxLines(2);
+                    Text.width(200);
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create((raw as Record<string, string>)['subtitle'] ?? '');
+                    Text.fontSize(10);
+                    Text.fontColor(Hive.Color.n400);
+                    Text.maxLines(2);
+                    Text.width(200);
+                }, Text);
+                Text.pop();
+                // Fixed-height text area
+                Column.pop();
                 Column.pop();
             };
-            this.forEachUpdateFunction(elmtId, this.deals(), forEachItemGenFunction);
+            this.forEachUpdateFunction(elmtId, this.items(), forEachItemGenFunction);
         }, ForEach);
         ForEach.pop();
         Row.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create({ space: 10 });
-            Row.width('100%');
-        }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            ForEach.create();
-            const forEachItemGenFunction = _item => {
-                const raw = _item;
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Row.create({ space: 8 });
-                    Row.layoutWeight(1);
-                    Row.padding(10);
-                    Row.borderRadius(12);
-                    Row.backgroundColor(Hive.Color.n50);
-                    Row.alignItems(VerticalAlign.Center);
-                    Row.onClick(() => {
-                        const extra: Record<string, any> = {};
-                        extra['deep_link'] = ((raw as Record<string, string>)['deepLink'] ?? '') as any;
-                        SensorDataClient.track('bottom_link_tap', 'Wealth', 'bottom_link_tapped', (raw as Record<string, string>)['label'] ?? '', 'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '', '', '', extra);
-                    });
-                }, Row);
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, string>)['icon'] ?? '');
-                    Text.fontSize(24);
-                }, Text);
-                Text.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, string>)['label'] ?? '');
-                    Text.fontSize(10);
-                    Text.fontColor(Hive.Color.n700);
-                    Text.lineHeight(16);
-                }, Text);
-                Text.pop();
-                Row.pop();
-            };
-            this.forEachUpdateFunction(elmtId, this.links(), forEachItemGenFunction);
-        }, ForEach);
-        ForEach.pop();
-        Row.pop();
+        Scroll.pop();
         Column.pop();
     }
     rerender() {
         this.updateDirtyElements();
     }
 }
-class WHHeaderNav extends ViewPU {
+class WHHomeSearchHeader extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
         super(parent, __localStorage, elmtId, extraInfo);
         if (typeof paramsLambda === "function") {
@@ -2133,12 +2287,12 @@ class WHHeaderNav extends ViewPU {
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
-    setInitiallyProvidedValue(params: WHHeaderNav_Params) {
+    setInitiallyProvidedValue(params: WHHomeSearchHeader_Params) {
         if (params.onSearchTap !== undefined) {
             this.onSearchTap = params.onSearchTap;
         }
     }
-    updateStateVars(params: WHHeaderNav_Params) {
+    updateStateVars(params: WHHomeSearchHeader_Params) {
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
     }
@@ -2148,104 +2302,195 @@ class WHHeaderNav extends ViewPU {
     }
     private onSearchTap: () => void;
     aboutToAppear() {
-        SensorDataClient.sliceImpression('AI_SEARCH_BAR', 'slice-header', 0);
+        SensorDataClient.sliceImpression('HOME_SEARCH_HEADER', 'slice-home-search-hdr', 0);
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create({ space: 8 });
+            Column.create({ space: 0 });
+            Column.width('100%');
+            Column.backgroundColor('#DB0011');
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Top bar
+            Row.create({ space: 0 });
+            // Top bar
             Row.width('100%');
-            Row.height(50);
-            Row.padding({ left: 12, right: 12, top: 7, bottom: 7 });
-            Row.backgroundColor('#DB0011');
-            Row.alignItems(VerticalAlign.Center);
+            // Top bar
+            Row.padding({ left: 16, right: 16, top: 14, bottom: 8 });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('⬜');
+            Text.create('HSBC Premier');
+            Text.fontSize(17);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor(Hive.Color.brandWhite);
+            Text.layoutWeight(1);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('🔔');
             Text.fontSize(20);
-            Text.fontColor('#E6FFFFFF');
+            Text.fontColor(Hive.Color.brandWhite);
+            Text.margin({ right: 12 });
             Text.onClick(() => {
-                SensorDataClient.track('qr_tap', 'Wealth', 'qr_scanner_tapped', '', 'ai_search_bar', 'wealth_hub');
+                SensorDataClient.track('notification_tap', 'Wealth', 'notification_tapped', '', 'home_search_header', 'wealth_hub');
             });
         }, Text);
         Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('🎧');
+            Text.fontSize(20);
+            Text.fontColor(Hive.Color.brandWhite);
+            Text.onClick(() => {
+                SensorDataClient.track('headset_tap', 'Wealth', 'headset_tapped', '', 'home_search_header', 'wealth_hub');
+            });
+        }, Text);
+        Text.pop();
+        // Top bar
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Search bar
+            Row.create({ space: 8 });
+            // Search bar
+            Row.width('100%');
+            // Search bar
+            Row.padding({ left: 16, right: 16, bottom: 12 });
+        }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create({ space: 6 });
             Row.layoutWeight(1);
             Row.height(36);
             Row.padding({ left: 12, right: 12 });
             Row.borderRadius(18);
-            Row.backgroundColor('#26FFFFFF');
+            Row.backgroundColor(Hive.Color.brandWhite);
             Row.onClick(() => {
-                SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '', 'ai_search_bar', 'wealth_hub');
+                SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '', 'home_search_header', 'wealth_hub');
                 this.onSearchTap();
             });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create('🔍');
             Text.fontSize(13);
-            Text.fontColor('#99FFFFFF');
+            Text.fontColor(Hive.Color.n500);
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('搜尋功能、產品');
+            Text.create('Search with AI');
             Text.fontSize(13);
-            Text.fontColor('#A6FFFFFF');
+            Text.fontColor(Hive.Color.n400);
             Text.layoutWeight(1);
         }, Text);
         Text.pop();
-        Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('🤖');
-            Text.fontSize(20);
-            Text.fontColor('#E6FFFFFF');
-            Text.onClick(() => {
-                SensorDataClient.track('chatbot_tap', 'Wealth', 'chatbot_tapped', '', 'ai_search_bar', 'wealth_hub');
-            });
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('✉️');
-            Text.fontSize(20);
-            Text.fontColor('#E6FFFFFF');
-            Text.onClick(() => {
-                SensorDataClient.track('inbox_tap', 'Wealth', 'inbox_tapped', '', 'ai_search_bar', 'wealth_hub');
-            });
+            Text.create('AI');
+            Text.fontSize(9);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor('#DB0011');
+            Text.padding({ left: 5, right: 5, top: 2, bottom: 2 });
+            Text.borderRadius(6);
+            Text.backgroundColor('#FFEDED');
         }, Text);
         Text.pop();
         Row.pop();
+        // Search bar
+        Row.pop();
+        Column.pop();
     }
     rerender() {
         this.updateDirtyElements();
     }
 }
-class WHQuickAccess extends ViewPU {
+class WHComboQuickAccess extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
         super(parent, __localStorage, elmtId, extraInfo);
         if (typeof paramsLambda === "function") {
             this.paramsGenerator_ = paramsLambda;
         }
+        this.__activeTab = new ObservedPropertySimplePU(0, this, "activeTab");
+        this.tabs = ['My pick', 'Invest', 'Global', 'HK Daily'];
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
-    setInitiallyProvidedValue(params: WHQuickAccess_Params) {
+    setInitiallyProvidedValue(params: WHComboQuickAccess_Params) {
+        if (params.activeTab !== undefined) {
+            this.activeTab = params.activeTab;
+        }
+        if (params.tabs !== undefined) {
+            this.tabs = params.tabs;
+        }
     }
-    updateStateVars(params: WHQuickAccess_Params) {
+    updateStateVars(params: WHComboQuickAccess_Params) {
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
+        this.__activeTab.purgeDependencyOnElmtId(rmElmtId);
     }
     aboutToBeDeleted() {
+        this.__activeTab.aboutToBeDeleted();
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
+    private __activeTab: ObservedPropertySimplePU<number>;
+    get activeTab() {
+        return this.__activeTab.get();
+    }
+    set activeTab(newValue: number) {
+        this.__activeTab.set(newValue);
+    }
+    private tabs: string[];
     aboutToAppear() {
-        SensorDataClient.sliceImpression('QUICK_ACCESS', 'slice-quick', 1);
+        SensorDataClient.sliceImpression('COMBO_QUICK_ACCESS', 'slice-combo-quick', 1);
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create();
+            Column.create({ space: 0 });
+            Column.width('100%');
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Tab bar — pill/capsule style (active=red, inactive=gray)
+            Scroll.create();
+            // Tab bar — pill/capsule style (active=red, inactive=gray)
+            Scroll.scrollable(ScrollDirection.Horizontal);
+            // Tab bar — pill/capsule style (active=red, inactive=gray)
+            Scroll.scrollBar(BarState.Off);
+            // Tab bar — pill/capsule style (active=red, inactive=gray)
+            Scroll.width('100%');
+            // Tab bar — pill/capsule style (active=red, inactive=gray)
+            Scroll.backgroundColor(Hive.Color.brandWhite);
+        }, Scroll);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 8 });
+            Row.padding({ left: 16, right: 16, top: 10, bottom: 10 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            ForEach.create();
+            const forEachItemGenFunction = (_item, idx: number) => {
+                const tab = _item;
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create(tab);
+                    Text.fontSize(13);
+                    Text.fontWeight(this.activeTab === idx ? FontWeight.Bold : FontWeight.Normal);
+                    Text.fontColor(this.activeTab === idx ? Hive.Color.brandWhite : Hive.Color.n700);
+                    Text.padding({ left: 16, right: 16, top: 7, bottom: 7 });
+                    Text.borderRadius(18);
+                    Text.backgroundColor(this.activeTab === idx ? '#DB0011' : '#E4E4E4');
+                    Text.onClick(() => { this.activeTab = idx; });
+                }, Text);
+                Text.pop();
+            };
+            this.forEachUpdateFunction(elmtId, this.tabs, forEachItemGenFunction, undefined, true, false);
+        }, ForEach);
+        ForEach.pop();
+        Row.pop();
+        // Tab bar — pill/capsule style (active=red, inactive=gray)
+        Scroll.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Row 1
+            Row.create({ space: 0 });
+            // Row 1
             Row.width('100%');
+            // Row 1
             Row.backgroundColor(Hive.Color.brandWhite);
-            Row.padding({ left: 16, right: 16, top: 12, bottom: 12 });
+            // Row 1
+            Row.padding({ left: 8, right: 8 });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             ForEach.create();
@@ -2255,6 +2500,7 @@ class WHQuickAccess extends ViewPU {
                     Column.create({ space: 5 });
                     Column.layoutWeight(1);
                     Column.alignItems(HorizontalAlign.Center);
+                    Column.padding({ top: 10 });
                     Column.onClick(() => { SensorDataClient.quickAccessTapped(item.label, item.deepLink); });
                 }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -2264,8 +2510,7 @@ class WHQuickAccess extends ViewPU {
                     Text.height(48);
                     Text.textAlign(TextAlign.Center);
                     Text.borderRadius(14);
-                    Text.linearGradient({ direction: GradientDirection.LeftTop,
-                        colors: [['#F0F9FF', 0], ['#E0F2FE', 1]] });
+                    Text.backgroundColor(Hive.Color.n100);
                 }, Text);
                 Text.pop();
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -2277,194 +2522,63 @@ class WHQuickAccess extends ViewPU {
                 Text.pop();
                 Column.pop();
             };
-            this.forEachUpdateFunction(elmtId, QUICK_ITEMS, forEachItemGenFunction);
+            this.forEachUpdateFunction(elmtId, QUICK_ROW1, forEachItemGenFunction);
         }, ForEach);
         ForEach.pop();
+        // Row 1
         Row.pop();
-    }
-    rerender() {
-        this.updateDirtyElements();
-    }
-}
-class WHPromoBanner extends ViewPU {
-    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
-        super(parent, __localStorage, elmtId, extraInfo);
-        if (typeof paramsLambda === "function") {
-            this.paramsGenerator_ = paramsLambda;
-        }
-        this.setInitiallyProvidedValue(params);
-        this.finalizeConstruction();
-    }
-    setInitiallyProvidedValue(params: WHPromoBanner_Params) {
-    }
-    updateStateVars(params: WHPromoBanner_Params) {
-    }
-    purgeVariableDependenciesOnElmtId(rmElmtId) {
-    }
-    aboutToBeDeleted() {
-        SubscriberManager.Get().delete(this.id__());
-        this.aboutToBeDeletedInternal();
-    }
-    aboutToAppear() {
-        SensorDataClient.promoBannerImpression('10分招財日', 'slice-promo-10', 'promo-10-finance-day');
-    }
-    initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Row 2
             Row.create({ space: 0 });
+            // Row 2
             Row.width('100%');
-            Row.padding({ left: 12, right: 12, top: 12, bottom: 12 });
-            Row.margin({ left: 12, right: 12, top: 8, bottom: 0 });
-            Row.borderRadius(14);
-            Row.backgroundColor('#E8F4FD');
-            Row.alignItems(VerticalAlign.Center);
+            // Row 2
+            Row.backgroundColor(Hive.Color.brandWhite);
+            // Row 2
+            Row.padding({ left: 8, right: 8 });
         }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 4 });
-            Column.layoutWeight(1);
-            Column.alignItems(HorizontalAlign.Start);
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('每月10日開啓');
-            Text.fontSize(9);
-            Text.fontWeight(FontWeight.Bold);
-            Text.fontColor('#DB0011');
-            Text.padding({ left: 8, right: 8, top: 2, bottom: 2 });
-            Text.borderRadius(10);
-            Text.backgroundColor('#FFEDED');
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('10分招財日');
-            Text.fontSize(16);
-            Text.fontWeight(FontWeight.Bolder);
-            Text.fontColor(Hive.Color.n900);
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('查帳單·學投資·優配置');
-            Text.fontSize(10);
-            Text.fontColor(Hive.Color.n500);
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Button.createWithLabel('點擊參與');
-            Button.height(32);
-            Button.padding({ left: 16, right: 16 });
-            Button.borderRadius(14);
-            Button.backgroundColor(Hive.Color.brandPrimary);
-            Button.fontColor(Hive.Color.brandWhite);
-            Button.fontSize(11);
-            Button.fontWeight(FontWeight.Bold);
-            Button.margin({ top: 8 });
-            Button.onClick(() => {
-                SensorDataClient.promoBannerTapped('10分招財日', 'slice-promo-10', 'promo-10-finance-day');
-            });
-        }, Button);
-        Button.pop();
-        Column.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('🎯');
-            Text.fontSize(32);
-            Text.width(80);
-            Text.height(80);
-            Text.textAlign(TextAlign.Center);
-            Text.borderRadius(12);
-            Text.backgroundColor('#14000000');
-        }, Text);
-        Text.pop();
-        Row.pop();
-    }
-    rerender() {
-        this.updateDirtyElements();
-    }
-}
-class WHFunctionGrid extends ViewPU {
-    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
-        super(parent, __localStorage, elmtId, extraInfo);
-        if (typeof paramsLambda === "function") {
-            this.paramsGenerator_ = paramsLambda;
-        }
-        this.setInitiallyProvidedValue(params);
-        this.finalizeConstruction();
-    }
-    setInitiallyProvidedValue(params: WHFunctionGrid_Params) {
-    }
-    updateStateVars(params: WHFunctionGrid_Params) {
-    }
-    purgeVariableDependenciesOnElmtId(rmElmtId) {
-    }
-    aboutToBeDeleted() {
-        SubscriberManager.Get().delete(this.id__());
-        this.aboutToBeDeletedInternal();
-    }
-    aboutToAppear() {
-        SensorDataClient.sliceImpression('FUNCTION_GRID', 'slice-func-grid', 3);
-    }
-    initialRender() {
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 6 });
-            Column.width('100%');
-            Column.backgroundColor(Hive.Color.brandWhite);
-            Column.padding({ left: 16, right: 16, top: 8, bottom: 8 });
-        }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             ForEach.create();
             const forEachItemGenFunction = _item => {
-                const row = _item;
+                const item = _item;
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Row.create();
-                    Row.width('100%');
-                }, Row);
+                    Column.create({ space: 5 });
+                    Column.layoutWeight(1);
+                    Column.alignItems(HorizontalAlign.Center);
+                    Column.padding({ bottom: 10 });
+                    Column.onClick(() => { SensorDataClient.quickAccessTapped(item.label, item.deepLink); });
+                }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    ForEach.create();
-                    const forEachItemGenFunction = _item => {
-                        const item = _item;
-                        this.observeComponentCreation2((elmtId, isInitialRender) => {
-                            Column.create({ space: 4 });
-                            Column.layoutWeight(1);
-                            Column.alignItems(HorizontalAlign.Center);
-                            Column.onClick(() => {
-                                const extra: Record<string, any> = {};
-                                extra['function_label'] = item.label as any;
-                                extra['deep_link'] = item.deepLink as any;
-                                SensorDataClient.track('function_tap', 'Wealth', 'function_tapped', item.label, 'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '', '', '', extra);
-                            });
-                        }, Column);
-                        this.observeComponentCreation2((elmtId, isInitialRender) => {
-                            Text.create(item.icon);
-                            Text.fontSize(20);
-                            Text.width(44);
-                            Text.height(44);
-                            Text.textAlign(TextAlign.Center);
-                            Text.borderRadius(12);
-                            Text.backgroundColor(Hive.Color.n100);
-                        }, Text);
-                        Text.pop();
-                        this.observeComponentCreation2((elmtId, isInitialRender) => {
-                            Text.create(item.label);
-                            Text.fontSize(10);
-                            Text.fontColor(Hive.Color.n700);
-                            Text.textAlign(TextAlign.Center);
-                            Text.lineHeight(14);
-                        }, Text);
-                        Text.pop();
-                        Column.pop();
-                    };
-                    this.forEachUpdateFunction(elmtId, row, forEachItemGenFunction);
-                }, ForEach);
-                ForEach.pop();
-                Row.pop();
+                    Text.create(item.icon);
+                    Text.fontSize(22);
+                    Text.width(48);
+                    Text.height(48);
+                    Text.textAlign(TextAlign.Center);
+                    Text.borderRadius(14);
+                    Text.backgroundColor(Hive.Color.n100);
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create(item.label);
+                    Text.fontSize(10);
+                    Text.fontColor(Hive.Color.n700);
+                    Text.textAlign(TextAlign.Center);
+                }, Text);
+                Text.pop();
+                Column.pop();
             };
-            this.forEachUpdateFunction(elmtId, FUNC_ROWS, forEachItemGenFunction);
+            this.forEachUpdateFunction(elmtId, QUICK_ROW2, forEachItemGenFunction);
         }, ForEach);
         ForEach.pop();
+        // Row 2
+        Row.pop();
         Column.pop();
     }
     rerender() {
         this.updateDirtyElements();
     }
 }
-class WHAIAssistant extends ViewPU {
+class WHCardActivationBanner extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
         super(parent, __localStorage, elmtId, extraInfo);
         if (typeof paramsLambda === "function") {
@@ -2473,9 +2587,9 @@ class WHAIAssistant extends ViewPU {
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
-    setInitiallyProvidedValue(params: WHAIAssistant_Params) {
+    setInitiallyProvidedValue(params: WHCardActivationBanner_Params) {
     }
-    updateStateVars(params: WHAIAssistant_Params) {
+    updateStateVars(params: WHCardActivationBanner_Params) {
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
     }
@@ -2484,36 +2598,38 @@ class WHAIAssistant extends ViewPU {
         this.aboutToBeDeletedInternal();
     }
     aboutToAppear() {
-        SensorDataClient.sliceImpression('AI_ASSISTANT', 'slice-ai', 4);
+        SensorDataClient.sliceImpression('CARD_ACTIVATION_BANNER', 'slice-card-act', 2);
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create({ space: 8 });
+            Row.create({ space: 10 });
             Row.width('100%');
-            Row.height(44);
-            Row.padding({ left: 12, right: 12 });
-            Row.margin({ left: 16, right: 16, top: 4, bottom: 4 });
-            Row.borderRadius(10);
-            Row.backgroundColor(Hive.Color.n50);
+            Row.padding({ left: 16, right: 16, top: 10, bottom: 10 });
+            Row.backgroundColor('#FFF5F5');
+            Row.borderWidth({ bottom: 1 });
+            Row.borderColor(Hive.Color.n100);
             Row.alignItems(VerticalAlign.Center);
-            Row.onClick(() => { SensorDataClient.aiAssistantTapped(); });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('✉️');
-            Text.fontSize(20);
+            Text.create('💳');
+            Text.fontSize(18);
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('Hi，我是你的智能財富助理');
-            Text.fontSize(11);
-            Text.fontColor(Hive.Color.n600);
+            Text.create('Your card needs to be activated');
+            Text.fontSize(13);
+            Text.fontColor(Hive.Color.n900);
             Text.layoutWeight(1);
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('›');
-            Text.fontSize(14);
-            Text.fontColor(Hive.Color.n400);
+            Text.create('Activate now');
+            Text.fontSize(12);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor('#DB0011');
+            Text.onClick(() => {
+                SensorDataClient.sliceTapped('CARD_ACTIVATION_BANNER', 'slice-card-act', 'Activate now', 'hsbc://cards/activate');
+            });
         }, Text);
         Text.pop();
         Row.pop();
@@ -2522,22 +2638,18 @@ class WHAIAssistant extends ViewPU {
         this.updateDirtyElements();
     }
 }
-class WHAdBanner extends ViewPU {
+class WHQuestBanner extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
         super(parent, __localStorage, elmtId, extraInfo);
         if (typeof paramsLambda === "function") {
             this.paramsGenerator_ = paramsLambda;
         }
-        this.onDismiss = () => { };
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
-    setInitiallyProvidedValue(params: WHAdBanner_Params) {
-        if (params.onDismiss !== undefined) {
-            this.onDismiss = params.onDismiss;
-        }
+    setInitiallyProvidedValue(params: WHQuestBanner_Params) {
     }
-    updateStateVars(params: WHAdBanner_Params) {
+    updateStateVars(params: WHQuestBanner_Params) {
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
     }
@@ -2545,205 +2657,147 @@ class WHAdBanner extends ViewPU {
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
-    private onDismiss: () => void;
     aboutToAppear() {
-        SensorDataClient.sliceImpression('AD_BANNER', 'slice-ad-spring', 5);
+        SensorDataClient.sliceImpression('QUEST_BANNER', 'slice-quest', 3);
     }
     initialRender() {
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Stack.create({ alignContent: Alignment.TopEnd });
-            Stack.margin({ left: 12, right: 12, top: 6, bottom: 6 });
-        }, Stack);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create({ space: 12 });
             Row.width('100%');
-            Row.padding({ left: 16, right: 16, top: 12, bottom: 12 });
-            Row.borderRadius(14);
-            Row.linearGradient({ direction: GradientDirection.LeftTop,
-                colors: [['#FFFBEB', 0], ['#FEF3C7', 1]] });
-            Row.alignItems(VerticalAlign.Center);
+            Row.padding({ left: 16, right: 16, top: 14, bottom: 14 });
+            Row.margin({ top: 8 });
+            Row.backgroundColor(Hive.Color.brandWhite);
+            Row.alignItems(VerticalAlign.Top);
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 4 });
-            Column.layoutWeight(1);
-            Column.alignItems(HorizontalAlign.Start);
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('春季播種黃金期');
-            Text.fontSize(13);
-            Text.fontWeight(FontWeight.Bold);
-            Text.fontColor('#92400E');
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('配置正當時，播下「金種子」');
-            Text.fontSize(10);
-            Text.fontColor('#78716C');
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Button.createWithLabel('抽體驗禮');
-            Button.height(30);
-            Button.padding({ left: 14, right: 14 });
-            Button.borderRadius(12);
-            Button.backgroundColor(Hive.Color.brandPrimary);
-            Button.fontColor(Hive.Color.brandWhite);
-            Button.fontSize(11);
-            Button.fontWeight(FontWeight.Bold);
-            Button.margin({ top: 8 });
-            Button.onClick(() => {
-                SensorDataClient.sliceTapped('AD_BANNER', 'slice-ad-spring', '抽體驗禮', 'hsbc://campaign/spring-investment');
-            });
-        }, Button);
-        Button.pop();
-        Column.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('🌱');
+            Text.create('🏦');
             Text.fontSize(28);
-            Text.width(72);
-            Text.height(72);
+            Text.width(52);
+            Text.height(52);
             Text.textAlign(TextAlign.Center);
-            Text.borderRadius(10);
-            Text.backgroundColor('#14000000');
+            Text.borderRadius(14);
+            Text.backgroundColor('#FEF2F2');
         }, Text);
         Text.pop();
-        Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('✕');
-            Text.fontSize(13);
-            Text.fontColor(Hive.Color.n400);
-            Text.width(32);
-            Text.height(32);
-            Text.textAlign(TextAlign.Center);
-            Text.onClick(() => {
-                SensorDataClient.adBannerDismissed('春季播種黃金期');
-                this.onDismiss();
-            });
-        }, Text);
-        Text.pop();
-        Stack.pop();
-    }
-    rerender() {
-        this.updateDirtyElements();
-    }
-}
-class WHFlashLoan extends ViewPU {
-    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
-        super(parent, __localStorage, elmtId, extraInfo);
-        if (typeof paramsLambda === "function") {
-            this.paramsGenerator_ = paramsLambda;
-        }
-        this.setInitiallyProvidedValue(params);
-        this.finalizeConstruction();
-    }
-    setInitiallyProvidedValue(params: WHFlashLoan_Params) {
-    }
-    updateStateVars(params: WHFlashLoan_Params) {
-    }
-    purgeVariableDependenciesOnElmtId(rmElmtId) {
-    }
-    aboutToBeDeleted() {
-        SubscriberManager.Get().delete(this.id__());
-        this.aboutToBeDeletedInternal();
-    }
-    aboutToAppear() {
-        SensorDataClient.sliceImpression('FLASH_LOAN', 'slice-flash-loan', 6);
-    }
-    initialRender() {
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create();
-            Row.width('100%');
-            Row.padding({ left: 16, right: 16, top: 12, bottom: 12 });
-            Row.margin({ left: 12, right: 12, top: 6, bottom: 6 });
-            Row.borderRadius(14);
-            Row.linearGradient({ direction: GradientDirection.LeftTop,
-                colors: [['#FFF5F5', 0], ['#FFE4E4', 1]] });
-            Row.alignItems(VerticalAlign.Center);
-        }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 2 });
+            Column.create({ space: 6 });
             Column.layoutWeight(1);
             Column.alignItems(HorizontalAlign.Start);
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('⚡ 閃電貸 極速放款');
-            Text.fontSize(11);
+            Text.create('Getting started');
+            Text.fontSize(14);
             Text.fontWeight(FontWeight.Bold);
-            Text.fontColor(Hive.Color.brandPrimary);
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('最高可借額度');
-            Text.fontSize(10);
-            Text.fontColor(Hive.Color.n500);
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('HKD 300,000.00');
-            Text.fontSize(22);
-            Text.fontWeight(FontWeight.Bolder);
             Text.fontColor(Hive.Color.n900);
         }, Text);
         Text.pop();
-        Column.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Button.createWithLabel('獲取額度');
-            Button.height(44);
-            Button.padding({ left: 18, right: 18 });
-            Button.borderRadius(20);
-            Button.backgroundColor(Hive.Color.brandPrimary);
+            Text.create('Complete setup to unlock your full Premier benefits');
+            Text.fontSize(11);
+            Text.fontColor(Hive.Color.n500);
+            Text.maxLines(2);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Progress bar at 40%
+            Stack.create({ alignContent: Alignment.Start });
+        }, Stack);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.width('100%');
+            Row.height(4);
+            Row.borderRadius(2);
+            Row.backgroundColor(Hive.Color.n100);
+        }, Row);
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.width('40%');
+            Row.height(4);
+            Row.borderRadius(2);
+            Row.backgroundColor('#DB0011');
+        }, Row);
+        Row.pop();
+        // Progress bar at 40%
+        Stack.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Button.createWithLabel('Continue');
+            Button.height(30);
+            Button.padding({ left: 16, right: 16 });
+            Button.borderRadius(14);
+            Button.backgroundColor('#DB0011');
             Button.fontColor(Hive.Color.brandWhite);
-            Button.fontSize(12);
+            Button.fontSize(11);
             Button.fontWeight(FontWeight.Bold);
             Button.onClick(() => {
-                SensorDataClient.sliceTapped('FLASH_LOAN', 'slice-flash-loan', '獲取額度', 'hsbc://loan/flash');
+                SensorDataClient.sliceTapped('QUEST_BANNER', 'slice-quest', 'Continue', 'hsbc://onboarding/checklist');
             });
         }, Button);
         Button.pop();
+        Column.pop();
         Row.pop();
     }
     rerender() {
         this.updateDirtyElements();
     }
 }
-class WHWealthSelection extends ViewPU {
+class WHFeatureProduct extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
         super(parent, __localStorage, elmtId, extraInfo);
         if (typeof paramsLambda === "function") {
             this.paramsGenerator_ = paramsLambda;
         }
+        this.__activeTab = new ObservedPropertySimplePU(0, this, "activeTab");
+        this.fundTabs = ['All', 'Equity', 'Bond', 'Multi-Asset'];
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
-    setInitiallyProvidedValue(params: WHWealthSelection_Params) {
+    setInitiallyProvidedValue(params: WHFeatureProduct_Params) {
+        if (params.activeTab !== undefined) {
+            this.activeTab = params.activeTab;
+        }
+        if (params.fundTabs !== undefined) {
+            this.fundTabs = params.fundTabs;
+        }
     }
-    updateStateVars(params: WHWealthSelection_Params) {
+    updateStateVars(params: WHFeatureProduct_Params) {
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
+        this.__activeTab.purgeDependencyOnElmtId(rmElmtId);
     }
     aboutToBeDeleted() {
+        this.__activeTab.aboutToBeDeleted();
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
+    private __activeTab: ObservedPropertySimplePU<number>;
+    get activeTab() {
+        return this.__activeTab.get();
+    }
+    set activeTab(newValue: number) {
+        this.__activeTab.set(newValue);
+    }
+    private fundTabs: string[];
     aboutToAppear() {
-        SensorDataClient.sliceImpression('WEALTH_SELECTION', 'slice-wealth-sel', 7, 'wealth-selection-hk-2026');
+        SensorDataClient.sliceImpression('FEATURE_PRODUCT', 'slice-feature-product', 4);
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 0 });
             Column.width('100%');
             Column.backgroundColor(Hive.Color.brandWhite);
-            Column.padding({ left: 16, right: 16, top: 12, bottom: 12 });
+            Column.margin({ top: 8 });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create();
             Row.width('100%');
-            Row.margin({ bottom: 10 });
+            Row.padding({ left: 16, right: 16, top: 14, bottom: 8 });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('財富精選');
-            Text.fontSize(15);
+            Text.create('Feature product');
+            Text.fontSize(16);
             Text.fontWeight(FontWeight.Bold);
+            Text.fontColor(Hive.Color.n900);
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -2752,55 +2806,95 @@ class WHWealthSelection extends ViewPU {
         }, Blank);
         Blank.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('更多 ›');
+            Text.create('More ›');
             Text.fontSize(12);
-            Text.fontColor(Hive.Color.brandPrimary);
+            Text.fontColor('#DB0011');
         }, Text);
         Text.pop();
         Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Scroll.create();
+            Scroll.scrollable(ScrollDirection.Horizontal);
+            Scroll.scrollBar(BarState.Off);
+            Scroll.width('100%');
+        }, Scroll);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 8 });
+            Row.padding({ left: 16, right: 16, bottom: 8 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            ForEach.create();
+            const forEachItemGenFunction = (_item, idx: number) => {
+                const tab = _item;
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create(tab);
+                    Text.fontSize(12);
+                    Text.fontWeight(this.activeTab === idx ? FontWeight.Bold : FontWeight.Normal);
+                    Text.fontColor(this.activeTab === idx ? Hive.Color.brandWhite : Hive.Color.n700);
+                    Text.padding({ left: 14, right: 14, top: 6, bottom: 6 });
+                    Text.borderRadius(16);
+                    Text.backgroundColor(this.activeTab === idx ? '#DB0011' : Hive.Color.n100);
+                    Text.onClick(() => { this.activeTab = idx; });
+                }, Text);
+                Text.pop();
+            };
+            this.forEachUpdateFunction(elmtId, this.fundTabs, forEachItemGenFunction, undefined, true, false);
+        }, ForEach);
+        ForEach.pop();
+        Row.pop();
+        Scroll.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 0 });
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
             ForEach.create();
             const forEachItemGenFunction = (_item, index: number) => {
-                const p = _item;
+                const fund = _item;
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Row.create();
+                    Row.create({ space: 12 });
                     Row.width('100%');
-                    Row.padding({ top: 10, bottom: 10 });
-                    Row.onClick(() => { SensorDataClient.wealthProductTapped(p.name, p.id); });
+                    Row.padding({ left: 16, right: 16, top: 12, bottom: 12 });
+                    Row.onClick(() => { SensorDataClient.wealthProductTapped(fund.name, fund.id); });
                 }, Row);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Column.create({ space: 2 });
+                    Column.create({ space: 4 });
                     Column.layoutWeight(1);
                     Column.alignItems(HorizontalAlign.Start);
                 }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create(p.name);
-                    Text.fontSize(12);
+                    Text.create(fund.name);
+                    Text.fontSize(13);
                     Text.fontWeight(FontWeight.Medium);
                     Text.fontColor(Hive.Color.n900);
+                    Text.maxLines(2);
                 }, Text);
                 Text.pop();
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Row.create({ space: 6 });
+                    Text.create(fund.code);
+                    Text.fontSize(11);
+                    Text.fontColor(Hive.Color.n500);
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Row.create({ space: 4 });
                 }, Row);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create(p.risk);
-                    Text.fontSize(9);
-                    Text.fontColor(Hive.Color.n500);
-                    Text.padding({ left: 6, right: 6, top: 1, bottom: 1 });
-                    Text.borderRadius(8);
-                    Text.backgroundColor(Hive.Color.n100);
-                }, Text);
-                Text.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create(p.redemption);
-                    Text.fontSize(9);
-                    Text.fontColor(Hive.Color.n500);
-                    Text.padding({ left: 6, right: 6, top: 1, bottom: 1 });
-                    Text.borderRadius(8);
-                    Text.backgroundColor(Hive.Color.n100);
-                }, Text);
-                Text.pop();
+                    ForEach.create();
+                    const forEachItemGenFunction = _item => {
+                        const tag = _item;
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            Text.create(tag);
+                            Text.fontSize(9);
+                            Text.fontColor('#DB0011');
+                            Text.padding({ left: 6, right: 6, top: 2, bottom: 2 });
+                            Text.borderRadius(8);
+                            Text.backgroundColor('#FEF2F2');
+                        }, Text);
+                        Text.pop();
+                    };
+                    this.forEachUpdateFunction(elmtId, fund.tags, forEachItemGenFunction);
+                }, ForEach);
+                ForEach.pop();
                 Row.pop();
                 Column.pop();
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -2808,52 +2902,28 @@ class WHWealthSelection extends ViewPU {
                     Column.alignItems(HorizontalAlign.End);
                 }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create(p.yield7Day);
+                    Text.create(fund.return1Y);
                     Text.fontSize(18);
-                    Text.fontWeight(FontWeight.Bolder);
-                    Text.fontColor(Hive.Color.brandPrimary);
+                    Text.fontWeight(FontWeight.Bold);
+                    Text.fontColor(fund.return1Y.startsWith('+') ? '#16A34A' : '#DC2626');
                 }, Text);
                 Text.pop();
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create('7日年化');
+                    Text.create('1Y return');
                     Text.fontSize(9);
                     Text.fontColor(Hive.Color.n400);
                 }, Text);
                 Text.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    If.create();
-                    if (p.highlighted) {
-                        this.ifElseBranchUpdateFunction(0, () => {
-                            this.observeComponentCreation2((elmtId, isInitialRender) => {
-                                Button.createWithLabel(p.cta);
-                                Button.height(28);
-                                Button.padding({ left: 12, right: 12 });
-                                Button.borderRadius(12);
-                                Button.backgroundColor(Hive.Color.brandPrimary);
-                                Button.fontColor(Hive.Color.brandWhite);
-                                Button.fontSize(10);
-                                Button.fontWeight(FontWeight.Bold);
-                                Button.margin({ top: 4 });
-                                Button.onClick(() => { SensorDataClient.wealthProductTapped(p.name, p.id); });
-                            }, Button);
-                            Button.pop();
-                        });
-                    }
-                    else {
-                        this.ifElseBranchUpdateFunction(1, () => {
-                        });
-                    }
-                }, If);
-                If.pop();
                 Column.pop();
                 Row.pop();
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     If.create();
-                    if (index < WEALTH_PRODUCTS.length - 1) {
+                    if (index < STATIC_FUNDS.length - 1) {
                         this.ifElseBranchUpdateFunction(0, () => {
                             this.observeComponentCreation2((elmtId, isInitialRender) => {
                                 Divider.create();
                                 Divider.color(Hive.Color.n100);
+                                Divider.margin({ left: 16, right: 16 });
                             }, Divider);
                         });
                     }
@@ -2864,29 +2934,17 @@ class WHWealthSelection extends ViewPU {
                 }, If);
                 If.pop();
             };
-            this.forEachUpdateFunction(elmtId, WEALTH_PRODUCTS, forEachItemGenFunction, undefined, true, false);
+            this.forEachUpdateFunction(elmtId, STATIC_FUNDS, forEachItemGenFunction, undefined, true, false);
         }, ForEach);
         ForEach.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Blank.create();
-            Blank.height(10);
-        }, Blank);
-        Blank.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('💬 理財產品這么多，哪款適合我？');
-            Text.fontSize(11);
-            Text.fontColor(Hive.Color.n500);
-            Text.textAlign(TextAlign.Center);
-            Text.width('100%');
-        }, Text);
-        Text.pop();
+        Column.pop();
         Column.pop();
     }
     rerender() {
         this.updateDirtyElements();
     }
 }
-class WHFeaturedRankings extends ViewPU {
+class WHWealthStudioCarousel extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
         super(parent, __localStorage, elmtId, extraInfo);
         if (typeof paramsLambda === "function") {
@@ -2895,9 +2953,9 @@ class WHFeaturedRankings extends ViewPU {
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
-    setInitiallyProvidedValue(params: WHFeaturedRankings_Params) {
+    setInitiallyProvidedValue(params: WHWealthStudioCarousel_Params) {
     }
-    updateStateVars(params: WHFeaturedRankings_Params) {
+    updateStateVars(params: WHWealthStudioCarousel_Params) {
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
     }
@@ -2906,24 +2964,25 @@ class WHFeaturedRankings extends ViewPU {
         this.aboutToBeDeletedInternal();
     }
     aboutToAppear() {
-        SensorDataClient.sliceImpression('FEATURED_RANKINGS', 'slice-rankings', 8);
+        SensorDataClient.sliceImpression('WEALTH_STUDIO_CAROUSEL', 'slice-wealth-studio', 5);
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 0 });
             Column.width('100%');
             Column.backgroundColor(Hive.Color.brandWhite);
-            Column.padding({ left: 16, right: 16, top: 12, bottom: 12 });
+            Column.margin({ top: 8 });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create();
             Row.width('100%');
-            Row.margin({ bottom: 10 });
+            Row.padding({ left: 16, right: 16, top: 14, bottom: 10 });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('特色榜單');
-            Text.fontSize(15);
+            Text.create('Premier Elite Wealth Studio');
+            Text.fontSize(16);
             Text.fontWeight(FontWeight.Bold);
+            Text.fontColor(Hive.Color.n900);
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -2932,96 +2991,129 @@ class WHFeaturedRankings extends ViewPU {
         }, Blank);
         Blank.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('更多 ›');
+            Text.create('All ›');
             Text.fontSize(12);
-            Text.fontColor(Hive.Color.brandPrimary);
+            Text.fontColor('#DB0011');
         }, Text);
         Text.pop();
         Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Scroll.create();
+            Scroll.scrollable(ScrollDirection.Horizontal);
+            Scroll.scrollBar(BarState.Off);
+            Scroll.width('100%');
+        }, Scroll);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 12 });
+            Row.padding({ left: 16, right: 16, bottom: 14 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
             ForEach.create();
             const forEachItemGenFunction = _item => {
-                const item = _item;
+                const ep = _item;
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Row.create({ space: 12 });
-                    Row.width('100%');
-                    Row.padding({ top: 8, bottom: 8 });
-                    Row.onClick(() => { SensorDataClient.rankingsTapped(item.title, item.badge); });
-                }, Row);
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create(item.icon);
-                    Text.fontSize(24);
-                }, Text);
-                Text.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Column.create({ space: 2 });
-                    Column.layoutWeight(1);
-                    Column.alignItems(HorizontalAlign.Start);
+                    Column.create({ space: 0 });
+                    Column.borderRadius(10);
+                    Column.clip(true);
+                    Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
+                    Column.onClick(() => { SensorDataClient.wealthStudioTapped(ep.title, ep.id); });
                 }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create(item.badge);
-                    Text.fontSize(9);
-                    Text.fontWeight(FontWeight.Bold);
-                    Text.fontColor(Hive.Color.brandPrimary);
-                    Text.padding({ left: 8, right: 8, top: 2, bottom: 2 });
-                    Text.borderRadius(10);
-                    Text.backgroundColor('#FEF2F2');
+                    // Fixed-height image area
+                    Stack.create({ alignContent: Alignment.BottomStart });
+                }, Stack);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create(ep.thumbnail);
+                    Text.fontSize(32);
+                    Text.width(180);
+                    Text.height(100);
+                    Text.textAlign(TextAlign.Center);
+                    Text.backgroundColor(Hive.Color.n700);
+                    Text.borderRadius({ topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 });
                 }, Text);
                 Text.pop();
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create(item.title);
-                    Text.fontSize(13);
+                    Text.create('▶');
+                    Text.fontSize(20);
+                    Text.fontColor(Hive.Color.brandWhite);
+                    Text.width(36);
+                    Text.height(36);
+                    Text.textAlign(TextAlign.Center);
+                    Text.borderRadius(18);
+                    Text.backgroundColor('#80000000');
+                    Text.position({ x: 72, y: 32 });
+                }, Text);
+                Text.pop();
+                // Fixed-height image area
+                Stack.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    // Fixed-height text area
+                    Column.create({ space: 4 });
+                    // Fixed-height text area
+                    Column.alignItems(HorizontalAlign.Start);
+                    // Fixed-height text area
+                    Column.width(180);
+                    // Fixed-height text area
+                    Column.height(72);
+                    // Fixed-height text area
+                    Column.padding({ left: 10, right: 10, top: 8, bottom: 8 });
+                    // Fixed-height text area
+                    Column.backgroundColor(Hive.Color.brandWhite);
+                    // Fixed-height text area
+                    Column.borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 10, bottomRight: 10 });
+                }, Column);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create(ep.title);
+                    Text.fontSize(11);
                     Text.fontWeight(FontWeight.Bold);
                     Text.fontColor(Hive.Color.n900);
+                    Text.maxLines(2);
+                    Text.width(180);
                 }, Text);
                 Text.pop();
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create(item.desc);
+                    Row.create({ space: 4 });
+                }, Row);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create('⏱');
                     Text.fontSize(10);
-                    Text.fontColor(Hive.Color.n500);
+                    Text.fontColor(Hive.Color.n400);
                 }, Text);
                 Text.pop();
-                Column.pop();
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create('›');
-                    Text.fontSize(16);
+                    Text.create(ep.duration);
+                    Text.fontSize(10);
                     Text.fontColor(Hive.Color.n400);
                 }, Text);
                 Text.pop();
                 Row.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Divider.create();
-                    Divider.color('#F9FAFB');
-                }, Divider);
+                // Fixed-height text area
+                Column.pop();
+                Column.pop();
             };
-            this.forEachUpdateFunction(elmtId, RANKINGS, forEachItemGenFunction);
+            this.forEachUpdateFunction(elmtId, STATIC_EPISODES, forEachItemGenFunction);
         }, ForEach);
         ForEach.pop();
+        Row.pop();
+        Scroll.pop();
         Column.pop();
     }
     rerender() {
         this.updateDirtyElements();
     }
 }
-class WHLifeDeals extends ViewPU {
+class WHGuidesInsights extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
         super(parent, __localStorage, elmtId, extraInfo);
         if (typeof paramsLambda === "function") {
             this.paramsGenerator_ = paramsLambda;
         }
-        this.bottomLinks = [
-            { icon: '🎁', label: '達標抽好禮\n丰润守护 健康随行', deepLink: 'hsbc://campaign/health' },
-            { icon: '🏦', label: '行庆招财日\n享受特惠禮遇', deepLink: 'hsbc://campaign/anniversary' },
-        ];
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
-    setInitiallyProvidedValue(params: WHLifeDeals_Params) {
-        if (params.bottomLinks !== undefined) {
-            this.bottomLinks = params.bottomLinks;
-        }
+    setInitiallyProvidedValue(params: WHGuidesInsights_Params) {
     }
-    updateStateVars(params: WHLifeDeals_Params) {
+    updateStateVars(params: WHGuidesInsights_Params) {
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
     }
@@ -3029,25 +3121,26 @@ class WHLifeDeals extends ViewPU {
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
-    private bottomLinks: BottomLink[];
     aboutToAppear() {
-        SensorDataClient.sliceImpression('LIFE_DEALS', 'slice-life-deals', 9);
+        SensorDataClient.sliceImpression('GUIDES_INSIGHTS_CAROUSEL', 'slice-guides', 6);
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 10 });
+            Column.create({ space: 0 });
             Column.width('100%');
             Column.backgroundColor(Hive.Color.brandWhite);
-            Column.padding({ left: 16, right: 16, top: 12, bottom: 12 });
+            Column.margin({ top: 8 });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create();
             Row.width('100%');
+            Row.padding({ left: 16, right: 16, top: 14, bottom: 10 });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('生活特惠');
-            Text.fontSize(15);
+            Text.create('Guides and insights');
+            Text.fontSize(16);
             Text.fontWeight(FontWeight.Bold);
+            Text.fontColor(Hive.Color.n900);
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -3056,93 +3149,374 @@ class WHLifeDeals extends ViewPU {
         }, Blank);
         Blank.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('更多 ›');
+            Text.create('More ›');
             Text.fontSize(12);
-            Text.fontColor(Hive.Color.brandPrimary);
+            Text.fontColor('#DB0011');
         }, Text);
         Text.pop();
         Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create({ space: 10 });
-            Row.width('100%');
+            Scroll.create();
+            Scroll.scrollable(ScrollDirection.Horizontal);
+            Scroll.scrollBar(BarState.Off);
+            Scroll.width('100%');
+        }, Scroll);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 12 });
+            Row.padding({ left: 16, right: 16, bottom: 14 });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             ForEach.create();
             const forEachItemGenFunction = _item => {
-                const d = _item;
+                const guide = _item;
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     Column.create({ space: 0 });
-                    Column.layoutWeight(1);
-                    Column.borderRadius(12);
+                    Column.borderRadius(10);
                     Column.clip(true);
-                    Column.backgroundColor(Hive.Color.n50);
-                    Column.onClick(() => { SensorDataClient.lifeDealTapped(d.brand, d.tag); });
+                    Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
+                    Column.onClick(() => { SensorDataClient.guidesTapped(guide.title, guide.id); });
                 }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create(d.emoji);
-                    Text.fontSize(24);
-                    Text.width('100%');
-                    Text.height(64);
+                    Text.create(guide.imageEmoji);
+                    Text.fontSize(36);
+                    Text.width(160);
+                    Text.height(90);
                     Text.textAlign(TextAlign.Center);
                     Text.backgroundColor(Hive.Color.n100);
+                    Text.borderRadius({ topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 });
                 }, Text);
                 Text.pop();
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create(d.tag);
+                    Column.create({ space: 4 });
+                    Column.alignItems(HorizontalAlign.Start);
+                    Column.width(160);
+                    Column.height(72);
+                    Column.padding({ left: 8, right: 8, top: 8, bottom: 8 });
+                    Column.backgroundColor(Hive.Color.brandWhite);
+                    Column.borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 10, bottomRight: 10 });
+                }, Column);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create(guide.title);
+                    Text.fontSize(11);
+                    Text.fontWeight(FontWeight.Medium);
+                    Text.fontColor(Hive.Color.n900);
+                    Text.maxLines(3);
+                    Text.width(160);
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create(guide.date ?? '');
                     Text.fontSize(9);
-                    Text.fontWeight(FontWeight.Bold);
-                    Text.fontColor(Hive.Color.brandWhite);
-                    Text.width('100%');
-                    Text.textAlign(TextAlign.Center);
-                    Text.padding({ top: 4, bottom: 4 });
-                    Text.backgroundColor(Hive.Color.brandPrimary);
+                    Text.fontColor(Hive.Color.n400);
                 }, Text);
                 Text.pop();
                 Column.pop();
+                Column.pop();
             };
-            this.forEachUpdateFunction(elmtId, DEALS, forEachItemGenFunction);
+            this.forEachUpdateFunction(elmtId, STATIC_GUIDES, forEachItemGenFunction);
         }, ForEach);
         ForEach.pop();
         Row.pop();
+        Scroll.pop();
+        Column.pop();
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+}
+class WHFXWatchlist extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params: WHFXWatchlist_Params) {
+    }
+    updateStateVars(params: WHFXWatchlist_Params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+    }
+    aboutToBeDeleted() {
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    aboutToAppear() {
+        SensorDataClient.sliceImpression('FX_WATCHLIST', 'slice-fx-watchlist', 7);
+    }
+    initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create({ space: 10 });
+            Column.create({ space: 0 });
+            Column.width('100%');
+            Column.backgroundColor(Hive.Color.brandWhite);
+            Column.margin({ top: 8 });
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 8 });
             Row.width('100%');
+            Row.padding({ left: 16, right: 16, top: 14, bottom: 8 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('FX watchlist');
+            Text.fontSize(16);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor(Hive.Color.n900);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('Premier');
+            Text.fontSize(9);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor('#DB0011');
+            Text.padding({ left: 8, right: 8, top: 3, bottom: 3 });
+            Text.borderRadius(10);
+            Text.backgroundColor('#FEF2F2');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Blank.create();
+            Blank.layoutWeight(1);
+        }, Blank);
+        Blank.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('View all ›');
+            Text.fontSize(12);
+            Text.fontColor('#DB0011');
+        }, Text);
+        Text.pop();
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.width('100%');
+            Row.padding({ left: 16, right: 16, bottom: 6 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('Currency pair');
+            Text.fontSize(11);
+            Text.fontColor(Hive.Color.n400);
+            Text.layoutWeight(2);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('Rate');
+            Text.fontSize(11);
+            Text.fontColor(Hive.Color.n400);
+            Text.layoutWeight(1);
+            Text.textAlign(TextAlign.End);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('Change');
+            Text.fontSize(11);
+            Text.fontColor(Hive.Color.n400);
+            Text.layoutWeight(1);
+            Text.textAlign(TextAlign.End);
+        }, Text);
+        Text.pop();
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Divider.create();
+            Divider.color(Hive.Color.n100);
+            Divider.margin({ left: 16, right: 16 });
+        }, Divider);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            ForEach.create();
+            const forEachItemGenFunction = (_item, index: number) => {
+                const pair = _item;
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Row.create({ space: 0 });
+                    Row.width('100%');
+                    Row.padding({ left: 16, right: 16, top: 10, bottom: 10 });
+                    Row.onClick(() => {
+                        SensorDataClient.track('fx_pair_tap', 'Wealth', 'fx_pair_tapped', `${pair.base}/${pair.quote}`, 'fx_watchlist', 'wealth_hub');
+                    });
+                }, Row);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create(`${pair.base} / ${pair.quote}`);
+                    Text.fontSize(13);
+                    Text.fontWeight(FontWeight.Medium);
+                    Text.fontColor(Hive.Color.n900);
+                    Text.layoutWeight(2);
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create(pair.rate);
+                    Text.fontSize(13);
+                    Text.fontColor(Hive.Color.n900);
+                    Text.layoutWeight(1);
+                    Text.textAlign(TextAlign.End);
+                }, Text);
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create(pair.change);
+                    Text.fontSize(13);
+                    Text.fontWeight(FontWeight.Medium);
+                    Text.fontColor(pair.positive ? '#16A34A' : '#DC2626');
+                    Text.layoutWeight(1);
+                    Text.textAlign(TextAlign.End);
+                }, Text);
+                Text.pop();
+                Row.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    If.create();
+                    if (index < STATIC_FX_PAIRS.length - 1) {
+                        this.ifElseBranchUpdateFunction(0, () => {
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Divider.create();
+                                Divider.color(Hive.Color.n100);
+                                Divider.margin({ left: 16, right: 16 });
+                            }, Divider);
+                        });
+                    }
+                    else {
+                        this.ifElseBranchUpdateFunction(1, () => {
+                        });
+                    }
+                }, If);
+                If.pop();
+            };
+            this.forEachUpdateFunction(elmtId, STATIC_FX_PAIRS, forEachItemGenFunction, undefined, true, false);
+        }, ForEach);
+        ForEach.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Blank.create();
+            Blank.height(12);
+        }, Blank);
+        Blank.pop();
+        Column.pop();
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+}
+class WHDiscoverMore extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params: WHDiscoverMore_Params) {
+    }
+    updateStateVars(params: WHDiscoverMore_Params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+    }
+    aboutToBeDeleted() {
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    aboutToAppear() {
+        SensorDataClient.sliceImpression('DISCOVER_MORE_CAROUSEL', 'slice-discover-more', 8);
+    }
+    initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 0 });
+            Column.width('100%');
+            Column.backgroundColor(Hive.Color.n50);
+            Column.margin({ top: 8 });
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.width('100%');
+            Row.padding({ left: 16, right: 16, top: 14, bottom: 10 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('Discover more');
+            Text.fontSize(16);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor(Hive.Color.n900);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Blank.create();
+            Blank.layoutWeight(1);
+        }, Blank);
+        Blank.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('All ›');
+            Text.fontSize(12);
+            Text.fontColor('#DB0011');
+        }, Text);
+        Text.pop();
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Scroll.create();
+            Scroll.scrollable(ScrollDirection.Horizontal);
+            Scroll.scrollBar(BarState.Off);
+            Scroll.width('100%');
+        }, Scroll);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 12 });
+            Row.padding({ left: 16, right: 16, bottom: 14 });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             ForEach.create();
             const forEachItemGenFunction = _item => {
-                const link = _item;
+                const card = _item;
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Row.create({ space: 8 });
-                    Row.layoutWeight(1);
-                    Row.padding(10);
-                    Row.borderRadius(12);
-                    Row.backgroundColor(Hive.Color.n50);
-                    Row.alignItems(VerticalAlign.Center);
-                    Row.onClick(() => {
-                        const extra: Record<string, any> = {};
-                        extra['deep_link'] = link.deepLink as any;
-                        SensorDataClient.track('bottom_link_tap', 'Wealth', 'bottom_link_tapped', link.label, 'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '', '', '', extra);
-                    });
-                }, Row);
+                    Column.create({ space: 0 });
+                    Column.borderRadius(12);
+                    Column.clip(true);
+                    Column.backgroundColor(Hive.Color.brandWhite);
+                    Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
+                    Column.onClick(() => { SensorDataClient.discoverMoreTapped(card.title, card.tag); });
+                }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create(link.icon);
-                    Text.fontSize(24);
+                    Stack.create({ alignContent: Alignment.TopStart });
+                }, Stack);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create(card.imageEmoji);
+                    Text.fontSize(40);
+                    Text.width(200);
+                    Text.height(110);
+                    Text.textAlign(TextAlign.Center);
+                    Text.backgroundColor(Hive.Color.n700);
+                    Text.borderRadius({ topLeft: 12, topRight: 12, bottomLeft: 0, bottomRight: 0 });
                 }, Text);
                 Text.pop();
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create(link.label);
-                    Text.fontSize(10);
-                    Text.fontColor(Hive.Color.n700);
-                    Text.lineHeight(16);
+                    Text.create(card.tag);
+                    Text.fontSize(9);
+                    Text.fontWeight(FontWeight.Bold);
+                    Text.fontColor(Hive.Color.brandWhite);
+                    Text.padding({ left: 8, right: 8, top: 4, bottom: 4 });
+                    Text.borderRadius(10);
+                    Text.backgroundColor('#DB0011');
+                    Text.margin({ left: 10, top: 10 });
                 }, Text);
                 Text.pop();
-                Row.pop();
+                Stack.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Column.create({ space: 4 });
+                    Column.alignItems(HorizontalAlign.Start);
+                    Column.width(200);
+                    Column.height(60);
+                    Column.padding({ left: 10, right: 10, top: 8, bottom: 8 });
+                    Column.backgroundColor(Hive.Color.brandWhite);
+                    Column.borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 12, bottomRight: 12 });
+                }, Column);
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    Text.create(card.title);
+                    Text.fontSize(12);
+                    Text.fontWeight(FontWeight.Medium);
+                    Text.fontColor(Hive.Color.n900);
+                    Text.maxLines(2);
+                    Text.width(200);
+                }, Text);
+                Text.pop();
+                Column.pop();
+                Column.pop();
             };
-            this.forEachUpdateFunction(elmtId, this.bottomLinks, forEachItemGenFunction);
+            this.forEachUpdateFunction(elmtId, STATIC_CAMPAIGNS, forEachItemGenFunction);
         }, ForEach);
         ForEach.pop();
         Row.pop();
+        Scroll.pop();
         Column.pop();
     }
     rerender() {

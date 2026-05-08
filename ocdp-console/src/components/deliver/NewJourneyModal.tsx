@@ -36,6 +36,7 @@ export function NewJourneyModal() {
   const [nativeTargets, setNativeTargets] = useState<NativeTarget[]>(['ios', 'android', 'harmonynext', 'web']);
   const [marketId,      setMarketId]      = useState(markets[1]?.marketId ?? 'HK');
   const [bizLineId,     setBizLineId]     = useState('WEB_ENABLER');
+  const [isPublic,      setIsPublic]      = useState(false); // SDUI default is private; flips to true when WEB_STANDARD is selected
   const [steps,         setSteps]         = useState<StepDraft[]>([]);
   const [addingStep,    setAddingStep]    = useState(false);
   const [newStep,       setNewStep]       = useState<StepDraft>({ label: '', description: '', screenType: 'TEXT_INPUT', icon: '👤' });
@@ -46,7 +47,9 @@ export function NewJourneyModal() {
 
   function handleChannelChange(ch: typeof channel) {
     setChannel(ch);
-    if (ch === 'SDUI') setNativeTargets(['ios', 'android', 'harmonynext', 'web']);
+    if (ch === 'SDUI') { setNativeTargets(['ios', 'android', 'harmonynext', 'web']); setIsPublic(false); }
+    if (ch === 'WEB_STANDARD') setIsPublic(true);
+    if (ch === 'WEB_WECHAT')   setIsPublic(false);
   }
 
   function addStep() {
@@ -70,6 +73,8 @@ export function NewJourneyModal() {
         nativeTargets: channel === 'SDUI' ? nativeTargets : [],
         marketId,
         bizLineId,
+        ...(channel === 'WEB_STANDARD' ? { isPublic } : {}),
+        ...(channel === 'SDUI' && nativeTargets.includes('web') ? { isPublic } : {}),
       },
     });
   }
@@ -151,6 +156,35 @@ export function NewJourneyModal() {
                 <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 8 }}>
                   SDUI JSON will be delivered to all selected clients — iOS, Android, HarmonyNext native apps, and the Web SDUI renderer.
                 </div>
+
+                {/* Web public toggle — only shown when web target is selected */}
+                {nativeTargets.includes('web') && (
+                  <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #FDDCB5' }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: '#92400E', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+                      Web Visibility
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button onClick={() => setIsPublic(false)} style={{
+                        flex: 1, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
+                        border: !isPublic ? '2px solid #6B7280' : '2px solid #E5E7EB',
+                        background: !isPublic ? '#F3F4F6' : '#fff',
+                        transition: 'all 0.12s',
+                      }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: !isPublic ? '#374151' : '#9CA3AF' }}>🔒 Private</div>
+                        <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>Authenticated users only — no AEO/SEO assessment</div>
+                      </button>
+                      <button onClick={() => setIsPublic(true)} style={{
+                        flex: 1, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
+                        border: isPublic ? '2px solid #059669' : '2px solid #E5E7EB',
+                        background: isPublic ? '#D1FAE5' : '#fff',
+                        transition: 'all 0.12s',
+                      }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: isPublic ? '#059669' : '#9CA3AF' }}>🌐 Public</div>
+                        <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>Indexed by search engines — AEO/SEO assessed on submit</div>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -160,6 +194,31 @@ export function NewJourneyModal() {
               <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="Brief description of this journey"
                 style={{ ...inputStyle, resize: 'vertical', fontFamily: 'var(--font-family)' }} />
             </div>
+
+            {/* Web Standard: Public / Private toggle */}
+            {channel === 'WEB_STANDARD' && (
+              <div style={{ padding: 14, background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Web Standard — Visibility</div>
+                <label style={labelStyle}>Journey Visibility</label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {([true, false] as const).map(val => (
+                    <button key={String(val)} onClick={() => setIsPublic(val)} style={{
+                      flex: 1, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
+                      border: isPublic === val ? `2px solid ${val ? '#059669' : '#6B7280'}` : '2px solid #E5E7EB',
+                      background: isPublic === val ? (val ? '#D1FAE5' : '#F3F4F6') : '#fff',
+                      transition: 'all 0.12s',
+                    }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: isPublic === val ? (val ? '#059669' : '#374151') : '#9CA3AF' }}>
+                        {val ? '🌐 Public' : '🔒 Private'}
+                      </div>
+                      <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>
+                        {val ? 'Indexed by search engines — AEO/SEO assessed on submit' : 'Authenticated users only — no AEO/SEO assessment'}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Market + BizLine */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>

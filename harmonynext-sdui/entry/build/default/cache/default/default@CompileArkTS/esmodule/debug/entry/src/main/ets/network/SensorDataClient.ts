@@ -187,6 +187,25 @@ class _SensorDataClient {
     aiAssistantTapped(): void {
         this.track('ai_assistant_tap', 'Wealth', 'ai_assistant_tapped', '', 'wealth_hub_hk', 'wealth_hub');
     }
+    // ── Home Hub HK event helpers ────────────────────────────────────────────────
+    wealthStudioTapped(title: string, instanceId: string): void {
+        const extra: Record<string, any> = {};
+        extra['episode_title'] = title as any;
+        extra['instance_id'] = instanceId as any;
+        this.track('wealth_studio_tap', 'Wealth', 'wealth_studio_tapped', title, 'wealth_hub_hk', 'wealth_hub', '', '', instanceId, '', '', '', '', '', extra);
+    }
+    guidesTapped(title: string, instanceId: string): void {
+        const extra: Record<string, any> = {};
+        extra['guide_title'] = title as any;
+        extra['instance_id'] = instanceId as any;
+        this.track('guides_tap', 'Wealth', 'guides_tapped', title, 'wealth_hub_hk', 'wealth_hub', '', '', instanceId, '', '', '', '', '', extra);
+    }
+    discoverMoreTapped(title: string, tag: string): void {
+        const extra: Record<string, any> = {};
+        extra['campaign_title'] = title as any;
+        extra['campaign_tag'] = tag as any;
+        this.track('discover_more_tap', 'Wealth', 'discover_more_tapped', title, 'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '', '', '', extra);
+    }
     // ── KYC Journey event helpers ────────────────────────────────────────────────
     kycJourneyStarted(): void {
         this.track('kyc_start', 'KYC', 'journey_started', 'OBKYC', 'kyc_welcome', 'obkyc', 'welcome');

@@ -178,6 +178,24 @@ object TealiumClient {
         action = "ai_assistant_tapped", screen = "wealth_hub_hk", journey = "wealth_hub"
     )
 
+    fun wealthStudioTapped(title: String, instanceId: String) = track(
+        event = "wealth_studio_tap", category = "Wealth", action = "wealth_studio_tapped",
+        label = title, screen = "wealth_hub_hk", journey = "wealth_hub",
+        componentId = instanceId, custom = mapOf("studio_title" to title)
+    )
+
+    fun guidesTapped(title: String, instanceId: String) = track(
+        event = "guides_tap", category = "Wealth", action = "guides_tapped",
+        label = title, screen = "wealth_hub_hk", journey = "wealth_hub",
+        componentId = instanceId, custom = mapOf("guide_title" to title)
+    )
+
+    fun discoverMoreTapped(title: String, tag: String) = track(
+        event = "discover_more_tap", category = "Wealth", action = "discover_more_tapped",
+        label = title, screen = "wealth_hub_hk", journey = "wealth_hub",
+        custom = mapOf("discover_title" to title, "discover_tag" to tag)
+    )
+
     // ── KYC Journey events ────────────────────────────────────────────────────
 
     fun kycJourneyStarted() = track(

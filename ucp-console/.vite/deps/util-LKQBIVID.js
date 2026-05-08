@@ -1,0 +1,18 @@
+import {
+  __commonJS
+} from "./chunk-5WRI5ZAA.js";
+
+// browser-external:util
+var require_util = __commonJS({
+  "browser-external:util"(exports, module) {
+    module.exports = Object.create(new Proxy({}, {
+      get(_, key) {
+        if (key !== "__esModule" && key !== "__proto__" && key !== "constructor" && key !== "splice") {
+          console.warn(`Module "util" has been externalized for browser compatibility. Cannot access "util.${key}" in client code. See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.`);
+        }
+      }
+    }));
+  }
+});
+export default require_util();
+//# sourceMappingURL=util-LKQBIVID.js.map

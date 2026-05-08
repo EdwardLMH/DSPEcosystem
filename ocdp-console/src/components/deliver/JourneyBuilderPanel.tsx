@@ -5,8 +5,9 @@ import { NewJourneyModal } from './NewJourneyModal';
 import { DevicePreview } from '../shared/DevicePreview';
 import { AEOAssessmentModal } from './AEOAssessmentModal';
 import { calculateAEOScore, shouldShowAEOAssessment } from '../../utils/aeoCalculator';
-import type { Journey } from '../../store/mockData';
-import type { CanvasSlice, NativeTarget, AEOScore } from '../../types/ocdp';
+import { evaluateSliceVisible } from './PageEditorView';
+import type { Journey, JourneyStep } from '../../store/mockData';
+import type { CanvasSlice, NativeTarget, AEOScore, VisibilityRule, PreviewContext, RuleCondition, RuleOperator, CustomFieldCondition, CustomerSegment, AccountType, CustomerLocation } from '../../types/ocdp';
 
 const STATUS_META: Record<string, { bg: string; color: string; label: string }> = {
   DRAFT:            { bg: '#F3F4F6', color: '#6B7280', label: 'Draft' },
@@ -74,7 +75,11 @@ function WorkflowTimeline({ status }: { status: string }) {
 
 // ─── Add Step Page Form ───────────────────────────────────────────────────────
 
-function AddStepPageForm({ journeyId, stepIndex, onCancel }: { journeyId: string; stepIndex: number; onCancel: () => void }) {
+function AddStepPageForm({ journeyId, stepIndex, journeyChannel, journeyNativeTargets, onCancel }: {
+  journeyId: string; stepIndex: number;
+  journeyChannel: string; journeyNativeTargets: string[];
+  onCancel: () => void;
+}) {
   const { dispatch } = useOCDP();
   const [name, setName] = useState('');
   const [pageType, setPageType] = useState<typeof PAGE_TYPES[number]>('CUSTOM');
@@ -91,11 +96,11 @@ function AddStepPageForm({ journeyId, stepIndex, onCancel }: { journeyId: string
         name: name.trim(),
         pageType,
         description: `Step ${stepIndex + 1} page`,
-        platform: 'all',
+        nativeTargets: journeyNativeTargets as import('../../types/ocdp').NativeTarget[],
         locale: 'en-HK',
         thumbnail: icon,
         tags: [],
-        channel: 'SDUI',
+        channel: journeyChannel as import('../../types/ocdp').Channel,
         scope: 'MARKET',
         marketId: 'HK',
         releaseMarketIds: ['HK'],
@@ -147,9 +152,8 @@ function AddStepPageForm({ journeyId, stepIndex, onCancel }: { journeyId: string
 
 // ─── Journey flow step card ───────────────────────────────────────────────────
 
-function MiniKYCPreview({ slices }: { slices: CanvasSlice[] }) {
+function MiniKYCPreview({ slices, thumbnail }: { slices: CanvasSlice[]; thumbnail?: string }) {
   const kycSlice = slices.find(s => s.type.startsWith('KYC_') && s.visible);
-  if (!kycSlice) return null;
 
   const SCREEN_LABELS: Record<string, { icon: string; color: string; lines: string[] }> = {
     KYC_NAME_DOB:        { icon: '👤', color: '#3B82F6', lines: ['First Name', 'Last Name', 'Date of Birth'] },
@@ -164,6 +168,34 @@ function MiniKYCPreview({ slices }: { slices: CanvasSlice[] }) {
     KYC_OPEN_BANKING:    { icon: '🔗', color: '#047857', lines: ['HSBC HK', 'Hang Seng', 'Bank of China'] },
     KYC_DECLARATION:     { icon: '✍️', color: '#92400E', lines: ['PEP Status ✓', 'Truthfulness ✓', 'FATCA / CRS'] },
   };
+
+  // Generic phone preview for non-KYC pages
+  if (!kycSlice) {
+    return (
+      <div style={{
+        width: 100, flexShrink: 0, background: '#1A1A1A', borderRadius: 10, overflow: 'hidden',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.25)', border: '2px solid #2A2A2A',
+      }}>
+        <div style={{ background: '#000', height: 8, display: 'flex', alignItems: 'center', padding: '0 6px', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: 5, color: 'rgba(255,255,255,0.5)', fontWeight: 700 }}>9:41</span>
+          <span style={{ fontSize: 5, color: 'rgba(255,255,255,0.4)' }}>●● 5G</span>
+        </div>
+        <div style={{ background: '#DB0011', height: 14, display: 'flex', alignItems: 'center', padding: '0 5px', gap: 3 }}>
+          <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 8, lineHeight: 1 }}>‹</span>
+          <span style={{ color: '#fff', fontSize: 6, fontWeight: 800 }}>HSBC</span>
+        </div>
+        <div style={{ background: '#fff', padding: '10px 8px', minHeight: 110, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <span style={{ fontSize: 22 }}>{thumbnail ?? '📄'}</span>
+          <div style={{ height: 3, background: '#E5E7EB', borderRadius: 2, width: '70%' }} />
+          <div style={{ height: 3, background: '#E5E7EB', borderRadius: 2, width: '50%' }} />
+          <div style={{ height: 3, background: '#E5E7EB', borderRadius: 2, width: '60%' }} />
+          <div style={{ background: '#DB0011', borderRadius: 4, height: 10, width: '80%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 4 }}>
+            <span style={{ fontSize: 5, color: '#fff', fontWeight: 700 }}>Continue →</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const cfg = SCREEN_LABELS[kycSlice.type] ?? { icon: '📄', color: '#6B7280', lines: [kycSlice.type] };
 
@@ -210,24 +242,315 @@ function MiniKYCPreview({ slices }: { slices: CanvasSlice[] }) {
   );
 }
 
+// ─── Step Rule Engine helpers ─────────────────────────────────────────────────
+
+// Evaluate step visibility from a rule the same way slices are evaluated.
+// Re-uses evaluateSliceVisible by wrapping the step in a dummy CanvasSlice shape.
+function evaluateStepVisible(step: JourneyStep, ctx: PreviewContext | null): boolean {
+  if (!step.visibilityRule || !ctx) return true;
+  const dummySlice = { instanceId: step.stepId, type: 'KYC_INTRO' as const, props: {}, visible: true, locked: false, visibilityRule: step.visibilityRule };
+  return evaluateSliceVisible(dummySlice, ctx);
+}
+
+// Metadata for the field picker — mirrors PageEditorView but inline here
+const STEP_SEGMENTS: CustomerSegment[] = ['premier', 'jade', 'advance', 'mass'];
+const STEP_ACCT_TYPES: AccountType[] = ['wealth_account', 'credit_card', 'current_account', 'savings_account', 'mortgage', 'time_deposit'];
+const STEP_LOCATIONS: CustomerLocation[] = ['HK', 'mainland_china', 'macau', 'singapore', 'uk', 'other'];
+
+const STEP_SEG_LABELS: Record<CustomerSegment, string> = { premier: '🏆 Premier', jade: '🟢 Jade', advance: '🔵 Advance', mass: '👤 Mass' };
+const STEP_ACCT_LABELS: Record<AccountType, string> = {
+  wealth_account: '💰 Wealth', credit_card: '💳 Credit Card', current_account: '🏦 Current',
+  savings_account: '🪙 Savings', mortgage: '🏠 Mortgage', time_deposit: '⏳ Time Deposit',
+};
+const STEP_LOC_LABELS: Record<CustomerLocation, string> = {
+  HK: '🇭🇰 HK', mainland_china: '🇨🇳 Mainland', macau: '🇲🇴 Macau',
+  singapore: '🇸🇬 SG', uk: '🇬🇧 UK', other: '🌍 Other',
+};
+
+const STEP_FIELD_META = {
+  customerSegment:  { label: 'Customer Segment',  icon: '👥' },
+  accountType:      { label: 'Account Type',      icon: '💳' },
+  customerLocation: { label: 'Customer Location', icon: '🌍' },
+  custom:           { label: 'Custom Field',      icon: '✏️' },
+} as const;
+type StepCondField = keyof typeof STEP_FIELD_META;
+
+function stepDefaultValue(field: StepCondField): string {
+  if (field === 'customerSegment') return 'premier';
+  if (field === 'accountType')     return 'wealth_account';
+  if (field === 'customerLocation') return 'HK';
+  return '';
+}
+
+function stepFieldValueLabel(field: StepCondField, val: string): string {
+  if (field === 'customerSegment') return STEP_SEG_LABELS[val as CustomerSegment] ?? val;
+  if (field === 'accountType')     return STEP_ACCT_LABELS[val as AccountType] ?? val;
+  if (field === 'customerLocation') return STEP_LOC_LABELS[val as CustomerLocation] ?? val;
+  return val;
+}
+
+// ─── Step Rule Panel ──────────────────────────────────────────────────────────
+
+function StepRulePanel({
+  step,
+  readOnly,
+  onRuleChange,
+  previewContext,
+}: {
+  step: JourneyStep;
+  readOnly: boolean;
+  onRuleChange: (rule: VisibilityRule | undefined) => void;
+  previewContext: PreviewContext | null;
+}) {
+  const rule = step.visibilityRule;
+  const hasRule = !!rule;
+  const [condLabel, setCondLabel] = useState(rule?.label ?? '');
+
+  const inp: React.CSSProperties = {
+    width: '100%', padding: '5px 8px', border: '1px solid #D1D5DB',
+    borderRadius: 6, fontSize: 11, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box',
+  };
+  const sel: React.CSSProperties = {
+    ...inp, appearance: 'none',
+    backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236B7280'/%3E%3C/svg%3E\")",
+    backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center', paddingRight: 24,
+  };
+  const secHead: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 };
+
+  function addRule() {
+    const r: VisibilityRule = {
+      ruleId: `step-rule-${Date.now()}`,
+      label: `Show step ${step.label}`,
+      conditions: [{ field: 'customerSegment', operator: 'is', value: 'premier' }],
+      conditionLogic: 'AND',
+      action: 'show',
+    };
+    setCondLabel(r.label);
+    onRuleChange(r);
+  }
+
+  function patchRule(patch: Partial<VisibilityRule>) {
+    if (!rule) return;
+    onRuleChange({ ...rule, ...patch });
+  }
+
+  function patchCondition(idx: number, patch: Partial<RuleCondition>) {
+    if (!rule) return;
+    const conditions = rule.conditions.map((c, i) => i === idx ? { ...c, ...patch } as RuleCondition : c);
+    patchRule({ conditions });
+  }
+
+  function changeCondField(idx: number, field: StepCondField) {
+    if (!rule) return;
+    let newCond: RuleCondition;
+    if (field === 'custom') {
+      newCond = { field: 'custom', customFieldName: '', operator: 'equals', value: '' } as CustomFieldCondition;
+    } else {
+      newCond = { field, operator: 'is', value: stepDefaultValue(field) } as RuleCondition;
+    }
+    patchRule({ conditions: rule.conditions.map((c, i) => i === idx ? newCond : c) });
+  }
+
+  function addCondition() {
+    if (!rule) return;
+    patchRule({ conditions: [...rule.conditions, { field: 'customerSegment', operator: 'is', value: 'premier' }] });
+  }
+
+  function removeCondition(idx: number) {
+    if (!rule || rule.conditions.length <= 1) return;
+    patchRule({ conditions: rule.conditions.filter((_, i) => i !== idx) });
+  }
+
+  // Live preview result
+  const previewVisible = previewContext ? evaluateStepVisible(step, previewContext) : null;
+
+  return (
+    <div style={{ marginTop: 10, padding: '10px 12px', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 8 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 8 }}>🎯 Step Visibility Rule</div>
+
+      {/* Preview result badge */}
+      {previewContext && (
+        <div style={{
+          marginBottom: 8, padding: '4px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700,
+          background: previewVisible ? '#D1FAE5' : '#FEE2E2',
+          color: previewVisible ? '#059669' : '#DC2626',
+          border: `1px solid ${previewVisible ? '#A7F3D0' : '#FECACA'}`,
+        }}>
+          {previewVisible ? '👁 Visible in preview' : '🚫 Hidden in preview'}
+        </div>
+      )}
+
+      {!hasRule ? (
+        <div style={{ textAlign: 'center', padding: '12px 0' }}>
+          <div style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 8 }}>No rule — step always shown</div>
+          {!readOnly && (
+            <button onClick={addRule} style={{ padding: '6px 14px', background: '#DB0011', color: '#fff', border: 'none', borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+              + Add Rule
+            </button>
+          )}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {/* Rule label */}
+          <div>
+            <div style={secHead}>Rule Name</div>
+            {readOnly
+              ? <div style={{ fontSize: 11, fontWeight: 600, color: '#374151' }}>{rule.label}</div>
+              : <input value={condLabel} onChange={e => { setCondLabel(e.target.value); patchRule({ label: e.target.value }); }} style={inp} placeholder="Rule description..." />
+            }
+          </div>
+
+          {/* Action */}
+          <div>
+            <div style={secHead}>Action</div>
+            {readOnly ? (
+              <span style={{ fontSize: 11, fontWeight: 700, color: rule.action === 'show' ? '#059669' : '#DC2626' }}>
+                {rule.action === 'show' ? '👁 Show' : '🚫 Hide'} this step when conditions are met
+              </span>
+            ) : (
+              <div style={{ display: 'flex', gap: 6 }}>
+                {(['show', 'hide'] as const).map(a => (
+                  <button key={a} onClick={() => patchRule({ action: a })} style={{
+                    flex: 1, padding: '5px 0', borderRadius: 6, cursor: 'pointer', fontWeight: 700, fontSize: 11,
+                    border: `2px solid ${rule.action === a ? (a === 'show' ? '#059669' : '#DC2626') : '#E5E7EB'}`,
+                    background: rule.action === a ? (a === 'show' ? '#D1FAE5' : '#FEE2E2') : '#fff',
+                    color: rule.action === a ? (a === 'show' ? '#059669' : '#DC2626') : '#6B7280',
+                  }}>
+                    {a === 'show' ? '👁 Show' : '🚫 Hide'}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Conditions */}
+          <div>
+            <div style={secHead}>Conditions</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              {rule.conditions.map((cond, idx) => {
+                const fieldKey = cond.field as StepCondField;
+                return (
+                  <div key={idx}>
+                    {idx > 0 && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '4px 0' }}>
+                        <div style={{ flex: 1, height: 1, background: '#E5E7EB' }} />
+                        {readOnly ? (
+                          <span style={{ fontSize: 10, fontWeight: 700, color: '#6B7280', padding: '1px 8px', background: '#F3F4F6', borderRadius: 4 }}>{rule.conditionLogic}</span>
+                        ) : (
+                          <div style={{ display: 'flex', gap: 2 }}>
+                            {(['AND', 'OR'] as const).map(logic => (
+                              <button key={logic} onClick={() => patchRule({ conditionLogic: logic })} style={{
+                                padding: '1px 8px', fontSize: 10, fontWeight: 700, borderRadius: 4, cursor: 'pointer',
+                                border: `1px solid ${rule.conditionLogic === logic ? '#6366F1' : '#E5E7EB'}`,
+                                background: rule.conditionLogic === logic ? '#EEF2FF' : '#fff',
+                                color: rule.conditionLogic === logic ? '#4338CA' : '#9CA3AF',
+                              }}>{logic}</button>
+                            ))}
+                          </div>
+                        )}
+                        <div style={{ flex: 1, height: 1, background: '#E5E7EB' }} />
+                      </div>
+                    )}
+
+                    <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 7, padding: '7px 9px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: '#6B7280' }}>{idx === 0 ? 'IF' : rule.conditionLogic}</span>
+                        {!readOnly && rule.conditions.length > 1 && (
+                          <button onClick={() => removeCondition(idx)} style={{ fontSize: 10, color: '#DC2626', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>✕</button>
+                        )}
+                      </div>
+
+                      {readOnly ? (
+                        <div style={{ fontSize: 11, color: '#374151' }}>
+                          {fieldKey === 'custom' ? (
+                            <><span style={{ fontWeight: 600 }}>✏️ {(cond as CustomFieldCondition).customFieldName}</span>{' '}{(cond as CustomFieldCondition).operator === 'is' ? '=' : (cond as CustomFieldCondition).operator === 'is_not' ? '≠' : (cond as CustomFieldCondition).operator}{' '}<strong>"{(cond as CustomFieldCondition).value}"</strong></>
+                          ) : (
+                            <><span style={{ fontWeight: 600 }}>{STEP_FIELD_META[fieldKey].icon} {STEP_FIELD_META[fieldKey].label}</span>{' '}{cond.operator === 'is' ? 'is' : 'is not'}{' '}<strong>{stepFieldValueLabel(fieldKey, String((cond as { value: unknown }).value))}</strong></>
+                          )}
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                          {/* Field picker */}
+                          <select value={fieldKey} onChange={e => changeCondField(idx, e.target.value as StepCondField)} style={sel}>
+                            {(Object.keys(STEP_FIELD_META) as StepCondField[]).map(f => (
+                              <option key={f} value={f}>{STEP_FIELD_META[f].icon} {STEP_FIELD_META[f].label}</option>
+                            ))}
+                          </select>
+
+                          {fieldKey === 'custom' ? (
+                            <>
+                              <input value={(cond as CustomFieldCondition).customFieldName} onChange={e => patchCondition(idx, { customFieldName: e.target.value } as Partial<CustomFieldCondition>)} placeholder="Field name (e.g. request.body.flag)" style={{ ...inp, fontFamily: 'monospace', fontSize: 10 }} />
+                              <select value={(cond as CustomFieldCondition).operator} onChange={e => patchCondition(idx, { operator: e.target.value as RuleOperator } as Partial<CustomFieldCondition>)} style={sel}>
+                                <option value="is">is</option>
+                                <option value="is_not">is not</option>
+                                <option value="in">in (comma-separated)</option>
+                                <option value="not_in">not in (comma-separated)</option>
+                              </select>
+                              <input value={(cond as CustomFieldCondition).value} onChange={e => patchCondition(idx, { value: e.target.value } as Partial<CustomFieldCondition>)} placeholder="Value to compare" style={inp} />
+                            </>
+                          ) : (
+                            <>
+                              <select value={cond.operator} onChange={e => patchCondition(idx, { operator: e.target.value as RuleOperator })} style={sel}>
+                                <option value="is">is</option>
+                                <option value="is_not">is not</option>
+                              </select>
+                              <select value={String((cond as { value: unknown }).value)} onChange={e => patchCondition(idx, { value: e.target.value } as Partial<RuleCondition>)} style={sel}>
+                                {(fieldKey === 'customerSegment' ? STEP_SEGMENTS : fieldKey === 'accountType' ? STEP_ACCT_TYPES : STEP_LOCATIONS).map(v => (
+                                  <option key={v} value={v}>{stepFieldValueLabel(fieldKey, v)}</option>
+                                ))}
+                              </select>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {!readOnly && (
+              <button onClick={addCondition} style={{ marginTop: 5, fontSize: 10, color: '#6B7280', background: 'none', border: '1px dashed #D1D5DB', borderRadius: 6, cursor: 'pointer', padding: '3px 10px', width: '100%' }}>
+                + Add condition
+              </button>
+            )}
+          </div>
+
+          {/* Remove rule */}
+          {!readOnly && (
+            <button onClick={() => onRuleChange(undefined)} style={{ padding: '6px', background: '#FFF', color: '#DC2626', border: '1px solid #FECACA', borderRadius: 7, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+              🗑 Remove Rule
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function StepCard({
-  stepPage, index, total, journeyId, journeyStatus, stepDescription, onRemove,
+  stepPage, index, total, journeyId, journeyStatus, stepDescription, onRemove, step, previewContext, onStepRuleChange,
 }: {
   stepPage: { pageId: string; name: string; thumbnail: string; authoringStatus: string; slices: CanvasSlice[] } | null;
   index: number; total: number; journeyId: string; journeyStatus: string;
   stepDescription?: string;
   onRemove?: () => void;
+  step?: JourneyStep;
+  previewContext?: PreviewContext | null;
+  onStepRuleChange?: (rule: VisibilityRule | undefined) => void;
 }) {
   const { dispatch } = useOCDP();
   const isLast = index === total - 1;
+  const [showRulePanel, setShowRulePanel] = useState(false);
+
+  const stepHidden = step && previewContext ? !evaluateStepVisible(step, previewContext) : false;
 
   return (
-    <div style={{ display: 'flex', alignItems: 'stretch', gap: 0 }}>
+    <div style={{ display: 'flex', alignItems: 'stretch', gap: 0, opacity: stepHidden ? 0.35 : 1, transition: 'opacity 0.15s' }}>
       {/* Step indicator + connector */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 38, flexShrink: 0 }}>
         <div style={{
           width: 30, height: 30, borderRadius: 15,
-          background: 'var(--hsbc-red)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: stepHidden ? '#9CA3AF' : 'var(--hsbc-red)', display: 'flex', alignItems: 'center', justifyContent: 'center',
           color: '#fff', fontSize: 12, fontWeight: 700, flexShrink: 0,
         }}>{index + 1}</div>
         {!isLast && <div style={{ width: 2, flex: 1, background: '#E5E7EB', marginTop: 4, minHeight: 20 }} />}
@@ -236,10 +559,13 @@ function StepCard({
       {/* Card */}
       <div style={{ flex: 1, paddingLeft: 12, paddingBottom: isLast ? 0 : 14 }}>
         {stepPage ? (
-          <div style={{ background: 'var(--surface-panel)', border: '1px solid var(--border-light)', borderRadius: 10, padding: '10px 14px' }}>
+          <div style={{ background: 'var(--surface-panel)', border: `1px solid ${stepHidden ? '#FECACA' : 'var(--border-light)'}`, borderRadius: 10, padding: '10px 14px' }}>
+            {stepHidden && (
+              <div style={{ fontSize: 10, fontWeight: 700, color: '#DC2626', marginBottom: 6 }}>🚫 Hidden by rule in current preview</div>
+            )}
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
               {/* Mini phone preview */}
-              <MiniKYCPreview slices={stepPage.slices} />
+              <MiniKYCPreview slices={stepPage.slices} thumbnail={stepPage.thumbnail} />
 
               {/* Text info */}
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -249,11 +575,25 @@ function StepCard({
                     {stepDescription && (
                       <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.4 }}>{stepDescription}</div>
                     )}
-                    <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                       <StatusBadge status={stepPage.authoringStatus} />
+                      {step?.visibilityRule && (
+                        <span style={{ fontSize: 10, fontWeight: 700, color: '#6366F1', background: '#EEF2FF', border: '1px solid #C7D2FE', borderRadius: 4, padding: '1px 6px' }}>
+                          🎯 {step.visibilityRule.action === 'show' ? 'Show' : 'Hide'} rule
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0, alignItems: 'flex-end' }}>
+                    {/* Rule toggle */}
+                    {step && onStepRuleChange && (
+                      <button
+                        onClick={() => setShowRulePanel(v => !v)}
+                        style={{ padding: '4px 8px', background: showRulePanel ? '#EEF2FF' : '#F9FAFB', color: showRulePanel ? '#4338CA' : '#6B7280', border: `1px solid ${showRulePanel ? '#C7D2FE' : '#E5E7EB'}`, borderRadius: 5, fontSize: 10, fontWeight: 700, cursor: 'pointer' }}
+                      >
+                        🎯 Rules
+                      </button>
+                    )}
                     {journeyStatus === 'DRAFT' && (
                       <>
                         <button
@@ -277,6 +617,16 @@ function StepCard({
                     )}
                   </div>
                 </div>
+
+                {/* Step rule panel */}
+                {step && onStepRuleChange && showRulePanel && (
+                  <StepRulePanel
+                    step={step}
+                    readOnly={journeyStatus !== 'DRAFT'}
+                    onRuleChange={onStepRuleChange}
+                    previewContext={previewContext ?? null}
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -303,6 +653,10 @@ function JourneyDetail({ journey }: { journey: Journey }) {
   const [showAEOModal, setShowAEOModal] = useState(false);
   const [aeoScore, setAeoScore] = useState<AEOScore | null>(null);
 
+  // Step rule preview context (journey-level, independent of page editor context)
+  const [stepPreviewCtx, setStepPreviewCtx] = useState<PreviewContext | null>(null);
+  const [stepPreviewOpen, setStepPreviewOpen] = useState(false);
+
   // Meta editing state
   const [editName, setEditName]   = useState(journey.name);
   const [editDesc, setEditDesc]   = useState(journey.description ?? '');
@@ -326,12 +680,15 @@ function JourneyDetail({ journey }: { journey: Journey }) {
     setSelectedTargets(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   }
 
-  // Handle submission with AEO assessment for Web Standard journeys
+  // Handle submission with AEO assessment for Web Standard public journeys
   function handleSubmit() {
     if (selectedTargets.length === 0) return;
 
-    // Check if any journey page is Web Standard
-    const hasWebStandardPage = myPages.some(jp => shouldShowAEOAssessment(jp.page));
+    // AEO applies to: Web Standard public journeys, or SDUI journeys with web target + public
+    const journeyIsPublicWeb =
+      (journey.channel === 'WEB_STANDARD' && journey.isPublic !== false) ||
+      (journey.channel === 'SDUI' && journey.nativeTargets.includes('web') && journey.isPublic === true);
+    const hasWebStandardPage = journeyIsPublicWeb && myPages.some(jp => shouldShowAEOAssessment(jp.page));
 
     if (hasWebStandardPage) {
       // Calculate AEO score for the first Web Standard page
@@ -343,7 +700,7 @@ function JourneyDetail({ journey }: { journey: Journey }) {
         setShowAEOModal(true);
       }
     } else {
-      // Direct submission for non-Web Standard journeys
+      // Direct submission for non-Web Standard or private journeys
       dispatch({ type: 'SUBMIT_JOURNEY', journeyId: journey.journeyId, targetIds: selectedTargets, comment });
     }
   }
@@ -396,6 +753,15 @@ function JourneyDetail({ journey }: { journey: Journey }) {
             }}>
               {journey.channel === 'WEB_STANDARD' ? '🌐 Web Standard' : journey.channel === 'WEB_WECHAT' ? '💬 WeChat' : '📱 SDUI'}
             </span>
+            {(journey.channel === 'WEB_STANDARD' || (journey.channel === 'SDUI' && journey.nativeTargets.includes('web'))) && (
+              <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 10,
+                background: journey.isPublic === true ? '#D1FAE5' : '#F3F4F6',
+                color:      journey.isPublic === true ? '#059669' : '#6B7280',
+                border:     `1px solid ${journey.isPublic === true ? '#A7F3D0' : '#D1D5DB'}`,
+              }}>
+                {journey.isPublic === true ? '🌐 Public' : '🔒 Private'}
+              </span>
+            )}
             <StatusBadge status={status} />
           </div>
         </div>
@@ -423,11 +789,85 @@ function JourneyDetail({ journey }: { journey: Journey }) {
 
         {activeTab === 'steps' && (
           <div style={{ maxWidth: 620 }}>
-            {/* Info callout */}
-            <div style={{ padding: '10px 14px', background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 8, fontSize: 11, color: '#1E40AF', marginBottom: 18, lineHeight: 1.5 }}>
-              Each step is a full page. Click <strong>Edit</strong> to open the page editor for that step.
-              Pages in a journey are not shown in the Pages panel.
+            {/* Info callout + step preview context toolbar */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 12 }}>
+              <div style={{ padding: '10px 14px', background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 8, fontSize: 11, color: '#1E40AF', lineHeight: 1.5, flex: 1 }}>
+                Each step is a full page. Click <strong>Edit</strong> to open the page editor for that step. Click <strong>🎯 Rules</strong> on a step to set step-level visibility rules.
+              </div>
+              {/* Step-level preview context mini picker */}
+              <div style={{ position: 'relative', flexShrink: 0 }}>
+                <button
+                  onClick={() => setStepPreviewOpen(o => !o)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 5,
+                    padding: '6px 10px', borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 700,
+                    border: stepPreviewCtx ? '2px solid #6366F1' : '1px solid #D1D5DB',
+                    background: stepPreviewCtx ? '#EEF2FF' : '#fff',
+                    color: stepPreviewCtx ? '#4338CA' : '#6B7280',
+                  }}
+                >
+                  👤 {stepPreviewCtx ? 'Preview On ●' : 'Step Preview ○'}
+                </button>
+                {stepPreviewOpen && (
+                  <div style={{ position: 'absolute', top: '110%', right: 0, zIndex: 200, background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.14)', padding: 14, width: 240 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#111', marginBottom: 10 }}>🎯 Simulate for Step Rules</div>
+                    {/* Segment */}
+                    <div style={{ marginBottom: 7 }}>
+                      <label style={{ fontSize: 10, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 3 }}>👥 Customer Segment</label>
+                      <select
+                        value={stepPreviewCtx?.customerSegment ?? 'premier'}
+                        onChange={e => setStepPreviewCtx(c => ({ ...(c ?? { customerSegment: 'premier', accountType: 'wealth_account', customerLocation: 'HK', customFields: {} }), customerSegment: e.target.value as CustomerSegment }))}
+                        style={{ width: '100%', padding: '5px 8px', border: '1px solid #D1D5DB', borderRadius: 6, fontSize: 11, outline: 'none' }}
+                      >
+                        {STEP_SEGMENTS.map(s => <option key={s} value={s}>{STEP_SEG_LABELS[s]}</option>)}
+                      </select>
+                    </div>
+                    {/* Account type */}
+                    <div style={{ marginBottom: 7 }}>
+                      <label style={{ fontSize: 10, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 3 }}>💳 Account Type</label>
+                      <select
+                        value={stepPreviewCtx?.accountType ?? 'wealth_account'}
+                        onChange={e => setStepPreviewCtx(c => ({ ...(c ?? { customerSegment: 'premier', accountType: 'wealth_account', customerLocation: 'HK', customFields: {} }), accountType: e.target.value as AccountType }))}
+                        style={{ width: '100%', padding: '5px 8px', border: '1px solid #D1D5DB', borderRadius: 6, fontSize: 11, outline: 'none' }}
+                      >
+                        {STEP_ACCT_TYPES.map(a => <option key={a} value={a}>{STEP_ACCT_LABELS[a]}</option>)}
+                      </select>
+                    </div>
+                    {/* Location */}
+                    <div style={{ marginBottom: 10 }}>
+                      <label style={{ fontSize: 10, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 3 }}>🌍 Location</label>
+                      <select
+                        value={stepPreviewCtx?.customerLocation ?? 'HK'}
+                        onChange={e => setStepPreviewCtx(c => ({ ...(c ?? { customerSegment: 'premier', accountType: 'wealth_account', customerLocation: 'HK', customFields: {} }), customerLocation: e.target.value as CustomerLocation }))}
+                        style={{ width: '100%', padding: '5px 8px', border: '1px solid #D1D5DB', borderRadius: 6, fontSize: 11, outline: 'none' }}
+                      >
+                        {STEP_LOCATIONS.map(l => <option key={l} value={l}>{STEP_LOC_LABELS[l]}</option>)}
+                      </select>
+                    </div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      {!stepPreviewCtx ? (
+                        <button onClick={() => { setStepPreviewCtx({ customerSegment: 'premier', accountType: 'wealth_account', customerLocation: 'HK', customFields: {} }); setStepPreviewOpen(false); }}
+                          style={{ flex: 1, padding: '6px', background: '#6366F1', color: '#fff', border: 'none', borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                          Apply
+                        </button>
+                      ) : (
+                        <button onClick={() => { setStepPreviewCtx(null); setStepPreviewOpen(false); }}
+                          style={{ flex: 1, padding: '6px', background: '#FFF', color: '#DC2626', border: '1px solid #FECACA', borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                          Clear Preview
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
+
+            {/* Step visibility summary when preview is active */}
+            {stepPreviewCtx && journey.steps.some(s => s.visibilityRule) && (
+              <div style={{ marginBottom: 12, padding: '8px 12px', background: '#F5F3FF', border: '1px solid #DDD6FE', borderRadius: 8, fontSize: 10, color: '#5B21B6' }}>
+                {journey.steps.filter(s => !evaluateStepVisible(s, stepPreviewCtx)).length} step(s) hidden · {journey.steps.filter(s => evaluateStepVisible(s, stepPreviewCtx)).length} visible
+              </div>
+            )}
 
             {myPages.length === 0 && !addingStep && (
               <div style={{ textAlign: 'center', padding: 32, background: 'var(--surface-panel)', borderRadius: 12, color: 'var(--text-muted)', marginBottom: 16, border: '2px dashed var(--border-mid)' }}>
@@ -447,6 +887,9 @@ function JourneyDetail({ journey }: { journey: Journey }) {
                 journeyStatus={status}
                 stepDescription={journey.steps[i]?.description}
                 onRemove={status === 'DRAFT' ? () => dispatch({ type: 'REMOVE_JOURNEY_PAGE', pageId: jp.page.pageId }) : undefined}
+                step={journey.steps[i]}
+                previewContext={stepPreviewCtx}
+                onStepRuleChange={journey.steps[i] ? (rule) => dispatch({ type: 'SET_STEP_RULE', journeyId: journey.journeyId, stepId: journey.steps[i].stepId, rule }) : undefined}
               />
             ))}
 
@@ -454,6 +897,8 @@ function JourneyDetail({ journey }: { journey: Journey }) {
               <AddStepPageForm
                 journeyId={journey.journeyId}
                 stepIndex={myPages.length}
+                journeyChannel={journey.channel}
+                journeyNativeTargets={journey.nativeTargets}
                 onCancel={() => setAddingStep(false)}
               />
             ) : status === 'DRAFT' ? (
@@ -783,7 +1228,12 @@ export function JourneyBuilderPanel() {
                 style={{ width: '100%', padding: '12px 16px', textAlign: 'left', background: isActive ? 'rgba(219,0,17,0.05)' : 'transparent', borderLeft: isActive ? '3px solid var(--hsbc-red)' : '3px solid transparent', border: 'none', cursor: 'pointer', borderRight: 'none', borderTop: 'none', borderBottom: '1px solid var(--border-light)' }}>
                 <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{j.name}</div>
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>{stepCount} pages · {j.marketId} · {j.bizLineId}</div>
-                <StatusBadge status={j.status} />
+                <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <StatusBadge status={j.status} />
+                  {j.isPublic === true && (
+                    <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: '#D1FAE5', color: '#059669', border: '1px solid #A7F3D0' }}>🌐 Public</span>
+                  )}
+                </div>
               </button>
             );
           })}

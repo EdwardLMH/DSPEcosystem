@@ -277,6 +277,35 @@ class _SensorDataClient {
       'wealth_hub_hk', 'wealth_hub')
   }
 
+  // ── Home Hub HK event helpers ────────────────────────────────────────────────
+
+  wealthStudioTapped(title: string, instanceId: string): void {
+    const extra: Record<string, ESObject> = {}
+    extra['episode_title'] = title      as ESObject
+    extra['instance_id']   = instanceId as ESObject
+    this.track('wealth_studio_tap', 'Wealth', 'wealth_studio_tapped', title,
+      'wealth_hub_hk', 'wealth_hub', '', '', instanceId, '', '', '',
+      '', '', extra)
+  }
+
+  guidesTapped(title: string, instanceId: string): void {
+    const extra: Record<string, ESObject> = {}
+    extra['guide_title'] = title      as ESObject
+    extra['instance_id'] = instanceId as ESObject
+    this.track('guides_tap', 'Wealth', 'guides_tapped', title,
+      'wealth_hub_hk', 'wealth_hub', '', '', instanceId, '', '', '',
+      '', '', extra)
+  }
+
+  discoverMoreTapped(title: string, tag: string): void {
+    const extra: Record<string, ESObject> = {}
+    extra['campaign_title'] = title as ESObject
+    extra['campaign_tag']   = tag   as ESObject
+    this.track('discover_more_tap', 'Wealth', 'discover_more_tapped', title,
+      'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '',
+      '', '', extra)
+  }
+
   // ── KYC Journey event helpers ────────────────────────────────────────────────
 
   kycJourneyStarted(): void {

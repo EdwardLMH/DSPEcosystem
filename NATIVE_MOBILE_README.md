@@ -13,7 +13,7 @@ harmonynext-sdui/  ← ArkTS / ArkUI (DevEco Studio / HarmonyOS Emulator)
 
 Both journeys are supported on all platforms:
 - **OBKYC Journey** — 11-step Open Banking KYC with branching identity questions
-- **Wealth Page** — Portfolio overview, holdings, recommendations, market data
+- **Wealth Page (Home Hub HK)** — 9-slice OCDP-canonical layout: Home Search Header, Combo Quick Access, Card Activation Banner, Quest Banner, Feature Product, Wealth Studio Carousel, Guides & Insights, FX Watchlist, Discover More
 
 ---
 
@@ -93,7 +93,7 @@ Keep this running in a terminal tab.
 
 4. The app launches with two tabs:
    - **OBKYC** tab → tap "Begin Application" to start the 11-step KYC journey
-   - **Wealth** tab → immediately shows portfolio overview, holdings, recommendations, and market data
+   - **Wealth** tab → immediately shows Home Hub (HK): 9 OCDP-designed slices (Home Search Header, Combo Quick Access, Card Activation Banner, Quest Banner, Feature Product, Wealth Studio Carousel, Guides & Insights, FX Watchlist, Discover More)
 
 ### BFF connection (simulator uses `127.0.0.1:4000`)
 ```swift
@@ -191,8 +191,9 @@ ios-sdui/HSBCSDUI/
   KYCSDUIStepRouter.swift       ← primaryQuestionId → SwiftUI view router
   HiveTokens.swift              ← Design tokens (colour, spacing, typography)
   HSBCSduiApp.swift              ← App entry + journey selector
-  WealthPageView.swift          ← Wealth page (4 tabs)
-  Analytics/TealiumClient.swift ← Analytics client
+  WealthPageView.swift          ← Wealth Home Hub — async SDUI loader + 9 SwiftUI slice components
+  Analytics/TealiumClient.swift ← Tealium client: wealth hub, KYC + 3 new helpers
+                                   (wealthStudioTapped, guidesTapped, discoverMoreTapped)
   FXViewpoint/FXViewpointView.swift
   Wealth/AISearchView.swift
 
@@ -205,8 +206,9 @@ android-sdui/app/src/main/java/com/hsbc/sdui/
     KYCShellViews.kt            ← Welcome, journey shell, progress bar, nav bar
     KYCStepViews.kt             ← 11 step composables
     KYCStepRouter.kt            ← primaryQuestionId → Composable router + kycStepTitle()
-  wealth/WealthPageScreen.kt    ← Wealth page (4 tabs)
-  analytics/TealiumClient.kt    ← Analytics client
+  wealth/WealthPageScreen.kt    ← Wealth Home Hub — Compose SDUI loader + 9 Composable slice functions
+  analytics/TealiumClient.kt    ← Tealium client: same taxonomy as iOS
+                                   (wealthStudioTapped, guidesTapped, discoverMoreTapped added)
 
 harmonynext-sdui/entry/src/main/ets/
   pages/Index.ets               ← Tab entry: @State kycStore: KYCStore
@@ -218,12 +220,14 @@ harmonynext-sdui/entry/src/main/ets/
     KYCStepViews.ets            ← 11 @Component step views (@ObjectLink state: KYCState)
   network/
     KYCNetworkService.ets       ← HTTP via @ohos.net.http
-    SensorDataClient.ets        ← Analytics client
-  wealth/WealthPage.ets         ← Wealth page (4 tabs)
+    SensorDataClient.ets        ← SensorData analytics: KYC + wealth hub
+                                   (wealthStudioTapped, guidesTapped, discoverMoreTapped added)
+  wealth/WealthPage.ets         ← Wealth Home Hub — ArkTS SDUI loader + 9 @Component slice structs
   fxviewpoint/FXViewpointPage.ets
 
 mock-bff/
   server.js                     ← Express mock BFF (port 4000)
+                                   GET /api/v1/screen/home-wealth-hk  (9-slice Home Hub)
                                    GET /api/v1/kyc/sessions/:id/resume
                                    GET /api/v1/kyc/sessions/:id/steps/:stepId
                                    POST /api/v1/kyc/sessions/:id/steps/:stepId/submit

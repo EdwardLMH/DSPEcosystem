@@ -2,7 +2,7 @@ import type {
   Market, ReleaseTarget, BizLine, AdGroup, ApprovalFlow,
   WeChatServiceAccount, WeChatMessageTemplate,
   PageLayout, WorkflowEntry, AuditEntry, StaffUser,
-  PageMarketStatus, AEOScore, PageUsageStat,
+  PageMarketStatus, AEOScore, PageUsageStat, JourneyUsageStat, VisibilityRule,
 } from '../types/ocdp';
 
 // ─── Reference data ───────────────────────────────────────────────────────────
@@ -110,186 +110,199 @@ export const PAGE_HOME_WEALTH: PageLayout = {
   authoringStatus: 'APPROVED',
   slices: [
     {
-      instanceId: 'slice-header', type: 'AI_SEARCH_BAR', visible: true, locked: true,
+      instanceId: 'slice-home-search-header', type: 'HOME_SEARCH_HEADER', visible: true, locked: true,
       props: {
-        placeholder: '定期存款',
+        // Per-segment brand config
+        premierLabel:  'HSBC Premier',  premierBg: '#DB0011',
+        eliteLabel:    'HSBC Elite',    eliteBg:   '#0D5C3A',
+        advanceLabel:  'HSBC One',      advanceBg: '#D4580A',
+        massLabel:     'HSBC Personal Banking', massBg: '#4B5563',
+        enableNotification: true,
+        enableHeadset: true,
+        // AI search bar
+        placeholder: 'Search functions, products & content',
         enableSemanticSearch: true,
-        enableQRScan: true,
-        enableChatbot: true,
-        enableMessageInbox: true,
         searchApiEndpoint: '/api/v1/search/semantic',
       },
     },
     {
-      instanceId: 'slice-quick', type: 'QUICK_ACCESS', visible: true, locked: false,
+      instanceId: 'slice-combo-quick-access', type: 'COMBO_QUICK_ACCESS', visible: true, locked: false,
       props: {
-        items: [
-          { id: 'q1', icon: '🌙', label: '朝朝寶',   deepLink: 'hsbc://wealth/morning-treasure' },
-          { id: 'q2', icon: '💵', label: '借錢',     deepLink: 'hsbc://loan/apply' },
-          { id: 'q3', icon: '↔️', label: '轉帳',     deepLink: 'hsbc://transfer' },
-          { id: 'q4', icon: '📊', label: '賬戶總覽', deepLink: 'hsbc://accounts' },
+        tabs: [
+          { id: 'my-pick',  label: 'My pick',  active: true },
+          { id: 'invest',   label: 'Invest',   active: false },
+          { id: 'global',   label: 'Global',   active: false },
+          { id: 'hk-daily', label: 'HK Daily', active: false },
+        ],
+        row1Items: [
+          { id: 'qa-1', icon: 'account',  label: 'Account overview',  deepLink: 'hsbc://accounts' },
+          { id: 'qa-2', icon: 'transfer', label: 'Transfer Globally', deepLink: 'hsbc://transfer/global' },
+          { id: 'qa-3', icon: 'fx',       label: 'Foreign exchange',  deepLink: 'hsbc://fx' },
+          { id: 'qa-4', icon: 'stock',    label: 'Trade stock',       deepLink: 'hsbc://trade/stock' },
+          { id: 'qa-5', icon: 'deposit',  label: 'Time deposit',      deepLink: 'hsbc://deposit' },
+        ],
+        row2Items: [
+          { id: 'qa-6',  icon: 'holding', label: 'My holding details',    deepLink: 'hsbc://holdings' },
+          { id: 'qa-7',  icon: 'safe',    label: 'Money safe',             deepLink: 'hsbc://money-safe' },
+          { id: 'qa-8',  icon: 'fps',     label: 'Local transfer/FPS',     deepLink: 'hsbc://transfer/fps' },
+          { id: 'qa-9',  icon: 'scan',    label: 'Scan to pay',            deepLink: 'hsbc://scan-pay' },
+          { id: 'qa-10', icon: 'all',     label: 'All product & services', deepLink: 'hsbc://all-services' },
         ],
       },
     },
     {
-      instanceId: 'slice-promo-finance-day', type: 'PROMO_BANNER', visible: true, locked: false,
+      instanceId: 'slice-card-activation', type: 'CARD_ACTIVATION_BANNER', visible: true, locked: false,
       props: {
-        title: '10分招財日', subtitle: '查帳單·學投資·優配置',
-        ctaLabel: '點擊參與', ctaDeepLink: 'hsbc://campaign/finance-day',
-        imageUrl: '', backgroundColor: '#E8F4FD', badgeText: '每月10日開啓',
+        message: 'Your card needs to be activated',
+        deepLink: 'hsbc://card/activate',
       },
     },
     {
-      instanceId: 'slice-function-grid', type: 'FUNCTION_GRID', visible: true, locked: false,
+      instanceId: 'slice-getting-started', type: 'QUEST_BANNER', visible: true, locked: false,
       props: {
-        rows: [
+        title: 'Getting started',
+        description: 'Open investment account and complete the following quests to enjoy reward!',
+        ctaLabel: 'Check out all 4 quests',
+        ctaDeepLink: 'hsbc://quests',
+        totalQuests: 4,
+      },
+    },
+    {
+      instanceId: 'slice-feature-product', type: 'FEATURE_PRODUCT', visible: true, locked: false,
+      props: {
+        sectionTitle: 'Feature product',
+        tabs: ['Top performers', 'Top dividend', 'Top selling', 'Instalment'],
+        activeTab: 'Top performers',
+        funds: [
           {
-            rowId: 'row-1',
-            items: [
-              { id: 'fg-1',  icon: '💳', label: '信用卡',   deepLink: 'hsbc://cards' },
-              { id: 'fg-2',  icon: '📄', label: '收支明細', deepLink: 'hsbc://statements' },
-              { id: 'fg-3',  icon: '🔄', label: '他行卡轉入', deepLink: 'hsbc://transfer/external' },
-              { id: 'fg-4',  icon: '🏙️', label: '城市服務', deepLink: 'hsbc://city-services' },
-              { id: 'fg-5',  icon: '🔥', label: '熱門活動', deepLink: 'hsbc://events' },
-            ],
+            id: 'fp-1',
+            name: 'AB SICAV I - LOW VOLATILITY EQUITY PORTFOLIO CLASS AD S...',
+            code: 'U43120',
+            returnLabel: '1Y return',
+            returnValue: '+54.79%',
+            returnPositive: true,
+            tags: [],
           },
           {
-            rowId: 'row-2',
-            items: [
-              { id: 'fg-6',  icon: '📈', label: '理財',     deepLink: 'hsbc://wealth' },
-              { id: 'fg-7',  icon: 'Ⓜ️', label: 'M+會員',   deepLink: 'hsbc://membership' },
-              { id: 'fg-8',  icon: '🎬', label: '影票優惠', deepLink: 'hsbc://movies' },
-              { id: 'fg-9',  icon: '💹', label: '基金',     deepLink: 'hsbc://funds' },
-              { id: 'fg-10', icon: '⋯',  label: '全部功能', deepLink: 'hsbc://all-services' },
-            ],
+            id: 'fp-2',
+            name: 'HANG SENG INDEX FUND CLASS A (HKD)',
+            code: 'U42272',
+            returnLabel: '1Y return',
+            returnValue: '+18.10%',
+            returnPositive: true,
+            tags: ['ESG'],
+          },
+          {
+            id: 'fp-3',
+            name: 'ALLIANZ INCOME AND GROWTH CLASS AM DIS (HKD MONTHLY...',
+            code: 'U40032',
+            returnLabel: '1Y return',
+            returnValue: '+11.45%',
+            returnPositive: true,
+            tags: ['New fund'],
           },
         ],
+        moreLabel: 'View Best selling fund list (10)',
+        moreDeepLink: 'hsbc://funds/best-selling',
       },
     },
     {
-      instanceId: 'slice-promo-flash-loan', type: 'PROMO_BANNER', visible: true, locked: false,
+      instanceId: 'slice-wealth-studio', type: 'WEALTH_STUDIO_CAROUSEL', visible: true, locked: false,
       visibilityRule: {
-        ruleId: 'rule-flash-loan-mass-or-card',
-        label: '閃電貸 — Mass segment OR Credit Card holders OR HK-based',
-        conditions: [
-          { field: 'customerSegment', operator: 'is',  value: 'mass' },
-          { field: 'accountType',     operator: 'is',  value: 'credit_card' },
-          { field: 'customerLocation',operator: 'is',  value: 'HK' },
-        ],
-        conditionLogic: 'OR',
-        action: 'show',
-      },
-      props: {
-        title: '閃電貸 — 極速放款', subtitle: '最高可借 HKD 300,000，即批即用',
-        ctaLabel: '立即申請', ctaDeepLink: 'hsbc://loan/flash',
-        imageUrl: '', backgroundColor: '#FFF7ED', badgeText: '⚡ 閃電放款',
-      },
-    },
-    {
-      instanceId: 'slice-wealth-selection', type: 'WEALTH_SELECTION', visible: true, locked: false,
-      visibilityRule: {
-        ruleId: 'rule-wealth-selection-premier-and-wealth',
-        label: '財富精選 — Premier AND Wealth Account (OR Mainland China)',
-        conditions: [
-          { field: 'customerSegment', operator: 'is', value: 'premier' },
-          { field: 'accountType',     operator: 'is', value: 'wealth_account' },
-        ],
+        ruleId: 'rule-wealth-studio-wealth-account',
+        label: 'Show Wealth Studio Carousel for Wealth Account holders only',
+        conditions: [{ field: 'accountType', operator: 'is', value: 'wealth_account' }],
         conditionLogic: 'AND',
         action: 'show',
       },
       props: {
-        sectionTitle: '財富精選',
-        products: [
-          {
-            id: 'w1', productName: '活錢理財｜歷史天天正收益',
-            tag: '代碼', yield7Day: '2.80%', riskLevel: 'R1低風險',
-            redemption: '贖回T+1到帳', ctaLabel: '去看看',
-            ctaDeepLink: 'hsbc://wealth/daily-positive', highlighted: true,
-          },
-          {
-            id: 'w2', productName: '主投債券',
-            tag: '代碼', yield7Day: '3.04%', riskLevel: '歷史周周正',
-            redemption: '成立以來…', ctaLabel: '查看',
-            ctaDeepLink: 'hsbc://wealth/bond-fund',
-          },
-          {
-            id: 'w3', productName: '保本理財 / 年均收益率',
-            tag: '保証領取', yield7Day: '2.31%', riskLevel: '穩健低波',
-            redemption: '到期領取', ctaLabel: '了解更多',
-            ctaDeepLink: 'hsbc://wealth/guaranteed',
-          },
-        ],
-        moreDeepLink: 'hsbc://wealth/all',
-      },
-    },
-    {
-      instanceId: 'slice-promo-spring', type: 'PROMO_BANNER', visible: true, locked: false,
-      props: {
-        title: '春季播種黃金期', subtitle: '抽體驗禮 | 豐富回報等你發現',
-        ctaLabel: '立即參與', ctaDeepLink: 'hsbc://campaign/spring-investment',
-        imageUrl: '', backgroundColor: '#F0FDF4', badgeText: '🌱 限時活動',
-      },
-    },
-    {
-      instanceId: 'slice-featured-rankings', type: 'FEATURED_RANKINGS', visible: true, locked: false,
-      props: {
-        sectionTitle: '特色榜單',
+        sectionTitle: 'Premier Elite Wealth Studio',
+        moreLabel: 'View all',
+        moreDeepLink: 'hsbc://wealth-studio',
         items: [
           {
-            rankId: 'r1', icon: '🥇', title: '3322選基 — 優中選優',
-            subtitle: '近1年漲跌幅高達318.19%',
-            badge: '精選', deepLink: 'hsbc://rankings/top-funds',
+            id: 'ws-1',
+            episodeLabel: 'Episode 13',
+            liveBadge: 'To-be-live on 1 Feb 15:30',
+            title: 'How AI experts think about AI?',
+            ctaLabel: 'Register for live stream',
+            imageColor: '#1A1A2E',
           },
           {
-            rankId: 'r2', icon: '🔒', title: '穩健省心好選擇 — 固收優選',
-            subtitle: '歷史持有3月盈利概率高達98.23%',
-            badge: '低風險', deepLink: 'hsbc://rankings/fixed-income',
+            id: 'ws-2',
+            episodeLabel: 'Episode 13',
+            liveBadge: 'To-be-live on 1 Feb 15:3',
+            title: 'How AI experts think about AI?',
+            ctaLabel: 'Watch now',
+            imageColor: '#0F2040',
+          },
+        ],
+      },
+    },
+    {
+      instanceId: 'slice-guides-insights', type: 'GUIDES_INSIGHTS_CAROUSEL', visible: true, locked: false,
+      props: {
+        sectionTitle: 'Guides and insights',
+        moreLabel: 'View all',
+        moreDeepLink: 'hsbc://guides',
+        items: [
+          {
+            id: 'gi-1',
+            title: 'Investment 101 - An investment in knowledge pays the best interest - Benjamin Franklin',
+            date: '8 Apr 2024',
+            imageColor: '#2D3748',
+            deepLink: 'hsbc://guides/investment-101',
           },
           {
-            rankId: 'r3', icon: '📈', title: '屢創新高榜',
-            subtitle: '近3年净值創新高次數達152次',
-            badge: '成長', deepLink: 'hsbc://rankings/all-time-high',
+            id: 'gi-2',
+            title: 'Market outlook Q2 2024',
+            date: '2 Apr 2024',
+            imageColor: '#1A365D',
+            deepLink: 'hsbc://guides/market-outlook',
           },
         ],
-        moreDeepLink: 'hsbc://rankings',
       },
     },
     {
-      instanceId: 'slice-promo-campaigns', type: 'PROMO_BANNER', visible: true, locked: false,
+      instanceId: 'slice-fx-watchlist', type: 'FX_WATCHLIST', visible: true, locked: false,
       props: {
-        title: '達標抽好禮 — 豐潤守護', subtitle: '健康隨行保障計劃，達標即抽獎',
-        ctaLabel: '查看詳情', ctaDeepLink: 'hsbc://campaign/health',
-        imageUrl: '', backgroundColor: '#FFF1F2', badgeText: '🎁 專屬禮遇',
-      },
-    },
-    {
-      instanceId: 'slice-life-deals', type: 'LIFE_DEALS', visible: true, locked: false,
-      props: {
-        sectionTitle: '生活特惠',
-        deals: [
-          { id: 'd1', icon: '🍗', merchant: 'KFC',       title: '單品優惠',   tag: '信用卡優惠', deepLink: 'hsbc://deals/kfc' },
-          { id: 'd2', icon: '☕', merchant: '瑞幸咖啡',   title: '5折優惠',    tag: '限時',       deepLink: 'hsbc://deals/luckin' },
-          { id: 'd3', icon: '🍦', merchant: 'DQ 冰雪皇后', title: '5折起',     tag: '甜點優惠',   deepLink: 'hsbc://deals/dq' },
-          { id: 'd4', icon: '🎬', merchant: '電影優惠',   title: '信用卡折扣', tag: '娛樂',       deepLink: 'hsbc://movies' },
+        sectionTitle: 'FX watchlist',
+        tierBadge: 'Gold Forex Club tier',
+        tierDescription: '15% Spread discount has been applied to your rate.',
+        pairs: [
+          { id: 'fx-1', pair: 'USD/JPY', sellLabel: 'Sell USD', sellRate: '148.44', buyLabel: 'Buy USD', buyRate: '148.12' },
+          { id: 'fx-2', pair: 'HKD/CHF', sellLabel: 'Sell HKD', sellRate: '0.1042', buyLabel: 'Buy HKD', buyRate: '0.1038' },
+          { id: 'fx-3', pair: 'HKD/THB', sellLabel: 'Sell HKD', sellRate: '4.1055', buyLabel: 'Buy HKD', buyRate: '4.1132' },
         ],
-        moreDeepLink: 'hsbc://deals',
-        bottomLinks: [
-          { id: 'bl1', label: '更多生活優惠', deepLink: 'hsbc://deals/all' },
-          { id: 'bl2', label: '城市服務',     deepLink: 'hsbc://city-services' },
+        moreLabel: 'View more in FX',
+        moreDeepLink: 'hsbc://fx/watchlist',
+      },
+    },
+    {
+      instanceId: 'slice-discover-more', type: 'DISCOVER_MORE_CAROUSEL', visible: true, locked: false,
+      props: {
+        sectionTitle: 'Discover more',
+        items: [
+          {
+            id: 'dm-1',
+            tag: 'Time Deposit',
+            tagColor: '#DB0011',
+            title: 'Up to 15.5% p.a. FX Deposit Rate',
+            subtitle: 'Earn up to 15.5% p.a. on FX & Time Deposits! T&Cs apply.',
+            imageColor: '#1A2E4A',
+            deepLink: 'hsbc://deposit/fx',
+          },
+          {
+            id: 'dm-2',
+            tag: 'Well+',
+            tagColor: '#6B46C1',
+            title: 'PURE Sign up 10-day...',
+            subtitle: '',
+            imageColor: '#2D3748',
+            deepLink: 'hsbc://wellplus',
+          },
         ],
       },
-    },
-    {
-      instanceId: 'slice-promo-anniversary', type: 'PROMO_BANNER', visible: true, locked: false,
-      props: {
-        title: '行慶招財日 — 特惠禮遇', subtitle: '銀行週年慶典，專屬優惠等你領取',
-        ctaLabel: '了解更多', ctaDeepLink: 'hsbc://campaign/anniversary',
-        imageUrl: '', backgroundColor: '#FFFBEB', badgeText: '🏦 週年慶典',
-      },
-    },
-    {
-      instanceId: 'slice-ai-assistant', type: 'AI_ASSISTANT', visible: true, locked: false,
-      props: { greeting: 'Hi，我是你的智能財富助理', avatarUrl: '' },
     },
   ],
 };
@@ -319,10 +332,57 @@ export const PAGE_VISA_CAMPAIGN: PageLayout = {
   channel: 'WEB_STANDARD', scope: 'GLOBAL', marketId: 'GLOBAL',
   releaseMarketIds: ['GLOBAL', 'HK', 'SG'], bizLineId: 'PAYMENT', groupId: 'GLOBAL-WEALTH-AD',
   authoringStatus: 'DRAFT',
+  isPublic: true,
   webSlug: '/credit-cards/visa-platinum-q3',
   webMetaTitle: 'HSBC Visa Platinum – No FX Fee | HSBC',
   webMetaDescription: 'Apply for HSBC Visa Platinum with no foreign transaction fee. Earn rewards globally.',
-  slices: [],
+  slices: [
+    {
+      instanceId: 'visa-hero',
+      type: 'CAMPAIGN_HERO',
+      props: {
+        headline: 'HSBC Visa Platinum Credit Card',
+        subHeadline: 'Your World, No Limits — 0% Foreign Transaction Fee',
+        badge: 'Limited Time Offer · Q3 2026',
+        bgGradient: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+        accentColor: '#C9A84C',
+        cardImageAlt: 'HSBC Visa Platinum Card',
+      },
+      visible: true,
+      locked: false,
+    },
+    {
+      instanceId: 'visa-benefits',
+      type: 'CAMPAIGN_BENEFITS',
+      props: {
+        sectionTitle: 'Why Choose Visa Platinum?',
+        benefits: [
+          { icon: '🌍', title: '0% Foreign Transaction Fee', desc: 'Spend anywhere globally with no hidden charges on overseas purchases.' },
+          { icon: '✈️', title: '2x Miles on Travel & Dining', desc: 'Earn double Asia Miles on flights, hotels and restaurant spending.' },
+          { icon: '🛡️', title: 'Complimentary Travel Insurance', desc: 'Up to HK$1.5M coverage including trip cancellation and medical expenses.' },
+          { icon: '🎭', title: 'Lifestyle Privileges', desc: 'Exclusive access to airport lounges, hotel upgrades and dining discounts.' },
+          { icon: '💎', title: 'Visa Signature Benefits', desc: 'Concierge service, luxury hotel collection and fine wine programme.' },
+          { icon: '📱', title: 'Apple Pay & Google Pay', desc: 'Contactless payments and instant spend notifications via HSBC HK app.' },
+        ],
+      },
+      visible: true,
+      locked: false,
+    },
+    {
+      instanceId: 'visa-cta',
+      type: 'CAMPAIGN_CTA',
+      props: {
+        ctaLabel: 'Apply for Visa Platinum',
+        ctaSubtext: 'Takes 5 minutes · Approval in 60 seconds',
+        offerBadge: 'First Year Annual Fee Waived',
+        ctaUrl: '/apply/visa-platinum',
+        secondaryLabel: 'Compare Cards',
+        secondaryUrl: '/credit-cards/compare',
+      },
+      visible: true,
+      locked: false,
+    },
+  ],
 };
 
 export const PAGE_OBKYC: PageLayout = {
@@ -495,6 +555,7 @@ export interface JourneyStep {
   description: string;
   screenType: string;
   icon: string;
+  visibilityRule?: VisibilityRule;
 }
 
 export interface Journey {
@@ -507,6 +568,8 @@ export interface Journey {
   bizLineId: string;
   status: 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'LIVE';
   steps: JourneyStep[];
+  // WEB_STANDARD only: whether the journey is publicly accessible (SEO/AEO assessed)
+  isPublic?: boolean;
 }
 
 export const MOCK_JOURNEYS: Journey[] = [
@@ -515,6 +578,7 @@ export const MOCK_JOURNEYS: Journey[] = [
     name: 'OBKYC Account Opening',
     description: '11-step open banking KYC flow regulated by HKMA',
     channel: 'SDUI', nativeTargets: ['ios', 'android', 'harmonynext', 'web'], marketId: 'HK', bizLineId: 'WEB_ENABLER', status: 'LIVE',
+    isPublic: true,
     steps: [
       { stepId: 'step-001', label: 'Personal Info',     description: 'Full legal name & date of birth',          screenType: 'TEXT_INPUT',   icon: '👤' },
       { stepId: 'step-002', label: 'Nationality',        description: 'Country of nationality',                   screenType: 'SINGLE_SELECT', icon: '🌍' },
@@ -534,6 +598,7 @@ export const MOCK_JOURNEYS: Journey[] = [
     name: 'OBKYC Account Opening - Web',
     description: '6-step open banking KYC flow for web browsers — consolidated from 11 mobile steps',
     channel: 'WEB_STANDARD', nativeTargets: [], marketId: 'HK', bizLineId: 'WEB_ENABLER', status: 'DRAFT',
+    isPublic: false,
     steps: [
       { stepId: 'web-step-001', label: 'Your Identity',       description: 'Personal info, nationality & ID document — all on one page',  screenType: 'TEXT_INPUT',    icon: '🪪' },
       { stepId: 'web-step-002', label: 'Document & Contact',  description: 'Upload your ID and provide contact details',                   screenType: 'DOC_UPLOAD',    icon: '📋' },
@@ -761,6 +826,7 @@ export const MOCK_MARKET_STATUS: PageMarketStatus[] = [
 // ─── AEO Scores ───────────────────────────────────────────────────────────────
 
 export const MOCK_AEO_SCORES: AEOScore[] = [
+  // ─ Visa Platinum Campaign (WEB_STANDARD, public) ───────────────────────────
   {
     pageId: 'visa-platinum-campaign', targetId: 'GLOBAL',
     score: 88, grade: 'A', checkedAt: new Date(Date.now() - 86400000).toISOString(),
@@ -789,14 +855,79 @@ export const MOCK_AEO_SCORES: AEOScore[] = [
       { label: 'LLM Citation',       score: 5,  maxScore: 5,  pass: true },
     ],
   },
+
+  // ─ FX Viewpoint (WEB_STANDARD, public, LIVE) ───────────────────────────────
+  {
+    pageId: 'fx-viewpoint-hk', targetId: 'HK',
+    score: 91, grade: 'A', checkedAt: new Date(Date.now() - 172800000).toISOString(),
+    breakdown: [
+      { label: 'FAQ Schema',         score: 20, maxScore: 20, pass: true },
+      { label: 'Product Schema',     score: 20, maxScore: 20, pass: true },
+      { label: 'Freshness',          score: 15, maxScore: 15, pass: true },
+      { label: 'Author Credentials', score: 10, maxScore: 10, pass: true },
+      { label: 'Regulatory Ref',     score: 10, maxScore: 10, pass: true },
+      { label: 'Structured Rate',    score: 8,  maxScore: 10, pass: false },
+      { label: 'Direct Answer',      score: 8,  maxScore: 10, pass: false },
+      { label: 'LLM Citation',       score: 5,  maxScore: 5,  pass: true },
+    ],
+  },
 ];
 
 // ─── Usage Stats ──────────────────────────────────────────────────────────────
 
 export const MOCK_USAGE_STATS: PageUsageStat[] = [
-  { pageId: 'visa-platinum-campaign', targetId: 'GLOBAL', daily: 8412,  weekly: 47230,  monthly: 183440, avgSessionSec: 142, bounceRate: 0.34 },
-  { pageId: 'visa-platinum-campaign', targetId: 'HK',     daily: 3210,  weekly: 18200,  monthly: 67300,  avgSessionSec: 128, bounceRate: 0.41 },
-  { pageId: 'jade-upgrade-hk',        targetId: 'HK',     daily: 3104,  weekly: 18420,  monthly: 62800,  avgSessionSec: 210, bounceRate: 0.22 },
+  // Home Hub (HK) — SDUI wealth hub, high-traffic flagship page
+  { pageId: 'home-wealth-hk',  targetId: 'HK',
+    dau: 42800, wau: 189400, mau: 612000,
+    newUsers: 38200, returningUsers: 573800,
+    avgSessionSec: 187, avgPageDepth: 3.4, bounceRate: 0.18,
+    conversionRate: 0.062, ctr: 0.21, errorRate: 0.004 },
+
+  // Jade Upgrade Campaign (HK) — SDUI campaign, targeted Premier→Jade upsell
+  { pageId: 'jade-upgrade-hk', targetId: 'HK',
+    dau: 9340,  wau: 51200,  mau: 174600,
+    newUsers: 12400, returningUsers: 162200,
+    avgSessionSec: 210, avgPageDepth: 2.1, bounceRate: 0.22,
+    conversionRate: 0.094, ctr: 0.31, errorRate: 0.007 },
+
+  // Visa Platinum Campaign — Web Standard, multi-market
+  { pageId: 'visa-platinum-campaign', targetId: 'GLOBAL',
+    dau: 8412,  wau: 47230,  mau: 183440,
+    newUsers: 97600, returningUsers: 85840,
+    avgSessionSec: 142, avgPageDepth: 1.8, bounceRate: 0.34,
+    conversionRate: 0.038, ctr: 0.27, errorRate: 0.011 },
+
+  { pageId: 'visa-platinum-campaign', targetId: 'HK',
+    dau: 3210,  wau: 18200,  mau: 67300,
+    newUsers: 41800, returningUsers: 25500,
+    avgSessionSec: 128, avgPageDepth: 1.6, bounceRate: 0.41,
+    conversionRate: 0.042, ctr: 0.29, errorRate: 0.009 },
+
+  // FX Viewpoint — Web Standard, market insight / RM tool
+  { pageId: 'fx-viewpoint-hk', targetId: 'HK',
+    dau: 5680,  wau: 29400,  mau: 98700,
+    newUsers: 8200, returningUsers: 90500,
+    avgSessionSec: 264, avgPageDepth: 2.8, bounceRate: 0.14,
+    conversionRate: 0.071, ctr: 0.18, errorRate: 0.003 },
+
+  // Deposit Campaign (CN / WeChat) — WeChat channel
+  { pageId: 'deposit-campaign-hk', targetId: 'HK',
+    dau: 4120,  wau: 22100,  mau: 79800,
+    newUsers: 31200, returningUsers: 48600,
+    avgSessionSec: 97,  avgPageDepth: 1.4, bounceRate: 0.52,
+    conversionRate: 0.019, ctr: 0.14, errorRate: 0.015 },
+];
+
+export const MOCK_JOURNEY_STATS: JourneyUsageStat[] = [
+  // OBKYC Account Opening — SDUI, 11-step, LIVE in HK
+  { journeyId: 'journey-obkyc', targetId: 'HK',
+    dau: 3240, wau: 17800, mau: 58600,
+    newUsers: 54200, returningUsers: 4400,
+    journeyStartRate: 0.74, completionRate: 0.61,
+    dropOffStep: 4,         // highest drop-off at Selfie & Liveness (step 4)
+    avgCompletionSec: 742,  // ~12 mins for full 11-step flow
+    conversionRate: 0.58,   // % who opened an account after completing
+    errorRate: 0.021 },
 ];
 
 // ─── Audit log ────────────────────────────────────────────────────────────────

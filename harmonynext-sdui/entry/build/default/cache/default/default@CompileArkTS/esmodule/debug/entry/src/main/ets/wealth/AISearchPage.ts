@@ -15,6 +15,7 @@ interface AISearchPage_Params {
 import { Hive } from "@normalized:N&&&entry/src/main/ets/common/HiveTokens&";
 import { SensorDataClient } from "@normalized:N&&&entry/src/main/ets/network/SensorDataClient&";
 import http from "@ohos:net.http";
+import promptAction from "@ohos:promptAction";
 // ─── Models ────────────────────────────────────────────────────────────────────
 interface SearchResultItem {
     id: string;
@@ -232,8 +233,13 @@ export class AISearchPage extends ViewPU {
     // ── Deep-link navigation ─────────────────────────────────────────────────────
     private onResultTap(result: SearchResultItem) {
         SensorDataClient.track('ai_search_result_tapped', 'Search', 'result_selected', result.title, 'ai_search', 'wealth_hub');
+        // Dismiss search overlay first, then simulate deep-link navigation.
+        // In production this would invoke Want/startAbility with the hsbc:// URI.
         this.onDismiss();
-        // In HarmonyOS, deep links are opened via Want / router; log and dismiss here.
+        promptAction.showToast({
+            message: `→ ${result.title}`,
+            duration: 2000,
+        });
         console.info(`[AISearch] navigate → ${result.deepLink}`);
     }
     // ── Badge colour helper ──────────────────────────────────────────────────────
@@ -318,6 +324,8 @@ export class AISearchPage extends ViewPU {
             TextInput.fontColor(Hive.Color.n900);
             TextInput.backgroundColor(Color.Transparent);
             TextInput.placeholderColor(Hive.Color.n400);
+            TextInput.borderWidth(0);
+            TextInput.padding(0);
             TextInput.layoutWeight(1);
             TextInput.onChange((val: string) => { this.onQueryChange(val); });
             TextInput.onSubmit(() => {
