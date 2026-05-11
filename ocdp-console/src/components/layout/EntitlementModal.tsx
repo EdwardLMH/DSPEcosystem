@@ -6,8 +6,10 @@ export function EntitlementModal() {
   const { currentUser } = state;
 
   function roleBadgeColor(role: string) {
+    if (role === 'GLOBAL_ADMIN') return { bg: 'rgba(124,58,237,0.1)', color: '#7C3AED' };
     if (role === 'ADMIN')    return { bg: 'rgba(219,0,17,0.1)', color: '#DB0011' };
     if (role === 'AUDITOR')  return { bg: 'rgba(200,169,81,0.15)', color: '#92703B' };
+    if (role === 'AI-SEARCH-OPERATOR') return { bg: 'rgba(14,165,233,0.1)', color: '#0284C7' };
     if (role.endsWith('-APPROVER')) return { bg: 'rgba(5,150,105,0.1)', color: '#059669' };
     return { bg: 'rgba(37,99,235,0.1)', color: '#2563EB' };
   }

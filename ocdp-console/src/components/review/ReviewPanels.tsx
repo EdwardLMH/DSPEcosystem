@@ -1,4 +1,4 @@
-import { useOCDP } from '../../store/OCDPStore';
+import { useOCDP, isAdmin } from '../../store/OCDPStore';
 import { calculateAEOScore } from '../../utils/aeoCalculator';
 
 const GRADE_COLOR: Record<string, string> = { A: '#059669', B: '#059669', C: '#D97706', D: '#DC2626', F: '#DC2626' };
@@ -8,8 +8,8 @@ function PendingPanel() {
   const { currentUser, aeoScores } = state;
   const pending = state.pages.filter(p => p.authoringStatus === 'PENDING_APPROVAL');
   const pendingJourneys = state.journeys.filter(j => j.status === 'PENDING_APPROVAL');
-  const isApprover = currentUser.role.endsWith('-APPROVER') || currentUser.role === 'ADMIN';
-  const isAuthor   = currentUser.role.endsWith('-AUTHOR')   || currentUser.role === 'ADMIN';
+  const isApprover = currentUser.role.endsWith('-APPROVER') || isAdmin(currentUser.role);
+  const isAuthor   = currentUser.role.endsWith('-AUTHOR')   || isAdmin(currentUser.role);
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--surface-bg)', overflow: 'hidden' }}>

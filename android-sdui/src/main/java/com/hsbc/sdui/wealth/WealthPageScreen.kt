@@ -1,26 +1,35 @@
 package com.hsbc.sdui.wealth
 
+import android.net.Uri
+import android.widget.MediaController
+import android.widget.VideoView
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
 import com.hsbc.sdui.analytics.TealiumClient
 
 // ─── Design tokens (inline for wealth module) ─────────────────────────────────
@@ -531,6 +540,323 @@ private fun WHLifeDeals() {
                     Text(icon, fontSize = 24.sp)
                     Text(label, fontSize = 10.sp, color = N700, lineHeight = 14.sp)
                 }
+            }
+        }
+    }
+}
+
+// ─── Carousel helper: parse numColumns from props ─────────────────────────────
+
+private fun numColumnsFromProps(props: Map<String, Any>): Int {
+    val raw = props["numColumns"] ?: return 1
+    return when (raw) {
+        is Int    -> maxOf(1, raw)
+        is String -> maxOf(1, raw.toIntOrNull() ?: 1)
+        else      -> 1
+    }
+}
+
+// ─── 11. Wealth Studio Carousel ──────────────────────────────────────────────
+// Renders WEALTH_STUDIO_CAROUSEL slice.
+// numColumns=1 → horizontal scroll; numColumns>1 → vertical grid.
+
+@Composable
+fun WHWealthStudioCarousel(props: Map<String, Any> = emptyMap()) {
+    val sectionTitle = props["sectionTitle"] as? String ?: "Premier Elite Wealth Studio"
+    val moreLabel    = props["moreLabel"]    as? String ?: "View all"
+    val moreDeepLink = props["moreDeepLink"] as? String ?: "hsbc://wealth-studio"
+    @Suppress("UNCHECKED_CAST")
+    val items: List<Map<String, Any>> = props["items"] as? List<Map<String, Any>> ?: emptyList()
+    val cols = numColumnsFromProps(props)
+    val isGrid = cols > 1
+    var playingItem by remember { mutableStateOf<Map<String, Any>?>(null) }
+
+    LaunchedEffect(Unit) { TealiumClient.sliceImpression("WEALTH_STUDIO_CAROUSEL", "slice-wealth-studio", 5) }
+
+    Column(modifier = Modifier.fillMaxWidth().background(White).padding(top = 8.dp)) {
+        // Section header
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(sectionTitle, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = N800)
+            Text("$moreLabel ›", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = HsbcRed,
+                modifier = Modifier.clickable { TealiumClient.sliceTapped("WEALTH_STUDIO_CAROUSEL",
+                    "slice-wealth-studio", moreLabel, moreDeepLink) })
+        }
+
+        if (isGrid) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items.chunked(cols).forEach { rowItems ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        rowItems.forEach { item ->
+                            WealthStudioCard(
+                                modifier = Modifier.weight(1f),
+                                item = item,
+                                onPlay = { playingItem = item }
+                            )
+                        }
+                        repeat(cols - rowItems.size) { Spacer(Modifier.weight(1f)) }
+                    }
+                }
+            }
+        } else {
+            Row(
+                modifier = Modifier.horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, bottom = 14.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items.forEach { item ->
+                    WealthStudioCard(modifier = Modifier.width(220.dp), item = item,
+                        onPlay = { playingItem = item })
+                }
+            }
+        }
+    }
+
+    playingItem?.let { item ->
+        val rawUrl = item["videoUrl"] as? String ?: ""
+        val videoUrl = rawUrl.replace("localhost", "10.0.2.2").replace("127.0.0.1", "10.0.2.2")
+        Dialog(onDismissRequest = { playingItem = null }) {
+            Column(
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color.Black),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (videoUrl.isNotEmpty()) {
+                    AndroidView(
+                        modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f),
+                        factory = { ctx ->
+                            VideoView(ctx).apply {
+                                setVideoURI(Uri.parse(videoUrl))
+                                val mc = MediaController(ctx)
+                                mc.setAnchorView(this)
+                                setMediaController(mc)
+                                start()
+                            }
+                        }
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().height(200.dp).background(Color.Black),
+                        contentAlignment = Alignment.Center
+                    ) { Text("▶ Playing…", color = White, fontSize = 16.sp) }
+                }
+                Column(modifier = Modifier.background(White).padding(14.dp)) {
+                    Text(item["episodeLabel"] as? String ?: "", fontSize = 11.sp, color = N400)
+                    Text(item["title"] as? String ?: "", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = N800)
+                }
+                TextButton(onClick = { playingItem = null }) {
+                    Text("✕ Close", color = White, fontSize = 13.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun WealthStudioCard(modifier: Modifier = Modifier, item: Map<String, Any>, onPlay: () -> Unit) {
+    val episodeLabel = item["episodeLabel"] as? String ?: ""
+    val title        = item["title"]        as? String ?: ""
+    val ctaLabel     = item["ctaLabel"]     as? String ?: "Watch now"
+    val liveBadge    = item["liveBadge"]    as? String
+    val imgHex       = item["imageColor"]   as? String ?: "#1A1A2E"
+    val imgColor     = try { Color(android.graphics.Color.parseColor(imgHex)) } catch (_: Exception) { Color(0xFF1A1A2E) }
+
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(White)
+            .shadow(elevation = 2.dp, shape = RoundedCornerShape(12.dp))
+            .clickable { TealiumClient.wealthStudioTapped(episodeLabel, title, ctaLabel) }
+    ) {
+        // Image area
+        Box(modifier = Modifier.fillMaxWidth().height(120.dp).background(imgColor)) {
+            Text(episodeLabel, fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = White,
+                modifier = Modifier.align(Alignment.TopStart).padding(10.dp)
+                    .background(Color.White.copy(alpha = 0.15f), RoundedCornerShape(10.dp))
+                    .padding(horizontal = 8.dp, vertical = 2.dp))
+            Box(modifier = Modifier.size(36.dp).clip(CircleShape).background(Color.Black.copy(alpha = 0.3f))
+                .align(Alignment.Center).clickable { onPlay() }, contentAlignment = Alignment.Center) {
+                Text("▶", fontSize = 18.sp, color = White)
+            }
+            liveBadge?.let {
+                Text("🔴 $it", fontSize = 9.sp, color = White,
+                    modifier = Modifier.align(Alignment.BottomStart)
+                        .padding(horizontal = 10.dp, vertical = 8.dp)
+                        .background(HsbcRed.copy(alpha = 0.85f), RoundedCornerShape(6.dp))
+                        .padding(horizontal = 8.dp, vertical = 3.dp))
+            }
+        }
+        // Text area
+        Column(
+            modifier = Modifier.fillMaxWidth().height(80.dp).background(White).padding(12.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(title, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = N800,
+                maxLines = 2, lineHeight = 16.sp)
+            Button(
+                onClick = onPlay,
+                modifier = Modifier.fillMaxWidth().height(28.dp),
+                shape = RoundedCornerShape(14.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = HsbcRed)
+            ) { Text(ctaLabel, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = White) }
+        }
+    }
+}
+
+// ─── 12. Guides & Insights Carousel ─────────────────────────────────────────
+
+@Composable
+fun WHGuidesInsightsCarousel(props: Map<String, Any> = emptyMap()) {
+    val sectionTitle = props["sectionTitle"] as? String ?: "Guides and insights"
+    val moreLabel    = props["moreLabel"]    as? String ?: "View all"
+    val moreDeepLink = props["moreDeepLink"] as? String ?: "hsbc://guides"
+    @Suppress("UNCHECKED_CAST")
+    val items: List<Map<String, Any>> = props["items"] as? List<Map<String, Any>> ?: emptyList()
+    val cols   = numColumnsFromProps(props)
+    val isGrid = cols > 1
+
+    LaunchedEffect(Unit) { TealiumClient.sliceImpression("GUIDES_INSIGHTS_CAROUSEL", "slice-guides-insights", 6) }
+
+    Column(modifier = Modifier.fillMaxWidth().background(White).padding(top = 8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(sectionTitle, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = N800)
+            Text("$moreLabel ›", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = HsbcRed,
+                modifier = Modifier.clickable { TealiumClient.sliceTapped("GUIDES_INSIGHTS_CAROUSEL",
+                    "slice-guides-insights", moreLabel, moreDeepLink) })
+        }
+
+        if (isGrid) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items.chunked(cols).forEach { rowItems ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        rowItems.forEach { item -> GuidesInsightsCard(modifier = Modifier.weight(1f), item = item) }
+                        repeat(cols - rowItems.size) { Spacer(Modifier.weight(1f)) }
+                    }
+                }
+            }
+        } else {
+            Row(
+                modifier = Modifier.horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, bottom = 14.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items.forEach { item -> GuidesInsightsCard(modifier = Modifier.width(190.dp), item = item) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun GuidesInsightsCard(modifier: Modifier = Modifier, item: Map<String, Any>) {
+    val title       = item["title"]       as? String ?: ""
+    val description = item["description"] as? String ?: ""
+    val date        = item["date"]        as? String ?: ""
+    val imgHex      = item["imageColor"]  as? String ?: "#2D3748"
+    val imgColor    = try { Color(android.graphics.Color.parseColor(imgHex)) } catch (_: Exception) { Color(0xFF2D3748) }
+
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(White)
+            .border(1.dp, Color(0xFFF3F4F6), RoundedCornerShape(12.dp))
+            .clickable { TealiumClient.guidesTapped(title, item["id"] as? String ?: "", item["deepLink"] as? String ?: "") }
+    ) {
+        Box(modifier = Modifier.fillMaxWidth().height(100.dp).background(imgColor),
+            contentAlignment = Alignment.Center) {
+            Text("📖", fontSize = 28.sp, modifier = Modifier.alpha(0.6f))
+        }
+        Column(modifier = Modifier.fillMaxWidth().padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(title, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = N800, maxLines = 3, lineHeight = 15.sp)
+            if (description.isNotEmpty()) {
+                Text(description, fontSize = 10.sp, color = N500, maxLines = 2, lineHeight = 14.sp)
+            }
+            Text(date, fontSize = 10.sp, color = N400)
+        }
+    }
+}
+
+// ─── 13. Discover More Carousel ──────────────────────────────────────────────
+
+@Composable
+fun WHDiscoverMoreCarousel(props: Map<String, Any> = emptyMap()) {
+    val sectionTitle = props["sectionTitle"] as? String ?: "Discover more"
+    @Suppress("UNCHECKED_CAST")
+    val items: List<Map<String, Any>> = props["items"] as? List<Map<String, Any>> ?: emptyList()
+    val cols   = numColumnsFromProps(props)
+    val isGrid = cols > 1
+
+    LaunchedEffect(Unit) { TealiumClient.sliceImpression("DISCOVER_MORE_CAROUSEL", "slice-discover-more", 8) }
+
+    Column(modifier = Modifier.fillMaxWidth().background(White).padding(top = 8.dp)) {
+        Text(sectionTitle, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = N800,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp))
+
+        if (isGrid) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items.chunked(cols).forEach { rowItems ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        rowItems.forEach { item -> DiscoverMoreCard(modifier = Modifier.weight(1f), item = item) }
+                        repeat(cols - rowItems.size) { Spacer(Modifier.weight(1f)) }
+                    }
+                }
+            }
+        } else {
+            Row(
+                modifier = Modifier.horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, bottom = 14.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items.forEach { item -> DiscoverMoreCard(modifier = Modifier.width(200.dp), item = item) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DiscoverMoreCard(modifier: Modifier = Modifier, item: Map<String, Any>) {
+    val tag        = item["tag"]        as? String ?: ""
+    val tagHex     = item["tagColor"]   as? String ?: "#DB0011"
+    val title      = item["title"]      as? String ?: ""
+    val subtitle   = (item["description"] as? String) ?: (item["subtitle"] as? String) ?: ""
+    val imgHex     = item["imageColor"] as? String ?: "#1A2E4A"
+    val imgColor   = try { Color(android.graphics.Color.parseColor(imgHex)) } catch (_: Exception) { Color(0xFF1A2E4A) }
+    val tagColor   = try { Color(android.graphics.Color.parseColor(tagHex)) } catch (_: Exception) { HsbcRed }
+
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(White)
+            .border(1.dp, Color(0xFFF3F4F6), RoundedCornerShape(12.dp))
+            .clickable { TealiumClient.discoverMoreTapped(tag, title, item["deepLink"] as? String ?: "") }
+    ) {
+        Box(modifier = Modifier.fillMaxWidth().height(110.dp).background(imgColor)) {
+            Text(tag, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = White,
+                modifier = Modifier.align(Alignment.TopStart).padding(10.dp)
+                    .background(tagColor, RoundedCornerShape(10.dp))
+                    .padding(horizontal = 8.dp, vertical = 4.dp))
+        }
+        Column(modifier = Modifier.fillMaxWidth().padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(title, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = N800, maxLines = 2, lineHeight = 16.sp)
+            if (subtitle.isNotEmpty()) {
+                Text(subtitle, fontSize = 10.sp, color = N500, maxLines = 2, lineHeight = 14.sp)
             }
         }
     }

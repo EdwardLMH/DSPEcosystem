@@ -16,6 +16,7 @@ enum KYCAction {
     case setError(String?)
     case setValidationErrors([ValidationError])
     case clearValidationError(String)
+    case configLoaded(BFFConfig)
 }
 
 struct ValidationError: Codable, Identifiable {
@@ -43,6 +44,14 @@ final class AppStore {
     var isComplete:        Bool                 = false
     var errorMessage:      String?              = nil
     var validationErrors:  [ValidationError]    = []
+
+    // i18n + a11y + channel config from BFF bootstrap
+    var locale:            String               = IOSLocaleContext.current
+    var textDir:           String               = "ltr"
+    var channel:           String               = "SDUI"
+    var a11yReduceMotion:  Bool                 = false
+    var a11yHighContrast:  Bool                 = false
+    var a11yLargeText:     Bool                 = false
 
     private let network = KYCNetworkService()
 
@@ -114,6 +123,14 @@ final class AppStore {
 
         case .clearValidationError(let qId):
             validationErrors.removeAll { $0.questionId == qId }
+
+        case .configLoaded(let config):
+            locale           = config.locale
+            textDir          = config.textDir
+            channel          = config.channel
+            a11yReduceMotion = config.a11y.reduceMotion
+            a11yHighContrast = config.a11y.highContrast
+            a11yLargeText    = config.a11y.largeText
         }
     }
 
@@ -172,6 +189,18 @@ final class AppStore {
 
         default:
             break
+        }
+    }
+
+    // MARK: - Bootstrap config on app launch
+
+    @MainActor
+    func loadConfig() async {
+        do {
+            let config = try await network.fetchConfig()
+            dispatch(.configLoaded(config))
+        } catch {
+            // Non-fatal — device locale and defaults remain active
         }
     }
 }

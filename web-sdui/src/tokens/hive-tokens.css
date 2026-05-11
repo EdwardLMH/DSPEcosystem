@@ -209,3 +209,42 @@ body {
   font-weight: var(--hive-input-label-weight);
   color:       var(--hive-color-neutral-700);
 }
+
+/* ─── WCAG 2.1 AA — Accessibility utilities ─────────────────────────────── */
+
+/* Screen-reader-only: visually hidden but announced by assistive technology */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Visible focus ring for keyboard navigation (WCAG 2.4.7) */
+:focus-visible {
+  outline: 3px solid var(--hive-color-brand-primary, #DB0011);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Respect user's reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* RTL layout support */
+[dir="rtl"] {
+  text-align: right;
+}
+
+/* High-contrast mode (forced-colors: active) */
+@media (forced-colors: active) {
+  :focus-visible { outline: 3px solid ButtonText; }
+}

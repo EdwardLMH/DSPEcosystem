@@ -18,7 +18,7 @@ import {
   KYCState, KYCAction, AnswerEntry, ValidationErrorDto
 } from '../models/SDUIModels'
 import {
-  startSession, resume, getStep, submitStep
+  fetchConfig, startSession, resume, getStep, submitStep
 } from '../network/KYCNetworkService'
 import { SensorDataClient } from '../network/SensorDataClient'
 
@@ -48,7 +48,14 @@ export class KYCStore {
 
   handleEffect(action: KYCAction): void {
 
-    if (action.type === 'START_SESSION') {
+    if (action.type === 'LOAD_CONFIG') {
+      fetchConfig()
+        .then(cfg => {
+          this.dispatch({ type: 'CONFIG_LOADED', config: cfg })
+        })
+        .catch(() => { /* non-fatal — device defaults remain */ })
+
+    } else if (action.type === 'START_SESSION') {
       SensorDataClient.kycJourneyStarted()
       startSession('harmonynext')
         .then(res => {

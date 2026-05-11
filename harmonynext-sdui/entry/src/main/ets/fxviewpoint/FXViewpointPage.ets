@@ -328,7 +328,7 @@ struct FXHardcodedBriefing {
   }
 }
 
-// ─── 4. Contact RM CTA (sticky bottom bar) ────────────────────────────────────
+// ─── 4. Contact RM CTA (sticky bottom pill) ───────────────────────────────────
 
 @Component
 struct FXContactRMCTA {
@@ -338,23 +338,31 @@ struct FXContactRMCTA {
 
   build() {
     Row() {
-      Column({ space: 2 }) {
-        Text(this.label)
-          .fontSize(14).fontWeight(FontWeight.Medium).fontColor('#FFFFFF')
-        if (this.subLabel.length > 0) {
-          Text(this.subLabel)
-            .fontSize(12).fontColor('#D9FFFFFF')
+      Row({ space: 8 }) {
+        Text('📞').fontSize(15)
+        Column({ space: 1 }) {
+          Text(this.label)
+            .fontSize(14).fontWeight(FontWeight.Medium).fontColor('#FFFFFF')
+          if (this.subLabel.length > 0) {
+            Text(this.subLabel)
+              .fontSize(11).fontColor('#D9FFFFFF')
+          }
         }
+        .alignItems(HorizontalAlign.Start).layoutWeight(1)
+        Text('›').fontSize(18).fontColor('#FFFFFF')
       }
-      .alignItems(HorizontalAlign.Start).layoutWeight(1)
-      Text('›').fontSize(20).fontColor('#FFFFFF')
+      .padding({ left: 20, right: 20, top: 9, bottom: 9 })
+      .backgroundColor(this.bgColor)
+      .borderRadius(24)
+      .shadow({ radius: 4, color: '#2E000000', offsetX: 0, offsetY: 2 })
+      .onClick(() => {
+        SensorDataClient.track('contact_rm_tap', 'FXViewpoint', 'contact_rm_tapped', '',
+          'fx_viewpoint_hk', 'fx_viewpoint')
+      })
     }
     .width('100%')
-    .padding({ left: 20, right: 20, top: 14, bottom: 14 })
-    .backgroundColor(this.bgColor)
-    .onClick(() => {
-      SensorDataClient.track('contact_rm_tap', 'FXViewpoint', 'contact_rm_tapped', '',
-        'fx_viewpoint_hk', 'fx_viewpoint')
-    })
+    .justifyContent(FlexAlign.Center)
+    .padding({ left: 20, right: 20, top: 10, bottom: 10 })
+    .backgroundColor(Hive.Color.brandWhite)
   }
 }

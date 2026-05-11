@@ -1,8 +1,8 @@
 # Server Driven UI (SDUI) Architecture
 
-**Document Version:** 1.1  
-**Date:** 2026-05-04  
-**Scope:** UCP BFF + Web / iOS / Android / HarmonyOS NEXT SDUI Renderers  
+**Document Version:** 1.4  
+**Date:** 2026-05-12  
+**Scope:** UCP / AEM BFF + Web / iOS / Android / HarmonyOS NEXT SDUI Renderers + AI Search  
 
 ---
 
@@ -98,8 +98,11 @@ Server Driven UI (SDUI) inverts this model: **the server owns the layout**. The 
   │                                  │                                   │
   │  ┌──────────────────────────────▼──────────────────────────────┐   │
   │  │  Step 3: Content Fetcher (parallel)                          │   │
-  │  │  - Fetches resolved contentIds from Stripes CMS API          │   │
+  │  │  - Fetches resolved contentIds from content providers:       │   │
+  │  │    • UCP (Stripes CMS API) — for UCP-sourced slice refs      │   │
+  │  │    • HSBC AEM (Content Delivery API) — for AEM-sourced refs  │   │
   │  │    (or Redis L1 cache — hit rate target: 85%+)               │   │
+  │  │  - contentRef.source ("UCP" | "AEM") determines which API    │   │
   │  │  - Fetches ML recommendations for {{dynamic:*}} slots        │   │
   │  │  - Fetches user profile data for personalised props          │   │
   │  └──────────────────────────────┬──────────────────────────────┘   │
@@ -153,10 +156,157 @@ public record SlotContext(
 // SlotResolution tells the composer what to put in the slot
 public record SlotResolution(
     String componentType,    // e.g. "PromoBanner"
-    String contentId,        // Stripes CMS content ID
+    String contentId,        // content ID in the resolved source
+    ContentSource source,    // UCP | AEM
     Map<String, Object> additionalProps
 ) {}
+
+enum ContentSource { UCP, AEM }
 ```
+
+### 3.3 Dual Content Provider Routing
+
+The BFF Content Fetcher reads `contentRef.source` from each resolved slot to determine which backend to call:
+
+```
+contentRef.source == "UCP"
+  → GET {UCP_CMS_BASE}/api/content/{contentId}
+  → Cached in Redis under key: "ucp:{contentId}:{locale}"
+
+contentRef.source == "AEM"
+  → GET {AEM_CD_API_BASE}/api/assets/{aemPath}
+      (AEM Content Delivery API — REST/GraphQL, OAuth 2.0 client credentials)
+  → Cached in Redis under key: "aem:{aemPath}:{locale}"
+  → AEM asset URLs passed through as-is to SDUI JSON (no CDN rewrite)
+
+Both resolve into the same ComponentNode.props shape —
+the SDUI renderer is source-agnostic.
+```
+
+### 3.4 Locale / i18n Injection
+
+The BFF injects locale-specific copy into each ComponentNode before serialisation:
+
+```
+x-locale: "zh-HK"
+
+1. BFF resolves content from UCP or AEM for the default locale.
+2. BFF looks up translations[locale][instanceId][propKey] from the
+   CMS translation store for all TRANSLATABLE_PROP_KEYS
+   (title, subtitle, ctaText, altText, description, body).
+3. Translated values overwrite the default-locale props in the
+   assembled ComponentNode.
+4. If a translation key is missing for this locale, default-locale
+   value is used (graceful fallback, no empty strings).
+5. `dir: "rtl"` is injected into ContainerNode.props when locale is "ar".
+```
+```
+
+### 3.5 AI Search — Semantic Search Slice and Corpus Pipeline
+
+The `AI_SEARCH_BAR` and `HOME_SEARCH_HEADER` SDUI slice types deliver in-app semantic search on iOS, Android, HarmonyOS NEXT, and Web. The search corpus is operator-configured in the OCDP Admin console and served by the BFF search endpoint.
+
+#### Slice Types
+
+| Slice Type | Description | Key Props |
+|------------|-------------|-----------|
+| `AI_SEARCH_BAR` | Standalone HSBC-red semantic search bar | `placeholder`, `enableSemanticSearch`, `enableQRScan`, `enableChatbot`, `enableMessageInbox`, `searchApiEndpoint` |
+| `HOME_SEARCH_HEADER` | Segment-adaptive home header with integrated search | All `AI_SEARCH_BAR` props plus `premierLabel`, `eliteLabel`, `advanceLabel`, `massLabel`, `enableNotification`, `enableHeadset` |
+
+Both slice types should point their `searchApiEndpoint` prop at `POST /api/v1/search` or a configured override URL. The current seed data still carries `/api/v1/search/semantic` in a few mock props for backward compatibility; implemented console and client search calls use `/api/v1/search`.
+
+#### Corpus Configuration (OCDP AI Search Admin)
+
+OCDP operators create one `AISearchConfig` per app platform. The OCDP store dispatches `ADD_AI_SEARCH_CONFIG`, `EDIT_AI_SEARCH_CONFIG`, and `DELETE_AI_SEARCH_CONFIG` actions. Each config specifies:
+
+```typescript
+interface AISearchConfig {
+  configId: string;
+  appId: 'ios' | 'android' | 'harmonynext' | 'web';
+  displayName: string;
+  enabled: boolean;
+  quickAccessSource: {
+    mode: 'url' | 'json';   // remote URL fetch or inline JSON paste
+    url?: string;
+    json?: string;
+  };
+  contentSources: Array<{
+    type: 'ocdp_page' | 'aem_url';  // AEM is a peer content source
+    ref: string;                     // pageId or AEM page URL
+    label: string;
+  }>;
+  refreshSchedule: 'manual' | 'hourly' | 'daily';
+  searchEndpointOverride?: string;
+  lastRebuiltAt: string | null;
+  corpusSize: number;
+}
+```
+
+#### Corpus Rebuild Pipeline
+
+Triggered by `POST /api/v1/search/config/{configId}/rebuild`:
+
+```
+Step 1 — Quick-access source
+   mode=url  → BFF fetches JSON from remote URL; parses array of entry-point objects
+               (each must have: id, title, icon, deepLink, description, keywords)
+   mode=json → BFF parses inline JSON pasted by operator
+
+Step 2 — Content sources (in parallel)
+   type=ocdp_page → Extracts title / description / keywords from SDUI screen data
+                    for the given pageId (live or approved pages only)
+   type=aem_url   → Synthesises a corpus entry from the AEM page URL and metadata
+                    (AEM is a peer content provider alongside OCDP pages)
+
+Step 3 — Merge + deduplicate → stored in AI_SEARCH_CORPORA[appId]
+
+Step 4 — Persist metadata
+   Updates config.lastRebuiltAt and config.corpusSize for the OCDP AI Search
+   Admin panel.
+
+Response: { appId, corpusSize, rebuiltAt }
+→ OCDP Admin card updated with corpus size and rebuild timestamp
+```
+
+### 3.6 Implemented Screen Contracts
+
+The repository currently includes the following concrete SDUI screen contracts:
+
+| Screen | Endpoint | Slice contract |
+|--------|----------|----------------|
+| Home Hub (HK) | `GET /api/v1/screen/home-wealth-hk` | `HOME_SEARCH_HEADER`, `COMBO_QUICK_ACCESS`, `CARD_ACTIVATION_BANNER`, `QUEST_BANNER`, `FEATURE_PRODUCT`, `WEALTH_STUDIO_CAROUSEL`, `GUIDES_INSIGHTS_CAROUSEL`, `FX_WATCHLIST`, `DISCOVER_MORE_CAROUSEL` |
+| FX Viewpoint | `GET /api/v1/screen/fx-viewpoint-hk` | `VIDEO_PLAYER`, `MARKET_BRIEFING_TEXT`, `CONTACT_RM_CTA` |
+| KYC | `/api/v1/kyc/sessions/**` | Platform-split KYC steps with web compound components and mobile-native steps |
+
+The Home Hub is implemented across Web, iOS, Android, and HarmonyOS NEXT with static fallbacks for offline and pre-publish use. Current client constraints are captured in [../IMPLEMENTATION_SUMMARY.md](../IMPLEMENTATION_SUMMARY.md).
+
+#### Runtime Search Flow
+
+```
+Mobile App / Web Client
+   │  POST /api/v1/search
+   │  { query: "理財", limit: 8, appId: "ios" }
+   ▼
+BFF Semantic Search Engine
+   ├── Corpus selection
+   │     AI_SEARCH_CORPORA["ios"] if configured + non-empty
+   │     else falls back to default SEARCH_CORPUS
+   │
+   ├── Tokenise query → TF-IDF term vectors
+   │
+   ├── Score each corpus entry
+   │     keyword-overlap boost + cosine-similarity score
+   │
+   └── Return top-N results sorted by score
+         { id, type, title, description, icon, category, deepLink, score }
+
+Client-side corpus caching (recommended):
+   GET /api/v1/search/corpus?appId=ios
+   → Full SearchCorpusResponse (cache TTL: 5 min)
+   → Enables instant client-side search without round-trip per keystroke
+```
+
+**Production note:** The TF-IDF ranking in mock-BFF mirrors the result contract of Vertex AI Matching Engine (vector embeddings). In production the BFF calls Vertex AI; the API shape (`SearchResultItem[]`) is identical — no client changes required.
 
 ---
 
@@ -398,9 +548,9 @@ These are the canonical slice types managed in the UCP Console (`sliceDefinition
 | 4 | `QUEST_BANNER` | promotion | no | Getting-started quest progress card with HSBC hexagon icon |
 | 5 | `FEATURE_PRODUCT` | wealth | no | Tabbed fund list (Top-Performing / Thematic / All) showing fund name, code, and 1Y return |
 | 6 | `WEALTH_STUDIO_CAROUSEL` | wealth | no | Premier Elite Wealth Studio horizontal video episode carousel |
-| 7 | `GUIDES_INSIGHTS` | insight | no | Article card carousel — investment guides and market insights |
+| 7 | `GUIDES_INSIGHTS_CAROUSEL` | insight | no | Article card carousel — investment guides and market insights |
 | 8 | `FX_WATCHLIST` | wealth | no | Currency pair watchlist with Gold Forex Club tier badge (amber `#FFFBEB`/`#FDE68A` theme) and live bid/ask rates |
-| 9 | `DISCOVER_MORE` | promotion | no | Horizontal campaign card carousel — promotions and lifestyle offers |
+| 9 | `DISCOVER_MORE_CAROUSEL` | promotion | no | Horizontal campaign card carousel — promotions and lifestyle offers |
 
 #### `fx-viewpoint-hk` — FX Viewpoint Slices
 
@@ -426,7 +576,7 @@ The following slice types existed in earlier iterations but are **not used** by 
 | `FLASH_LOAN` | wealth | Deprecated |
 | `WEALTH_SELECTION` | wealth | Replaced by `FEATURE_PRODUCT` |
 | `FEATURED_RANKINGS` | wealth | Deprecated |
-| `LIFE_DEALS` | lifestyle | Replaced by `DISCOVER_MORE` |
+| `LIFE_DEALS` | lifestyle | Replaced by `DISCOVER_MORE_CAROUSEL` |
 | `SPACER` | layout | Still available for use in custom pages |
 
 ### 5.2 Generic Layout & Content Component Types
@@ -622,7 +772,7 @@ struct SDUIRenderer {
 
 Analytics on HarmonyOS NEXT routes to **SensorDataClient** (神策数据) rather than Tealium, to satisfy China data residency requirements (PIPL). The `KYCNetworkService.ets` and `SensorDataClient.ets` share the same base URL configuration via `AppStorage`.
 
-> **Note:** The code example above shows the old slice dispatcher. The current `WealthPage.ets` dispatches the 9 Home Hub slices (`HOME_SEARCH_HEADER`, `COMBO_QUICK_ACCESS`, `CARD_ACTIVATION_BANNER`, `QUEST_BANNER`, `FEATURE_PRODUCT`, `WEALTH_STUDIO_CAROUSEL`, `GUIDES_INSIGHTS`, `FX_WATCHLIST`, `DISCOVER_MORE`) using the same `if/else if` pattern. `switch` and `const`/`let` declarations are forbidden inside ArkTS `build()` blocks.
+> **Note:** The code example above shows the old slice dispatcher. The current `WealthPage.ets` dispatches the 9 Home Hub slices (`HOME_SEARCH_HEADER`, `COMBO_QUICK_ACCESS`, `CARD_ACTIVATION_BANNER`, `QUEST_BANNER`, `FEATURE_PRODUCT`, `WEALTH_STUDIO_CAROUSEL`, `GUIDES_INSIGHTS_CAROUSEL`, `FX_WATCHLIST`, `DISCOVER_MORE_CAROUSEL`) using the same `if/else if` pattern. `switch` and `const`/`let` declarations are forbidden inside ArkTS `build()` blocks.
 
 ### 6.5 Action Handler Registry
 

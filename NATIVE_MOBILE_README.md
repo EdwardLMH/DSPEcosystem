@@ -192,9 +192,12 @@ ios-sdui/HSBCSDUI/
   HiveTokens.swift              ← Design tokens (colour, spacing, typography)
   HSBCSduiApp.swift              ← App entry + journey selector
   WealthPageView.swift          ← Wealth Home Hub — async SDUI loader + 9 SwiftUI slice components
+                                   WHWealthStudioCarousel: inline AVPlayerLayer video player
+                                   replaces the TabView in-place (same 160 pt frame); no full-screen
   Analytics/TealiumClient.swift ← Tealium client: wealth hub, KYC + 3 new helpers
                                    (wealthStudioTapped, guidesTapped, discoverMoreTapped)
-  FXViewpoint/FXViewpointView.swift
+  FXViewpoint/FXViewpointView.swift ← FX Viewpoint page; InlineAVPlayer uses AVPlayerLayer
+                                       (UIViewRepresentable) — confined to .frame(), no full-screen
   Wealth/AISearchView.swift
 
 android-sdui/app/src/main/java/com/hsbc/sdui/

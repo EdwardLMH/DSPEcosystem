@@ -1,6 +1,6 @@
 # DSP Ecosystem — Implementation Summary
 
-**Last Updated:** 2026-05-08  
+**Last Updated:** 2026-05-12  
 **Classification:** Internal — Confidential
 
 ---
@@ -25,9 +25,9 @@ The canonical "Home Hub (HK)" page (`screen: home-wealth-hk`) is defined in the 
 | 4 | `QUEST_BANNER` | Getting-started quest progress card with HSBC hexagon icon |
 | 5 | `FEATURE_PRODUCT` | Tabbed fund list (Top-Performing / Thematic / All) showing 1Y returns |
 | 6 | `WEALTH_STUDIO_CAROUSEL` | Premier Elite Wealth Studio horizontal video episode carousel |
-| 7 | `GUIDES_INSIGHTS` | Article card carousel — investment guides and market insights |
+| 7 | `GUIDES_INSIGHTS_CAROUSEL` | Article card carousel — investment guides and market insights |
 | 8 | `FX_WATCHLIST` | Currency pair watchlist with Gold Forex Club tier badge (amber theme) |
-| 9 | `DISCOVER_MORE` | Horizontal campaign card carousel — promotions and lifestyle offers |
+| 9 | `DISCOVER_MORE_CAROUSEL` | Horizontal campaign card carousel — promotions and lifestyle offers |
 
 ### Platform Implementations
 
@@ -93,14 +93,51 @@ SDUI and WeChat channel pages bypass the assessment (no SEO relevance).
 
 ## 4. Bug Fixes Applied
 
-### HarmonyOS NEXT — ArkTS Compiler Errors (WealthPage.ets)
+### iOS — Wealth Studio Carousel: video opened as a separate panel (WealthPageView.swift)
+
+| Symptom | Root Cause | Fix |
+|---------|-----------|-----|
+| Tapping a carousel card opened the video as a new UI block above the section header, appearing as a separate screen/panel | `WHInlineVideoPlayer` was inserted at the top of the `VStack` — before the header. Activating it added a 210 pt block above all other content, causing the layout to shift downward visually | Moved the player into an `if/else` branch that **replaces** the `TabView` in the same position. The header always renders first. The 160 pt frame of the `TabView` is reused by the player when active. Pagination dots are hidden during playback (inside the `else` branch). Height corrected from 210 pt to 160 pt to match carousel card height |
+
+**Layout after fix (`WHWealthStudioCarousel.body`):**
+```
+VStack {
+  HStack { sectionTitle | moreLabel }      ← always visible
+  if playingVideoUrl != nil {
+    WHInlineVideoPlayer(...)               ← replaces carousel, same 160 pt height
+    Spacer(14 pt)
+  } else {
+    TabView { carousel cards }             ← shown when not playing
+    pagination dots
+  }
+}
+```
+
+### iOS — AVPlayerViewController full-screen expansion (FXViewpointView.swift)
+
+| Symptom | Root Cause | Fix |
+|---------|-----------|-----|
+| Video expanded full-screen on tap | `UIViewControllerRepresentable` + `AVPlayerViewController` always expands to fill the window (Apple framework design) | Replaced with `UIViewRepresentable` + custom `UIView` subclass (`WHPlayerView` / `FXPlayerView`) using `AVPlayerLayer` added as a `CALayer` sublayer. Player is now confined to the parent `.frame()`. |
+
+### HarmonyOS NEXT — FX Watchlist blank data (WealthPage.ets)
+
+| Symptom | Root Cause | Fix |
+|---------|-----------|-----|
+| `SDUIFXWatchlist` showed no FX pair data | Component read `base`, `quote`, `rate`, `change` but BFF sends `pair`, `sellRate`, `buyRate`, `sellLabel`, `buyLabel` | Rewrote all field accessors to match BFF schema. Logic extracted into private helper methods (`pairLabel`, `pairSellRate`, `pairBuyRate`, `pairId`) |
+
+### HarmonyOS NEXT — ArkTS Compiler Error 10905209 (WealthPage.ets)
+
+| Error | Root Cause | Fix |
+|-------|-----------|-----|
+| `10905209` "Only UI component syntax can be written here" | `const r = raw as Record<string, string>` inside a `ForEach` builder lambda | Moved all record-cast logic into private methods called from the builder body. No `const`/`let` remains inside any builder block |
+
+### HarmonyOS NEXT — ArkTS Type Errors (WealthPage.ets)
 
 | Error | Root Cause | Fix |
 |-------|-----------|-----|
 | `arkts-no-any-unknown` (line 316) | `as ESObject[]` cast in `SDUIComboQuickAccess.tabs()` | Changed to `const raw: Array<string> = this.props['tabs'] as Array<string>` |
 | `arkts-no-any-unknown` (line 496) | Same pattern in `SDUIFeatureProduct.tabs()` | Same fix applied |
 | `arkts-no-any-unknown` (line 546) | `const tagsRaw = ... as ESObject[]` inside `Row{}` builder | Extracted to `fundTags(fund: ESObject): Array<string>` helper method |
-| `10905209` "Only UI component syntax can be written here" (line 546) | `const` declaration inside `build()` / UI builder block | Same extraction to helper method |
 
 ### Android — Conflicting Declarations (WealthPageScreen.kt)
 

@@ -2,6 +2,32 @@ package com.hsbc.sdui.kyc
 
 import com.google.gson.annotations.SerializedName
 
+// ─── BFF Config bootstrap ─────────────────────────────────────────────────────
+
+data class BFFConfig(
+    @SerializedName("locale")           val locale: String,
+    @SerializedName("textDir")          val textDir: String,
+    @SerializedName("supportedLocales") val supportedLocales: List<String>,
+    @SerializedName("channel")          val channel: String,
+    @SerializedName("platform")         val platform: String,
+    @SerializedName("a11y")             val a11y: BFFAccessibility,
+    @SerializedName("featureFlags")     val featureFlags: Map<String, Boolean>,
+    @SerializedName("wcag")             val wcag: BFFWCAGConfig
+)
+
+data class BFFAccessibility(
+    @SerializedName("reduceMotion") val reduceMotion: Boolean = false,
+    @SerializedName("highContrast") val highContrast: Boolean = false,
+    @SerializedName("largeText")    val largeText: Boolean = false,
+    @SerializedName("talkBack")     val talkBack: Boolean = false,
+    @SerializedName("screenReader") val screenReader: Boolean = false
+)
+
+data class BFFWCAGConfig(
+    @SerializedName("level")   val level: String,
+    @SerializedName("version") val version: String
+)
+
 // ─── Network DTOs ─────────────────────────────────────────────────────────────
 
 data class SDUIScreenPayload(
@@ -17,7 +43,11 @@ data class KYCStepMetadata(
     @SerializedName("stepIndex")    val stepIndex: Int,
     @SerializedName("totalSteps")   val totalSteps: Int,
     @SerializedName("sectionTitle") val sectionTitle: String,
-    @SerializedName("platform")     val platform: String
+    @SerializedName("platform")     val platform: String,
+    @SerializedName("locale")       val locale: String? = null,
+    @SerializedName("textDir")      val textDir: String? = null,
+    @SerializedName("channel")      val channel: String? = null,
+    @SerializedName("a11y")         val a11y: BFFAccessibility? = null
 )
 
 data class KYCSDUINode(
@@ -28,9 +58,11 @@ data class KYCSDUINode(
 )
 
 data class StartSessionResponse(
-    @SerializedName("sessionId")   val sessionId: String,
-    @SerializedName("totalSteps")  val totalSteps: Int,
-    @SerializedName("platform")    val platform: String
+    @SerializedName("sessionId")  val sessionId: String,
+    @SerializedName("totalSteps") val totalSteps: Int,
+    @SerializedName("platform")   val platform: String,
+    @SerializedName("locale")     val locale: String? = null,
+    @SerializedName("channel")    val channel: String? = null
 )
 
 data class SubmitRequest(
@@ -68,5 +100,13 @@ data class KYCUiState(
     val isLoading: Boolean = false,
     val isSubmitting: Boolean = false,
     val isComplete: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    // i18n + a11y + channel (populated from BFF config/metadata)
+    val locale: String = "en",
+    val textDir: String = "ltr",
+    val channel: String = "SDUI",
+    val a11yReduceMotion: Boolean = false,
+    val a11yHighContrast: Boolean = false,
+    val a11yLargeText: Boolean = false,
+    val a11yTalkBack: Boolean = false
 )

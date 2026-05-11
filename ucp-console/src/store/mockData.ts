@@ -1,7 +1,7 @@
 import type {
   PageLayout, WorkflowEntry, AuditEntry, StaffUser,
   BizLine, AdGroup,
-  ContentAsset, UIComponent, ContentApprovalFlow,
+  ContentAsset, UIComponent, ContentApprovalFlow, PageTemplate,
 } from '../types/ucp';
 
 // ─── Biz Lines ────────────────────────────────────────────────────────────────
@@ -34,7 +34,7 @@ export const DEFAULT_PAGE_LAYOUT: PageLayout = {
   pageType: 'WEALTH_HUB',
   description: 'Main wealth hub home page for HK market',
   platform: 'all',
-  locale: 'zh-HK',
+  locale: 'zh-TW',
   thumbnail: '💰',
   tags: ['wealth', 'home', 'hk'],
   bizLineId: 'WEALTH',
@@ -85,6 +85,40 @@ export const DEFAULT_PAGE_LAYOUT: PageLayout = {
       props: { greeting: 'Hi，我是你的智能財富助理', avatarUrl: '' },
       visible: true, locked: false,
     },
+    {
+      instanceId: 'slice-wealth-studio',
+      type: 'WEALTH_STUDIO_CAROUSEL',
+      props: {
+        sectionTitle: 'Premier Elite Wealth Studio',
+        moreLabel: 'View all',
+        moreDeepLink: 'hsbc://wealth-studio',
+        items: [
+          {
+            id: 'ws-ep14',
+            ucpAssetId: 'asset-014',
+            title: 'Navigating Markets in 2026',
+            episodeLabel: 'Episode 14',
+            presenter: 'Emily Cheung',
+            presenterTitle: 'Senior Wealth Strategist, HSBC Premier',
+            durationSeconds: 90,
+            thumbnailUrl: 'https://placehold.co/1280x720/0A1628/ffffff?text=Wealth+Studio+Ep14',
+            videoUrl: 'http://localhost:3001/media/Wealth1.mov',
+          },
+          {
+            id: 'ws-ep15',
+            ucpAssetId: 'asset-015',
+            title: 'Gold & Alternative Assets',
+            episodeLabel: 'Episode 15',
+            presenter: 'Derek Lam',
+            presenterTitle: 'Head of Alternative Investments, HSBC Jade',
+            durationSeconds: 145,
+            thumbnailUrl: 'https://placehold.co/1280x720/0A1628/c9a96e?text=Wealth+Studio+Ep15',
+            videoUrl: 'http://localhost:3001/media/Wealth2.mov',
+          },
+        ],
+      },
+      visible: true, locked: false,
+    },
   ],
 };
 
@@ -94,7 +128,7 @@ export const JADE_CAMPAIGN_PAGE: PageLayout = {
   pageType: 'CAMPAIGN',
   description: 'Jade upgrade invitation page for Premier customers',
   platform: 'all',
-  locale: 'zh-HK',
+  locale: 'zh-TW',
   thumbnail: '🟡',
   tags: ['jade', 'wealth', 'campaign'],
   bizLineId: 'WEALTH',
@@ -122,7 +156,7 @@ export const VISA_CAMPAIGN_PAGE: PageLayout = {
   pageType: 'CAMPAIGN',
   description: 'Visa Platinum no-FX campaign for Q3 2026',
   platform: 'web',
-  locale: 'en-HK',
+  locale: 'en',
   thumbnail: '💳',
   tags: ['cards', 'campaign', 'visa'],
   bizLineId: 'PAYMENT',
@@ -137,7 +171,7 @@ export const OBKYC_PAGE_LAYOUT: PageLayout = {
   pageType: 'KYC_JOURNEY',
   description: 'Open Banking KYC journey — 10-step mobile flow',
   platform: 'all',
-  locale: 'en-HK',
+  locale: 'en',
   thumbnail: '🪪',
   tags: ['kyc', 'onboarding'],
   bizLineId: 'WEB_ENABLER',
@@ -165,7 +199,7 @@ export const MARKET_INSIGHT_PAGE: PageLayout = {
   pageType: 'MARKET_INSIGHT',
   description: 'Market insight page: EUR and GBP analysis — ECB on hold and BoE rate cut. Includes video, briefing text and RM contact CTA.',
   platform: 'all',
-  locale: 'en-HK',
+  locale: 'en',
   thumbnail: '📈',
   tags: ['fx', 'market-insight', 'eur', 'gbp', 'wealth'],
   bizLineId: 'WEALTH',
@@ -489,8 +523,11 @@ export const MOCK_USERS: StaffUser[] = [
 
 // ─── Content Assets ───────────────────────────────────────────────────────────
 
+const ASSET_I18N_DEFAULTS = { supportedLocales: ['en'] as string[], translations: {} as Record<string, Record<string, string>> };
+
 export const MOCK_CONTENT_ASSETS: ContentAsset[] = [
   {
+    ...ASSET_I18N_DEFAULTS,
     assetId: 'asset-010',
     name: 'Home Hub — Feature Product Background',
     assetType: 'IMAGE',
@@ -508,6 +545,7 @@ export const MOCK_CONTENT_ASSETS: ContentAsset[] = [
     status: 'ACTIVE',
   },
   {
+    ...ASSET_I18N_DEFAULTS,
     assetId: 'asset-011',
     name: 'Premier Elite Wealth Studio — Episode 13 Thumbnail',
     assetType: 'IMAGE',
@@ -525,6 +563,7 @@ export const MOCK_CONTENT_ASSETS: ContentAsset[] = [
     status: 'ACTIVE',
   },
   {
+    ...ASSET_I18N_DEFAULTS,
     assetId: 'asset-012',
     name: 'Investment 101 — Guides & Insights Article Cover',
     assetType: 'IMAGE',
@@ -542,6 +581,7 @@ export const MOCK_CONTENT_ASSETS: ContentAsset[] = [
     status: 'ACTIVE',
   },
   {
+    ...ASSET_I18N_DEFAULTS,
     assetId: 'asset-013',
     name: 'Time Deposit — Up to 15.5% p.a. Discover More Card',
     assetType: 'IMAGE',
@@ -559,6 +599,7 @@ export const MOCK_CONTENT_ASSETS: ContentAsset[] = [
     status: 'ACTIVE',
   },
   {
+    ...ASSET_I18N_DEFAULTS,
     assetId: 'asset-001',
     name: 'Jade Banner Hero',
     assetType: 'IMAGE',
@@ -576,6 +617,7 @@ export const MOCK_CONTENT_ASSETS: ContentAsset[] = [
     status: 'ACTIVE',
   },
   {
+    ...ASSET_I18N_DEFAULTS,
     assetId: 'asset-002',
     name: 'VISA Infinite Card Art',
     assetType: 'IMAGE',
@@ -593,6 +635,7 @@ export const MOCK_CONTENT_ASSETS: ContentAsset[] = [
     status: 'ACTIVE',
   },
   {
+    ...ASSET_I18N_DEFAULTS,
     assetId: 'asset-003',
     name: 'KYC Walkthrough Video',
     assetType: 'VIDEO',
@@ -610,6 +653,7 @@ export const MOCK_CONTENT_ASSETS: ContentAsset[] = [
     status: 'ACTIVE',
   },
   {
+    ...ASSET_I18N_DEFAULTS,
     assetId: 'asset-004',
     name: 'HSBC Premier T&C PDF',
     assetType: 'DOCUMENT',
@@ -625,6 +669,7 @@ export const MOCK_CONTENT_ASSETS: ContentAsset[] = [
     status: 'ACTIVE',
   },
   {
+    ...ASSET_I18N_DEFAULTS,
     assetId: 'asset-005',
     name: 'Rate Sheet Q2 2026',
     assetType: 'FILE',
@@ -640,6 +685,7 @@ export const MOCK_CONTENT_ASSETS: ContentAsset[] = [
     status: 'ACTIVE',
   },
   {
+    ...ASSET_I18N_DEFAULTS,
     assetId: 'asset-006',
     name: 'WeChat Campaign Banner',
     assetType: 'IMAGE',
@@ -657,6 +703,7 @@ export const MOCK_CONTENT_ASSETS: ContentAsset[] = [
     status: 'ACTIVE',
   },
   {
+    ...ASSET_I18N_DEFAULTS,
     assetId: 'asset-008',
     name: 'FX Viewpoint — EUR & GBP Market Insights (May 2026)',
     assetType: 'VIDEO',
@@ -682,6 +729,7 @@ export const MOCK_CONTENT_ASSETS: ContentAsset[] = [
     approvalReviewerName: 'Amy Leung',
   },
   {
+    ...ASSET_I18N_DEFAULTS,
     assetId: 'asset-007',
     name: 'Old Promo Banner 2025',
     assetType: 'IMAGE',
@@ -699,6 +747,7 @@ export const MOCK_CONTENT_ASSETS: ContentAsset[] = [
     status: 'ARCHIVED',
   },
   {
+    ...ASSET_I18N_DEFAULTS,
     assetId: 'asset-009',
     name: 'Deposit Campaign Hero Banner',
     assetType: 'IMAGE',
@@ -720,12 +769,67 @@ export const MOCK_CONTENT_ASSETS: ContentAsset[] = [
     approvalReviewerId: 'approver-01',
     approvalReviewerName: 'Michael Wong',
   },
+  {
+    ...ASSET_I18N_DEFAULTS,
+    assetId: 'asset-014',
+    name: 'Wealth Studio — Episode 14: Navigating Markets in 2026',
+    assetType: 'VIDEO',
+    mimeType: 'video/quicktime',
+    sizeBytes: 1304056,
+    url: '/media/Wealth1.mov',
+    thumbnailUrl: 'https://placehold.co/1280x720/0A1628/ffffff?text=Wealth+Studio+Ep14',
+    altText: 'Wealth Studio Episode 14 — Navigating Markets in 2026',
+    tags: ['wealth-studio', 'premier', 'elite', 'video', 'market'],
+    marketId: 'HK',
+    bizLineId: 'WEALTH',
+    uploadedBy: 'j.chan@hsbc.com.hk',
+    uploadedByName: 'Janet Chan',
+    uploadedAt: new Date(Date.now()).toISOString(),
+    status: 'ACTIVE',
+    durationSeconds: 90,
+    presenter: 'Emily Cheung',
+    presenterTitle: 'Senior Wealth Strategist, HSBC Premier',
+    approvalStatus: 'APPROVED',
+    approvalGroupId: 'HK-WEALTH-AD',
+    approvalReviewedAt: new Date(Date.now()).toISOString(),
+    approvalReviewerId: 'approver-01',
+    approvalReviewerName: 'Michael Wong',
+  },
+  {
+    ...ASSET_I18N_DEFAULTS,
+    assetId: 'asset-015',
+    name: 'Wealth Studio — Episode 15: Gold & Alternative Assets',
+    assetType: 'VIDEO',
+    mimeType: 'video/quicktime',
+    sizeBytes: 2387501,
+    url: '/media/Wealth2.mov',
+    thumbnailUrl: 'https://placehold.co/1280x720/0A1628/c9a96e?text=Wealth+Studio+Ep15',
+    altText: 'Wealth Studio Episode 15 — Gold & Alternative Assets',
+    tags: ['wealth-studio', 'premier', 'elite', 'video', 'gold'],
+    marketId: 'HK',
+    bizLineId: 'WEALTH',
+    uploadedBy: 'j.chan@hsbc.com.hk',
+    uploadedByName: 'Janet Chan',
+    uploadedAt: new Date(Date.now()).toISOString(),
+    status: 'ACTIVE',
+    durationSeconds: 145,
+    presenter: 'Derek Lam',
+    presenterTitle: 'Head of Alternative Investments, HSBC Jade',
+    approvalStatus: 'APPROVED',
+    approvalGroupId: 'HK-WEALTH-AD',
+    approvalReviewedAt: new Date(Date.now()).toISOString(),
+    approvalReviewerId: 'approver-01',
+    approvalReviewerName: 'Michael Wong',
+  },
 ];
 
 // ─── UI Component Registry ────────────────────────────────────────────────────
 
+const COMP_I18N_DEFAULTS = { supportedLocales: ['en'] as string[], translations: {} as Record<string, Record<string, string>> };
+
 export const MOCK_UI_COMPONENTS: UIComponent[] = [
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-HOME_SEARCH_HEADER',
     sliceType: 'HOME_SEARCH_HEADER',
     label: 'Home Search Header (All Segments)',
@@ -742,6 +846,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-COMBO_QUICK_ACCESS',
     sliceType: 'COMBO_QUICK_ACCESS',
     label: 'Quick Access + Tab Bar (Combo)',
@@ -758,6 +863,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-CARD_ACTIVATION_BANNER',
     sliceType: 'CARD_ACTIVATION_BANNER',
     label: 'Card Activation Banner',
@@ -774,6 +880,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-QUEST_BANNER',
     sliceType: 'QUEST_BANNER',
     label: 'Quest / Getting Started Banner',
@@ -790,6 +897,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-FEATURE_PRODUCT',
     sliceType: 'FEATURE_PRODUCT',
     label: 'Feature Product (Fund List)',
@@ -806,6 +914,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-WEALTH_STUDIO_CAROUSEL',
     sliceType: 'WEALTH_STUDIO_CAROUSEL',
     label: 'Wealth Studio Carousel',
@@ -822,6 +931,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-GUIDES_INSIGHTS_CAROUSEL',
     sliceType: 'GUIDES_INSIGHTS_CAROUSEL',
     label: 'Guides & Insights',
@@ -838,6 +948,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-FX_WATCHLIST',
     sliceType: 'FX_WATCHLIST',
     label: 'FX Watchlist',
@@ -854,6 +965,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-DISCOVER_MORE_CAROUSEL',
     sliceType: 'DISCOVER_MORE_CAROUSEL',
     label: 'Discover More',
@@ -870,6 +982,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-HEADER_NAV',
     sliceType: 'HEADER_NAV',
     label: 'Header Navigation',
@@ -886,6 +999,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-QUICK_ACCESS',
     sliceType: 'QUICK_ACCESS',
     label: 'Quick Access Buttons',
@@ -902,6 +1016,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-FUNCTION_GRID',
     sliceType: 'FUNCTION_GRID',
     label: 'Function Grid',
@@ -918,6 +1033,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-PROMO_BANNER',
     sliceType: 'PROMO_BANNER',
     label: 'Promo Banner',
@@ -934,6 +1050,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-AI_ASSISTANT',
     sliceType: 'AI_ASSISTANT',
     label: 'AI Assistant Entry',
@@ -950,6 +1067,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-WEALTH_SELECTION',
     sliceType: 'WEALTH_SELECTION',
     label: 'Wealth Selection',
@@ -966,6 +1084,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-SPACER',
     sliceType: 'SPACER',
     label: 'Spacer',
@@ -982,6 +1101,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-MARKET_BRIEFING_TEXT',
     sliceType: 'MARKET_BRIEFING_TEXT',
     label: 'Market Briefing Text',
@@ -998,6 +1118,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-VIDEO_PLAYER',
     sliceType: 'VIDEO_PLAYER',
     label: 'Video Player',
@@ -1014,6 +1135,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-CONTACT_RM_CTA',
     sliceType: 'CONTACT_RM_CTA',
     label: 'Contact Your RM',
@@ -1030,6 +1152,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-DEPOSIT_RATE_TABLE',
     sliceType: 'DEPOSIT_RATE_TABLE',
     label: 'Deposit Rate Table',
@@ -1046,6 +1169,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-DEPOSIT_OPEN_CTA',
     sliceType: 'DEPOSIT_OPEN_CTA',
     label: 'Button CTA',
@@ -1062,6 +1186,7 @@ export const MOCK_UI_COMPONENTS: UIComponent[] = [
     status: 'ACTIVE',
   },
   {
+    ...COMP_I18N_DEFAULTS,
     componentId: 'comp-DEPOSIT_FAQ',
     sliceType: 'DEPOSIT_FAQ',
     label: 'General FAQ',
@@ -1098,3 +1223,275 @@ export const MOCK_PAGES_REFERENCING_ASSETS: Record<string, { pageId: string; pag
   'asset-006': [{ pageId: 'wechat-jade-hk',         pageName: 'WeChat Jade Campaign (HK)' }],
   'asset-009': [{ pageId: 'deposit-campaign-hk',    pageName: 'New Fund Deposit Campaign (HK)' }],
 };
+
+// ─── Page Templates ───────────────────────────────────────────────────────────
+
+const TMPL_I18N_DEFAULTS = { supportedLocales: ['en'] as string[], translations: {} as Record<string, Record<string, string>> };
+
+export const PAGE_TEMPLATES: PageTemplate[] = [
+  {
+    ...TMPL_I18N_DEFAULTS,
+    templateId: 'tpl-generic',
+    name: 'Generic Page',
+    description: 'A blank page with only a standard HSBC header navigation bar. Use as a starting point for any custom page layout.',
+    icon: '📄',
+    channels: ['SDUI', 'WEB_STANDARD', 'WEB_WECHAT'],
+    bizLineIds: ['PAYMENT', 'WEB_ENABLER', 'LENDING', 'COLLECTION', 'WEALTH', 'MARKETING'],
+    category: 'generic',
+    seoAeoCompliance: false,
+    
+    status: 'ACTIVE',
+    createdAt: '2026-01-15T00:00:00Z',
+    updatedAt: '2026-05-01T00:00:00Z',
+    maintainedBy: 'Platform Team',
+    usageCount: 42,
+    starterSlices: [
+      {
+        type: 'HEADER_NAV',
+        props: { title: '', showNotificationBell: true, showQRScanner: false, showBackButton: false },
+        locked: false,
+      },
+    ],
+  },
+  {
+    ...TMPL_I18N_DEFAULTS,
+    templateId: 'tpl-web-standard',
+    name: 'Web Standard Page',
+    description: 'A fully SEO/AEO-optimised web page for HSBC.com. Includes the global nav header, breadcrumb, structured content area and compliant footer. Mandatory for all public Web Standard pages.',
+    icon: '🌐',
+    channels: ['WEB_STANDARD'],
+    bizLineIds: ['PAYMENT', 'WEB_ENABLER', 'LENDING', 'COLLECTION', 'WEALTH', 'MARKETING'],
+    category: 'generic',
+    seoAeoCompliance: true,
+    
+    status: 'ACTIVE',
+    createdAt: '2026-01-15T00:00:00Z',
+    updatedAt: '2026-05-01T00:00:00Z',
+    maintainedBy: 'Web Enablement Team',
+    usageCount: 28,
+    starterSlices: [
+      {
+        type: 'HEADER_NAV',
+        props: { title: '', showNotificationBell: true, showQRScanner: false, showBackButton: false },
+        locked: true,
+      },
+      {
+        type: 'SEO_HERO_HEADER',
+        props: { h1Title: 'Page Title — clear & keyword-rich', valueProp: 'One sentence that summarises the page value for users and search engines.', breadcrumb: 'Products' },
+        locked: true,
+      },
+      {
+        type: 'PROMO_BANNER',
+        props: { title: 'Page Headline', subtitle: 'Supporting copy goes here', backgroundColor: '#F9FAFB' },
+        locked: false,
+      },
+      {
+        type: 'SEO_FAQ',
+        props: { sectionTitle: 'Frequently Asked Questions', items: [{ q: 'What is this page about?', a: 'Describe the page in plain language.' }, { q: 'How do I get started?', a: 'Explain the first step clearly.' }, { q: 'Who should I contact for help?', a: 'Provide a support contact or link.' }] },
+        locked: true,
+      },
+      {
+        type: 'SEO_STRUCTURED_DATA',
+        props: { schemaType: 'schema.org/WebPage', jsonLd: '{}' },
+        locked: true,
+      },
+    ],
+  },
+  {
+    ...TMPL_I18N_DEFAULTS,
+    templateId: 'tpl-segment-upgrade-campaign',
+    name: 'Segment Upgrade Campaign',
+    description: 'WeChat H5 campaign page for HSBC segment upgrade journeys (e.g. Premier→Jade, Advance→Premier). Includes hero banner with dark background, benefits grid and apply CTA. Follows WeChat H5 common requirements: single-screen scroll, share card metadata, WeChat-native CTA styling.',
+    icon: '🏆',
+    channels: ['WEB_WECHAT'],
+    bizLineIds: ['WEALTH', 'MARKETING'],
+    category: 'campaign',
+    seoAeoCompliance: false,
+    
+    status: 'ACTIVE',
+    createdAt: '2026-02-01T00:00:00Z',
+    updatedAt: '2026-05-01T00:00:00Z',
+    maintainedBy: 'Wealth Marketing Team',
+    usageCount: 3,
+    starterSlices: [
+      {
+        type: 'CAMPAIGN_HERO',
+        props: {
+          headline: 'Upgrade Your Banking Experience',
+          subHeadline: 'Exclusive invitation for valued HSBC customers. Discover premium benefits designed for you.',
+          badge: 'By Invitation Only',
+          bgGradient: 'linear-gradient(160deg,#1D1D1B 0%,#2C2C2A 100%)',
+          accentColor: '#C9A84C',
+        },
+        locked: false,
+      },
+      {
+        type: 'CAMPAIGN_BENEFITS',
+        props: {
+          sectionTitle: 'Exclusive Privileges',
+          items: [
+            { icon: '💎', title: 'Premium Service', description: 'Dedicated Relationship Manager available 24/7' },
+            { icon: '✈️', title: 'Travel Benefits', description: 'Global airport lounge access for you and guests' },
+            { icon: '💰', title: 'Preferential Rates', description: 'Privileged FX rates and higher savings yields' },
+            { icon: '🎯', title: 'Wealth Solutions', description: 'Access to exclusive investment products' },
+          ],
+        },
+        locked: false,
+      },
+      {
+        type: 'SPACER',
+        props: { height: 16 },
+        locked: false,
+      },
+      {
+        type: 'CAMPAIGN_CTA',
+        props: {
+          primaryLabel: 'Apply Now',
+          primaryUrl: 'hsbc://upgrade/apply',
+          subNote: 'No annual fee in the first year',
+          secondaryLabel: 'Learn More',
+          secondaryUrl: 'hsbc://upgrade/learn',
+        },
+        locked: false,
+      },
+    ],
+  },
+  {
+    ...TMPL_I18N_DEFAULTS,
+    templateId: 'tpl-credit-card-acquisition',
+    name: 'Credit Card Acquisition',
+    description: 'SEO/AEO-optimised Web Standard campaign page for credit card acquisition. Follows HSBC.com web standards including structured hero, feature benefits grid and compliant CTA with fee disclosure. Suitable for all credit card product campaigns targeting search and organic traffic.',
+    icon: '💳',
+    channels: ['WEB_STANDARD'],
+    bizLineIds: ['PAYMENT', 'MARKETING'],
+    category: 'campaign',
+    seoAeoCompliance: true,
+    status: 'ACTIVE',
+    createdAt: '2026-02-15T00:00:00Z',
+    updatedAt: '2026-05-01T00:00:00Z',
+    maintainedBy: 'Payment Marketing Team',
+    usageCount: 5,
+    starterSlices: [
+      {
+        type: 'CAMPAIGN_HERO',
+        props: {
+          headline: 'HSBC [Card Name] Credit Card',
+          subHeadline: 'Earn rewards with every purchase. Apply today and enjoy your first year fee waived.',
+          badge: 'Limited Time Offer',
+          bgGradient: 'linear-gradient(160deg,#0A1A3D 0%,#0D2B6B 60%,#1A3A8F 100%)',
+          accentColor: '#C9A84C',
+        },
+        locked: false,
+      },
+      {
+        type: 'SEO_HERO_HEADER',
+        props: { h1Title: 'HSBC [Card Name] Credit Card', valueProp: 'Earn rewards on every purchase — apply today and get your first year annual fee waived.', breadcrumb: 'Credit Cards' },
+        locked: true,
+      },
+      {
+        type: 'CAMPAIGN_BENEFITS',
+        props: {
+          sectionTitle: 'Card Benefits',
+          items: [
+            { icon: '🌍', title: '0% Foreign Transaction Fee', description: 'No extra charges on overseas spending' },
+            { icon: '✈️', title: 'Airport Lounge Access', description: '6 complimentary lounge visits per year' },
+            { icon: '🛡️', title: 'Travel Insurance', description: 'Up to HKD 800,000 coverage automatically' },
+            { icon: '🎭', title: 'Lifestyle Rewards', description: 'Earn 2x points on dining and entertainment' },
+            { icon: '💎', title: 'Concierge Service', description: '24/7 global concierge for travel and dining' },
+            { icon: '📱', title: 'Contactless & Pay', description: 'Apple Pay, Google Pay and Samsung Pay' },
+          ],
+        },
+        locked: false,
+      },
+      {
+        type: 'CAMPAIGN_CTA',
+        props: {
+          primaryLabel: 'Apply for This Card',
+          primaryUrl: '/apply/credit-card',
+          subNote: 'First Year Annual Fee Waived',
+          secondaryLabel: 'Compare Cards',
+          secondaryUrl: '/credit-cards/compare',
+        },
+        locked: false,
+      },
+      {
+        type: 'SEO_FAQ',
+        props: { sectionTitle: 'Frequently Asked Questions', items: [{ q: 'What is the annual fee?', a: 'The first year annual fee is waived. From year 2, the fee is HKD 2,000.' }, { q: 'How do I apply?', a: 'Click Apply Now and complete the online form in under 5 minutes.' }, { q: 'What rewards do I earn?', a: 'Earn 2x points on dining and entertainment, 1x on all other spend.' }] },
+        locked: true,
+      },
+      {
+        type: 'SEO_STRUCTURED_DATA',
+        props: { schemaType: 'schema.org/FinancialProduct', jsonLd: '{}' },
+        locked: true,
+      },
+    ],
+  },
+  {
+    ...TMPL_I18N_DEFAULTS,
+    templateId: 'tpl-deposit-campaign',
+    name: 'Deposit Campaign',
+    description: 'SDUI campaign page for time deposit and savings rate promotions. Includes header nav, promotional banner with offer highlight, structured rate table, open-deposit CTA and FAQ accordion. Follows HSBC wealth campaign standards for CN and HK markets.',
+    icon: '🏦',
+    channels: ['SDUI'],
+    bizLineIds: ['WEALTH', 'MARKETING'],
+    category: 'campaign',
+    seoAeoCompliance: false,
+    status: 'ACTIVE',
+    createdAt: '2026-03-01T00:00:00Z',
+    updatedAt: '2026-05-01T00:00:00Z',
+    maintainedBy: 'Wealth Product Team',
+    usageCount: 2,
+    starterSlices: [
+      {
+        type: 'HEADER_NAV',
+        props: { title: 'Savings Offers', showNotificationBell: false, showQRScanner: false, showBackButton: true },
+        locked: true,
+      },
+      {
+        type: 'PROMO_BANNER',
+        props: {
+          title: '🌟 Exclusive Savings Rate',
+          subtitle: 'Limited-time offer for new funds only. Open your time deposit today.',
+          badgeText: '🔥 New Funds Only',
+          backgroundColor: '#FFF7ED',
+        },
+        locked: false,
+      },
+      {
+        type: 'DEPOSIT_RATE_TABLE',
+        props: {
+          sectionTitle: 'Time Deposit Rates:',
+          asAtDate: '',
+          rates: [
+            { term: '3 Month', rate: '—' },
+            { term: '6 Month', rate: '—' },
+            { term: '12 Month', rate: '—' },
+          ],
+          footnote: 'New Fund refers to funds not previously held with HSBC. Minimum balance applies.',
+        },
+        locked: false,
+      },
+      {
+        type: 'DEPOSIT_OPEN_CTA',
+        props: { label: 'Open a Deposit', deepLink: 'hsbc://deposit/open', backgroundColor: '#C41E3A', textColor: '#FFFFFF' },
+        locked: false,
+      },
+      {
+        type: 'SPACER',
+        props: { height: 16 },
+        locked: false,
+      },
+      {
+        type: 'DEPOSIT_FAQ',
+        props: {
+          sectionTitle: 'Frequently Asked Questions',
+          items: [
+            { id: 'faq-1', question: 'What is a time deposit?', answer: 'A time deposit is a savings product with a fixed term and a guaranteed interest rate.' },
+            { id: 'faq-2', question: 'What is "New Fund"?', answer: 'New Fund refers to funds not previously held with HSBC. Transferring from another HSBC account does not qualify.' },
+          ],
+        },
+        locked: false,
+      },
+    ],
+  },
+];

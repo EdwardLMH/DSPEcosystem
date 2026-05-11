@@ -1,12 +1,14 @@
-import { useOCDP } from '../../store/OCDPStore';
+import { useState, useRef, useEffect } from 'react';
+import { useOCDP, isAdmin } from '../../store/OCDPStore';
 import type { Persona, NavView } from '../../types/ocdp';
 import { EntitlementModal } from './EntitlementModal';
+import { SUPPORTED_LOCALES, getLocaleInfo } from '../../utils/i18n';
 
 const PERSONAS: Persona[] = ['Personal', 'Business', 'Global Banking and Markets', 'HSBC Private Bank'];
 
 // ─── Nav sections mirroring the sidebar ──────────────────────────────────────
 
-interface NavItem { view: NavView; label: string; adminOnly?: boolean }
+interface NavItem { view: NavView; label: string; adminOnly?: boolean; aiOnly?: boolean }
 
 const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
   {
@@ -32,13 +34,19 @@ const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
+    label: 'AI',
+    items: [
+      { view: 'ai-search', label: 'AI Search', aiOnly: true },
+    ],
+  },
+  {
     label: 'ADMIN',
     items: [
-      { view: 'admin-markets',  label: 'Markets',        adminOnly: true },
-      { view: 'admin-bizlines', label: 'Biz Lines',      adminOnly: true },
-      { view: 'admin-groups',   label: 'AD Groups',      adminOnly: true },
-      { view: 'admin-flows',    label: 'Approval Flows', adminOnly: true },
-      { view: 'audit',          label: 'Audit Log',      adminOnly: true },
+      { view: 'admin-markets',       label: 'Markets',        adminOnly: true },
+      { view: 'admin-value-streams', label: 'Value Streams',  adminOnly: true },
+      { view: 'admin-flows',         label: 'Approval Flows', adminOnly: true },
+      { view: 'admin-rule-params',   label: 'Rule Params',    adminOnly: true },
+      { view: 'audit',               label: 'Audit Log',      adminOnly: true },
     ],
   },
 ];
@@ -63,14 +71,22 @@ export function OCDPHeader() {
   const { state, dispatch } = useOCDP();
   const { activePersona, showEntitlementModal, currentUser, navView } = state;
 
-  const isAdmin   = currentUser.role === 'ADMIN' || !!currentUser.isGlobalAdmin;
-  const isAuditor = currentUser.role === 'AUDITOR';
-  const showAdmin = isAdmin || isAuditor;
+  const isAdmin_   = isAdmin(currentUser.role);
+  const isAuditor  = currentUser.role === 'AUDITOR';
+  const isAIOperator = currentUser.role === 'AI-SEARCH-OPERATOR';
+  const showAdmin  = isAdmin_ || isAuditor;
+  const [uiLocale, setUiLocale] = useState('en');
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef<HTMLDivElement>(null);
+  const localeInfo = getLocaleInfo(uiLocale);
 
-  // Flatten all visible nav items for active-state lookup
-  const allVisibleItems = NAV_SECTIONS.flatMap(s =>
-    s.items.filter(i => !i.adminOnly || showAdmin)
-  );
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) setLangOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <>
@@ -121,15 +137,66 @@ export function OCDPHeader() {
 
           {/* Right side: language + logon */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button style={{
-              fontSize: 12, color: 'rgba(255,255,255,0.65)',
-              background: 'transparent', border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 4,
-              fontFamily: 'var(--font-family)',
-            }}>
-              English
-              <span style={{ fontSize: 9 }}>▾</span>
-            </button>
+            {/* Language selector */}
+            <div ref={langRef} style={{ position: 'relative' }}>
+              <button
+                aria-label={`Interface language: ${localeInfo.label}. Click to change.`}
+                aria-expanded={langOpen}
+                aria-haspopup="listbox"
+                onClick={() => setLangOpen(o => !o)}
+                style={{
+                  fontSize: 12, color: 'rgba(255,255,255,0.65)',
+                  background: 'transparent', border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  fontFamily: 'var(--font-family)',
+                }}
+              >
+                {localeInfo.label}
+                <span style={{ fontSize: 9 }} aria-hidden="true">▾</span>
+              </button>
+
+              {langOpen && (
+                <div
+                  role="listbox"
+                  aria-label="Select interface language"
+                  style={{
+                    position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+                    background: '#fff', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+                    border: '1px solid #E5E7EB', minWidth: 196, zIndex: 300, overflow: 'hidden',
+                  }}
+                >
+                  <div style={{ padding: '8px 12px 6px', fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    Interface Language
+                  </div>
+                  {SUPPORTED_LOCALES.map(loc => {
+                    const isActive = loc.code === uiLocale;
+                    return (
+                      <button
+                        key={loc.code}
+                        role="option"
+                        aria-selected={isActive}
+                        onClick={() => { setUiLocale(loc.code); setLangOpen(false); }}
+                        style={{
+                          width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                          padding: '8px 12px', background: isActive ? 'rgba(219,0,17,0.05)' : 'transparent',
+                          border: 'none', cursor: 'pointer', textAlign: 'left',
+                          borderLeft: isActive ? '3px solid #DB0011' : '3px solid transparent',
+                          fontFamily: 'var(--font-family)',
+                        }}
+                        onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#F9FAFB'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = isActive ? 'rgba(219,0,17,0.05)' : 'transparent'; }}
+                      >
+                        <span style={{ fontSize: 12, fontWeight: isActive ? 700 : 500, color: isActive ? '#DB0011' : '#111' }}>{loc.label}</span>
+                        {loc.dir === 'rtl' && (
+                          <span style={{ fontSize: 10, color: '#6B7280', marginLeft: 'auto' }}>RTL</span>
+                        )}
+                        {isActive && <span style={{ fontSize: 12, color: '#DB0011', marginLeft: 'auto' }}>✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             <div style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.15)' }} />
 
@@ -183,7 +250,14 @@ export function OCDPHeader() {
           {/* Nav sections as horizontal groups */}
           <div style={{ display: 'flex', alignItems: 'stretch', flex: 1, overflow: 'hidden' }}>
             {NAV_SECTIONS.map(section => {
-              const visibleItems = section.items.filter(i => !i.adminOnly || showAdmin);
+              // AI-SEARCH-OPERATOR only sees the AI section
+              if (isAIOperator && section.label !== 'AI') return null;
+              const visibleItems = section.items.filter(i => {
+                if (i.adminOnly) return showAdmin;
+                if (i.aiOnly) return isAIOperator || isAdmin_ || showAdmin;
+                // Hide non-AI sections from AI operator
+                return !isAIOperator;
+              });
               if (visibleItems.length === 0) return null;
               return (
                 <div key={section.label} style={{ display: 'flex', alignItems: 'stretch', position: 'relative' }}>

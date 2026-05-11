@@ -169,3 +169,68 @@ img { max-width: 100%; display: block; }
 .animate-fade-in { animation: fadeIn 0.2s ease-out; }
 .animate-slide-in { animation: slideIn 0.2s ease-out; }
 .animate-spin { animation: spin 0.8s linear infinite; }
+
+/* ─── Accessibility ───────────────────────────────────────────────────────── */
+
+/* Visible keyboard focus ring that works across all browsers */
+:focus-visible {
+  outline: 2px solid var(--hsbc-red);
+  outline-offset: 2px;
+}
+
+/* High-contrast focus ring for interactive elements inside dark backgrounds */
+.dark-bg :focus-visible,
+header :focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Skip-to-content link (hidden until focused) */
+.skip-link {
+  position: absolute;
+  top: -999px;
+  left: 0;
+  padding: 8px 16px;
+  background: var(--hsbc-red);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  z-index: 9999;
+  border-radius: 0 0 4px 4px;
+}
+.skip-link:focus-visible {
+  top: 0;
+}
+
+/* ─── RTL Support (Arabic and other RTL languages) ───────────────────────── */
+
+/* When a canvas area is set to RTL, flip directional layout */
+[dir="rtl"] {
+  text-align: right;
+}
+
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select {
+  text-align: right;
+  direction: rtl;
+}
+
+/* Flip flex-row items for RTL reading order */
+[dir="rtl"] .rtl-row {
+  flex-direction: row-reverse;
+}
+
+/* Logical margin/padding helpers */
+[dir="rtl"] .ms-auto { margin-right: auto; margin-left: 0; }
+[dir="rtl"] .me-auto { margin-left: auto;  margin-right: 0; }
+
+/* Arrow icons should flip in RTL context */
+[dir="rtl"] .arrow-icon {
+  transform: scaleX(-1);
+}
+
+/* Chevron pseudo-elements for RTL */
+[dir="rtl"] .chevron::after {
+  content: '‹';
+}

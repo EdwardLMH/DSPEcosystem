@@ -114,6 +114,22 @@ export const SLICE_DEFINITIONS: Partial<Record<SliceType, SliceDefinition>> = {
     description: 'Collapsible FAQ accordion for deposit products — question/answer pairs',
     configurable: ['sectionTitle', 'items'], minHeight: 200,
   },
+  // ── SEO / AEO compliance slices (auto-injected, locked) ──────────────────────
+  SEO_HERO_HEADER: {
+    type: 'SEO_HERO_HEADER', label: 'SEO Hero Header', category: 'navigation', icon: '🔍',
+    description: 'H1 headline + one-sentence value proposition required for SEO/AEO compliance. Must appear near the top of every compliant page.',
+    configurable: ['h1Title', 'valueProp', 'breadcrumb'], minHeight: 80, singleton: true,
+  },
+  SEO_FAQ: {
+    type: 'SEO_FAQ', label: 'SEO/AEO FAQ', category: 'insight', icon: '❓',
+    description: 'Structured FAQ section that renders as schema.org FAQPage markup, satisfying AEO (AI/answer engine) discovery requirements.',
+    configurable: ['sectionTitle', 'items'], minHeight: 200, singleton: true,
+  },
+  SEO_STRUCTURED_DATA: {
+    type: 'SEO_STRUCTURED_DATA', label: 'Structured Data (JSON-LD)', category: 'layout', icon: '🗂️',
+    description: 'Invisible schema.org JSON-LD block injected into <head>. Required for rich results and AEO eligibility. Rendered as a hidden marker in the canvas.',
+    configurable: ['schemaType', 'jsonLd'], minHeight: 32, singleton: true,
+  },
 };
 
 export const SLICE_CATEGORIES: { id: string; label: string; icon: string }[] = [
@@ -124,4 +140,5 @@ export const SLICE_CATEGORIES: { id: string; label: string; icon: string }[] = [
   { id: 'lifestyle',  label: 'Lifestyle',   icon: '🛍️' },
   { id: 'layout',     label: 'Layout',      icon: '📐' },
   { id: 'insight',    label: 'Insight',     icon: '📈' },
+  { id: 'grid',       label: 'Grid',        icon: '⊞' },
 ];

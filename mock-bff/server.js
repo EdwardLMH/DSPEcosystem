@@ -46,6 +46,117 @@ function mediaUrl(req, path) {
   return `${proto}://${host}:${PORT}${path}`;
 }
 
+// Resolves all relative /media/ URLs in a slice's props, including inside
+// nested items[] arrays (e.g. WEALTH_STUDIO_CAROUSEL, GUIDES_INSIGHTS_CAROUSEL).
+function resolveSliceMediaUrls(req, slice) {
+  if (!slice.props) return slice;
+  const MEDIA_FIELDS = ['imageUrl', 'videoUrl', 'thumbnailUrl', 'posterUrl'];
+  MEDIA_FIELDS.forEach(field => {
+    if (slice.props[field] && slice.props[field].startsWith('/media/')) {
+      slice.props[field] = mediaUrl(req, slice.props[field]);
+    }
+  });
+  if (Array.isArray(slice.props.items)) {
+    slice.props.items.forEach(item => {
+      if (!item || typeof item !== 'object') return;
+      MEDIA_FIELDS.forEach(field => {
+        if (item[field] && item[field].startsWith('/media/')) {
+          item[field] = mediaUrl(req, item[field]);
+        }
+      });
+    });
+  }
+  return slice;
+}
+
+// ─── i18n / Locale resolution ─────────────────────────────────────────────────
+// Priority: x-locale header → Accept-Language → default 'en-HK'
+// Maps country+language BCP-47 tags to the 5 supported authoring locales.
+const SUPPORTED_LOCALES = ['en', 'zh-TW', 'zh-CN', 'ar', 'es'];
+const RTL_LOCALES        = new Set(['ar']);
+
+const LOCALE_DICT = {
+  'zh-TW': {
+    'First name': '名字', 'Last name': '姓氏', 'Date of birth': '出生日期',
+    'Nationality': '國籍', 'Phone number': '電話號碼', 'Email address': '電子郵件',
+    'Residential address': '住宅地址', 'HKID number': '香港身份證號碼',
+    'Passport number': '護照號碼', 'Full legal name': '全名（與身份證相同）',
+    'Employment & Source of Funds': '職業及資金來源',
+    'Personal Information': '個人資料', 'Identity Document': '身份證明文件',
+    'Contact Details': '聯繫方式', 'Residential Address': '住宅地址',
+    'Source of Wealth': '財富來源', 'KYC step': '開戶步驟',
+  },
+  'zh-CN': {
+    'First name': '名字', 'Last name': '姓氏', 'Date of birth': '出生日期',
+    'Nationality': '国籍', 'Phone number': '电话号码', 'Email address': '电子邮件',
+    'Residential address': '住宅地址', 'HKID number': '香港身份证号码',
+    'Passport number': '护照号码', 'Full legal name': '全名（与身份证相同）',
+    'Employment & Source of Funds': '职业及资金来源',
+    'Personal Information': '个人资料', 'Identity Document': '身份证明文件',
+    'Contact Details': '联系方式', 'Residential Address': '住宅地址',
+    'Source of Wealth': '财富来源', 'KYC step': '开户步骤',
+  },
+  'ar': {
+    'First name': 'الاسم الأول', 'Last name': 'اسم العائلة',
+    'Date of birth': 'تاريخ الميلاد', 'Nationality': 'الجنسية',
+    'Phone number': 'رقم الهاتف', 'Email address': 'البريد الإلكتروني',
+    'HKID number': 'رقم هوية هونغ كونغ', 'Passport number': 'رقم جواز السفر',
+    'Personal Information': 'المعلومات الشخصية',
+    'Identity Document': 'وثيقة الهوية', 'KYC step': 'خطوة التحقق',
+  },
+  'es': {
+    'First name': 'Nombre', 'Last name': 'Apellido',
+    'Date of birth': 'Fecha de nacimiento', 'Nationality': 'Nacionalidad',
+    'Phone number': 'Número de teléfono', 'Email address': 'Correo electrónico',
+    'HKID number': 'Número de HKID', 'Passport number': 'Número de pasaporte',
+    'Personal Information': 'Información personal',
+    'Identity Document': 'Documento de identidad', 'KYC step': 'Paso KYC',
+  },
+};
+
+function resolveLocale(req) {
+  const raw = req.headers['x-locale'] || req.headers['accept-language'] || 'en-HK';
+  const tag  = raw.split(',')[0].trim().split(';')[0].trim();
+  const lower = tag.toLowerCase();
+  if (lower.startsWith('zh-hant') || lower === 'zh-hk' || lower === 'zh-tw') return 'zh-TW';
+  if (lower.startsWith('zh-hans') || lower === 'zh-cn' || lower === 'zh-sg') return 'zh-CN';
+  if (lower.startsWith('zh')) return 'zh-TW';
+  if (lower.startsWith('ar'))  return 'ar';
+  if (lower.startsWith('es'))  return 'es';
+  return 'en';
+}
+
+function t(locale, key) {
+  return (LOCALE_DICT[locale] && LOCALE_DICT[locale][key]) || key;
+}
+
+function resolveTextDir(locale) {
+  return RTL_LOCALES.has(locale) ? 'rtl' : 'ltr';
+}
+
+// ─── Accessibility flag resolution ────────────────────────────────────────────
+// Clients send x-a11y-flags: "reduceMotion,highContrast,largeText" (comma-sep)
+// BFF echoes these in metadata so every client layer can conditionally adapt.
+function resolveA11yFlags(req) {
+  const raw = req.headers['x-a11y-flags'] || '';
+  const flags = raw.split(',').map(f => f.trim().toLowerCase()).filter(Boolean);
+  return {
+    reduceMotion:  flags.includes('reducemotion'),
+    highContrast:  flags.includes('highcontrast'),
+    largeText:     flags.includes('largetext'),
+    voiceOver:     flags.includes('voiceover'),    // iOS VoiceOver
+    talkBack:      flags.includes('talkback'),     // Android TalkBack
+    screenReader:  flags.includes('screenreader'), // Web / HarmonyNext
+  };
+}
+
+// ─── Channel resolution ────────────────────────────────────────────────────────
+// x-channel: SDUI | WEB_STANDARD | WEB_WECHAT (default: SDUI)
+function resolveChannel(req) {
+  const ch = (req.headers['x-channel'] || 'SDUI').toUpperCase();
+  return ['SDUI', 'WEB_STANDARD', 'WEB_WECHAT'].includes(ch) ? ch : 'SDUI';
+}
+
 // ─── Zone 2 guard (mock) ─────────────────────────────────────────────────────
 // In production this is replaced by Spring Security + Azure AD JWT validation.
 // In this mock, internal routes require x-mock-staff-role header.
@@ -389,18 +500,20 @@ function filterIdQuestionsByNationality(questions, nationality) {
   }
 }
 
-function buildSDUIPayload(step, sessionId, allSteps, platform, savedAnswers) {
+function buildSDUIPayload(step, sessionId, allSteps, platform, savedAnswers, locale, a11y, channel) {
+  const loc = locale || 'en';
+  const dir = resolveTextDir(loc);
   // Filter identity questions by nationality stored in session answers
   const nationality = savedAnswers['q_nationality'] || 'HK';
   const questions = step.sectionId === 'identity_document'
     ? filterIdQuestionsByNationality(step.questions, nationality)
     : step.questions;
-  const children = questions.map(q => buildComponent(q, savedAnswers, step, platform));
+  const children = questions.map(q => buildComponent(q, savedAnswers, step, platform, loc, a11y));
 
   const containerType = platform === 'web' ? 'KYCWebContainer' : 'KYCScrollContainer';
   const layout = step.layout === 'two_column_grid' && platform === 'web'
-    ? { type: 'KYCTwoColumnGrid', id: 'grid-' + step.stepId, props: {}, children }
-    : { type: containerType, id: 'root-' + step.stepId, props: { platform }, children };
+    ? { type: 'KYCTwoColumnGrid', id: 'grid-' + step.stepId, props: { dir }, children }
+    : { type: containerType, id: 'root-' + step.stepId, props: { platform, dir }, children };
 
   return {
     schemaVersion: '2.3',
@@ -411,20 +524,25 @@ function buildSDUIPayload(step, sessionId, allSteps, platform, savedAnswers) {
       stepId: step.stepId,
       stepIndex: step.stepIndex,
       totalSteps: allSteps.length,
-      sectionTitle: step.sectionTitle,
+      sectionTitle: t(loc, step.sectionTitle),
       platform,
+      locale: loc,
+      textDir: dir,
+      channel: channel || 'SDUI',
+      a11y: a11y || {},
     },
     layout,
   };
 }
 
-function buildComponent(q, savedAnswers, step, platform) {
+function buildComponent(q, savedAnswers, step, platform, locale, a11y) {
+  const loc = locale || 'en';
   return {
     type: q.type,
     id: q.questionId,
     props: {
       questionId: q.questionId,
-      label: q.label,
+      label: t(loc, q.label),
       placeholder: q.placeholder,
       helpText: q.helpText,
       inputType: q.inputType,
@@ -432,64 +550,114 @@ function buildComponent(q, savedAnswers, step, platform) {
       validation: q.validation,
       savedValue: savedAnswers[q.questionId] ?? null,
       colSpan: step.layout === 'two_column_grid' && q.type === 'KYCTextInput' ? 1 : undefined,
+      // Accessibility hints consumed by all SDUI renderers
+      a11yLabel: t(loc, q.label),
+      a11yHint: q.helpText || undefined,
+      a11yLargeText: a11y?.largeText ?? false,
+      a11yHighContrast: a11y?.highContrast ?? false,
     },
     analytics: {
       impressionEvent: 'kyc_question_viewed',
       componentId: q.questionId,
-      customProperties: { section: step.sectionId, questionType: q.type },
+      customProperties: { section: step.sectionId, questionType: q.type, locale: loc },
     },
   };
 }
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
+// ─── GET /api/v1/config — client bootstrap configuration (Zone 1) ──────────────
+// Returns locale, a11y flags, channel config, and feature flags resolved from
+// the request headers. Clients call this once on app launch to configure themselves.
+app.get('/api/v1/config', (req, res) => {
+  const locale  = resolveLocale(req);
+  const a11y    = resolveA11yFlags(req);
+  const channel = resolveChannel(req);
+  const platform = req.headers['x-platform'] || 'web';
+  res.json({
+    locale,
+    textDir: resolveTextDir(locale),
+    supportedLocales: SUPPORTED_LOCALES,
+    channel,
+    platform,
+    a11y,
+    featureFlags: {
+      enableSemanticSearch: true,
+      enableAIAssistant:    true,
+      enableOpenBanking:    true,
+      enableWealthStudio:   true,
+    },
+    sdui: {
+      schemaVersion: '2.3',
+      ttlSeconds: 300,
+      cacheStrategy: channel === 'WEB_STANDARD' ? 'stale-while-revalidate' : 'network-first',
+    },
+    wcag: {
+      level: 'AA',
+      version: '2.1',
+    },
+  });
+});
+
 // Start a new KYC session
 app.post('/api/v1/kyc/sessions/start', (req, res) => {
   const platform = req.headers['x-platform'] ?? 'web';
+  const locale   = resolveLocale(req);
+  const a11y     = resolveA11yFlags(req);
+  const channel  = resolveChannel(req);
   const sessionId = 'kyc-' + uuidv4().split('-')[0];
   const steps = splitIntoSteps(platform);
 
   sessions.set(sessionId, {
     platform,
+    locale,
+    a11y,
+    channel,
     steps,
     currentStepIndex: 0,
     answers: {},
     startedAt: new Date().toISOString(),
   });
 
-  console.log(`[BFF] Started session ${sessionId} platform=${platform} steps=${steps.length}`);
-  res.json({ sessionId, totalSteps: steps.length, platform });
+  console.log(`[BFF] Started session ${sessionId} platform=${platform} locale=${locale} channel=${channel} steps=${steps.length}`);
+  res.json({ sessionId, totalSteps: steps.length, platform, locale, channel });
 });
 
 // Resume — return current step
 app.get('/api/v1/kyc/sessions/:sessionId/resume', (req, res) => {
   const { sessionId } = req.params;
   const platform = req.headers['x-platform'] ?? 'web';
+  const locale   = resolveLocale(req);
+  const a11y     = resolveA11yFlags(req);
+  const channel  = resolveChannel(req);
   let session = sessions.get(sessionId);
 
   if (!session) {
     // Auto-create if session not found (page refresh case)
     const steps = splitIntoSteps(platform);
-    session = { platform, steps, currentStepIndex: 0, answers: {}, startedAt: new Date().toISOString() };
+    session = { platform, locale, a11y, channel, steps, currentStepIndex: 0, answers: {}, startedAt: new Date().toISOString() };
     sessions.set(sessionId, session);
   }
 
   const step = session.steps[session.currentStepIndex];
-  console.log(`[BFF] Resume ${sessionId} → step ${step.stepId}`);
-  res.json(buildSDUIPayload(step, sessionId, session.steps, session.platform, session.answers));
+  console.log(`[BFF] Resume ${sessionId} → step ${step.stepId} locale=${locale}`);
+  res.json(buildSDUIPayload(step, sessionId, session.steps, session.platform, session.answers, locale, a11y, channel));
 });
 
 // Get a specific step
 app.get('/api/v1/kyc/sessions/:sessionId/steps/:stepId', (req, res) => {
   const { sessionId, stepId } = req.params;
+  const locale  = resolveLocale(req);
+  const a11y    = resolveA11yFlags(req);
+  const channel = resolveChannel(req);
   const session = sessions.get(sessionId);
   if (!session) return res.status(404).json({ error: 'Session not found' });
 
   const step = session.steps.find(s => s.stepId === stepId);
   if (!step) return res.status(404).json({ error: 'Step not found' });
 
-  console.log(`[BFF] Get step ${stepId} for session ${sessionId}`);
-  res.json(buildSDUIPayload(step, sessionId, session.steps, session.platform, session.answers));
+  console.log(`[BFF] Get step ${stepId} for session ${sessionId} locale=${locale}`);
+  res.json(buildSDUIPayload(step, sessionId, session.steps, session.platform, session.answers, locale, a11y, channel));
 });
 
 // Submit answers for a step
@@ -800,19 +968,20 @@ ucpPages.set('home-wealth-hk', {
         items: [
           {
             id: 'ws-1',
-            episodeLabel: 'Episode 13',
+            episodeLabel: 'Episode 14',
             liveBadge: 'To-be-live on 1 Feb 15:30',
-            title: 'How AI experts think about AI?',
+            title: 'Navigating Markets in 2026',
             ctaLabel: 'Register for live stream',
             imageColor: '#1A1A2E',
+            videoUrl: '/media/Wealth1.mov',
           },
           {
             id: 'ws-2',
-            episodeLabel: 'Episode 13',
-            liveBadge: 'To-be-live on 1 Feb 15:3',
-            title: 'How AI experts think about AI?',
+            episodeLabel: 'Episode 15',
+            title: 'Gold & Alternative Assets',
             ctaLabel: 'Watch now',
             imageColor: '#0F2040',
+            videoUrl: '/media/Wealth2.mov',
           },
         ],
       },
@@ -1046,22 +1215,10 @@ app.get('/api/v1/ucp/pages/:pageId', requireInternalAuth, (req, res) => {
   const page = ucpPages.get(req.params.pageId);
   if (!page) return res.status(404).json({ error: 'Page not found' });
 
-  // Deep-clone and resolve relative media URLs
+  // Deep-clone and resolve relative media URLs (top-level and nested items[])
   const resolved = JSON.parse(JSON.stringify(page));
   if (resolved.slices) {
-    resolved.slices.forEach(slice => {
-      if (slice.props) {
-        if (slice.props.imageUrl && slice.props.imageUrl.startsWith('/media/')) {
-          slice.props.imageUrl = mediaUrl(req, slice.props.imageUrl);
-        }
-        if (slice.props.videoUrl && slice.props.videoUrl.startsWith('/media/')) {
-          slice.props.videoUrl = mediaUrl(req, slice.props.videoUrl);
-        }
-        if (slice.props.thumbnailUrl && slice.props.thumbnailUrl.startsWith('/media/')) {
-          slice.props.thumbnailUrl = mediaUrl(req, slice.props.thumbnailUrl);
-        }
-      }
-    });
+    resolved.slices = resolved.slices.map(slice => resolveSliceMediaUrls(req, slice));
   }
 
   res.json({ page: resolved });
@@ -1471,7 +1628,10 @@ app.get('/api/v1/ucp/components', requireInternalAuth, (req, res) => {
 });
 // Zone 1 public endpoint — returns published layout as SDUI JSON
 app.get('/api/v1/screen/home-wealth-hk', (req, res) => {
-  const page = ucpPages.get('home-wealth-hk');
+  const page    = ucpPages.get('home-wealth-hk');
+  const locale  = resolveLocale(req);
+  const a11y    = resolveA11yFlags(req);
+  const channel = resolveChannel(req);
   if (!page || page.status !== 'LIVE') {
     return res.status(404).json({ error: 'NO_LIVE_PAGE', message: 'No live home page published yet' });
   }
@@ -1481,11 +1641,13 @@ app.get('/api/v1/screen/home-wealth-hk', (req, res) => {
     screen: 'home_wealth_hub',
     ttl: 300,
     metadata: {
-      pageId: page.pageId, locale: page.locale, platform: page.platform,
+      pageId: page.pageId, locale, textDir: resolveTextDir(locale),
+      platform: page.platform, channel,
       version: page.version, publishedAt: page.publishedAt,
       generatedAt: new Date().toISOString(),
+      a11y,
     },
-    layout: { type: 'SCROLL', children: page.slices },
+    layout: { type: 'SCROLL', children: page.slices.map(s => resolveSliceMediaUrls(req, JSON.parse(JSON.stringify(s)))) },
   });
 });
 
@@ -1495,6 +1657,9 @@ app.get('/api/v1/screen/home-wealth-hk', (req, res) => {
 // The FX Viewpoint video was replaced by the rich UCP content entry "FX Viewpoint — EUR & GBP Market Insights (May 2026)".
 app.get('/api/v1/screen/fx-viewpoint-hk', (req, res) => {
   const publishedAt = new Date(Date.now() - 86400000).toISOString();
+  const locale  = resolveLocale(req);
+  const a11y    = resolveA11yFlags(req);
+  const channel = resolveChannel(req);
   res.json({
     schemaVersion: '3.0',
     pageId: 'fx-viewpoint-hk',
@@ -1502,11 +1667,14 @@ app.get('/api/v1/screen/fx-viewpoint-hk', (req, res) => {
     ttl: 300,
     metadata: {
       pageId: 'fx-viewpoint-hk',
-      locale: 'en-HK',
+      locale,
+      textDir: resolveTextDir(locale),
       platform: req.headers['x-platform'] || 'all',
+      channel,
       version: 1,
       publishedAt,
       generatedAt: new Date().toISOString(),
+      a11y,
     },
     layout: {
       type: 'SCROLL',
@@ -1582,6 +1750,9 @@ app.get('/api/v1/screen/fx-viewpoint-hk', (req, res) => {
 // DEPOSIT_RATE_TABLE (rates only), DEPOSIT_OPEN_CTA, SPACER and DEPOSIT_FAQ.
 app.get('/api/v1/screen/deposit-campaign-hk', (req, res) => {
   const publishedAt = new Date(Date.now() - 86400000).toISOString();
+  const locale  = resolveLocale(req);
+  const a11y    = resolveA11yFlags(req);
+  const channel = resolveChannel(req);
   res.json({
     schemaVersion: '3.0',
     pageId: 'deposit-campaign-hk',
@@ -1589,11 +1760,14 @@ app.get('/api/v1/screen/deposit-campaign-hk', (req, res) => {
     ttl: 300,
     metadata: {
       pageId: 'deposit-campaign-hk',
-      locale: 'en-CN',
+      locale,
+      textDir: resolveTextDir(locale),
       platform: req.headers['x-platform'] || 'all',
+      channel,
       version: 1,
       publishedAt,
       generatedAt: new Date().toISOString(),
+      a11y,
     },
     layout: {
       type: 'SCROLL',
@@ -2060,7 +2234,7 @@ function scoreEntry(entry, queryTokens, queryFreq) {
 
 // ─── POST /api/v1/search — semantic search (Zone 1 public) ────────────────────
 app.post('/api/v1/search', (req, res) => {
-  const { query = '', limit = 8, types } = req.body;
+  const { query = '', limit = 8, types, appId } = req.body;
   const q = String(query).trim();
 
   if (!q) {
@@ -2073,7 +2247,11 @@ app.post('/api/v1/search', (req, res) => {
   const queryTokens = tokenise(q);
   const queryFreq   = buildTermFreq(queryTokens);
 
-  let corpus = SEARCH_CORPUS;
+  // Prefer per-app corpus if appId provided and corpus exists; fall back to global
+  let corpus = (appId && AI_SEARCH_CORPORA[appId] && AI_SEARCH_CORPORA[appId].length > 0)
+    ? AI_SEARCH_CORPORA[appId]
+    : SEARCH_CORPUS;
+
   if (Array.isArray(types) && types.length > 0) {
     corpus = corpus.filter(e => types.includes(e.type));
   }
@@ -2084,7 +2262,7 @@ app.post('/api/v1/search', (req, res) => {
     .sort((a, b) => b.score - a.score)
     .slice(0, Math.min(Number(limit) || 8, 20));
 
-  console.log(`[SEARCH] query="${q}" → ${scored.length} result(s)`);
+  console.log(`[SEARCH] query="${q}" appId=${appId ?? 'global'} → ${scored.length} result(s)`);
 
   res.json({
     query: q,
@@ -2104,16 +2282,209 @@ app.post('/api/v1/search', (req, res) => {
 
 // ─── GET /api/v1/search/corpus — return full embedding corpus (for client-side caching) ─
 app.get('/api/v1/search/corpus', (req, res) => {
+  const { appId } = req.query;
+  const corpus = (appId && AI_SEARCH_CORPORA[appId] && AI_SEARCH_CORPORA[appId].length > 0)
+    ? AI_SEARCH_CORPORA[appId]
+    : SEARCH_CORPUS;
+
   res.json({
     version: '1.0.0',
     generatedAt: new Date().toISOString(),
-    count: SEARCH_CORPUS.length,
-    corpus: SEARCH_CORPUS.map(e => ({
+    appId: appId ?? 'global',
+    count: corpus.length,
+    corpus: corpus.map(e => ({
       id: e.id, type: e.type, title: e.title,
       description: e.description, keywords: e.keywords,
       icon: e.icon, category: e.category, deepLink: e.deepLink,
     })),
   });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// AI SEARCH CONFIG  (Zone 2 — OCDP operator console)
+//
+// Stores one AISearchConfig per appId (ios | android | harmonynext | web).
+// Rebuilding the corpus:
+//   1. If quickAccessSource.mode === 'url' → fetch + parse JSON from the URL
+//   2. If quickAccessSource.mode === 'json' → parse inline JSON
+//   3. Walk contentSources:
+//      - ocdp_page: look up the pageId in the SDUI screen mock data and
+//        extract title/description from its slices
+//      - aem_url:   synthesize a corpus entry from the URL (mock: parse hostname/path)
+//   4. Merge quick-access entries + content entries → store in AI_SEARCH_CORPORA[appId]
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** In-memory store: configId → AISearchConfig payload */
+const AI_SEARCH_CONFIGS = {};
+
+/**
+ * Per-app search corpus.
+ * Keys: 'ios' | 'android' | 'harmonynext' | 'web'
+ * Values: array of corpus entries (same shape as SEARCH_CORPUS items).
+ * Empty until first rebuild.
+ */
+const AI_SEARCH_CORPORA = {};
+
+// ─── GET /api/v1/search/config/:configId ─────────────────────────────────────
+app.get('/api/v1/search/config/:configId', (req, res) => {
+  const cfg = AI_SEARCH_CONFIGS[req.params.configId];
+  if (!cfg) return res.status(404).json({ error: 'NOT_FOUND' });
+  res.json(cfg);
+});
+
+// ─── POST /api/v1/search/config/:configId — save/upsert ──────────────────────
+app.post('/api/v1/search/config/:configId', (req, res) => {
+  const { configId } = req.params;
+  const payload = req.body;
+  if (!payload || !payload.appId) {
+    return res.status(400).json({ error: 'INVALID_PAYLOAD', message: 'appId is required' });
+  }
+  AI_SEARCH_CONFIGS[configId] = { ...payload, configId, updatedAt: new Date().toISOString() };
+  console.log(`[AI-SEARCH] Config saved: ${configId} (${payload.appId})`);
+  res.json(AI_SEARCH_CONFIGS[configId]);
+});
+
+// ─── POST /api/v1/search/config/:configId/rebuild — trigger corpus build ──────
+app.post('/api/v1/search/config/:configId/rebuild', async (req, res) => {
+  // Accept config from request body (OCDP console sends current config) OR
+  // fall back to stored config.
+  const bodyConfig = req.body && Object.keys(req.body).length > 0 ? req.body : null;
+  const storedConfig = AI_SEARCH_CONFIGS[req.params.configId];
+  const cfg = bodyConfig ?? storedConfig;
+
+  if (!cfg) {
+    return res.status(404).json({ error: 'NOT_FOUND', message: 'No config found. POST /api/v1/search/config/:id first.' });
+  }
+
+  const { appId, quickAccessSource, contentSources = [] } = cfg;
+  const corpusItems = [];
+
+  // ── 1. Quick-access source ────────────────────────────────────────────────
+  if (quickAccessSource) {
+    let rawItems = [];
+
+    if (quickAccessSource.mode === 'url' && quickAccessSource.url) {
+      try {
+        const http  = require('http');
+        const https = require('https');
+        const fetchText = (url) => new Promise((resolve, reject) => {
+          const lib = url.startsWith('https') ? https : http;
+          lib.get(url, (r) => {
+            let data = '';
+            r.on('data', c => data += c);
+            r.on('end', () => resolve(data));
+          }).on('error', reject);
+        });
+        const text = await fetchText(quickAccessSource.url);
+        rawItems = JSON.parse(text);
+        console.log(`[AI-SEARCH] Fetched ${rawItems.length} quick-access items from ${quickAccessSource.url}`);
+      } catch (err) {
+        console.warn('[AI-SEARCH] Failed to fetch quick-access URL:', err.message);
+      }
+    } else if (quickAccessSource.mode === 'json' && quickAccessSource.json) {
+      try {
+        rawItems = JSON.parse(quickAccessSource.json);
+        console.log(`[AI-SEARCH] Parsed ${rawItems.length} quick-access items from inline JSON`);
+      } catch (err) {
+        console.warn('[AI-SEARCH] Failed to parse inline JSON:', err.message);
+      }
+    }
+
+    for (const item of rawItems) {
+      if (!item.id || !item.title) continue;
+      corpusItems.push({
+        id:          `qa-${appId}-${item.id}`,
+        type:        item.type ?? 'function',
+        title:       item.title,
+        description: item.description ?? item.title,
+        keywords:    item.keywords ?? '',
+        icon:        item.icon ?? '⚡',
+        category:    item.category ?? 'Quick Access',
+        deepLink:    item.deepLink ?? '',
+      });
+    }
+  }
+
+  // ── 2. Content sources ────────────────────────────────────────────────────
+  // Mock SDUI screens available as content sources
+  const MOCK_SCREEN_CONTENT = {
+    'home-wealth-hk': {
+      title: 'Wealth Hub HK',
+      description: 'HSBC Hong Kong Wealth Hub — investments, funds, structured products, rankings, morning treasure daily savings, bond funds, guaranteed returns',
+      keywords: 'wealth,investment,fund,bond,guaranteed,HK,Hong Kong,理財',
+      category: 'Product Page',
+    },
+    'fx-viewpoint-hk': {
+      title: 'FX Viewpoint HK',
+      description: 'Foreign exchange viewpoint Hong Kong — currency rate analysis, forex commentary, FX deals',
+      keywords: 'FX,foreign exchange,forex,currency,rate,HKD,USD,EUR',
+      category: 'Market Insight',
+    },
+    'deposit-campaign-hk': {
+      title: 'Deposit Campaign HK',
+      description: 'Hong Kong deposit promotion — time deposit, high interest savings, fixed deposit campaign',
+      keywords: 'deposit,time deposit,fixed,interest,promotion,campaign,savings',
+      category: 'Campaign',
+    },
+  };
+
+  for (const src of contentSources) {
+    if (src.type === 'ocdp_page') {
+      const screenData = MOCK_SCREEN_CONTENT[src.ref] ?? {
+        title:       src.label || src.ref,
+        description: `Content page: ${src.label || src.ref}`,
+        keywords:    '',
+        category:    'Content Page',
+      };
+      corpusItems.push({
+        id:          `page-${appId}-${src.ref}`,
+        type:        'product',
+        title:       screenData.title,
+        description: screenData.description,
+        keywords:    screenData.keywords,
+        icon:        '📄',
+        category:    screenData.category,
+        deepLink:    `hsbc://page/${src.ref}`,
+      });
+    } else if (src.type === 'aem_url') {
+      // Derive a synthetic corpus entry from the AEM URL
+      let urlTitle = src.label || src.ref;
+      try {
+        const u    = new URL(src.ref);
+        const slug = u.pathname.split('/').filter(Boolean).pop() ?? 'page';
+        urlTitle   = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      } catch { /* keep label */ }
+      corpusItems.push({
+        id:          `aem-${appId}-${Buffer.from(src.ref).toString('hex').slice(0, 12)}`,
+        type:        'product',
+        title:       urlTitle,
+        description: `AEM page: ${src.label || src.ref}`,
+        keywords:    urlTitle.toLowerCase(),
+        icon:        '🌐',
+        category:    'AEM Content',
+        deepLink:    src.ref,
+      });
+    }
+  }
+
+  // Deduplicate by id (quick-access wins over content if same id)
+  const seen = new Set();
+  const deduped = [];
+  for (const item of corpusItems) {
+    if (!seen.has(item.id)) { seen.add(item.id); deduped.push(item); }
+  }
+
+  AI_SEARCH_CORPORA[appId] = deduped;
+
+  // Persist corpus size back to stored config
+  if (AI_SEARCH_CONFIGS[req.params.configId]) {
+    AI_SEARCH_CONFIGS[req.params.configId].lastRebuiltAt = new Date().toISOString();
+    AI_SEARCH_CONFIGS[req.params.configId].corpusSize    = deduped.length;
+  }
+
+  const rebuiltAt = new Date().toISOString();
+  console.log(`[AI-SEARCH] Corpus rebuilt for ${appId}: ${deduped.length} items`);
+  res.json({ appId, corpusSize: deduped.length, rebuiltAt });
 });
 
 // ─── Start server ─────────────────────────────────────────────────────────────
@@ -2146,9 +2517,15 @@ server.listen(PORT, '::', { ipv6Only: false }, () => {
   console.log('  ║    GET  /api/v1/ucp/audit-log                      ║');
   console.log('  ║                                                    ║');
   console.log('  ║  SDUI Delivery (Zone 1 — mobile clients):          ║');
+  console.log('  ║    GET  /api/v1/config                             ║');
   console.log('  ║    GET  /api/v1/screen/home-wealth-hk              ║');
   console.log('  ║    GET  /api/v1/screen/fx-viewpoint-hk             ║');
   console.log('  ║    GET  /api/v1/screen/deposit-campaign-hk         ║');
+  console.log('  ║                                                    ║');
+  console.log('  ║  Request headers consumed by all endpoints:        ║');
+  console.log('  ║    x-locale      — BCP-47 locale override          ║');
+  console.log('  ║    x-a11y-flags  — reduceMotion,largeText,…        ║');
+  console.log('  ║    x-channel     — SDUI|WEB_STANDARD|WEB_WECHAT   ║');
   console.log('  ╚════════════════════════════════════════════════════╝');
   console.log('');
 });

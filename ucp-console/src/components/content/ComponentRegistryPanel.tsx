@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { MOCK_UI_COMPONENTS } from '../../store/mockData';
-import { UIComponent, SliceCategory, SliceType } from '../../types/ucp';
+import { UIComponent, SliceCategory, SliceType, ComponentSourceFile } from '../../types/ucp';
 import { SLICE_CATEGORIES } from '../../utils/sliceDefinitions';
 import { useUCP } from '../../store/UCPStore';
+import { LanguageSelector } from '../shared/LanguageSelector';
 
 // ─── Per-type meta field schema ───────────────────────────────────────────────
 
@@ -103,7 +104,55 @@ const TYPE_META_FIELDS: Partial<Record<SliceType, MetaField[]>> = {
   ],
 };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Source file helpers ──────────────────────────────────────────────────────
+
+const EXT_LANG_MAP: Record<string, ComponentSourceFile['language']> = {
+  ts: 'typescript', tsx: 'typescript',
+  js: 'javascript', jsx: 'javascript',
+  swift: 'swift',
+  kt: 'kotlin', kts: 'kotlin',
+  dart: 'dart',
+};
+
+const LANG_PLATFORM_MAP: Record<ComponentSourceFile['language'], ComponentSourceFile['platform']> = {
+  typescript: 'web',
+  javascript: 'web',
+  swift: 'ios',
+  kotlin: 'android',
+  dart: 'cross-platform',
+  other: 'cross-platform',
+};
+
+const LANG_COLORS: Record<ComponentSourceFile['language'], string> = {
+  typescript: '#3178c6',
+  javascript: '#f7df1e',
+  swift: '#f05138',
+  kotlin: '#7f52ff',
+  dart: '#00b4ab',
+  other: '#94a3b8',
+};
+
+const LANG_ICONS: Record<ComponentSourceFile['language'], string> = {
+  typescript: '🔷',
+  javascript: '🟨',
+  swift: '🔶',
+  kotlin: '🟣',
+  dart: '🩵',
+  other: '📄',
+};
+
+function detectLanguage(fileName: string): ComponentSourceFile['language'] {
+  const ext = fileName.split('.').pop()?.toLowerCase() ?? '';
+  return EXT_LANG_MAP[ext] ?? 'other';
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   ACTIVE:     { bg: 'rgba(34,197,94,0.15)',  text: '#22c55e' },
@@ -117,6 +166,7 @@ const CAT_COLORS: Record<string, string> = {
   wealth:     '#fbbf24',
   lifestyle:  '#a78bfa',
   layout:     '#94a3b8',
+  grid:       '#22d3ee',
 };
 
 function formatDate(iso: string) {
@@ -222,11 +272,293 @@ interface ComponentForm {
   version: string;
   maintainedBy: string;
   meta: Record<string, string | boolean | number>;
+  sourceFiles: ComponentSourceFile[];
+  gridRows: number;
+  gridColumns: number;
 }
 
 const EMPTY_FORM: ComponentForm = {
-  label: '', description: '', category: 'function', version: '1.0.0', maintainedBy: '', meta: {},
+  label: '', description: '', category: 'function', version: '1.0.0', maintainedBy: '', meta: {}, sourceFiles: [],
+  gridRows: 2, gridColumns: 4,
 };
+
+// ─── Source File Upload Zone ──────────────────────────────────────────────────
+
+function SourceFileUploadZone({
+  files,
+  onChange,
+  currentUser,
+}: {
+  files: ComponentSourceFile[];
+  onChange: (files: ComponentSourceFile[]) => void;
+  currentUser: string;
+}) {
+  const [dragOver, setDragOver] = useState(false);
+  const [viewingSource, setViewingSource] = useState<ComponentSourceFile | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const processFiles = useCallback((fileList: FileList) => {
+    const incoming: ComponentSourceFile[] = [];
+    Array.from(fileList).forEach(file => {
+      const lang = detectLanguage(file.name);
+      const reader = new FileReader();
+      const sf: ComponentSourceFile = {
+        fileId: `sf-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        fileName: file.name,
+        fileSize: file.size,
+        mimeType: file.type || 'text/plain',
+        language: lang,
+        platform: LANG_PLATFORM_MAP[lang],
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: currentUser,
+        objectUrl: URL.createObjectURL(file),
+      };
+      reader.onload = e => {
+        const text = e.target?.result as string;
+        onChange([...files, ...incoming.map(f => f.fileId === sf.fileId ? { ...f, sourceText: text } : f)]);
+      };
+      reader.readAsText(file);
+      incoming.push(sf);
+    });
+    if (incoming.length > 0) onChange([...files, ...incoming]);
+  }, [files, onChange, currentUser]);
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragOver(false);
+    if (e.dataTransfer.files.length) processFiles(e.dataTransfer.files);
+  }
+
+  function removeFile(fileId: string) {
+    onChange(files.filter(f => f.fileId !== fileId));
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {/* Drop zone */}
+      <div
+        onClick={() => inputRef.current?.click()}
+        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={handleDrop}
+        style={{
+          border: `2px dashed ${dragOver ? 'var(--hsbc-red)' : 'var(--surface-border)'}`,
+          borderRadius: 8,
+          padding: '18px 12px',
+          textAlign: 'center',
+          cursor: 'pointer',
+          background: dragOver ? 'rgba(219,0,17,0.04)' : 'var(--surface-bg)',
+          transition: 'all 0.15s',
+        }}
+      >
+        <input
+          ref={inputRef}
+          type="file"
+          multiple
+          accept=".ts,.tsx,.js,.jsx,.swift,.kt,.kts,.dart,.py,.go,.vue,.css,.scss"
+          style={{ display: 'none' }}
+          onChange={e => e.target.files && processFiles(e.target.files)}
+        />
+        <div style={{ fontSize: 22, marginBottom: 6 }}>📂</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>
+          Drop source files here or click to browse
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>
+          .ts .tsx .js .jsx .swift .kt .dart and more
+        </div>
+      </div>
+
+      {/* File list */}
+      {files.map(f => (
+        <div
+          key={f.fileId}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '7px 10px', borderRadius: 6,
+            border: '1px solid var(--surface-border)',
+            background: 'var(--surface-bg)',
+          }}
+        >
+          <span style={{ fontSize: 16 }}>{LANG_ICONS[f.language]}</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {f.fileName}
+            </div>
+            <div style={{ display: 'flex', gap: 6, marginTop: 2 }}>
+              <span style={{
+                fontSize: 10, padding: '1px 6px', borderRadius: 8, fontWeight: 600,
+                background: `${LANG_COLORS[f.language]}22`, color: LANG_COLORS[f.language],
+              }}>{f.language}</span>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{f.platform}</span>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{formatBytes(f.fileSize)}</span>
+            </div>
+          </div>
+          {f.sourceText && (
+            <button
+              onClick={() => setViewingSource(f)}
+              style={{
+                fontSize: 11, padding: '3px 8px', borderRadius: 4, cursor: 'pointer',
+                border: '1px solid var(--surface-border)', background: 'transparent',
+                color: 'var(--text-secondary)',
+              }}
+            >View</button>
+          )}
+          <button
+            onClick={() => removeFile(f.fileId)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--text-muted)', fontSize: 14, padding: '2px 4px',
+            }}
+          >✕</button>
+        </div>
+      ))}
+
+      {/* Source viewer modal */}
+      {viewingSource && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 2000,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div style={{
+            background: 'var(--surface-panel)', borderRadius: 12, width: 760, maxHeight: '80vh',
+            display: 'flex', flexDirection: 'column', boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+          }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10, padding: '14px 18px',
+              borderBottom: '1px solid var(--surface-border)',
+            }}>
+              <span>{LANG_ICONS[viewingSource.language]}</span>
+              <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+                {viewingSource.fileName}
+              </div>
+              <span style={{
+                fontSize: 10, padding: '2px 8px', borderRadius: 8, fontWeight: 600,
+                background: `${LANG_COLORS[viewingSource.language]}22`, color: LANG_COLORS[viewingSource.language],
+              }}>{viewingSource.language}</span>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatBytes(viewingSource.fileSize)}</span>
+              <button
+                onClick={() => setViewingSource(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 18, marginLeft: 4 }}
+              >✕</button>
+            </div>
+            <pre style={{
+              flex: 1, overflowY: 'auto', margin: 0, padding: '16px 18px',
+              fontSize: 12, lineHeight: 1.6, fontFamily: 'monospace',
+              color: 'var(--text-primary)', background: 'var(--surface-bg)',
+              whiteSpace: 'pre-wrap', wordBreak: 'break-all',
+              borderRadius: '0 0 12px 12px',
+            }}>
+              {viewingSource.sourceText}
+            </pre>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Source File List (read-only) ─────────────────────────────────────────────
+
+function SourceFileList({ files }: { files: ComponentSourceFile[] }) {
+  const [viewingSource, setViewingSource] = useState<ComponentSourceFile | null>(null);
+
+  if (!files.length) return (
+    <div style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>No source files attached</div>
+  );
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {files.map(f => (
+        <div
+          key={f.fileId}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '7px 10px', borderRadius: 6,
+            border: '1px solid var(--surface-border)',
+            background: 'var(--surface-bg)',
+          }}
+        >
+          <span style={{ fontSize: 16 }}>{LANG_ICONS[f.language]}</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {f.fileName}
+            </div>
+            <div style={{ display: 'flex', gap: 6, marginTop: 2 }}>
+              <span style={{
+                fontSize: 10, padding: '1px 6px', borderRadius: 8, fontWeight: 600,
+                background: `${LANG_COLORS[f.language]}22`, color: LANG_COLORS[f.language],
+              }}>{f.language}</span>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{f.platform}</span>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{formatBytes(f.fileSize)}</span>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>by {f.uploadedBy}</span>
+            </div>
+          </div>
+          {f.sourceText && (
+            <button
+              onClick={() => setViewingSource(f)}
+              style={{
+                fontSize: 11, padding: '3px 8px', borderRadius: 4, cursor: 'pointer',
+                border: '1px solid var(--surface-border)', background: 'transparent',
+                color: 'var(--text-secondary)',
+              }}
+            >View</button>
+          )}
+          {f.objectUrl && !f.sourceText && (
+            <a
+              href={f.objectUrl}
+              download={f.fileName}
+              style={{
+                fontSize: 11, padding: '3px 8px', borderRadius: 4,
+                border: '1px solid var(--surface-border)',
+                color: 'var(--text-secondary)', textDecoration: 'none',
+              }}
+            >↓</a>
+          )}
+        </div>
+      ))}
+
+      {viewingSource && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 2000,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div style={{
+            background: 'var(--surface-panel)', borderRadius: 12, width: 760, maxHeight: '80vh',
+            display: 'flex', flexDirection: 'column', boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+          }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10, padding: '14px 18px',
+              borderBottom: '1px solid var(--surface-border)',
+            }}>
+              <span>{LANG_ICONS[viewingSource.language]}</span>
+              <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+                {viewingSource.fileName}
+              </div>
+              <span style={{
+                fontSize: 10, padding: '2px 8px', borderRadius: 8, fontWeight: 600,
+                background: `${LANG_COLORS[viewingSource.language]}22`, color: LANG_COLORS[viewingSource.language],
+              }}>{viewingSource.language}</span>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatBytes(viewingSource.fileSize)}</span>
+              <button
+                onClick={() => setViewingSource(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 18, marginLeft: 4 }}
+              >✕</button>
+            </div>
+            <pre style={{
+              flex: 1, overflowY: 'auto', margin: 0, padding: '16px 18px',
+              fontSize: 12, lineHeight: 1.6, fontFamily: 'monospace',
+              color: 'var(--text-primary)', background: 'var(--surface-bg)',
+              whiteSpace: 'pre-wrap', wordBreak: 'break-all',
+              borderRadius: '0 0 12px 12px',
+            }}>
+              {viewingSource.sourceText}
+            </pre>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ─── Main panel ───────────────────────────────────────────────────────────────
 
@@ -246,6 +578,9 @@ export function ComponentRegistryPanel() {
     meta: defaultMetaFor(c.sliceType),
   } as UIComponent & { meta: Record<string, string | boolean | number> })));
 
+  // Multi-language: active locale for the selected component
+  const [activeCompLocale, setActiveCompLocale] = useState('en');
+
   const filtered = components.filter(c => {
     const matchSearch = !search ||
       c.label.toLowerCase().includes(search.toLowerCase()) ||
@@ -259,29 +594,37 @@ export function ComponentRegistryPanel() {
   function openDetail(comp: UIComponent) {
     setSelected(comp);
     setIsEditing(false);
+    const meta = (comp as any).meta ?? defaultMetaFor(comp.sliceType);
     setEditForm({
       label: comp.label,
       description: comp.description,
       category: comp.category,
       version: comp.version,
       maintainedBy: comp.maintainedBy,
-      meta: (comp as any).meta ?? defaultMetaFor(comp.sliceType),
+      meta,
+      sourceFiles: comp.sourceFiles ?? [],
+      gridRows: typeof meta.gridRows === 'number' ? meta.gridRows : 2,
+      gridColumns: typeof meta.gridColumns === 'number' ? meta.gridColumns : 4,
     });
   }
 
   function handleEditSave() {
     if (!selected || !editForm.label.trim()) return;
+    const mergedMeta = editForm.category === 'grid'
+      ? { ...editForm.meta, gridRows: editForm.gridRows, gridColumns: editForm.gridColumns }
+      : editForm.meta;
     setComponents(prev => prev.map(c =>
       c.componentId === selected.componentId
         ? { ...c, label: editForm.label, description: editForm.description, category: editForm.category,
             version: editForm.version, maintainedBy: editForm.maintainedBy,
-            updatedAt: new Date().toISOString(), meta: editForm.meta } as any
+            updatedAt: new Date().toISOString(), meta: mergedMeta,
+            sourceFiles: editForm.sourceFiles } as any
         : c
     ));
     setSelected(prev => prev ? {
       ...prev, label: editForm.label, description: editForm.description,
       category: editForm.category, version: editForm.version, maintainedBy: editForm.maintainedBy,
-      updatedAt: new Date().toISOString(), meta: editForm.meta,
+      updatedAt: new Date().toISOString(), meta: mergedMeta, sourceFiles: editForm.sourceFiles,
     } as any : null);
     setIsEditing(false);
   }
@@ -302,23 +645,29 @@ export function ComponentRegistryPanel() {
 
   function handleNewSave() {
     if (!newForm.label.trim() || !newForm.maintainedBy.trim()) return;
+    const newMeta = newForm.category === 'grid'
+      ? { ...newForm.meta, gridRows: newForm.gridRows, gridColumns: newForm.gridColumns }
+      : newForm.meta;
     const newComp: UIComponent = {
       componentId: `comp-custom-${Date.now()}`,
       sliceType: 'CUSTOM' as any,
       label: newForm.label,
       description: newForm.description,
-      icon: '🔧',
+      icon: '⊞',
       category: newForm.category,
-      configurable: [],
-      minHeight: 60,
+      configurable: newForm.category === 'grid' ? ['gridRows', 'gridColumns'] : [],
+      minHeight: newForm.category === 'grid' ? newForm.gridRows * 60 : 60,
       singleton: false,
       version: newForm.version,
       maintainedBy: newForm.maintainedBy,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       status: 'ACTIVE',
+      sourceFiles: newForm.sourceFiles,
+      supportedLocales: ['en'],
+      translations: {},
     };
-    setComponents(prev => [{ ...newComp, meta: newForm.meta } as any, ...prev]);
+    setComponents(prev => [{ ...newComp, meta: newMeta } as any, ...prev]);
     setShowNewModal(false);
     setNewForm(EMPTY_FORM);
   }
@@ -500,7 +849,12 @@ export function ComponentRegistryPanel() {
         </div>
 
         {/* Detail / Edit panel */}
-        {selected && (
+        {selected && (() => {
+          const primaryLocale = (selected.supportedLocales ?? ['en'])[0];
+          const isTranslating = activeCompLocale !== primaryLocale;
+          const displayLabel = isTranslating ? (selected.translations?.[activeCompLocale]?.label ?? selected.label) : selected.label;
+          const displayDesc  = isTranslating ? (selected.translations?.[activeCompLocale]?.description ?? selected.description) : selected.description;
+          return (
           <div style={{
             width: 380, flexShrink: 0, borderLeft: '1px solid var(--surface-border)',
             background: 'var(--surface-panel)', overflowY: 'auto', display: 'flex', flexDirection: 'column',
@@ -510,15 +864,16 @@ export function ComponentRegistryPanel() {
               display: 'flex', alignItems: 'center', padding: '14px 18px',
               borderBottom: '1px solid var(--surface-border)', gap: 8, flexShrink: 0,
             }}>
-              <span style={{ fontSize: 24 }}>{selected.icon}</span>
+              <span style={{ fontSize: 24 }} aria-hidden="true">{selected.icon}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.label}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayLabel}</div>
                 <div style={{ fontSize: 10, fontFamily: 'monospace', color: 'var(--text-muted)' }}>{selected.sliceType}</div>
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
                 {!isEditing && (
                   <button
                     onClick={() => setIsEditing(true)}
+                    aria-label={`Edit ${selected.label} component`}
                     style={{
                       fontSize: 11, padding: '4px 10px', borderRadius: 4, cursor: 'pointer',
                       border: '1px solid var(--surface-border)', background: 'transparent',
@@ -528,45 +883,123 @@ export function ComponentRegistryPanel() {
                 )}
                 <button
                   onClick={() => setSelected(null)}
+                  aria-label="Close component detail"
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 16, padding: '4px 6px' }}
                 >✕</button>
               </div>
             </div>
 
+            {/* Language selector */}
+            <div style={{ padding: '8px 18px', background: '#F0F4FF', borderBottom: '1px solid #C7D2FE' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: '#4338CA', marginBottom: 5 }}>Languages</div>
+              <LanguageSelector
+                primaryLocale={primaryLocale}
+                supportedLocales={selected.supportedLocales ?? [primaryLocale]}
+                activeLocale={activeCompLocale}
+                onSelectLocale={l => setActiveCompLocale(l)}
+                onAddLocale={locale => {
+                  dispatch({ type: 'SET_COMPONENT_LOCALES', componentId: selected.componentId, locales: [...(selected.supportedLocales ?? [primaryLocale]), locale] });
+                  setActiveCompLocale(locale);
+                  // also update local components state
+                  setComponents(prev => prev.map(c => c.componentId === selected.componentId
+                    ? { ...c, supportedLocales: [...(c.supportedLocales ?? [primaryLocale]), locale] } : c));
+                }}
+                onRemoveLocale={locale => {
+                  dispatch({ type: 'SET_COMPONENT_LOCALES', componentId: selected.componentId, locales: (selected.supportedLocales ?? [primaryLocale]).filter(l => l !== locale) });
+                  if (activeCompLocale === locale) setActiveCompLocale(primaryLocale);
+                  setComponents(prev => prev.map(c => c.componentId === selected.componentId
+                    ? { ...c, supportedLocales: (c.supportedLocales ?? [primaryLocale]).filter(l => l !== locale) } : c));
+                }}
+                size="sm"
+              />
+            </div>
+
+            {/* Translation editing area when non-primary locale */}
+            {isTranslating && (
+              <div style={{ padding: '10px 18px', background: '#EEF2FF', borderBottom: '1px solid #C7D2FE', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: '#4338CA', textTransform: 'uppercase', flex: 1 }}>🌐 {activeCompLocale} Translation</div>
+                  <button
+                    onClick={() => dispatch({ type: 'TRANSLATE_COMPONENT', componentId: selected.componentId, locale: activeCompLocale })}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 4,
+                      padding: '4px 10px', background: '#DB0011', color: '#fff',
+                      border: 'none', borderRadius: 4, fontSize: 10, fontWeight: 700,
+                      cursor: 'pointer', whiteSpace: 'nowrap',
+                      fontFamily: 'var(--font-family)',
+                    }}
+                  >
+                    🌐 Translate
+                  </button>
+                </div>
+                <div>
+                  <label htmlFor={`comp-trans-label-${selected.componentId}`} style={{ fontSize: 11, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 3 }}>Label</label>
+                  <input
+                    id={`comp-trans-label-${selected.componentId}`}
+                    value={selected.translations?.[activeCompLocale]?.label ?? ''}
+                    onChange={e => {
+                      dispatch({ type: 'SET_COMPONENT_TRANSLATION', componentId: selected.componentId, locale: activeCompLocale, field: 'label', value: e.target.value });
+                      setComponents(prev => prev.map(c => c.componentId === selected.componentId
+                        ? { ...c, translations: { ...c.translations, [activeCompLocale]: { ...(c.translations?.[activeCompLocale] ?? {}), label: e.target.value } } } : c));
+                    }}
+                    placeholder={selected.label}
+                    style={{ width: '100%', padding: '6px 10px', border: '1px solid #C7D2FE', borderRadius: 6, fontSize: 12, boxSizing: 'border-box', fontFamily: 'inherit' }}
+                  />
+                </div>
+                <div>
+                  <label htmlFor={`comp-trans-desc-${selected.componentId}`} style={{ fontSize: 11, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 3 }}>Description</label>
+                  <textarea
+                    id={`comp-trans-desc-${selected.componentId}`}
+                    value={selected.translations?.[activeCompLocale]?.description ?? ''}
+                    onChange={e => {
+                      dispatch({ type: 'SET_COMPONENT_TRANSLATION', componentId: selected.componentId, locale: activeCompLocale, field: 'description', value: e.target.value });
+                      setComponents(prev => prev.map(c => c.componentId === selected.componentId
+                        ? { ...c, translations: { ...c.translations, [activeCompLocale]: { ...(c.translations?.[activeCompLocale] ?? {}), description: e.target.value } } } : c));
+                    }}
+                    placeholder={selected.description}
+                    rows={2}
+                    style={{ width: '100%', padding: '6px 10px', border: '1px solid #C7D2FE', borderRadius: 6, fontSize: 12, boxSizing: 'border-box', fontFamily: 'inherit', resize: 'vertical' }}
+                  />
+                </div>
+              </div>
+            )}
+
             <div style={{ flex: 1, overflowY: 'auto', padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 18 }}>
 
-              {/* Core meta fields */}
+              {/* Core meta fields — show translated values when in translation mode */}
               <div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
                   General
                 </div>
                 {[
-                  { label: 'Label', key: 'label', value: isEditing ? editForm.label : selected.label },
-                  { label: 'Description', key: 'description', value: isEditing ? editForm.description : selected.description },
-                  { label: 'Version', key: 'version', value: isEditing ? editForm.version : selected.version },
+                  { label: 'Label',        key: 'label',        value: isEditing ? editForm.label : displayLabel },
+                  { label: 'Description',  key: 'description',  value: isEditing ? editForm.description : displayDesc },
+                  { label: 'Version',      key: 'version',      value: isEditing ? editForm.version : selected.version },
                   { label: 'Maintained By', key: 'maintainedBy', value: isEditing ? editForm.maintainedBy : selected.maintainedBy },
                 ].map(f => (
                   <div key={f.key} style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4 }}>{f.label}</div>
+                    <label htmlFor={`comp-field-${f.key}-${selected.componentId}`} style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>{f.label}</label>
                     {f.key === 'description' ? (
                       <textarea
+                        id={`comp-field-${f.key}-${selected.componentId}`}
                         value={f.value}
-                        readOnly={!isEditing}
-                        onChange={e => isEditing && setEditForm(prev => ({ ...prev, [f.key]: e.target.value }))}
+                        readOnly={!isEditing || isTranslating}
+                        onChange={e => isEditing && !isTranslating && setEditForm(prev => ({ ...prev, [f.key]: e.target.value }))}
                         rows={2}
                         style={{
                           width: '100%', boxSizing: 'border-box', padding: '6px 10px', borderRadius: 5,
                           border: '1px solid var(--surface-border)',
-                          background: !isEditing ? 'var(--surface-bg)' : 'var(--surface-panel)',
+                          background: !isEditing || isTranslating ? 'var(--surface-bg)' : 'var(--surface-panel)',
                           color: 'var(--text-primary)', fontSize: 12, outline: 'none',
                           resize: 'vertical', fontFamily: 'inherit',
                         }}
                       />
                     ) : (
                       <input
+                        id={`comp-field-${f.key}-${selected.componentId}`}
                         value={f.value}
-                        readOnly={!isEditing}
-                        onChange={e => isEditing && setEditForm(prev => ({ ...prev, [f.key]: e.target.value }))}
+                        readOnly={!isEditing || isTranslating}
+                        onChange={e => isEditing && !isTranslating && setEditForm(prev => ({ ...prev, [f.key]: e.target.value }))}
                         style={{
                           width: '100%', boxSizing: 'border-box', padding: '6px 10px', borderRadius: 5,
                           border: '1px solid var(--surface-border)',
@@ -603,6 +1036,71 @@ export function ComponentRegistryPanel() {
                   )}
                 </div>
               </div>
+
+              {/* Grid layout fields — shown for grid category */}
+              {(isEditing ? editForm.category : selected.category) === 'grid' && (
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+                    Grid Layout
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4 }}>Rows</div>
+                      <input
+                        type="number" min={1} max={20}
+                        value={isEditing ? editForm.gridRows : ((selected as any).meta?.gridRows ?? 2)}
+                        readOnly={!isEditing}
+                        onChange={e => isEditing && setEditForm(prev => ({ ...prev, gridRows: Math.max(1, Number(e.target.value)) }))}
+                        style={{
+                          width: '100%', boxSizing: 'border-box', padding: '6px 10px', borderRadius: 5,
+                          border: '1px solid var(--surface-border)',
+                          background: !isEditing ? 'var(--surface-bg)' : 'var(--surface-panel)',
+                          color: 'var(--text-primary)', fontSize: 12, outline: 'none',
+                          cursor: !isEditing ? 'default' : 'text',
+                        }}
+                      />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4 }}>Columns</div>
+                      <input
+                        type="number" min={1} max={12}
+                        value={isEditing ? editForm.gridColumns : ((selected as any).meta?.gridColumns ?? 4)}
+                        readOnly={!isEditing}
+                        onChange={e => isEditing && setEditForm(prev => ({ ...prev, gridColumns: Math.max(1, Number(e.target.value)) }))}
+                        style={{
+                          width: '100%', boxSizing: 'border-box', padding: '6px 10px', borderRadius: 5,
+                          border: '1px solid var(--surface-border)',
+                          background: !isEditing ? 'var(--surface-bg)' : 'var(--surface-panel)',
+                          color: 'var(--text-primary)', fontSize: 12, outline: 'none',
+                          cursor: !isEditing ? 'default' : 'text',
+                        }}
+                      />
+                    </div>
+                  </div>
+                  {(() => {
+                    const rows = isEditing ? editForm.gridRows : ((selected as any).meta?.gridRows ?? 2);
+                    const cols = isEditing ? editForm.gridColumns : ((selected as any).meta?.gridColumns ?? 4);
+                    const total = Math.min(rows * cols, 40);
+                    return (
+                      <div style={{ padding: '10px 12px', borderRadius: 8, background: 'var(--surface-bg)', border: '1px solid var(--surface-border)' }}>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
+                          {rows} row{rows !== 1 ? 's' : ''} × {cols} col{cols !== 1 ? 's' : ''}
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(cols, 6)}, 1fr)`, gap: 3 }}>
+                          {Array.from({ length: total }).map((_, i) => (
+                            <div key={i} style={{ height: 22, borderRadius: 3, background: 'var(--surface-panel)', border: '1px solid var(--surface-border)' }} />
+                          ))}
+                        </div>
+                        {rows * cols > 40 && (
+                          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 6 }}>
+                            Showing 40 of {rows * cols} cells
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
 
               {/* Type-specific meta fields */}
               {detailFields.length > 0 && (
@@ -646,6 +1144,22 @@ export function ComponentRegistryPanel() {
                   </div>
                 </div>
               )}
+
+              {/* Source Files */}
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+                  Source Files
+                </div>
+                {isEditing ? (
+                  <SourceFileUploadZone
+                    files={editForm.sourceFiles}
+                    onChange={files => setEditForm(prev => ({ ...prev, sourceFiles: files }))}
+                    currentUser={state.currentUser.name}
+                  />
+                ) : (
+                  <SourceFileList files={selected.sourceFiles ?? []} />
+                )}
+              </div>
 
               {/* Static info when viewing */}
               {!isEditing && (
@@ -709,7 +1223,8 @@ export function ComponentRegistryPanel() {
               )}
             </div>
           </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Delete confirmation modal */}
@@ -755,8 +1270,8 @@ export function ComponentRegistryPanel() {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <div style={{
-            background: 'var(--surface-panel)', borderRadius: 12, padding: 28, width: 480,
-            boxShadow: '0 20px 60px rgba(0,0,0,0.4)', maxHeight: '80vh', overflowY: 'auto',
+            background: 'var(--surface-panel)', borderRadius: 12, padding: 28, width: 520,
+            boxShadow: '0 20px 60px rgba(0,0,0,0.4)', maxHeight: '85vh', overflowY: 'auto',
           }}>
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 20 }}>New Component</div>
             {[
@@ -792,6 +1307,73 @@ export function ComponentRegistryPanel() {
               >
                 {SLICE_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
               </select>
+            </div>
+            {newForm.category === 'grid' && (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+                  Grid Layout
+                </div>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>Rows</div>
+                    <input
+                      type="number" min={1} max={20}
+                      value={newForm.gridRows}
+                      onChange={e => setNewForm(prev => ({ ...prev, gridRows: Math.max(1, Number(e.target.value)) }))}
+                      style={{
+                        width: '100%', boxSizing: 'border-box', padding: '8px 12px', borderRadius: 6,
+                        border: '1px solid var(--surface-border)', background: 'var(--surface-bg)',
+                        color: 'var(--text-primary)', fontSize: 13, outline: 'none',
+                      }}
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>Columns</div>
+                    <input
+                      type="number" min={1} max={12}
+                      value={newForm.gridColumns}
+                      onChange={e => setNewForm(prev => ({ ...prev, gridColumns: Math.max(1, Number(e.target.value)) }))}
+                      style={{
+                        width: '100%', boxSizing: 'border-box', padding: '8px 12px', borderRadius: 6,
+                        border: '1px solid var(--surface-border)', background: 'var(--surface-bg)',
+                        color: 'var(--text-primary)', fontSize: 13, outline: 'none',
+                      }}
+                    />
+                  </div>
+                </div>
+                <div style={{
+                  marginTop: 12, padding: '10px 12px', borderRadius: 8,
+                  background: 'var(--surface-bg)', border: '1px solid var(--surface-border)',
+                }}>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
+                    Preview — {newForm.gridRows} row{newForm.gridRows !== 1 ? 's' : ''} × {newForm.gridColumns} column{newForm.gridColumns !== 1 ? 's' : ''}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(newForm.gridColumns, 8)}, 1fr)`, gap: 4 }}>
+                    {Array.from({ length: Math.min(newForm.gridRows * newForm.gridColumns, 40) }).map((_, i) => (
+                      <div key={i} style={{
+                        height: 28, borderRadius: 4,
+                        background: 'var(--surface-panel)',
+                        border: '1px solid var(--surface-border)',
+                      }} />
+                    ))}
+                  </div>
+                  {newForm.gridRows * newForm.gridColumns > 40 && (
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 6 }}>
+                      Preview truncated — showing 40 of {newForm.gridRows * newForm.gridColumns} cells
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                Source Files <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>(optional)</span>
+              </div>
+              <SourceFileUploadZone
+                files={newForm.sourceFiles}
+                onChange={files => setNewForm(prev => ({ ...prev, sourceFiles: files }))}
+                currentUser={state.currentUser.name}
+              />
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button

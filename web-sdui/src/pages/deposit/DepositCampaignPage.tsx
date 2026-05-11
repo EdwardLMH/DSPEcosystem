@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useSDUIContext } from '../../context/SDUIContext';
+import { useChannelMeta } from '../../hooks/useChannelMeta';
 
 // ─── BFF base URL ─────────────────────────────────────────────────────────────
 
@@ -19,12 +21,19 @@ interface FAQItem { id: string; question: string; answer: string }
 // ─── Root page ────────────────────────────────────────────────────────────────
 
 export function DepositCampaignPage() {
+  const { bffHeaders } = useSDUIContext();
   const [slices, setSlices] = useState<DepositSlice[] | null>(null);
   const [error, setError]   = useState(false);
 
+  useChannelMeta({
+    title: 'New Fund Deposit Campaign — HSBC China',
+    description: 'Open a time deposit with HSBC and enjoy competitive RMB savings rates. Limited time offer.',
+    jsonLd: { '@type': 'FinancialProduct', name: 'HSBC New Fund Deposit', offers: { '@type': 'Offer', priceCurrency: 'CNY' } },
+  });
+
   useEffect(() => {
     fetch(`${BFF_BASE}/screen/deposit-campaign-hk`, {
-      headers: { 'x-platform': 'web', Accept: 'application/json' },
+      headers: { ...bffHeaders, 'x-platform': 'web', Accept: 'application/json' },
     })
       .then(r => r.json())
       .then(data => {
@@ -32,7 +41,7 @@ export function DepositCampaignPage() {
         setSlices(children.filter(s => s.visible !== false));
       })
       .catch(() => setError(true));
-  }, []);
+  }, [bffHeaders['x-locale'], bffHeaders['x-channel']]);
 
   const bodySlices = slices ?? [];
 

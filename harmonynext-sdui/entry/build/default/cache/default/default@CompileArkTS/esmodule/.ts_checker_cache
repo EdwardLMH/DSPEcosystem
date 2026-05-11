@@ -230,7 +230,9 @@
         "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/build-tools/ets-loader/declarations/pattern_lock.d.ts",
         "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/build-tools/ets-loader/declarations/video.d.ts",
         "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.web.webview.d.ts",
-        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.print.d.ts"
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.print.d.ts",
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.data.preferences.d.ts",
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.fileio.d.ts"
       ],
       "error": false
     },
@@ -450,7 +452,8 @@
         "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/application/Context.d.ts",
         "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.app.ability.common.d.ts",
         "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/app/context.d.ts",
-        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.data.rdb.d.ts"
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.data.rdb.d.ts",
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.data.preferences.d.ts"
       ],
       "error": false
     },
@@ -559,7 +562,8 @@
       ],
       "parent": [
         "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.multimedia.image.d.ts",
-        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/application/Context.d.ts"
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/application/Context.d.ts",
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets"
       ],
       "error": false
     },
@@ -1488,7 +1492,7 @@
       "error": false
     },
     "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/models/SDUIModels.ets": {
-      "mtimeMs": 1777912802007.9272,
+      "mtimeMs": 1778481099515.395,
       "children": [],
       "parent": [
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/pages/Index.ets",
@@ -1497,7 +1501,12 @@
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets",
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/kyc/KYCStore.ets"
       ],
-      "error": false
+      "error": false,
+      "errorCodes": [
+        1128,
+        2532,
+        2304
+      ]
     },
     "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/kyc/KYCShellViews.ets": {
       "mtimeMs": 1777990789303.5696,
@@ -1513,17 +1522,21 @@
       "error": false
     },
     "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/wealth/WealthPage.ets": {
-      "mtimeMs": 1778203500594.3271,
+      "mtimeMs": 1778520723323.5662,
       "children": [
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/common/HiveTokens.ets",
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SensorDataClient.ets",
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/wealth/AISearchPage.ets",
-        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets"
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets",
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets"
       ],
       "parent": [
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/pages/Index.ets"
       ],
-      "error": false
+      "error": true,
+      "errorCodes": [
+        28007
+      ]
     },
     "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/common/HiveTokens.ets": {
       "mtimeMs": 1777343681871.3855,
@@ -1563,9 +1576,10 @@
       "error": false
     },
     "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets": {
-      "mtimeMs": 1778038367166.743,
+      "mtimeMs": 1778509280182.1907,
       "children": [
         "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.net.http.d.ts",
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.i18n.d.ts",
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/models/SDUIModels.ets"
       ],
       "parent": [
@@ -1577,6 +1591,7 @@
       ],
       "error": true,
       "errorCodes": [
+        28007,
         28040
       ]
     },
@@ -1605,7 +1620,8 @@
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets",
         "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.net.connection.d.ts",
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SensorDataClient.ets",
-        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/wealth/AISearchPage.ets"
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/wealth/AISearchPage.ets",
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets"
       ],
       "error": false
     },
@@ -1652,7 +1668,8 @@
         "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.base.d.ts"
       ],
       "parent": [
-        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.security.cert.d.ts"
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.security.cert.d.ts",
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets"
       ],
       "error": false
     },
@@ -2034,7 +2051,8 @@
       "mtimeMs": 1776441985000,
       "children": [],
       "parent": [
-        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/build-tools/ets-loader/declarations/time_picker.d.ts"
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/build-tools/ets-loader/declarations/time_picker.d.ts",
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.i18n.d.ts"
       ],
       "error": false
     },
@@ -2133,7 +2151,7 @@
       ]
     },
     "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/kyc/KYCStore.ets": {
-      "mtimeMs": 1777990742298.467,
+      "mtimeMs": 1778471699599.568,
       "children": [
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/models/SDUIModels.ets",
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets",
@@ -2146,7 +2164,7 @@
       "error": false
     },
     "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/fxviewpoint/FXViewpointPage.ets": {
-      "mtimeMs": 1777989817131.0486,
+      "mtimeMs": 1778481200626.9595,
       "children": [
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/common/HiveTokens.ets",
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SensorDataClient.ets",
@@ -2166,6 +2184,64 @@
       ],
       "parent": [
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/pages/Index.ets"
+      ],
+      "error": false
+    },
+    "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.i18n.d.ts": {
+      "mtimeMs": 1776441985000,
+      "children": [
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.intl.d.ts"
+      ],
+      "parent": [
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets"
+      ],
+      "error": false
+    },
+    "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets": {
+      "mtimeMs": 1778494606511.2644,
+      "children": [
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.net.http.d.ts",
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.data.preferences.d.ts",
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.fileio.d.ts",
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.security.cryptoFramework.d.ts",
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.resourceManager.d.ts",
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.util.d.ts"
+      ],
+      "parent": [
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/wealth/WealthPage.ets"
+      ],
+      "error": true,
+      "errorCodes": [
+        28040,
+        28007
+      ]
+    },
+    "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.data.preferences.d.ts": {
+      "mtimeMs": 1776441985000,
+      "children": [
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.base.d.ts",
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/application/BaseContext.d.ts"
+      ],
+      "parent": [
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets"
+      ],
+      "error": false
+    },
+    "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.fileio.d.ts": {
+      "mtimeMs": 1776441985000,
+      "children": [
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.base.d.ts"
+      ],
+      "parent": [
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets"
+      ],
+      "error": false
+    },
+    "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.util.d.ts": {
+      "mtimeMs": 1776441985000,
+      "children": [],
+      "parent": [
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets"
       ],
       "error": false
     }

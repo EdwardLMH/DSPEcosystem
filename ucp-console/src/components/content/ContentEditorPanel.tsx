@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { BIZ_LINES as BIZ_LINES_DATA } from '../../store/mockData';
 import type { ContentAsset, AssetType, BizLineId, ContentApprovalStatus } from '../../types/ucp';
 import { useUCP } from '../../store/UCPStore';
+import { LanguageSelector } from '../shared/LanguageSelector';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -345,6 +346,9 @@ export function ContentEditorPanel() {
   const [approvalComment, setApprovalComment] = useState('');
   const [selectedFlowId, setSelectedFlowId] = useState('');
 
+  // Multi-language: track active locale for the selected asset
+  const [activeAssetLocale, setActiveAssetLocale] = useState('en');
+
   // Sync selected asset when store updates (e.g. after dispatch)
   useEffect(() => {
     if (selected) {
@@ -439,6 +443,8 @@ export function ContentEditorPanel() {
       presenter: form.presenter || undefined,
       presenterTitle: form.presenterTitle || undefined,
       localObjectUrl,
+      supportedLocales: ['en'],
+      translations: {},
     };
     dispatch({ type: 'ADD_ASSET', asset: newAsset });
     dispatch({ type: 'SHOW_TOAST', message: `"${newAsset.name}" uploaded`, toastType: 'success' });
@@ -584,17 +590,53 @@ export function ContentEditorPanel() {
     const flow = approvalFlows.find(f =>
       f.marketId === asset.marketId && (f.bizLineId === asset.bizLineId || f.bizLineId === null)
     );
+    const primaryLocale = (asset.supportedLocales ?? ['en'])[0];
+    const isTranslating = activeAssetLocale !== primaryLocale;
+    const displayName = isTranslating ? (asset.translations?.[activeAssetLocale]?.name ?? asset.name) : asset.name;
+    const displayAlt  = isTranslating ? (asset.translations?.[activeAssetLocale]?.altText ?? asset.altText) : asset.altText;
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3 }}>{asset.name}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3 }}>{displayName}</div>
             <div style={{ marginTop: 4 }}><ApprovalBadge status={appStatus} /></div>
           </div>
-          <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 18, lineHeight: 1 }}>✕</button>
+          <button onClick={() => setSelected(null)} aria-label="Close asset detail" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 18, lineHeight: 1 }}>✕</button>
         </div>
+
+        {/* Language selector */}
+        <div style={{ padding: '8px 10px', background: '#F0F4FF', border: '1px solid #C7D2FE', borderRadius: 8 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: '#4338CA', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Languages</div>
+          <LanguageSelector
+            primaryLocale={primaryLocale}
+            supportedLocales={asset.supportedLocales ?? [primaryLocale]}
+            activeLocale={activeAssetLocale}
+            onSelectLocale={l => setActiveAssetLocale(l)}
+            onAddLocale={locale => {
+              dispatch({ type: 'SET_ASSET_LOCALES', assetId: asset.assetId, locales: [...(asset.supportedLocales ?? [primaryLocale]), locale] });
+              setActiveAssetLocale(locale);
+            }}
+            onRemoveLocale={locale => {
+              dispatch({ type: 'SET_ASSET_LOCALES', assetId: asset.assetId, locales: (asset.supportedLocales ?? [primaryLocale]).filter(l => l !== locale) });
+              if (activeAssetLocale === locale) setActiveAssetLocale(primaryLocale);
+            }}
+            size="sm"
+          />
+          {isTranslating && (
+            <div style={{ fontSize: 10, color: '#6366F1', marginTop: 6, fontStyle: 'italic' }}>
+              Viewing {activeAssetLocale} translation. Edit in the edit panel to update translations.
+            </div>
+          )}
+        </div>
+
+        {/* Alt text (locale-aware) */}
+        {displayAlt && (
+          <div style={{ fontSize: 11, color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+            Alt: {displayAlt}
+          </div>
+        )}
 
         {/* Media preview */}
         <MediaPreview asset={asset} />
@@ -928,23 +970,95 @@ export function ContentEditorPanel() {
             )}
 
             {/* Edit mode */}
-            {panelMode === 'edit' && selected && (
+            {panelMode === 'edit' && selected && (() => {
+              const primaryLocale = (selected.supportedLocales ?? ['en'])[0];
+              const isTranslating = activeAssetLocale !== primaryLocale;
+              return (
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>Edit Asset</div>
-                  <button onClick={() => setPanelMode('detail')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 18 }}>✕</button>
+                  <button onClick={() => setPanelMode('detail')} aria-label="Close edit panel" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 18 }}>✕</button>
                 </div>
+
+                {/* Language selector in edit mode */}
+                <div style={{ marginBottom: 12, padding: '8px 10px', background: '#F0F4FF', border: '1px solid #C7D2FE', borderRadius: 8 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: '#4338CA', marginBottom: 6 }}>Languages</div>
+                  <LanguageSelector
+                    primaryLocale={primaryLocale}
+                    supportedLocales={selected.supportedLocales ?? [primaryLocale]}
+                    activeLocale={activeAssetLocale}
+                    onSelectLocale={l => setActiveAssetLocale(l)}
+                    onAddLocale={locale => {
+                      dispatch({ type: 'SET_ASSET_LOCALES', assetId: selected.assetId, locales: [...(selected.supportedLocales ?? [primaryLocale]), locale] });
+                      setActiveAssetLocale(locale);
+                    }}
+                    onRemoveLocale={locale => {
+                      dispatch({ type: 'SET_ASSET_LOCALES', assetId: selected.assetId, locales: (selected.supportedLocales ?? [primaryLocale]).filter(l => l !== locale) });
+                      if (activeAssetLocale === locale) setActiveAssetLocale(primaryLocale);
+                    }}
+                    size="sm"
+                  />
+                </div>
+
+                {/* Locale-specific name/altText when translating */}
+                {isTranslating && (
+                  <div style={{ marginBottom: 12, padding: '10px 12px', background: '#EEF2FF', border: '1px solid #C7D2FE', borderRadius: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#4338CA', textTransform: 'uppercase', flex: 1 }}>
+                        🌐 {activeAssetLocale} Translation
+                      </div>
+                      <button
+                        onClick={() => dispatch({ type: 'TRANSLATE_ASSET', assetId: selected.assetId, locale: activeAssetLocale })}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 4,
+                          padding: '4px 10px', background: '#DB0011', color: '#fff',
+                          border: 'none', borderRadius: 4, fontSize: 10, fontWeight: 700,
+                          cursor: 'pointer', whiteSpace: 'nowrap',
+                          fontFamily: 'var(--font-family)',
+                        }}
+                      >
+                        🌐 Translate
+                      </button>
+                    </div>
+                    <div>
+                      <label htmlFor={`trans-name-${selected.assetId}`} style={{ fontSize: 11, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Name</label>
+                      <input
+                        id={`trans-name-${selected.assetId}`}
+                        value={selected.translations?.[activeAssetLocale]?.name ?? ''}
+                        onChange={e => dispatch({ type: 'SET_ASSET_TRANSLATION', assetId: selected.assetId, locale: activeAssetLocale, field: 'name', value: e.target.value })}
+                        placeholder={selected.name}
+                        style={{ width: '100%', padding: '6px 10px', border: '1px solid #C7D2FE', borderRadius: 6, fontSize: 12, fontFamily: 'var(--font-family)' }}
+                      />
+                    </div>
+                    {selected.altText !== undefined && (
+                      <div>
+                        <label htmlFor={`trans-alt-${selected.assetId}`} style={{ fontSize: 11, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Alt Text</label>
+                        <input
+                          id={`trans-alt-${selected.assetId}`}
+                          value={selected.translations?.[activeAssetLocale]?.altText ?? ''}
+                          onChange={e => dispatch({ type: 'SET_ASSET_TRANSLATION', assetId: selected.assetId, locale: activeAssetLocale, field: 'altText', value: e.target.value })}
+                          placeholder={selected.altText}
+                          style={{ width: '100%', padding: '6px 10px', border: '1px solid #C7D2FE', borderRadius: 6, fontSize: 12, fontFamily: 'var(--font-family)' }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div style={{ marginBottom: 12 }}>
                   <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6 }}>Replace File (optional)</div>
                   <UploadZone onFile={handleFileReady} currentAsset={selected} />
                 </div>
-                <AssetFormFields showFileUpload={false} />
+                {!isTranslating && <AssetFormFields showFileUpload={false} />}
                 <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
                   <button onClick={() => setPanelMode('detail')} style={{ flex: 1, padding: '8px', borderRadius: 6, border: '1px solid var(--surface-border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: 12, cursor: 'pointer' }}>Cancel</button>
-                  <button onClick={handleUpdate} disabled={!form.name.trim()} style={{ flex: 2, padding: '8px', borderRadius: 6, border: 'none', background: form.name.trim() ? '#059669' : '#ccc', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Save Changes</button>
+                  {!isTranslating && (
+                    <button onClick={handleUpdate} disabled={!form.name.trim()} style={{ flex: 2, padding: '8px', borderRadius: 6, border: 'none', background: form.name.trim() ? '#059669' : '#ccc', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Save Changes</button>
+                  )}
                 </div>
               </div>
-            )}
+              );
+            })()}
 
             {/* Detail mode */}
             {panelMode === 'detail' && selected && <DetailPanel asset={selected} />}
@@ -958,8 +1072,13 @@ export function ContentEditorPanel() {
         const hasRefs = refs.length > 0;
         return (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ background: 'var(--surface-panel)', borderRadius: 12, padding: 28, width: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.4)' }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#DC2626', marginBottom: 10 }}>🗑 Delete Content Asset</div>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-modal-title"
+            style={{ background: 'var(--surface-panel)', borderRadius: 12, padding: 28, width: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.4)' }}
+          >
+            <div id="delete-modal-title" style={{ fontSize: 16, fontWeight: 700, color: '#DC2626', marginBottom: 10 }}>🗑 Delete Content Asset</div>
               <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>
                 Are you sure you want to permanently delete <strong>"{confirmDelete.name}"</strong>? This cannot be undone.
               </div>

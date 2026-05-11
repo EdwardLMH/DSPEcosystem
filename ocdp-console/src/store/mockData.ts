@@ -3,17 +3,18 @@ import type {
   WeChatServiceAccount, WeChatMessageTemplate,
   PageLayout, WorkflowEntry, AuditEntry, StaffUser,
   PageMarketStatus, AEOScore, PageUsageStat, JourneyUsageStat, VisibilityRule,
+  PageTemplate, CustomerSegmentDef, AccountTypeDef, LocationDef,
 } from '../types/ocdp';
 
 // ─── Reference data ───────────────────────────────────────────────────────────
 
 export const MARKETS: Market[] = [
-  { marketId: 'GLOBAL', marketName: 'Global (.com)',              active: true,  timezone: 'UTC',            tzLabel: 'UTC (UTC+0)' },
-  { marketId: 'HK',     marketName: 'Hong Kong (.com.hk)',        active: true,  timezone: 'Asia/Hong_Kong', tzLabel: 'HKT (UTC+8)' },
-  { marketId: 'SG',     marketName: 'Singapore (.com.sg)',        active: true,  timezone: 'Asia/Singapore', tzLabel: 'SGT (UTC+8)' },
-  { marketId: 'UK',     marketName: 'United Kingdom (.co.uk)',    active: true,  timezone: 'Europe/London',  tzLabel: 'BST/GMT (UTC+0/+1)' },
-  { marketId: 'IN',     marketName: 'India (bank.in)',            active: true,  timezone: 'Asia/Kolkata',   tzLabel: 'IST (UTC+5:30)' },
-  { marketId: 'CN',     marketName: 'China (WeChat)',             active: true,  timezone: 'Asia/Shanghai',  tzLabel: 'CST (UTC+8)' },
+  { marketId: 'GLOBAL', marketName: 'Global (.com)',           active: true,  timezone: 'UTC',            tzLabel: 'UTC (UTC+0)',        defaultAuthorGroupId: 'GLOBAL-WEALTH-AD',  defaultApproverGroupId: 'GLOBAL-ADMIN-GRP' },
+  { marketId: 'HK',     marketName: 'Hong Kong (.com.hk)',     active: true,  timezone: 'Asia/Hong_Kong', tzLabel: 'HKT (UTC+8)',        defaultAuthorGroupId: 'HK-WEALTH-AD',      defaultApproverGroupId: 'HK-ADMIN-GRP' },
+  { marketId: 'SG',     marketName: 'Singapore (.com.sg)',     active: true,  timezone: 'Asia/Singapore', tzLabel: 'SGT (UTC+8)',        defaultAuthorGroupId: 'SG-WEALTH-AD',      defaultApproverGroupId: undefined },
+  { marketId: 'UK',     marketName: 'United Kingdom (.co.uk)', active: true,  timezone: 'Europe/London',  tzLabel: 'BST/GMT (UTC+0/+1)', defaultAuthorGroupId: undefined,           defaultApproverGroupId: undefined },
+  { marketId: 'IN',     marketName: 'India (bank.in)',         active: true,  timezone: 'Asia/Kolkata',   tzLabel: 'IST (UTC+5:30)',     defaultAuthorGroupId: undefined,           defaultApproverGroupId: undefined },
+  { marketId: 'CN',     marketName: 'China (WeChat)',          active: true,  timezone: 'Asia/Shanghai',  tzLabel: 'CST (UTC+8)',        defaultAuthorGroupId: undefined,           defaultApproverGroupId: undefined },
 ];
 
 export const RELEASE_TARGETS: ReleaseTarget[] = [
@@ -34,14 +35,16 @@ export const BIZ_LINES: BizLine[] = [
 ];
 
 export const AD_GROUPS: AdGroup[] = [
-  { groupId: 'HK-WEALTH-AD',     groupName: 'HK Wealth AD Group',     marketId: 'HK',     bizLineId: 'WEALTH',   groupType: 'AD_GROUP' },
-  { groupId: 'HK-PAYMENT-AD',    groupName: 'HK Payment AD Group',    marketId: 'HK',     bizLineId: 'PAYMENT',  groupType: 'AD_GROUP' },
-  { groupId: 'HK-MARKETING-AD',  groupName: 'HK Marketing AD Group',  marketId: 'HK',     bizLineId: 'MARKETING', groupType: 'AD_GROUP' },
-  { groupId: 'SG-WEALTH-AD',     groupName: 'SG Wealth AD Group',     marketId: 'SG',     bizLineId: 'WEALTH',   groupType: 'AD_GROUP' },
-  { groupId: 'GLOBAL-WEALTH-AD', groupName: 'Global Wealth AD Group', marketId: 'GLOBAL', bizLineId: 'WEALTH',   groupType: 'AD_GROUP' },
-  { groupId: 'HK-ADMIN-GRP',     groupName: 'HK Admin Group',         marketId: 'HK',     bizLineId: 'WEALTH',   groupType: 'ADMIN_GROUP' },
-  { groupId: 'GLOBAL-ADMIN-GRP', groupName: 'Global Admin Group',     marketId: 'GLOBAL', bizLineId: 'WEALTH',   groupType: 'ADMIN_GROUP' },
-  { groupId: 'HK-AUDIT-GRP',     groupName: 'HK Audit Group',         marketId: 'HK',     bizLineId: 'WEALTH',   groupType: 'AUDIT_GROUP' },
+  { groupId: 'HK-WEALTH-AD',        groupName: 'HK Wealth AD Group',          marketId: 'HK',     bizLineId: 'WEALTH',   groupType: 'AD_GROUP' },
+  { groupId: 'HK-PAYMENT-AD',       groupName: 'HK Payment AD Group',         marketId: 'HK',     bizLineId: 'PAYMENT',  groupType: 'AD_GROUP' },
+  { groupId: 'HK-MARKETING-AD',     groupName: 'HK Marketing AD Group',       marketId: 'HK',     bizLineId: 'MARKETING', groupType: 'AD_GROUP' },
+  { groupId: 'SG-WEALTH-AD',        groupName: 'SG Wealth AD Group',          marketId: 'SG',     bizLineId: 'WEALTH',   groupType: 'AD_GROUP' },
+  { groupId: 'GLOBAL-WEALTH-AD',    groupName: 'Global Wealth AD Group',      marketId: 'GLOBAL', bizLineId: 'WEALTH',   groupType: 'AD_GROUP' },
+  { groupId: 'HK-ADMIN-GRP',        groupName: 'HK Admin Group',              marketId: 'HK',     bizLineId: 'WEALTH',   groupType: 'ADMIN_GROUP' },
+  { groupId: 'GLOBAL-ADMIN-GRP',    groupName: 'Global Admin Group',          marketId: 'GLOBAL', bizLineId: 'WEALTH',   groupType: 'ADMIN_GROUP' },
+  { groupId: 'HK-AUDIT-GRP',        groupName: 'HK Audit Group',              marketId: 'HK',     bizLineId: 'WEALTH',   groupType: 'AUDIT_GROUP' },
+  { groupId: 'GLOBAL-AUDIT-GRP',    groupName: 'Global Audit Group',          marketId: 'GLOBAL', bizLineId: 'WEALTH',   groupType: 'AUDIT_GROUP' },
+  { groupId: 'MOBILE-WEB-ENABLER-AD', groupName: 'Mobile & Web Enabler',      marketId: 'GLOBAL', bizLineId: 'WEB_ENABLER', groupType: 'AD_GROUP' },
 ];
 
 export const APPROVAL_FLOWS: ApprovalFlow[] = [
@@ -104,13 +107,15 @@ export const WECHAT_TEMPLATES: WeChatMessageTemplate[] = [
 export const PAGE_HOME_WEALTH: PageLayout = {
   pageId: 'home-wealth-hk', name: 'Home Hub (HK)',
   pageType: 'WEALTH_HUB', description: 'Main wealth hub home page for HK market',
-  nativeTargets: ['ios', 'android', 'harmonynext'], locale: 'zh-HK', thumbnail: '💰', tags: ['wealth', 'home', 'hk'],
+  nativeTargets: ['ios', 'android', 'harmonynext'], locale: 'zh-TW', thumbnail: '💰', tags: ['wealth', 'home', 'hk'],
   channel: 'SDUI', scope: 'MARKET', marketId: 'HK',
   releaseMarketIds: ['HK'], bizLineId: 'WEALTH', groupId: 'HK-WEALTH-AD',
   authoringStatus: 'APPROVED',
+  supportedLocales: ['zh-TW', 'en'],
+  translations: {},
   slices: [
     {
-      instanceId: 'slice-home-search-header', type: 'HOME_SEARCH_HEADER', visible: true, locked: true,
+      instanceId: 'slice-header', type: 'HOME_SEARCH_HEADER', visible: true, locked: true,
       props: {
         // Per-segment brand config
         premierLabel:  'HSBC Premier',  premierBg: '#DB0011',
@@ -217,24 +222,37 @@ export const PAGE_HOME_WEALTH: PageLayout = {
       },
       props: {
         sectionTitle: 'Premier Elite Wealth Studio',
+        numColumns: 2,
         moreLabel: 'View all',
         moreDeepLink: 'hsbc://wealth-studio',
         items: [
           {
-            id: 'ws-1',
-            episodeLabel: 'Episode 13',
-            liveBadge: 'To-be-live on 1 Feb 15:30',
-            title: 'How AI experts think about AI?',
-            ctaLabel: 'Register for live stream',
-            imageColor: '#1A1A2E',
+            id: 'ws-ep14',
+            episodeLabel: 'Episode 14',
+            liveBadge: '',
+            title: 'Navigating Markets in 2026',
+            ctaLabel: 'Watch now',
+            imageColor: '#0A1628',
+            presenter: 'Emily Cheung',
+            presenterTitle: 'Senior Wealth Strategist, HSBC Premier',
+            durationSeconds: 90,
+            ucpAssetId: 'asset-014',
+            videoUrl: 'http://localhost:3001/media/Wealth1.mov',
+            thumbnailUrl: 'https://placehold.co/1280x720/0A1628/ffffff?text=Wealth+Studio+Ep14',
           },
           {
-            id: 'ws-2',
-            episodeLabel: 'Episode 13',
-            liveBadge: 'To-be-live on 1 Feb 15:3',
-            title: 'How AI experts think about AI?',
+            id: 'ws-ep15',
+            episodeLabel: 'Episode 15',
+            liveBadge: '',
+            title: 'Gold & Alternative Assets',
             ctaLabel: 'Watch now',
-            imageColor: '#0F2040',
+            imageColor: '#0A1628',
+            presenter: 'Derek Lam',
+            presenterTitle: 'Head of Alternative Investments, HSBC Jade',
+            durationSeconds: 145,
+            ucpAssetId: 'asset-015',
+            videoUrl: 'http://localhost:3001/media/Wealth2.mov',
+            thumbnailUrl: 'https://placehold.co/1280x720/0A1628/c9a96e?text=Wealth+Studio+Ep15',
           },
         ],
       },
@@ -243,12 +261,14 @@ export const PAGE_HOME_WEALTH: PageLayout = {
       instanceId: 'slice-guides-insights', type: 'GUIDES_INSIGHTS_CAROUSEL', visible: true, locked: false,
       props: {
         sectionTitle: 'Guides and insights',
+        numColumns: 2,
         moreLabel: 'View all',
         moreDeepLink: 'hsbc://guides',
         items: [
           {
             id: 'gi-1',
             title: 'Investment 101 - An investment in knowledge pays the best interest - Benjamin Franklin',
+            description: 'A foundational guide to building your first investment portfolio.',
             date: '8 Apr 2024',
             imageColor: '#2D3748',
             deepLink: 'hsbc://guides/investment-101',
@@ -256,6 +276,7 @@ export const PAGE_HOME_WEALTH: PageLayout = {
           {
             id: 'gi-2',
             title: 'Market outlook Q2 2024',
+            description: 'Key themes and asset allocation ideas for the second quarter.',
             date: '2 Apr 2024',
             imageColor: '#1A365D',
             deepLink: 'hsbc://guides/market-outlook',
@@ -282,12 +303,14 @@ export const PAGE_HOME_WEALTH: PageLayout = {
       instanceId: 'slice-discover-more', type: 'DISCOVER_MORE_CAROUSEL', visible: true, locked: false,
       props: {
         sectionTitle: 'Discover more',
+        numColumns: 2,
         items: [
           {
             id: 'dm-1',
             tag: 'Time Deposit',
             tagColor: '#DB0011',
             title: 'Up to 15.5% p.a. FX Deposit Rate',
+            description: 'Earn up to 15.5% p.a. on FX & Time Deposits! T&Cs apply.',
             subtitle: 'Earn up to 15.5% p.a. on FX & Time Deposits! T&Cs apply.',
             imageColor: '#1A2E4A',
             deepLink: 'hsbc://deposit/fx',
@@ -297,6 +320,7 @@ export const PAGE_HOME_WEALTH: PageLayout = {
             tag: 'Well+',
             tagColor: '#6B46C1',
             title: 'PURE Sign up 10-day...',
+            description: '',
             subtitle: '',
             imageColor: '#2D3748',
             deepLink: 'hsbc://wellplus',
@@ -309,11 +333,14 @@ export const PAGE_HOME_WEALTH: PageLayout = {
 
 export const PAGE_JADE_CAMPAIGN: PageLayout = {
   pageId: 'jade-upgrade-hk', name: 'Jade Upgrade Campaign (HK)',
-  pageType: 'CAMPAIGN', description: 'Jade upgrade invitation page for Premier customers',
-  nativeTargets: ['ios', 'android', 'harmonynext'], locale: 'zh-HK', thumbnail: '🟡', tags: ['jade', 'wealth', 'campaign'],
+  pageType: 'CAMPAIGN', pageTemplateId: 'tpl-segment-upgrade-campaign',
+  description: 'Jade upgrade invitation page for Premier customers',
+  nativeTargets: ['ios', 'android', 'harmonynext'], locale: 'zh-TW', thumbnail: '🟡', tags: ['jade', 'wealth', 'campaign'],
   channel: 'WEB_WECHAT', scope: 'MARKET', marketId: 'HK',
   releaseMarketIds: ['HK'], bizLineId: 'WEALTH', groupId: 'HK-WEALTH-AD',
   authoringStatus: 'APPROVED',
+  supportedLocales: ['zh-TW', 'en'],
+  translations: {},
   wechatPageUrl: 'https://wechat.hsbc.com.hk/pages/jade-upgrade',
   wechatShareTitle: '您的HSBC Jade升級邀請', wechatShareDesc: '立即了解專屬優惠，限時申請',
   campaignSchedule: {
@@ -327,11 +354,14 @@ export const PAGE_JADE_CAMPAIGN: PageLayout = {
 
 export const PAGE_VISA_CAMPAIGN: PageLayout = {
   pageId: 'visa-platinum-campaign', name: 'Visa Platinum Q3 Campaign',
-  pageType: 'CAMPAIGN', description: 'Visa Platinum no-FX campaign for Q3 2026',
-  nativeTargets: [], locale: 'en-HK', thumbnail: '💳', tags: ['cards', 'campaign', 'visa'],
+  pageType: 'CAMPAIGN', pageTemplateId: 'tpl-credit-card-acquisition',
+  description: 'Visa Platinum no-FX campaign for Q3 2026',
+  nativeTargets: [], locale: 'en', thumbnail: '💳', tags: ['cards', 'campaign', 'visa'],
   channel: 'WEB_STANDARD', scope: 'GLOBAL', marketId: 'GLOBAL',
   releaseMarketIds: ['GLOBAL', 'HK', 'SG'], bizLineId: 'PAYMENT', groupId: 'GLOBAL-WEALTH-AD',
   authoringStatus: 'DRAFT',
+  supportedLocales: ['en', 'zh-TW', 'zh-CN'],
+  translations: {},
   isPublic: true,
   webSlug: '/credit-cards/visa-platinum-q3',
   webMetaTitle: 'HSBC Visa Platinum – No FX Fee | HSBC',
@@ -388,10 +418,12 @@ export const PAGE_VISA_CAMPAIGN: PageLayout = {
 export const PAGE_OBKYC: PageLayout = {
   pageId: 'obkyc-journey', name: 'OBKYC – Account Opening Journey',
   pageType: 'KYC_JOURNEY', description: 'Open Banking KYC journey — 11-step mobile flow',
-  nativeTargets: ['ios', 'android', 'harmonynext'], locale: 'en-HK', thumbnail: '🪪', tags: ['kyc', 'onboarding'],
+  nativeTargets: ['ios', 'android', 'harmonynext'], locale: 'en', thumbnail: '🪪', tags: ['kyc', 'onboarding'],
   channel: 'SDUI', scope: 'MARKET', marketId: 'HK',
   releaseMarketIds: ['HK'], bizLineId: 'WEB_ENABLER', groupId: 'HK-WEALTH-AD',
   authoringStatus: 'DRAFT',
+  supportedLocales: ['en'],
+  translations: {},
   slices: [
     { instanceId: 'kyc-header', type: 'HEADER_NAV', props: { title: 'Account Opening', searchPlaceholder: 'Search', showNotificationBell: false, showQRScanner: false }, visible: true, locked: true },
   ],
@@ -400,10 +432,12 @@ export const PAGE_OBKYC: PageLayout = {
 export const PAGE_FX_VIEWPOINT: PageLayout = {
   pageId: 'fx-viewpoint-hk', name: 'FX Viewpoint — EUR & GBP (HK)',
   pageType: 'MARKET_INSIGHT', description: 'Market insight page: EUR and GBP analysis — ECB on hold and BoE rate cut. Includes video, briefing text and RM contact CTA.',
-  nativeTargets: ['ios', 'android', 'harmonynext'], locale: 'en-HK', thumbnail: '📈', tags: ['fx', 'market-insight', 'eur', 'gbp', 'wealth'],
+  nativeTargets: ['ios', 'android', 'harmonynext'], locale: 'en', thumbnail: '📈', tags: ['fx', 'market-insight', 'eur', 'gbp', 'wealth'],
   channel: 'SDUI', scope: 'MARKET', marketId: 'HK',
   releaseMarketIds: ['HK'], bizLineId: 'WEALTH', groupId: 'HK-WEALTH-AD',
   authoringStatus: 'APPROVED',
+  supportedLocales: ['en', 'zh-TW'],
+  translations: {},
   slices: [
     {
       instanceId: 'mi-header', type: 'HEADER_NAV', visible: true, locked: true,
@@ -453,11 +487,19 @@ export const PAGE_FX_VIEWPOINT: PageLayout = {
 
 export const PAGE_DEPOSIT_CAMPAIGN: PageLayout = {
   pageId: 'deposit-campaign-hk', name: 'New Fund Deposit Campaign (CN)',
-  pageType: 'CAMPAIGN', description: 'Renminbi Savings new fund deposit campaign — elevated time deposit rates with rate table and FAQ.',
-  nativeTargets: ['ios', 'android', 'harmonynext'], locale: 'en-CN', thumbnail: '🏦', tags: ['deposit', 'savings', 'campaign', 'renminbi', 'time-deposit'],
+  pageType: 'CAMPAIGN', pageTemplateId: 'tpl-deposit-campaign',
+  description: 'Renminbi Savings new fund deposit campaign — elevated time deposit rates with rate table and FAQ.',
+  nativeTargets: ['ios', 'android', 'harmonynext', 'web'], locale: 'en-CN', thumbnail: '🏦', tags: ['deposit', 'savings', 'campaign', 'renminbi', 'time-deposit'],
   channel: 'SDUI', scope: 'MARKET', marketId: 'CN',
   releaseMarketIds: ['CN'], bizLineId: 'WEALTH', groupId: 'HK-WEALTH-AD',
+  isPublic: true,
+  webSlug: '/cn/wealth/savings/new-fund-deposit-campaign',
+  webMetaTitle: 'New Fund Time Deposit Campaign | HSBC Bank Wealth',
+  webMetaDescription: 'Open an HSBC Renminbi time deposit today and earn up to 1.15% p.a. AER on new funds. Explore competitive rates for 3–60 month terms. Start growing your savings with HSBC Wealth now.',
+  authorCredentials: 'HSBC Wealth Management — Product Team',
   authoringStatus: 'APPROVED',
+  supportedLocales: ['en', 'zh-TW', 'zh-CN'],
+  translations: {},
   campaignSchedule: {
     publishAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
     takedownAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 60).toISOString(),
@@ -570,6 +612,9 @@ export interface Journey {
   steps: JourneyStep[];
   // WEB_STANDARD only: whether the journey is publicly accessible (SEO/AEO assessed)
   isPublic?: boolean;
+  // Multi-language support
+  supportedLocales: string[];  // locales this journey is authored in; first = primary
+  translations: Record<string, Record<string, string>>;  // locale → field key → value
 }
 
 export const MOCK_JOURNEYS: Journey[] = [
@@ -579,6 +624,24 @@ export const MOCK_JOURNEYS: Journey[] = [
     description: '11-step open banking KYC flow regulated by HKMA',
     channel: 'SDUI', nativeTargets: ['ios', 'android', 'harmonynext', 'web'], marketId: 'HK', bizLineId: 'WEB_ENABLER', status: 'LIVE',
     isPublic: true,
+    supportedLocales: ['en', 'zh-TW'],
+    translations: {
+      'zh-TW': {
+        name: '開放銀行KYC開戶',
+        description: '香港金融管理局監管的11步開放銀行KYC流程',
+        step001Label: '個人資料',        step001Desc: '法定全名及出生日期',
+        step002Label: '國籍',            step002Desc: '國籍國家',
+        step003Label: '身份證明文件',    step003Desc: 'HKID / 內地身份證 / 護照（有條件）',
+        step004Label: '上傳文件',        step004Desc: '身份文件正背面照片',
+        step005Label: '聯絡資料',        step005Desc: '電郵地址及手機號碼',
+        step006Label: '住宅地址',        step006Desc: '香港地址 — 單位、樓層、座數、區份',
+        step007Label: '就業及收入',      step007Desc: '就業狀況及年收入範圍',
+        step008Label: '資金來源',        step008Desc: '主要資金來源及帳戶用途',
+        step009Label: '自拍及活體檢測', step009Desc: '面部活體檢測及身份照片比對',
+        step010Label: '連結您的銀行',    step010Desc: '開放銀行帳戶連結以即時驗證',
+        step011Label: '法律聲明',        step011Desc: 'PEP狀態、真實性及FATCA聲明',
+      },
+    },
     steps: [
       { stepId: 'step-001', label: 'Personal Info',     description: 'Full legal name & date of birth',          screenType: 'TEXT_INPUT',   icon: '👤' },
       { stepId: 'step-002', label: 'Nationality',        description: 'Country of nationality',                   screenType: 'SINGLE_SELECT', icon: '🌍' },
@@ -599,6 +662,8 @@ export const MOCK_JOURNEYS: Journey[] = [
     description: '6-step open banking KYC flow for web browsers — consolidated from 11 mobile steps',
     channel: 'WEB_STANDARD', nativeTargets: [], marketId: 'HK', bizLineId: 'WEB_ENABLER', status: 'DRAFT',
     isPublic: false,
+    supportedLocales: ['en'],
+    translations: {},
     steps: [
       { stepId: 'web-step-001', label: 'Your Identity',       description: 'Personal info, nationality & ID document — all on one page',  screenType: 'TEXT_INPUT',    icon: '🪪' },
       { stepId: 'web-step-002', label: 'Document & Contact',  description: 'Upload your ID and provide contact details',                   screenType: 'DOC_UPLOAD',    icon: '📋' },
@@ -613,6 +678,16 @@ export const MOCK_JOURNEYS: Journey[] = [
     name: 'Wealth Discovery Journey',
     description: 'Guided wealth product selection flow',
     channel: 'SDUI', nativeTargets: ['ios', 'android', 'harmonynext', 'web'], marketId: 'HK', bizLineId: 'WEALTH', status: 'DRAFT',
+    supportedLocales: ['en', 'zh-TW'],
+    translations: {
+      'zh-TW': {
+        name: '財富探索旅程',
+        description: '引導式財富產品選擇流程',
+        w1Label: '風險評估', w1Desc: '投資者風險評估',
+        w2Label: '目標設定', w2Desc: '投資目標設定',
+        w3Label: '產品推薦', w3Desc: 'AI產品建議',
+      },
+    },
     steps: [
       { stepId: 'w1', label: 'Risk Profile',    description: 'Investor risk assessment',  screenType: 'QUESTIONNAIRE', icon: '📊' },
       { stepId: 'w2', label: 'Goals',           description: 'Investment goal setting',   screenType: 'GOAL_PICKER',   icon: '🎯' },
@@ -634,7 +709,7 @@ export interface JourneyPage {
 const obkycBase: Omit<PageLayout, 'pageId' | 'name' | 'description' | 'thumbnail' | 'slices'> = {
   pageType:   'KYC_JOURNEY',
   nativeTargets: ['ios', 'android', 'harmonynext'],
-  locale:     'en-HK',
+  locale:     'en',
   channel:    'SDUI',
   scope:      'MARKET',
   marketId:   'HK',
@@ -642,6 +717,8 @@ const obkycBase: Omit<PageLayout, 'pageId' | 'name' | 'description' | 'thumbnail
   bizLineId:  'WEB_ENABLER',
   groupId:    'HK-WEALTH-AD',
   authoringStatus: 'DRAFT',
+  supportedLocales: ['en'],
+  translations: {},
   tags:       ['kyc', 'onboarding'],
 };
 
@@ -738,7 +815,7 @@ export const MOCK_JOURNEY_PAGES: JourneyPage[] = [
 const obkycWebBase: Omit<PageLayout, 'pageId' | 'name' | 'description' | 'thumbnail' | 'slices'> = {
   pageType:   'KYC_JOURNEY',
   nativeTargets: [],
-  locale:     'en-HK',
+  locale:     'en',
   channel:    'WEB_STANDARD',
   scope:      'MARKET',
   marketId:   'HK',
@@ -746,6 +823,8 @@ const obkycWebBase: Omit<PageLayout, 'pageId' | 'name' | 'description' | 'thumbn
   bizLineId:  'WEB_ENABLER',
   groupId:    'HK-WEALTH-AD',
   authoringStatus: 'DRAFT',
+  supportedLocales: ['en'],
+  translations: {},
   tags:       ['kyc', 'onboarding', 'web'],
   webSlug:    '/account-opening',
   webMetaTitle: 'Open an HSBC Account | HSBC Hong Kong',
@@ -943,10 +1022,193 @@ export const MOCK_AUDIT: AuditEntry[] = [
 // ─── Staff users ──────────────────────────────────────────────────────────────
 
 export const MOCK_USERS: StaffUser[] = [
-  { id: 'j.chan@hsbc.com.hk', name: 'Janet Chan',    email: 'j.chan@hsbc.com.hk', role: 'WEALTH-AUTHOR',   marketId: 'HK',     bizLineId: 'WEALTH',  groupId: 'HK-WEALTH-AD' },
-  { id: 'm.wong@hsbc.com.hk', name: 'Michael Wong',  email: 'm.wong@hsbc.com.hk', role: 'WEALTH-APPROVER', marketId: 'HK',     bizLineId: 'WEALTH',  groupId: 'HK-WEALTH-AD' },
-  { id: 'k.lee@hsbc.com.hk',  name: 'Karen Lee',     email: 'k.lee@hsbc.com.hk',  role: 'PAYMENT-AUTHOR',  marketId: 'HK',     bizLineId: 'PAYMENT', groupId: 'HK-PAYMENT-AD' },
-  { id: 'b.lam@hsbc.com.hk',  name: 'Brian Lam',     email: 'b.lam@hsbc.com.hk',  role: 'ADMIN',           marketId: 'HK',     bizLineId: 'WEALTH',  groupId: 'HK-ADMIN-GRP', isGlobalAdmin: true },
-  { id: 's.ng@hsbc.com.hk',   name: 'Sarah Ng',      email: 's.ng@hsbc.com.hk',   role: 'AUDITOR',         marketId: 'HK',     bizLineId: 'WEALTH',  groupId: 'HK-AUDIT-GRP' },
-  { id: 'g.author@hsbc.com',  name: 'Global Author', email: 'g.author@hsbc.com',  role: 'WEALTH-AUTHOR',   marketId: 'GLOBAL', bizLineId: 'WEALTH',  groupId: 'GLOBAL-WEALTH-AD' },
+  { id: 'j.chan@hsbc.com.hk',   name: 'Janet Chan',   email: 'j.chan@hsbc.com.hk',   role: 'WEALTH-AUTHOR',      marketId: 'HK',     bizLineId: 'WEALTH',      groupId: 'HK-WEALTH-AD' },
+  { id: 'm.wong@hsbc.com.hk',   name: 'Michael Wong', email: 'm.wong@hsbc.com.hk',   role: 'WEALTH-APPROVER',    marketId: 'HK',     bizLineId: 'WEALTH',      groupId: 'HK-WEALTH-AD' },
+  { id: 'k.lee@hsbc.com.hk',    name: 'Karen Lee',    email: 'k.lee@hsbc.com.hk',    role: 'PAYMENT-AUTHOR',     marketId: 'HK',     bizLineId: 'PAYMENT',     groupId: 'HK-PAYMENT-AD' },
+  { id: 'b.lam@hsbc.com.hk',    name: 'Brian Lam',    email: 'b.lam@hsbc.com.hk',    role: 'ADMIN',              marketId: 'HK',     bizLineId: 'WEALTH',      groupId: 'HK-ADMIN-GRP' },
+  { id: 's.ng@hsbc.com.hk',     name: 'Sarah Ng',     email: 's.ng@hsbc.com.hk',     role: 'AUDITOR',            marketId: 'HK',     bizLineId: 'WEALTH',      groupId: 'HK-AUDIT-GRP' },
+  { id: 'r.iron@hsbc.com',      name: 'Robert Iron',  email: 'r.iron@hsbc.com',      role: 'GLOBAL_ADMIN',       marketId: 'GLOBAL', bizLineId: 'WEALTH',      groupId: 'GLOBAL-ADMIN-GRP' },
+  { id: 'w.chen@hsbc.com',      name: 'Walter Chen',  email: 'w.chen@hsbc.com',      role: 'AI-SEARCH-OPERATOR', marketId: 'GLOBAL', bizLineId: 'WEB_ENABLER', groupId: 'MOBILE-WEB-ENABLER-AD' },
+];
+
+// ─── Page Templates (mirrored from UCP) ───────────────────────────────────────
+
+export const PAGE_TEMPLATES: PageTemplate[] = [
+  {
+    templateId: 'tpl-generic',
+    name: 'Generic Page',
+    description: 'A blank page with only a standard HSBC header navigation bar. Use as a starting point for any custom page layout.',
+    icon: '📄',
+    channels: ['SDUI', 'WEB_STANDARD', 'WEB_WECHAT'],
+    bizLineIds: ['PAYMENT', 'WEB_ENABLER', 'LENDING', 'COLLECTION', 'WEALTH', 'MARKETING'],
+    category: 'generic',
+    seoRequired: false,
+    aeoRequired: false,
+    status: 'ACTIVE',
+    createdAt: '2026-01-15T00:00:00Z',
+    updatedAt: '2026-05-01T00:00:00Z',
+    maintainedBy: 'Platform Team',
+    usageCount: 42,
+    starterSlices: [
+      { type: 'HEADER_NAV', props: { title: '', showNotificationBell: true, showQRScanner: false, showBackButton: false }, locked: false },
+    ],
+  },
+  {
+    templateId: 'tpl-web-standard',
+    name: 'Web Standard Page',
+    description: 'A fully SEO/AEO-optimised web page for HSBC.com. Includes the global nav header, breadcrumb, structured content area and compliant footer. Mandatory for all public Web Standard pages.',
+    icon: '🌐',
+    channels: ['WEB_STANDARD'],
+    bizLineIds: ['PAYMENT', 'WEB_ENABLER', 'LENDING', 'COLLECTION', 'WEALTH', 'MARKETING'],
+    category: 'generic',
+    seoRequired: true,
+    aeoRequired: true,
+    status: 'ACTIVE',
+    createdAt: '2026-01-15T00:00:00Z',
+    updatedAt: '2026-05-01T00:00:00Z',
+    maintainedBy: 'Web Enablement Team',
+    usageCount: 28,
+    starterSlices: [
+      { type: 'HEADER_NAV', props: { title: '', showNotificationBell: true, showQRScanner: false, showBackButton: false }, locked: true },
+      { type: 'PROMO_BANNER', props: { title: 'Page Headline', subtitle: 'Supporting copy goes here', backgroundColor: '#F9FAFB' }, locked: false },
+    ],
+  },
+  {
+    templateId: 'tpl-segment-upgrade-campaign',
+    name: 'Segment Upgrade Campaign',
+    description: 'WeChat H5 campaign page for HSBC segment upgrade journeys (Premier→Jade, Advance→Premier). Follows WeChat H5 common requirements: single-screen scroll, share card metadata, WeChat-native CTA styling.',
+    icon: '🏆',
+    channels: ['WEB_WECHAT'],
+    bizLineIds: ['WEALTH', 'MARKETING'],
+    category: 'campaign',
+    seoRequired: false,
+    aeoRequired: false,
+    status: 'ACTIVE',
+    createdAt: '2026-02-01T00:00:00Z',
+    updatedAt: '2026-05-01T00:00:00Z',
+    maintainedBy: 'Wealth Marketing Team',
+    usageCount: 3,
+    starterSlices: [
+      {
+        type: 'CAMPAIGN_HERO',
+        props: { headline: 'Upgrade Your Banking Experience', subHeadline: 'Exclusive invitation for valued HSBC customers. Discover premium benefits designed for you.', badge: 'By Invitation Only', bgGradient: 'linear-gradient(160deg,#1D1D1B 0%,#2C2C2A 100%)', accentColor: '#C9A84C' },
+        locked: false,
+      },
+      {
+        type: 'CAMPAIGN_BENEFITS',
+        props: {
+          sectionTitle: 'Exclusive Privileges',
+          items: [
+            { icon: '💎', title: 'Premium Service', description: 'Dedicated Relationship Manager available 24/7' },
+            { icon: '✈️', title: 'Travel Benefits', description: 'Global airport lounge access for you and guests' },
+            { icon: '💰', title: 'Preferential Rates', description: 'Privileged FX rates and higher savings yields' },
+            { icon: '🎯', title: 'Wealth Solutions', description: 'Access to exclusive investment products' },
+          ],
+        },
+        locked: false,
+      },
+      { type: 'SPACER', props: { height: 16 }, locked: false },
+      {
+        type: 'CAMPAIGN_CTA',
+        props: { primaryLabel: 'Apply Now', primaryUrl: 'hsbc://upgrade/apply', subNote: 'No annual fee in the first year', secondaryLabel: 'Learn More', secondaryUrl: 'hsbc://upgrade/learn' },
+        locked: false,
+      },
+    ],
+  },
+  {
+    templateId: 'tpl-credit-card-acquisition',
+    name: 'Credit Card Acquisition',
+    description: 'SEO/AEO-optimised Web Standard campaign page for credit card acquisition. Follows HSBC.com web standards with structured hero, feature benefits grid and compliant CTA with fee disclosure.',
+    icon: '💳',
+    channels: ['WEB_STANDARD'],
+    bizLineIds: ['PAYMENT', 'MARKETING'],
+    category: 'campaign',
+    seoRequired: true,
+    aeoRequired: true,
+    status: 'ACTIVE',
+    createdAt: '2026-02-15T00:00:00Z',
+    updatedAt: '2026-05-01T00:00:00Z',
+    maintainedBy: 'Payment Marketing Team',
+    usageCount: 5,
+    starterSlices: [
+      {
+        type: 'CAMPAIGN_HERO',
+        props: { headline: 'HSBC [Card Name] Credit Card', subHeadline: 'Earn rewards with every purchase. Apply today and enjoy your first year fee waived.', badge: 'Limited Time Offer', bgGradient: 'linear-gradient(160deg,#0A1A3D 0%,#0D2B6B 60%,#1A3A8F 100%)', accentColor: '#C9A84C' },
+        locked: false,
+      },
+      {
+        type: 'CAMPAIGN_BENEFITS',
+        props: {
+          sectionTitle: 'Card Benefits',
+          items: [
+            { icon: '🌍', title: '0% Foreign Transaction Fee', description: 'No extra charges on overseas spending' },
+            { icon: '✈️', title: 'Airport Lounge Access', description: '6 complimentary lounge visits per year' },
+            { icon: '🛡️', title: 'Travel Insurance', description: 'Up to HKD 800,000 coverage automatically' },
+            { icon: '🎭', title: 'Lifestyle Rewards', description: 'Earn 2x points on dining and entertainment' },
+            { icon: '💎', title: 'Concierge Service', description: '24/7 global concierge for travel and dining' },
+            { icon: '📱', title: 'Contactless & Pay', description: 'Apple Pay, Google Pay and Samsung Pay' },
+          ],
+        },
+        locked: false,
+      },
+      {
+        type: 'CAMPAIGN_CTA',
+        props: { primaryLabel: 'Apply for This Card', primaryUrl: '/apply/credit-card', subNote: 'First Year Annual Fee Waived', secondaryLabel: 'Compare Cards', secondaryUrl: '/credit-cards/compare' },
+        locked: false,
+      },
+    ],
+  },
+  {
+    templateId: 'tpl-deposit-campaign',
+    name: 'Deposit Campaign',
+    description: 'SDUI campaign page for time deposit and savings rate promotions. Includes header nav, promotional banner, structured rate table, open-deposit CTA and FAQ accordion. Follows HSBC wealth campaign standards for CN and HK markets.',
+    icon: '🏦',
+    channels: ['SDUI'],
+    bizLineIds: ['WEALTH', 'MARKETING'],
+    category: 'campaign',
+    seoRequired: false,
+    aeoRequired: false,
+    status: 'ACTIVE',
+    createdAt: '2026-03-01T00:00:00Z',
+    updatedAt: '2026-05-01T00:00:00Z',
+    maintainedBy: 'Wealth Product Team',
+    usageCount: 2,
+    starterSlices: [
+      { type: 'HEADER_NAV', props: { title: 'Savings Offers', showNotificationBell: false, showQRScanner: false, showBackButton: true }, locked: true },
+      { type: 'PROMO_BANNER', props: { title: '🌟 Exclusive Savings Rate', subtitle: 'Limited-time offer for new funds only. Open your time deposit today.', badgeText: '🔥 New Funds Only', backgroundColor: '#FFF7ED' }, locked: false },
+      { type: 'DEPOSIT_RATE_TABLE', props: { sectionTitle: 'Time Deposit Rates:', asAtDate: '', rates: [{ term: '3 Month', rate: '—' }, { term: '6 Month', rate: '—' }, { term: '12 Month', rate: '—' }], footnote: 'New Fund refers to funds not previously held with HSBC.' }, locked: false },
+      { type: 'DEPOSIT_OPEN_CTA', props: { label: 'Open a Deposit', deepLink: 'hsbc://deposit/open', backgroundColor: '#C41E3A', textColor: '#FFFFFF' }, locked: false },
+      { type: 'SPACER', props: { height: 16 }, locked: false },
+      { type: 'DEPOSIT_FAQ', props: { sectionTitle: 'Frequently Asked Questions', items: [{ id: 'faq-1', question: 'What is a time deposit?', answer: 'A time deposit is a savings product with a fixed term and a guaranteed interest rate.' }, { id: 'faq-2', question: 'What is "New Fund"?', answer: 'New Fund refers to funds not previously held with HSBC.' }] }, locked: false },
+    ],
+  },
+];
+
+// ─── Rule Parameter Definitions ───────────────────────────────────────────────
+
+export const CUSTOMER_SEGMENT_DEFS: CustomerSegmentDef[] = [
+  { segmentId: 'premier',  displayName: 'HSBC Premier',          description: 'Top-tier retail banking customers with Premier status',            active: true },
+  { segmentId: 'elite',    displayName: 'HSBC Elite / Jade',     description: 'Ultra-high-net-worth private wealth clients',                       active: true },
+  { segmentId: 'advance',  displayName: 'HSBC Advance',          description: 'Mid-tier customers with Advance eligibility',                       active: true },
+  { segmentId: 'mass',     displayName: 'Personal Banking',       description: 'Standard retail customers without Premier or Advance status',       active: true },
+  { segmentId: 'business', displayName: 'Business Banking',       description: 'SME and commercial business customers',                            active: true },
+];
+
+export const ACCOUNT_TYPE_DEFS: AccountTypeDef[] = [
+  { typeId: 'wealth_account',   displayName: 'Wealth / Investment Account', description: 'Investment, fund, and portfolio management accounts',    active: true },
+  { typeId: 'credit_card',      displayName: 'Credit Card',                  description: 'All credit card products (Visa, Mastercard, Amex)',      active: true },
+  { typeId: 'current_account',  displayName: 'Current Account',              description: 'Day-to-day transactional accounts',                      active: true },
+  { typeId: 'savings_account',  displayName: 'Savings Account',              description: 'Interest-bearing savings accounts',                      active: true },
+  { typeId: 'mortgage',         displayName: 'Mortgage',                     description: 'Home loans and mortgage products',                       active: true },
+  { typeId: 'time_deposit',     displayName: 'Time Deposit',                 description: 'Fixed-term deposit products',                            active: true },
+  { typeId: 'personal_loan',    displayName: 'Personal Loan',                description: 'Unsecured personal lending products',                    active: true },
+];
+
+export const LOCATION_DEFS: LocationDef[] = [
+  { locationId: 'HK',             displayName: 'Hong Kong',      description: 'Customers whose registered address is in Hong Kong',               active: true },
+  { locationId: 'mainland_china', displayName: 'Mainland China', description: 'Customers with a mainland China address or residency',             active: true },
+  { locationId: 'macau',          displayName: 'Macau',          description: 'Customers located in Macau SAR',                                   active: true },
+  { locationId: 'singapore',      displayName: 'Singapore',      description: 'Customers with a Singapore address',                               active: true },
+  { locationId: 'uk',             displayName: 'United Kingdom', description: 'Customers with a UK address',                                      active: true },
+  { locationId: 'other',          displayName: 'Other',          description: 'All other customer locations not listed above',                    active: true },
 ];

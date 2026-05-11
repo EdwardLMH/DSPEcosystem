@@ -17,7 +17,9 @@ DSPEcosystem/
 │   ├── 09_openbanking_kyc_sdui.md   # KYC SDUI orchestration design
 │   ├── 10_hive_design_tokens.md # HIVE design token system
 │   ├── 11_ad_rbac_design.md     # AD group RBAC & biz line authorisation
-│   └── 12_local_dev_environment.md  # Local development with mock-BFF
+│   ├── 12_local_dev_environment.md  # Local development with mock-BFF
+│   ├── 13_promo_video_script.md # Demo / promo video script
+│   └── 14_mipaaS_architecture.md # Mobile Intelligence PaaS architecture
 │
 ├── mock-bff/                    # Node.js/Express — Local Dev BFF Simulator
 │   └── server.js                # Single-file mock; replaces bff-java locally
@@ -27,12 +29,12 @@ DSPEcosystem/
 │
 ├── ocdp-console/                # React + TypeScript — OCDP Staff CMS Console
 │   └── src/
-│       ├── App.tsx              # Navigation router (pages, journeys, pending, audit…)
+│       ├── App.tsx              # Navigation router (pages, journeys, AEO, AI Search, audit…)
 │       ├── types/ocdp.ts        # Full type model: SliceType, PageLayout, WorkflowEntry
 │       ├── store/OCDPStore.tsx  # Global state
-│       └── panels/              # PageLibraryPanel, JourneyBuilderPanel, PendingPanel…
+│       └── components/          # PageLibraryPanel, JourneyBuilderPanel, Admin panels…
 │                                #   Proxies /ucp-api → :3001/api via Vite dev server
-│                                #   Port: 3002
+│                                #   Port: 5173 by Vite default
 │
 ├── ucp-console/                 # React + TypeScript — UCP Content Platform Console
 │   └── src/
@@ -60,12 +62,12 @@ DSPEcosystem/
 │       └── analytics/           # TealiumClient auto-instrumentation
 │
 ├── ios-sdui/                    # Swift 5.9 / SwiftUI — iOS SDUI Renderer
-│   └── HSBCKyc/
-│       ├── SDUI/Engine/         # KYCSDUIStepRouter, ComponentRegistry
+│   └── HSBCSDUI/
+│       ├── KYCSDUIStepRouter.swift
 │       ├── KYC/                 # KYCShellViews, KYCStepViews (11 KYC steps)
 │       ├── Wealth/              # WealthPageView
 │       ├── FXViewpoint/         # FXViewpointView
-│       ├── DesignSystem/        # HiveTokens.swift
+│       ├── HiveTokens.swift
 │       └── Analytics/           # TealiumClient.swift
 │
 ├── android-sdui/                # Kotlin / Jetpack Compose — Android SDUI Renderer
@@ -103,15 +105,24 @@ DSPEcosystem/
 
 | System | Purpose |
 |--------|---------|
-| mock-BFF | Node.js local dev simulator for bff-java; all state in-memory; port 4000 |
-| UCP Console | Staff content asset management & component registry UI; port 3001 |
-| OCDP Console | Staff CMS for authoring, reviewing & publishing SDUI pages; port 3002 |
-| Java BFF | Production SDUI JSON composition, personalisation, A/B routing |
-| SDUI Clients | Web / iOS / Android / HarmonyOS NEXT render UI purely from server JSON |
-| HIVE Tokens | Single design token source-of-truth emitted to CSS / Swift / Kotlin / ArkTS |
+| mock-BFF | Node.js local dev simulator for bff-java, OCDP/UCP, and AEM APIs; AI Search corpus rebuild endpoint (`POST /api/v1/search/config/{id}/rebuild`); all state in-memory; port 4000 |
+| UCP Console | Staff content asset management & component registry UI; multi-locale (i18n) authoring; WCAG 2.1 AA; port 3001 |
+| OCDP Console | Staff CMS for authoring, reviewing & publishing SDUI pages; content sidebar browses content from both UCP and HSBC AEM; AI Search Admin panel (per-app corpus config, rebuild trigger); multi-locale (i18n) authoring; WCAG 2.1 AA; port 5173 by Vite default |
+| HSBC AEM | Adobe Experience Manager — peer content provider to UCP; OCDP left sidebar queries AEM Content Delivery API alongside UCP; AEM URLs also usable as AI Search corpus content sources |
+| Java BFF | Production SDUI JSON composition, personalisation, A/B routing; fetches from UCP or AEM per `contentRef.source`; serves `POST /api/v1/search` semantic search + `GET /api/v1/search/corpus` |
+| SDUI Clients | Web / iOS / Android / HarmonyOS NEXT render UI from server JSON with static fallbacks; `AI_SEARCH_BAR` and `HOME_SEARCH_HEADER` slice types call the BFF search endpoint |
+| HIVE Tokens | Single design token source-of-truth emitted to CSS / Swift / Kotlin / ArkTS; WCAG 2.1 AA compliant colour palette |
 | DAP | Aggregates all feedback signals into content performance scores |
 | AEO Monitor | Tracks HSBC citation share in ChatGPT, Perplexity, Google AI |
 | Feedback Loop | Pushes actionable recommendations back into CMS editors |
+
+## Implemented Screen Snapshot
+
+| Screen | Route / ID | Implemented slice contract |
+|--------|------------|----------------------------|
+| Home Hub (HK) | `GET /api/v1/screen/home-wealth-hk` | 9 slices: `HOME_SEARCH_HEADER`, `COMBO_QUICK_ACCESS`, `CARD_ACTIVATION_BANNER`, `QUEST_BANNER`, `FEATURE_PRODUCT`, `WEALTH_STUDIO_CAROUSEL`, `GUIDES_INSIGHTS_CAROUSEL`, `FX_WATCHLIST`, `DISCOVER_MORE_CAROUSEL` |
+| FX Viewpoint | `GET /api/v1/screen/fx-viewpoint-hk` | `VIDEO_PLAYER`, `MARKET_BRIEFING_TEXT`, `CONTACT_RM_CTA` |
+| OBKYC | `/api/v1/kyc/sessions/**` | Platform-split step plan with web compound steps and mobile-native steps |
 
 ## Quick Start
 

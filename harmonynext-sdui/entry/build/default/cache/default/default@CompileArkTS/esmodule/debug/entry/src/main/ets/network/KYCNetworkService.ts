@@ -1,17 +1,42 @@
 import http from "@ohos:net.http";
-import type { StartSessionResponse, SDUIScreenPayload, SubmitRequest, SubmitResponse } from '../models/SDUIModels';
+import i18n from "@ohos:i18n";
+import type { StartSessionResponse, SDUIScreenPayload, SubmitRequest, SubmitResponse, BFFConfig } from '../models/SDUIModels';
 // DevEco emulator: 10.0.2.2 is the host loopback
 // Physical device: use your Mac's LAN IP (10.81.103.103)
 // Toggle the comment below based on your test environment:
 const BASE_URL = 'http://10.0.2.2:4000/api/v1'; // For emulator
 // const BASE_URL = 'http://10.81.103.103:4000/api/v1'  // For physical device
+// ─── Locale helpers ──────────────────────────────────────────────────────────
+function resolveHarmonyLocale(): string {
+    const systemLocale = i18n.System.getSystemLocale(); // e.g. "zh-Hant-HK", "en-GB"
+    const lower = systemLocale.toLowerCase();
+    if (lower.startsWith('zh-hant') || lower === 'zh-hk' || lower === 'zh-tw')
+        return 'zh-TW';
+    if (lower.startsWith('zh-hans') || lower === 'zh-cn' || lower === 'zh-sg')
+        return 'zh-CN';
+    if (lower.startsWith('zh'))
+        return 'zh-TW';
+    if (lower.startsWith('ar'))
+        return 'ar';
+    if (lower.startsWith('es'))
+        return 'es';
+    return 'en';
+}
+// HarmonyNext does not expose VoiceReader API in ArkTS yet; font-scale is the only
+// detectable accessibility preference. Set screenReader flag via developer config.
+function resolveA11yFlags(): string {
+    return ''; // Extend when HarmonyOS accessibility API becomes available in ArkTS
+}
 async function doRequest<T>(method: http.RequestMethod, path: string, headers: Record<string, string>, body?: string): Promise<T> {
     const client = http.createHttp();
     // FIX: was '...headers' spread inside object literal — arkts-no-spread.
     // ArkTS forbids spread in object literals. Build the merged header Record explicitly.
     const mergedHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'x-locale': resolveHarmonyLocale(),
+        'x-a11y-flags': resolveA11yFlags(),
+        'x-channel': 'SDUI',
     };
     // FIX: 'for...in' is forbidden in ArkTS (arkts-no-for-in).
     // Object.keys() returns string[] and is legal on a typed Record parameter.
@@ -31,10 +56,10 @@ async function doRequest<T>(method: http.RequestMethod, path: string, headers: R
     }
     throw new Error(`HTTP ${resp.responseCode}: unexpected response`);
 }
-// FIX: removed default-value `headers: Record<string, string> = {}` parameter —
-// ArkTS allows default values on typed params, so that was fine. But we removed the
-// spread inside the function body above. The empty-object default on the headers param
-// is kept because it is a named typed param (not a destructured param), which is legal.
+// ─── Config bootstrap ─────────────────────────────────────────────────────────
+export async function fetchConfig(): Promise<BFFConfig> {
+    return doRequest<BFFConfig>(http.RequestMethod.GET, '/config', { 'x-platform': 'harmonynext' });
+}
 export async function startSession(platform: string): Promise<StartSessionResponse> {
     return doRequest<StartSessionResponse>(http.RequestMethod.POST, '/kyc/sessions/start', { 'x-platform': platform }, JSON.stringify({ journeyType: 'PERSONAL_ACCOUNT_OPENING', market: 'HK' }));
 }
@@ -71,9 +96,14 @@ export async function fetchWealthScreen(): Promise<WealthScreenPayload> {
     const client = http.createHttp();
     const resp = await client.request(BASE_URL + '/screen/home-wealth-hk', {
         method: http.RequestMethod.GET,
-        header: { 'Accept': 'application/json' }
+        header: { 'Accept': 'application/json' },
+        connectTimeout: 8000,
+        readTimeout: 8000
     });
     client.destroy();
+    if (resp.responseCode !== 200) {
+        throw new Error(`fetchWealthScreen: HTTP ${resp.responseCode}`);
+    }
     if (typeof resp.result === 'string') {
         return JSON.parse(resp.result) as WealthScreenPayload;
     }
@@ -86,9 +116,14 @@ export async function fetchFXViewpointScreen(): Promise<WealthScreenPayload> {
     const client = http.createHttp();
     const resp = await client.request(BASE_URL + '/screen/fx-viewpoint-hk', {
         method: http.RequestMethod.GET,
-        header: { 'Accept': 'application/json', 'x-platform': 'harmonynext' }
+        header: { 'Accept': 'application/json', 'x-platform': 'harmonynext' },
+        connectTimeout: 8000,
+        readTimeout: 8000
     });
     client.destroy();
+    if (resp.responseCode !== 200) {
+        throw new Error(`fetchFXViewpointScreen: HTTP ${resp.responseCode}`);
+    }
     if (typeof resp.result === 'string') {
         return JSON.parse(resp.result) as WealthScreenPayload;
     }
@@ -101,9 +136,14 @@ export async function fetchDepositCampaignScreen(): Promise<WealthScreenPayload>
     const client = http.createHttp();
     const resp = await client.request(BASE_URL + '/screen/deposit-campaign-hk', {
         method: http.RequestMethod.GET,
-        header: { 'Accept': 'application/json', 'x-platform': 'harmonynext' }
+        header: { 'Accept': 'application/json', 'x-platform': 'harmonynext' },
+        connectTimeout: 8000,
+        readTimeout: 8000
     });
     client.destroy();
+    if (resp.responseCode !== 200) {
+        throw new Error(`fetchDepositCampaignScreen: HTTP ${resp.responseCode}`);
+    }
     if (typeof resp.result === 'string') {
         return JSON.parse(resp.result) as WealthScreenPayload;
     }

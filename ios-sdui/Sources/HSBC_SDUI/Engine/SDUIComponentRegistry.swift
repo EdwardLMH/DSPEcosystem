@@ -58,6 +58,21 @@ public struct SDUIComponentRegistry {
                 RecommendationCarouselView(props: props, children: children, actionHandler: actionHandler)
             )
 
+        case "WEALTH_STUDIO_CAROUSEL":
+            AnyView(
+                WealthStudioCarouselView(props: props.mapValues { $0.value as Any })
+            )
+
+        case "GUIDES_INSIGHTS_CAROUSEL":
+            AnyView(
+                GuidesInsightsCarouselView(props: props.mapValues { $0.value as Any })
+            )
+
+        case "DISCOVER_MORE_CAROUSEL":
+            AnyView(
+                DiscoverMoreCarouselView(props: props.mapValues { $0.value as Any })
+            )
+
         default:
             // Log unknown component so we can detect schema/client drift.
             let _ = {

@@ -15,6 +15,37 @@ export interface ScreenMetadata {
     totalSteps: number;
     sectionTitle: string;
     platform: string;
+    locale?: string;
+    textDir?: string;
+    channel?: string;
+    a11y?: SDUIAccessibility;
+}
+export interface SDUIAccessibility {
+    reduceMotion?: boolean;
+    highContrast?: boolean;
+    largeText?: boolean;
+    screenReader?: boolean;
+}
+// ─── BFF Config bootstrap ─────────────────────────────────────────────────────
+export interface BFFConfig {
+    locale: string;
+    textDir: string;
+    supportedLocales: string[];
+    channel: string;
+    platform: string;
+    a11y: SDUIAccessibility;
+    featureFlags: Record<string, boolean>;
+    sdui: BFFSDUIConfig;
+    wcag: BFFWCAGConfig;
+}
+export interface BFFSDUIConfig {
+    schemaVersion: string;
+    ttlSeconds: number;
+    cacheStrategy: string;
+}
+export interface BFFWCAGConfig {
+    level: string;
+    version: string;
 }
 export interface SDUINode {
     type: string;
@@ -49,6 +80,8 @@ export interface StartSessionResponse {
     sessionId: string;
     totalSteps: number;
     platform: string;
+    locale?: string;
+    channel?: string;
 }
 export interface SubmitRequest {
     answers: AnswerEntry[];
@@ -70,6 +103,8 @@ export interface ValidationErrorDto {
 // ─── Actions — mirrors iOS KYCAction enum / Android ViewModel named methods ───
 //
 // type values:
+//   LOAD_CONFIG           dispatched on app launch to fetch BFF bootstrap config
+//   CONFIG_LOADED         dispatched by store after fetchConfig() succeeds
 //   START_SESSION         dispatched by shell "Begin Application" button
 //   SESSION_STARTED       dispatched by store after BFF session start succeeds
 //   STEP_LOADED           dispatched by store after BFF returns step payload
@@ -90,6 +125,7 @@ export interface KYCAction {
     nextStepId?: string;
     errorMessage?: string;
     validationErrors?: ValidationErrorDto[];
+    config?: BFFConfig;
 }
 // ─── UI State ─────────────────────────────────────────────────────────────────
 @Observed
@@ -106,6 +142,13 @@ export class KYCState {
     isSubmitting: boolean = false;
     isComplete: boolean = false;
     errorMessage: string = '';
+    // i18n + a11y + channel
+    locale: string = 'en';
+    textDir: string = 'ltr';
+    channel: string = 'SDUI';
+    a11yReduceMotion: boolean = false;
+    a11yHighContrast: boolean = false;
+    a11yLargeText: boolean = false;
     // Encapsulated answer mutation — use instead of direct answers[key] = v.
     // Mirrors Android viewModel.setAnswer() and iOS dispatch(.setAnswer(...)).
     setAnswer(questionId: string, value: any): void {
@@ -114,7 +157,21 @@ export class KYCState {
     // Synchronous reducer — pure state mutation, no side effects.
     // Called by KYCStore.dispatch() before handleEffect().
     dispatch(action: KYCAction): void {
-        if (action.type === 'START_SESSION') {
+        if (action.type === 'LOAD_CONFIG') {
+            // no-op in reducer — effect handles async fetch
+        }
+        else if (action.type === 'CONFIG_LOADED') {
+            const cfg = action.config;
+            if (cfg !== undefined && cfg !== null) {
+                this.locale = cfg.locale;
+                this.textDir = cfg.textDir;
+                this.channel = cfg.channel;
+                this.a11yReduceMotion = cfg.a11y.reduceMotion ?? false;
+                this.a11yHighContrast = cfg.a11y.highContrast ?? false;
+                this.a11yLargeText = cfg.a11y.largeText ?? false;
+            }
+        }
+        else if (action.type === 'START_SESSION') {
             this.isLoading = true;
             this.errorMessage = '';
         }
@@ -131,6 +188,18 @@ export class KYCState {
                 this.currentStepIndex = p.metadata.stepIndex;
                 this.totalSteps = p.metadata.totalSteps;
                 this.sectionTitle = p.metadata.sectionTitle;
+                // Propagate per-step locale/a11y from BFF metadata
+                if (p.metadata.locale)
+                    this.locale = p.metadata.locale;
+                if (p.metadata.textDir)
+                    this.textDir = p.metadata.textDir;
+                if (p.metadata.channel)
+                    this.channel = p.metadata.channel;
+                if (p.metadata.a11y) {
+                    this.a11yReduceMotion = p.metadata.a11y.reduceMotion ?? this.a11yReduceMotion;
+                    this.a11yHighContrast = p.metadata.a11y.highContrast ?? this.a11yHighContrast;
+                    this.a11yLargeText = p.metadata.a11y.largeText ?? this.a11yLargeText;
+                }
             }
             this.isLoading = false;
             this.isSubmitting = false;

@@ -3,6 +3,8 @@ import { useOCDP } from '../../store/OCDPStore';
 import type { CanvasSlice, PageLayout, CampaignSchedule, UCPContentAsset, CustomerSegment, VisibilityRule, RuleCondition, RuleOperator, AccountType, CustomerLocation, PreviewContext, CustomFieldCondition } from '../../types/ocdp';
 import { PALETTE_COMPONENTS, PALETTE_CATEGORIES, type PaletteComponent } from '../../store/ucpComponents';
 import { FALLBACK_CONTENT_ASSETS } from '../../store/ucpAssets';
+import { LanguageSelector } from './LanguageSelector';
+import { getLocaleDir, getSliceProps, TRANSLATABLE_PROP_KEYS } from '../../utils/i18n';
 
 // ─── Slice renderer (preview in canvas) ──────────────────────────────────────
 
@@ -646,8 +648,8 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
         <div style={{ ...base, background: '#DB0011', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ color: '#fff', fontWeight: 800, fontSize: 13 }}>HSBC</span>
           <span style={{ color: 'rgba(255,255,255,0.85)', flex: 1, fontSize: 11 }}>{String(p.title ?? 'Header')}</span>
-          {p.showNotificationBell && <span style={{ color: '#fff' }}>🔔</span>}
-          {p.showQRScanner && <QRScanIcon color="#fff" size={16} />}
+          {!!p.showNotificationBell && <span style={{ color: '#fff' }}>🔔</span>}
+          {!!p.showQRScanner && <QRScanIcon color="#fff" size={16} />}
         </div>
       );
     case 'AI_SEARCH_BAR':
@@ -693,8 +695,8 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
               </div>
             )}
           <div style={{ padding: '8px 12px 10px' }}>
-            {p.title && <div style={{ fontWeight: 700, fontSize: 11, color: '#fff', marginBottom: 2 }}>{String(p.title)}</div>}
-            {p.presenterName && (
+            {!!p.title && <div style={{ fontWeight: 700, fontSize: 11, color: '#fff', marginBottom: 2 }}>{String(p.title)}</div>}
+            {!!p.presenterName && (
               <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.65)' }}>
                 {String(p.presenterName)}{p.presenterTitle ? ` · ${String(p.presenterTitle)}` : ''}
               </div>
@@ -705,16 +707,16 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
     case 'PROMO_BANNER':
       return (
         <div style={{ ...base, background: String(p.backgroundColor ?? '#E8F4FD'), overflow: 'hidden', position: 'relative', padding: p.imageUrl && !p.title ? 0 : '12px 14px' }}>
-          {p.imageUrl && (
+          {!!p.imageUrl && (
             <img src={String(p.imageUrl)} alt={String(p.altText ?? '')}
               style={{ width: '100%', display: 'block', objectFit: 'cover', height: p.title ? 60 : 72 }} />
           )}
-          {p.title && (
+          {!!p.title && (
             <div style={{ padding: p.imageUrl ? '8px 14px 12px' : undefined }}>
-              {p.badgeText && <div style={{ display: 'inline-block', padding: '2px 8px', background: '#FED7AA', color: '#92400E', borderRadius: 12, fontSize: 9, fontWeight: 700, marginBottom: 4 }}>{String(p.badgeText)}</div>}
+              {!!p.badgeText && <div style={{ display: 'inline-block', padding: '2px 8px', background: '#FED7AA', color: '#92400E', borderRadius: 12, fontSize: 9, fontWeight: 700, marginBottom: 4 }}>{String(p.badgeText)}</div>}
               <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 2, color: String(p.textColor ?? '#111') }}>{String(p.title)}</div>
-              {p.subtitle && <div style={{ fontSize: 10, marginBottom: 6, color: String(p.textColor ? p.textColor + 'CC' : '#555') }}>{String(p.subtitle)}</div>}
-              {p.ctaLabel && <div style={{ display: 'inline-block', padding: '3px 10px', background: '#DB0011', color: '#fff', borderRadius: 4, fontSize: 10, fontWeight: 700 }}>{String(p.ctaLabel)}</div>}
+              {!!p.subtitle && <div style={{ fontSize: 10, marginBottom: 6, color: String(p.textColor ? p.textColor + 'CC' : '#555') }}>{String(p.subtitle)}</div>}
+              {!!p.ctaLabel && <div style={{ display: 'inline-block', padding: '3px 10px', background: '#DB0011', color: '#fff', borderRadius: 4, fontSize: 10, fontWeight: 700 }}>{String(p.ctaLabel)}</div>}
             </div>
           )}
         </div>
@@ -800,7 +802,7 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
             <div style={{ fontWeight: 700, fontSize: 11 }}>{String(p.title ?? 'Ad Banner')}</div>
             <div style={{ fontSize: 9, color: '#6B7280' }}>{String(p.subtitle ?? '')}</div>
           </div>
-          {p.dismissible && <span style={{ color: '#9CA3AF', fontSize: 14, cursor: 'pointer' }}>×</span>}
+          {!!p.dismissible && <span style={{ color: '#9CA3AF', fontSize: 14, cursor: 'pointer' }}>×</span>}
         </div>
       );
     case 'SPACER':
@@ -824,7 +826,7 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
               <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>+{p.bulletPoints.length - 3} more…</div>
             )}
           </div>
-          {p.disclaimer && (
+          {!!p.disclaimer && (
             <div style={{ marginTop: 8, padding: '6px 8px', background: '#F9FAFB', borderRadius: 4, fontSize: 8, color: '#9CA3AF', lineHeight: 1.4, borderLeft: '2px solid #E5E7EB' }}>
               {String(p.disclaimer).substring(0, 80)}…
             </div>
@@ -844,7 +846,7 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
             <span style={{ fontWeight: 700, fontSize: 11, color: String(p.textColor ?? '#FFFFFF'), whiteSpace: 'nowrap' }}>
               {String(p.label ?? 'Contact Your RM')}
             </span>
-            {p.sticky && <span style={{ fontSize: 8, padding: '1px 5px', background: 'rgba(255,255,255,0.25)', borderRadius: 6, color: '#fff', fontWeight: 600 }}>STICKY</span>}
+            {!!p.sticky && <span style={{ fontSize: 8, padding: '1px 5px', background: 'rgba(255,255,255,0.25)', borderRadius: 6, color: '#fff', fontWeight: 600 }}>STICKY</span>}
           </div>
         </div>
       );
@@ -853,7 +855,7 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
       return (
         <div style={{ ...base, padding: '10px 12px', background: '#fff', fontFamily: 'sans-serif' }}>
           <div style={{ fontWeight: 700, fontSize: 11, color: '#111', marginBottom: 4 }}>{String(p.sectionTitle ?? 'Time Deposit Rate:')}</div>
-          {p.asAtDate && <div style={{ fontSize: 8, color: '#6B7280', marginBottom: 6 }}>As at {String(p.asAtDate)}</div>}
+          {!!p.asAtDate && <div style={{ fontSize: 8, color: '#6B7280', marginBottom: 6 }}>As at {String(p.asAtDate)}</div>}
           <div style={{ border: '1px solid #E5E7EB', borderRadius: 6, overflow: 'hidden', marginBottom: 8 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#F9FAFB', padding: '4px 8px', borderBottom: '1px solid #E5E7EB' }}>
               <span style={{ fontSize: 8, fontWeight: 700, color: '#6B7280' }}>Term</span>
@@ -866,7 +868,7 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
               </div>
             ))}
           </div>
-          {p.footnote && <div style={{ fontSize: 8, color: '#6B7280' }}>{String(p.footnote)}</div>}
+          {!!p.footnote && <div style={{ fontSize: 8, color: '#6B7280' }}>{String(p.footnote)}</div>}
         </div>
       );
     }
@@ -912,7 +914,7 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
             <div style={{ position: 'absolute', top: 10, left: 10, width: 14, height: 10, background: accent, borderRadius: 2, opacity: 0.7 }} />
           </div>
           {/* Badge */}
-          {p.badge && (
+          {!!p.badge && (
             <div style={{ display: 'inline-block', background: accent, color: '#fff', fontSize: 7, fontWeight: 700, padding: '2px 7px', borderRadius: 10, marginBottom: 8, letterSpacing: 0.5 }}>
               {String(p.badge)}
             </div>
@@ -931,7 +933,7 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
       const benefits = Array.isArray(p.benefits) ? p.benefits as { icon: string; title: string; desc: string }[] : [];
       return (
         <div style={{ ...base, background: '#fff', padding: '12px 14px' }}>
-          {p.sectionTitle && (
+          {!!p.sectionTitle && (
             <div style={{ fontSize: 11, fontWeight: 800, color: '#111', marginBottom: 10 }}>{String(p.sectionTitle)}</div>
           )}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -953,16 +955,16 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
     case 'CAMPAIGN_CTA': {
       return (
         <div style={{ ...base, background: '#fff', padding: '14px 16px', textAlign: 'center' }}>
-          {p.offerBadge && (
+          {!!p.offerBadge && (
             <div style={{ display: 'inline-block', background: '#FEF3C7', border: '1px solid #FCD34D', color: '#92400E', fontSize: 8, fontWeight: 700, padding: '2px 10px', borderRadius: 10, marginBottom: 10 }}>
               🎁 {String(p.offerBadge)}
             </div>
           )}
           <div style={{ background: '#DB0011', borderRadius: 10, padding: '10px 20px', marginBottom: 6, cursor: 'pointer' }}>
             <div style={{ color: '#fff', fontSize: 11, fontWeight: 800 }}>{String(p.ctaLabel ?? 'Apply Now')}</div>
-            {p.ctaSubtext && <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 8, marginTop: 2 }}>{String(p.ctaSubtext)}</div>}
+            {!!p.ctaSubtext && <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 8, marginTop: 2 }}>{String(p.ctaSubtext)}</div>}
           </div>
-          {p.secondaryLabel && (
+          {!!p.secondaryLabel && (
             <div style={{ color: '#DB0011', fontSize: 9, fontWeight: 600, textDecoration: 'underline', cursor: 'pointer' }}>
               {String(p.secondaryLabel)}
             </div>
@@ -990,8 +992,8 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
               <span style={{ color: accent, fontSize: 10, fontWeight: 900 }}>H</span>
             </div>
             <span style={{ color: accent, fontSize: 11, fontWeight: 700, flex: 1 }}>{segLabel}</span>
-            {p.enableNotification && <span style={{ color: accent, fontSize: 14 }}>🔔</span>}
-            {p.enableHeadset      && <span style={{ color: accent, fontSize: 13 }}>🎧</span>}
+            {!!p.enableNotification && <span style={{ color: accent, fontSize: 14 }}>🔔</span>}
+            {!!p.enableHeadset      && <span style={{ color: accent, fontSize: 13 }}>🎧</span>}
           </div>
           {/* White search bar — full width, no arc */}
           <div style={{ background: '#fff', borderRadius: 0, padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -1024,8 +1026,8 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
             <span style={{ color: hc.accent, fontSize: 10, fontWeight: 900 }}>H</span>
           </div>
           <span style={{ color: hc.accent, fontSize: 11, fontWeight: 700, flex: 1 }}>{hc.label}</span>
-          {p.enableNotification && <span style={{ color: hc.accent, fontSize: 14 }}>🔔</span>}
-          {p.enableHeadset     && <span style={{ color: hc.accent, fontSize: 13 }}>🎧</span>}
+          {!!p.enableNotification && <span style={{ color: hc.accent, fontSize: 14 }}>🔔</span>}
+          {!!p.enableHeadset     && <span style={{ color: hc.accent, fontSize: 13 }}>🎧</span>}
         </div>
       );
     }
@@ -1203,7 +1205,7 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
             </div>
           ))}
           {funds.length === 0 && <div style={{ padding: '8px 12px', fontSize: 9, color: '#9CA3AF', fontStyle: 'italic' }}>No funds configured</div>}
-          {p.moreLabel && (
+          {!!p.moreLabel && (
             <div style={{ padding: '6px 12px', fontSize: 9, color: '#374151' }}>{String(p.moreLabel)} ›</div>
           )}
         </div>
@@ -1211,25 +1213,45 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
     }
 
     case 'WEALTH_STUDIO_CAROUSEL': {
-      const items = Array.isArray(p.items) ? p.items as { id: string; episodeLabel: string; liveBadge: string; title: string; ctaLabel: string; imageColor: string }[] : [];
+      const items = Array.isArray(p.items) ? p.items as { id: string; episodeLabel?: string; liveBadge?: string; title?: string; ctaLabel?: string; imageColor?: string; videoUrl?: string; thumbnailUrl?: string; presenter?: string; durationSeconds?: number }[] : [];
+      const cols = Math.max(1, parseInt(String(p.numColumns ?? '1'), 10) || 1);
+      const isGrid = cols > 1;
       return (
-        <div style={{ ...base, background: '#F9FAFB', padding: '10px 0' }}>
+        <div style={{ ...base, background: '#0A1628', padding: '10px 0' }}>
           <div style={{ padding: '0 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <span style={{ fontWeight: 700, fontSize: 12, color: '#111' }}>{String(p.sectionTitle ?? 'Premier Elite Wealth Studio')}</span>
-            <span style={{ fontSize: 9, color: '#DB0011', fontWeight: 600 }}>{String(p.moreLabel ?? 'View all')} ›</span>
+            <span style={{ fontWeight: 700, fontSize: 12, color: '#fff' }}>{String(p.sectionTitle ?? 'Premier Elite Wealth Studio')}</span>
+            <span style={{ fontSize: 9, color: '#c9a96e', fontWeight: 600 }}>{String(p.moreLabel ?? 'View all')} ›</span>
           </div>
-          <div style={{ padding: '0 12px', display: 'flex', gap: 8 }}>
+          <div style={{
+            padding: '0 12px',
+            ...(isGrid
+              ? { display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 10 }
+              : { display: 'flex', gap: 10, overflowX: 'auto' }),
+          }}>
             {items.map(item => (
-              <div key={item.id} style={{ width: 130, flexShrink: 0, borderRadius: 8, overflow: 'hidden', background: item.imageColor ?? '#1A1A2E', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
-                <div style={{ padding: '8px 8px 10px' }}>
-                  <div style={{ background: '#DB0011', display: 'inline-block', padding: '1px 5px', borderRadius: 3, fontSize: 7, color: '#fff', fontWeight: 700, marginBottom: 4 }}>{item.liveBadge}</div>
-                  <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)', marginBottom: 2 }}>{item.episodeLabel}</div>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: '#fff', lineHeight: 1.3, marginBottom: 10 }}>{item.title}</div>
+              <div key={item.id} style={{ ...(isGrid ? {} : { width: 140, flexShrink: 0 }), borderRadius: 8, overflow: 'hidden', background: item.imageColor ?? '#1A1A2E', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+                {item.videoUrl
+                  ? (
+                    <video
+                      src={item.videoUrl}
+                      style={{ width: '100%', height: 80, objectFit: 'cover', display: 'block', background: '#000' }}
+                      muted playsInline preload="metadata" controls
+                    />
+                  )
+                  : item.thumbnailUrl
+                    ? <img src={item.thumbnailUrl} alt={item.title ?? ''} style={{ width: '100%', height: 80, objectFit: 'cover', display: 'block' }} />
+                    : <div style={{ width: '100%', height: 80, background: '#1A2A4A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 22, opacity: 0.5 }}>🎬</span></div>
+                }
+                <div style={{ padding: '6px 8px 8px' }}>
+                  {item.liveBadge ? <div style={{ background: '#DB0011', display: 'inline-block', padding: '1px 5px', borderRadius: 3, fontSize: 7, color: '#fff', fontWeight: 700, marginBottom: 3 }}>{item.liveBadge}</div> : null}
+                  <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.6)', marginBottom: 2 }}>{item.episodeLabel ?? ''}</div>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: '#fff', lineHeight: 1.3, marginBottom: 6 }}>{item.title ?? ''}</div>
+                  {item.presenter && <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>{item.presenter}</div>}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                     <div style={{ width: 14, height: 14, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <span style={{ color: '#fff', fontSize: 6, marginLeft: 1 }}>▶</span>
                     </div>
-                    <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.85)' }}>{item.ctaLabel}</span>
+                    <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.85)' }}>{item.ctaLabel ?? 'Watch now'}</span>
                   </div>
                 </div>
               </div>
@@ -1241,19 +1263,27 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
     }
 
     case 'GUIDES_INSIGHTS_CAROUSEL': {
-      const items = Array.isArray(p.items) ? p.items as { id: string; title: string; date: string; imageColor: string }[] : [];
+      const items = Array.isArray(p.items) ? p.items as { id: string; title?: string; description?: string; date?: string; imageColor?: string; deepLink?: string }[] : [];
+      const cols = Math.max(1, parseInt(String(p.numColumns ?? '1'), 10) || 1);
+      const isGrid = cols > 1;
       return (
         <div style={{ ...base, background: '#fff', padding: '10px 0' }}>
           <div style={{ padding: '0 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <span style={{ fontWeight: 700, fontSize: 12, color: '#111' }}>{String(p.sectionTitle ?? 'Guides and insights')}</span>
             <span style={{ fontSize: 9, color: '#DB0011', fontWeight: 600 }}>{String(p.moreLabel ?? 'View all')} ›</span>
           </div>
-          <div style={{ padding: '0 12px', display: 'flex', gap: 10 }}>
+          <div style={{
+            padding: '0 12px',
+            ...(isGrid
+              ? { display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 10 }
+              : { display: 'flex', gap: 10 }),
+          }}>
             {items.map(item => (
-              <div key={item.id} style={{ flex: 1, minWidth: 0 }}>
+              <div key={item.id} style={{ ...(isGrid ? {} : { flex: 1, minWidth: 0 }) }}>
                 <div style={{ height: 64, background: item.imageColor ?? '#2D3748', borderRadius: 6, marginBottom: 5 }} />
-                <div style={{ fontSize: 9, color: '#111', lineHeight: 1.3, marginBottom: 3 }}>{item.title}</div>
-                <div style={{ fontSize: 8, color: '#9CA3AF' }}>🕐 {item.date}</div>
+                <div style={{ fontSize: 9, color: '#111', lineHeight: 1.3, marginBottom: 3 }}>{item.title ?? ''}</div>
+                {item.description && <div style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.3, marginBottom: 3 }}>{item.description}</div>}
+                <div style={{ fontSize: 8, color: '#9CA3AF' }}>🕐 {item.date ?? ''}</div>
               </div>
             ))}
             {items.length === 0 && <div style={{ fontSize: 9, color: '#9CA3AF', fontStyle: 'italic', padding: '8px 0' }}>No articles configured</div>}
@@ -1267,7 +1297,7 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
       return (
         <div style={{ ...base, background: '#fff', padding: '10px 0' }}>
           <div style={{ padding: '0 12px', fontWeight: 700, fontSize: 12, color: '#111', marginBottom: 8 }}>{String(p.sectionTitle ?? 'FX watchlist')}</div>
-          {p.tierBadge && (
+          {!!p.tierBadge && (
             <div style={{ margin: '0 12px 8px', background: '#FFFBEB', borderRadius: 8, padding: '6px 10px', display: 'flex', alignItems: 'flex-start', gap: 6, border: '1px solid #FDE68A' }}>
               <span style={{ fontSize: 16, flexShrink: 0 }}>🏅</span>
               <div>
@@ -1294,24 +1324,32 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
             ))}
             {pairs.length === 0 && <div style={{ fontSize: 9, color: '#9CA3AF', fontStyle: 'italic' }}>No pairs configured</div>}
           </div>
-          {p.moreLabel && <div style={{ padding: '6px 12px', fontSize: 9, color: '#374151' }}>{String(p.moreLabel)} ›</div>}
+          {!!p.moreLabel && <div style={{ padding: '6px 12px', fontSize: 9, color: '#374151' }}>{String(p.moreLabel)} ›</div>}
         </div>
       );
     }
 
     case 'DISCOVER_MORE_CAROUSEL': {
-      const items = Array.isArray(p.items) ? p.items as { id: string; tag: string; tagColor: string; title: string; imageColor: string }[] : [];
+      const items = Array.isArray(p.items) ? p.items as { id: string; tag?: string; tagColor?: string; title?: string; description?: string; subtitle?: string; imageColor?: string; deepLink?: string }[] : [];
+      const cols = Math.max(1, parseInt(String(p.numColumns ?? '1'), 10) || 1);
+      const isGrid = cols > 1;
       return (
         <div style={{ ...base, background: '#F9FAFB', padding: '10px 0' }}>
           <div style={{ padding: '0 12px', fontWeight: 700, fontSize: 12, color: '#111', marginBottom: 8 }}>{String(p.sectionTitle ?? 'Discover more')}</div>
-          <div style={{ padding: '0 12px', display: 'flex', gap: 8 }}>
+          <div style={{
+            padding: '0 12px',
+            ...(isGrid
+              ? { display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 8 }
+              : { display: 'flex', gap: 8 }),
+          }}>
             {items.map(item => (
-              <div key={item.id} style={{ width: 110, flexShrink: 0, borderRadius: 8, overflow: 'hidden', background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.08)' }}>
+              <div key={item.id} style={{ ...(isGrid ? {} : { width: 110, flexShrink: 0 }), borderRadius: 8, overflow: 'hidden', background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.08)' }}>
                 <div style={{ height: 64, background: item.imageColor ?? '#1A2E4A', position: 'relative' }}>
-                  <div style={{ position: 'absolute', top: 5, left: 5, background: item.tagColor ?? '#DB0011', borderRadius: 3, padding: '1px 5px', fontSize: 7, color: '#fff', fontWeight: 700 }}>{item.tag}</div>
+                  <div style={{ position: 'absolute', top: 5, left: 5, background: item.tagColor ?? '#DB0011', borderRadius: 3, padding: '1px 5px', fontSize: 7, color: '#fff', fontWeight: 700 }}>{item.tag ?? ''}</div>
                 </div>
                 <div style={{ padding: '6px 8px 8px' }}>
-                  <div style={{ fontSize: 9, fontWeight: 600, color: '#111', lineHeight: 1.3 }}>{item.title}</div>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: '#111', lineHeight: 1.3, marginBottom: 2 }}>{item.title ?? ''}</div>
+                  {(item.description ?? item.subtitle) && <div style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.3 }}>{item.description ?? item.subtitle}</div>}
                 </div>
               </div>
             ))}
@@ -1579,7 +1617,7 @@ function iconBtn(disabled: boolean): React.CSSProperties {
 function MetaPanel({
   page, isJourneyPage, readOnly,
   onSave, onChangeName, onChangeDesc,
-  onToggleNativeTarget,
+  onToggleNativeTarget, onTogglePublic,
   campaignSchedule, onScheduleChange,
 }: {
   page: PageLayout; isJourneyPage: boolean; readOnly?: boolean;
@@ -1587,6 +1625,7 @@ function MetaPanel({
   onChangeName: (v: string) => void;
   onChangeDesc: (v: string) => void;
   onToggleNativeTarget: (t: 'ios' | 'android' | 'harmonynext' | 'web') => void;
+  onTogglePublic: (v: boolean) => void;
   campaignSchedule?: CampaignSchedule;
   onScheduleChange: (s: CampaignSchedule | undefined) => void;
 }) {
@@ -1662,6 +1701,41 @@ function MetaPanel({
                         </button>
                       );
                     })}
+                  </div>
+                )}
+              </Field>
+            )}
+            {/* Web Visibility — shown for SDUI+web or WEB_STANDARD */}
+            {(page.channel === 'WEB_STANDARD' || (page.channel === 'SDUI' && (page.nativeTargets ?? []).includes('web'))) && (
+              <Field label="Web Visibility">
+                {readOnly ? (
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                    padding: '3px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700,
+                    background: page.isPublic ? '#D1FAE5' : '#F3F4F6',
+                    color: page.isPublic ? '#059669' : '#6B7280',
+                    border: `1px solid ${page.isPublic ? '#A7F3D0' : '#D1D5DB'}`,
+                  }}>
+                    {page.isPublic ? '🌐 Public' : '🔒 Private'}
+                  </span>
+                ) : (
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button onClick={() => onTogglePublic(false)} style={{
+                      flex: 1, padding: '7px 8px', borderRadius: 7, cursor: 'pointer', textAlign: 'left',
+                      border: !page.isPublic ? '2px solid #6B7280' : '2px solid #E5E7EB',
+                      background: !page.isPublic ? '#F3F4F6' : '#fff', transition: 'all 0.1s',
+                    }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: !page.isPublic ? '#374151' : '#9CA3AF' }}>🔒 Private</div>
+                      <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>Auth only · no AEO/SEO</div>
+                    </button>
+                    <button onClick={() => onTogglePublic(true)} style={{
+                      flex: 1, padding: '7px 8px', borderRadius: 7, cursor: 'pointer', textAlign: 'left',
+                      border: page.isPublic ? '2px solid #059669' : '2px solid #E5E7EB',
+                      background: page.isPublic ? '#D1FAE5' : '#fff', transition: 'all 0.1s',
+                    }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: page.isPublic ? '#059669' : '#9CA3AF' }}>🌐 Public</div>
+                      <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>Indexed · AEO/SEO assessed</div>
+                    </button>
                   </div>
                 )}
               </Field>
@@ -1810,14 +1884,22 @@ const SLICE_PROP_FIELDS: Partial<Record<string, PropField[]>> = {
     { key: 'moreDeepLink',  label: 'More Deep Link',  type: 'url',  placeholder: 'hsbc://funds/best-selling' },
   ],
   WEALTH_STUDIO_CAROUSEL: [
-    { key: 'sectionTitle', label: 'Section Title',   type: 'text', placeholder: 'Premier Elite Wealth Studio' },
-    { key: 'moreLabel',    label: 'More Link Label', type: 'text', placeholder: 'View all' },
-    { key: 'moreDeepLink', label: 'More Deep Link',  type: 'url',  placeholder: 'hsbc://wealth-studio' },
+    { key: 'sectionTitle', label: 'Section Title',   type: 'text',   placeholder: 'Premier Elite Wealth Studio' },
+    { key: 'numColumns',   label: 'Columns per Row', type: 'select', options: [
+      { value: '1', label: '1 column' }, { value: '2', label: '2 columns' },
+      { value: '3', label: '3 columns' }, { value: '4', label: '4 columns' },
+    ]},
+    { key: 'moreLabel',    label: 'More Link Label', type: 'text',   placeholder: 'View all' },
+    { key: 'moreDeepLink', label: 'More Deep Link',  type: 'url',    placeholder: 'hsbc://wealth-studio' },
   ],
   GUIDES_INSIGHTS_CAROUSEL: [
-    { key: 'sectionTitle', label: 'Section Title',   type: 'text', placeholder: 'Guides and insights' },
-    { key: 'moreLabel',    label: 'More Link Label', type: 'text', placeholder: 'View all' },
-    { key: 'moreDeepLink', label: 'More Deep Link',  type: 'url',  placeholder: 'hsbc://guides' },
+    { key: 'sectionTitle', label: 'Section Title',   type: 'text',   placeholder: 'Guides and insights' },
+    { key: 'numColumns',   label: 'Columns per Row', type: 'select', options: [
+      { value: '1', label: '1 column' }, { value: '2', label: '2 columns' },
+      { value: '3', label: '3 columns' }, { value: '4', label: '4 columns' },
+    ]},
+    { key: 'moreLabel',    label: 'More Link Label', type: 'text',   placeholder: 'View all' },
+    { key: 'moreDeepLink', label: 'More Deep Link',  type: 'url',    placeholder: 'hsbc://guides' },
   ],
   FX_WATCHLIST: [
     { key: 'sectionTitle',     label: 'Section Title',    type: 'text',     placeholder: 'FX watchlist' },
@@ -1827,7 +1909,11 @@ const SLICE_PROP_FIELDS: Partial<Record<string, PropField[]>> = {
     { key: 'moreDeepLink',     label: 'More Deep Link',   type: 'url',      placeholder: 'hsbc://fx/watchlist' },
   ],
   DISCOVER_MORE_CAROUSEL: [
-    { key: 'sectionTitle', label: 'Section Title', type: 'text', placeholder: 'Discover more' },
+    { key: 'sectionTitle', label: 'Section Title',   type: 'text',   placeholder: 'Discover more' },
+    { key: 'numColumns',   label: 'Columns per Row', type: 'select', options: [
+      { value: '1', label: '1 column' }, { value: '2', label: '2 columns' },
+      { value: '3', label: '3 columns' }, { value: '4', label: '4 columns' },
+    ]},
   ],
   AI_SEARCH_BAR: [
     { key: 'placeholder',          label: 'Search Placeholder',     type: 'text',    placeholder: '搜尋功能、產品' },
@@ -2289,6 +2375,310 @@ function DepositFAQEditor({ items, onChange }: {
   );
 }
 
+// ─── Wealth Studio items editor ───────────────────────────────────────────────
+
+interface WealthStudioItem {
+  id: string;
+  episodeLabel?: string;
+  title?: string;
+  description?: string;
+  videoUrl?: string;
+  thumbnailUrl?: string;
+  presenter?: string;
+  presenterTitle?: string;
+  ctaLabel?: string;
+  imageColor?: string;
+  liveBadge?: string;
+  ucpAssetId?: string;
+  durationSeconds?: number;
+}
+
+function WealthStudioItemsEditor({
+  items,
+  onChange,
+  draggingAsset,
+}: {
+  items: WealthStudioItem[];
+  onChange: (items: WealthStudioItem[]) => void;
+  draggingAsset: React.MutableRefObject<UCPContentAsset | null>;
+}) {
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const inp: React.CSSProperties = {
+    width: '100%', boxSizing: 'border-box', padding: '4px 7px',
+    border: '1px solid #E5E7EB', borderRadius: 5, fontSize: 11,
+    fontFamily: 'var(--font-family)', outline: 'none',
+  };
+
+  function update(i: number, key: keyof WealthStudioItem, val: unknown) {
+    onChange(items.map((it, idx) => idx !== i ? it : { ...it, [key]: val }));
+  }
+  function remove(i: number) { onChange(items.filter((_, idx) => idx !== i)); }
+  function add() {
+    onChange([...items, {
+      id: `ws-${Date.now()}`, episodeLabel: '', title: '', videoUrl: '',
+      thumbnailUrl: '', presenter: '', presenterTitle: '', ctaLabel: 'Watch now',
+    }]);
+  }
+  function patchFromAsset(i: number) {
+    const asset = draggingAsset.current;
+    if (!asset || asset.assetType !== 'VIDEO') return;
+    onChange(items.map((it, idx) => idx !== i ? it : {
+      ...it,
+      ucpAssetId: asset.assetId,
+      videoUrl: asset.url,
+      thumbnailUrl: asset.thumbnailUrl ?? it.thumbnailUrl ?? '',
+      presenter: asset.presenter ?? it.presenter ?? '',
+      presenterTitle: asset.presenterTitle ?? it.presenterTitle ?? '',
+      durationSeconds: asset.durationSeconds ?? it.durationSeconds,
+      title: it.title || asset.name,
+    }));
+    draggingAsset.current = null;
+    setDragOverIdx(null);
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {items.map((item, i) => (
+        <div key={item.id} style={{ border: '1px solid #E5E7EB', borderRadius: 7, padding: 8, background: '#F9FAFB' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: '#6B7280' }}>Item {i + 1}</span>
+            <button onClick={() => remove(i)}
+              style={{ padding: '2px 6px', border: '1px solid #FECACA', borderRadius: 4, background: '#FEF2F2', color: '#DC2626', cursor: 'pointer', fontSize: 10 }}>
+              ✕ Remove
+            </button>
+          </div>
+
+          {/* Video drop zone */}
+          <div
+            onDragOver={e => { e.preventDefault(); setDragOverIdx(i); }}
+            onDragLeave={() => setDragOverIdx(null)}
+            onDrop={e => { e.preventDefault(); patchFromAsset(i); }}
+            style={{
+              marginBottom: 8, borderRadius: 6, border: `2px dashed ${dragOverIdx === i ? '#DB0011' : '#D1D5DB'}`,
+              background: dragOverIdx === i ? '#FFF1F1' : '#F3F4F6',
+              padding: '6px 8px', textAlign: 'center', fontSize: 10,
+              color: dragOverIdx === i ? '#DB0011' : '#9CA3AF',
+              transition: 'border-color 0.15s, background 0.15s',
+            }}
+          >
+            {item.videoUrl
+              ? <span style={{ color: '#374151' }}>🎬 {item.videoUrl.split('/').pop()} <span style={{ color: '#9CA3AF' }}>(drop to replace)</span></span>
+              : 'Drop a video asset here, or enter URL below'
+            }
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 4 }}>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: '#374151', marginBottom: 2 }}>Episode Label</div>
+              <input value={item.episodeLabel ?? ''} onChange={e => update(i, 'episodeLabel', e.target.value)}
+                style={{ ...inp }} placeholder="Episode 14" />
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: '#374151', marginBottom: 2 }}>CTA Label</div>
+              <input value={item.ctaLabel ?? ''} onChange={e => update(i, 'ctaLabel', e.target.value)}
+                style={{ ...inp }} placeholder="Watch now" />
+            </div>
+          </div>
+
+          <div style={{ marginBottom: 4 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: '#374151', marginBottom: 2 }}>Title</div>
+            <input value={item.title ?? ''} onChange={e => update(i, 'title', e.target.value)}
+              style={{ ...inp }} placeholder="Episode title…" />
+          </div>
+
+          <div style={{ marginBottom: 4 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: '#374151', marginBottom: 2 }}>Video URL</div>
+            <input value={item.videoUrl ?? ''} onChange={e => update(i, 'videoUrl', e.target.value)}
+              style={{ ...inp }} placeholder="http://localhost:3001/media/Wealth1.mov" />
+          </div>
+
+          <div style={{ marginBottom: 4 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: '#374151', marginBottom: 2 }}>Thumbnail URL</div>
+            <input value={item.thumbnailUrl ?? ''} onChange={e => update(i, 'thumbnailUrl', e.target.value)}
+              style={{ ...inp }} placeholder="https://…" />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: '#374151', marginBottom: 2 }}>Presenter</div>
+              <input value={item.presenter ?? ''} onChange={e => update(i, 'presenter', e.target.value)}
+                style={{ ...inp }} placeholder="Emily Cheung" />
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: '#374151', marginBottom: 2 }}>Presenter Title</div>
+              <input value={item.presenterTitle ?? ''} onChange={e => update(i, 'presenterTitle', e.target.value)}
+                style={{ ...inp }} placeholder="Senior Wealth Strategist" />
+            </div>
+          </div>
+        </div>
+      ))}
+      <button onClick={add}
+        style={{ padding: '5px 10px', border: '1px dashed #D1D5DB', borderRadius: 6, background: '#F9FAFB', color: '#6B7280', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+        + Add episode
+      </button>
+    </div>
+  );
+}
+
+// ─── Guides & Insights items editor ──────────────────────────────────────────
+
+interface GuidesInsightsItem {
+  id: string;
+  title?: string;
+  description?: string;
+  date?: string;
+  imageColor?: string;
+  deepLink?: string;
+}
+
+function GuidesInsightsItemsEditor({ items, onChange }: {
+  items: GuidesInsightsItem[];
+  onChange: (items: GuidesInsightsItem[]) => void;
+}) {
+  const inp: React.CSSProperties = {
+    width: '100%', boxSizing: 'border-box', padding: '4px 7px',
+    border: '1px solid #E5E7EB', borderRadius: 5, fontSize: 11,
+    fontFamily: 'var(--font-family)', outline: 'none',
+  };
+  function update(i: number, key: keyof GuidesInsightsItem, val: string) {
+    onChange(items.map((it, idx) => idx !== i ? it : { ...it, [key]: val }));
+  }
+  function remove(i: number) { onChange(items.filter((_, idx) => idx !== i)); }
+  function add() {
+    onChange([...items, { id: `gi-${Date.now()}`, title: '', description: '', date: '', imageColor: '#2D3748', deepLink: '' }]);
+  }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {items.map((item, i) => (
+        <div key={item.id} style={{ border: '1px solid #E5E7EB', borderRadius: 7, padding: 8, background: '#F9FAFB' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: '#6B7280' }}>Article {i + 1}</span>
+            <button onClick={() => remove(i)}
+              style={{ padding: '2px 6px', border: '1px solid #FECACA', borderRadius: 4, background: '#FEF2F2', color: '#DC2626', cursor: 'pointer', fontSize: 10 }}>
+              ✕ Remove
+            </button>
+          </div>
+          <div style={{ marginBottom: 4 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: '#374151', marginBottom: 2 }}>Title</div>
+            <input value={item.title ?? ''} onChange={e => update(i, 'title', e.target.value)}
+              style={{ ...inp }} placeholder="Article title…" />
+          </div>
+          <div style={{ marginBottom: 4 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: '#374151', marginBottom: 2 }}>Description</div>
+            <input value={item.description ?? ''} onChange={e => update(i, 'description', e.target.value)}
+              style={{ ...inp }} placeholder="Short summary…" />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 4 }}>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: '#374151', marginBottom: 2 }}>Date</div>
+              <input value={item.date ?? ''} onChange={e => update(i, 'date', e.target.value)}
+                style={{ ...inp }} placeholder="8 Apr 2024" />
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: '#374151', marginBottom: 2 }}>Image Colour</div>
+              <input value={item.imageColor ?? ''} onChange={e => update(i, 'imageColor', e.target.value)}
+                style={{ ...inp }} placeholder="#2D3748" />
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 600, color: '#374151', marginBottom: 2 }}>Page URL / Deep Link</div>
+            <input value={item.deepLink ?? ''} onChange={e => update(i, 'deepLink', e.target.value)}
+              style={{ ...inp }} placeholder="hsbc://guides/article-id" />
+          </div>
+        </div>
+      ))}
+      <button onClick={add}
+        style={{ padding: '5px 10px', border: '1px dashed #D1D5DB', borderRadius: 6, background: '#F9FAFB', color: '#6B7280', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+        + Add article
+      </button>
+    </div>
+  );
+}
+
+// ─── Discover More items editor ───────────────────────────────────────────────
+
+interface DiscoverMoreItem {
+  id: string;
+  tag?: string;
+  tagColor?: string;
+  title?: string;
+  description?: string;
+  subtitle?: string;
+  imageColor?: string;
+  deepLink?: string;
+}
+
+function DiscoverMoreItemsEditor({ items, onChange }: {
+  items: DiscoverMoreItem[];
+  onChange: (items: DiscoverMoreItem[]) => void;
+}) {
+  const inp: React.CSSProperties = {
+    width: '100%', boxSizing: 'border-box', padding: '4px 7px',
+    border: '1px solid #E5E7EB', borderRadius: 5, fontSize: 11,
+    fontFamily: 'var(--font-family)', outline: 'none',
+  };
+  function update(i: number, key: keyof DiscoverMoreItem, val: string) {
+    onChange(items.map((it, idx) => idx !== i ? it : { ...it, [key]: val }));
+  }
+  function remove(i: number) { onChange(items.filter((_, idx) => idx !== i)); }
+  function add() {
+    onChange([...items, { id: `dm-${Date.now()}`, tag: '', tagColor: '#DB0011', title: '', description: '', subtitle: '', imageColor: '#1A2E4A', deepLink: '' }]);
+  }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {items.map((item, i) => (
+        <div key={item.id} style={{ border: '1px solid #E5E7EB', borderRadius: 7, padding: 8, background: '#F9FAFB' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: '#6B7280' }}>Card {i + 1}</span>
+            <button onClick={() => remove(i)}
+              style={{ padding: '2px 6px', border: '1px solid #FECACA', borderRadius: 4, background: '#FEF2F2', color: '#DC2626', cursor: 'pointer', fontSize: 10 }}>
+              ✕ Remove
+            </button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px', gap: 6, marginBottom: 4 }}>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: '#374151', marginBottom: 2 }}>Tag Label</div>
+              <input value={item.tag ?? ''} onChange={e => update(i, 'tag', e.target.value)}
+                style={{ ...inp }} placeholder="Time Deposit" />
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: '#374151', marginBottom: 2 }}>Tag Colour</div>
+              <input value={item.tagColor ?? ''} onChange={e => update(i, 'tagColor', e.target.value)}
+                style={{ ...inp }} placeholder="#DB0011" />
+            </div>
+          </div>
+          <div style={{ marginBottom: 4 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: '#374151', marginBottom: 2 }}>Title</div>
+            <input value={item.title ?? ''} onChange={e => update(i, 'title', e.target.value)}
+              style={{ ...inp }} placeholder="Card headline…" />
+          </div>
+          <div style={{ marginBottom: 4 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: '#374151', marginBottom: 2 }}>Description</div>
+            <input value={item.description ?? item.subtitle ?? ''} onChange={e => { update(i, 'description', e.target.value); update(i, 'subtitle', e.target.value); }}
+              style={{ ...inp }} placeholder="Supporting copy…" />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px', gap: 6, marginBottom: 4 }}>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: '#374151', marginBottom: 2 }}>Page URL / Deep Link</div>
+              <input value={item.deepLink ?? ''} onChange={e => update(i, 'deepLink', e.target.value)}
+                style={{ ...inp }} placeholder="hsbc://deposit/fx" />
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: '#374151', marginBottom: 2 }}>Image Colour</div>
+              <input value={item.imageColor ?? ''} onChange={e => update(i, 'imageColor', e.target.value)}
+                style={{ ...inp }} placeholder="#1A2E4A" />
+            </div>
+          </div>
+        </div>
+      ))}
+      <button onClick={add}
+        style={{ padding: '5px 10px', border: '1px dashed #D1D5DB', borderRadius: 6, background: '#F9FAFB', color: '#6B7280', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+        + Add card
+      </button>
+    </div>
+  );
+}
+
 // ─── Combo Quick Access editor ────────────────────────────────────────────────
 
 type ComboTabId = 'my-pick' | 'invest' | 'global' | 'hk-daily';
@@ -2534,15 +2924,20 @@ function ComboQuickAccessEditor({
   );
 }
 
-function SlicePropEditor({ slice, readOnly, onPropChange, onDeselect }: {
+function SlicePropEditor({ slice, readOnly, onPropChange, onDeselect, activeLocale, primaryLocale, draggingAsset }: {
   slice: CanvasSlice;
   readOnly: boolean;
   onPropChange: (key: string, value: unknown) => void;
   onDeselect: () => void;
+  activeLocale?: string;
+  primaryLocale?: string;
+  draggingAsset?: React.MutableRefObject<UCPContentAsset | null>;
 }) {
   const fields = SLICE_PROP_FIELDS[slice.type] ?? [];
   const props = slice.props as Record<string, unknown>;
   const label = SLICE_LABELS[slice.type] ?? slice.type;
+  const isTranslating = !!activeLocale && !!primaryLocale && activeLocale !== primaryLocale;
+  const translatableKeys = TRANSLATABLE_PROP_KEYS[slice.type] ?? [];
 
   const sectionHead: React.CSSProperties = {
     fontSize: 10, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase',
@@ -2563,6 +2958,7 @@ function SlicePropEditor({ slice, readOnly, onPropChange, onDeselect }: {
           <div style={{ fontSize: 12, fontWeight: 700, color: '#111' }}>{label}</div>
           <button
             onClick={onDeselect}
+            aria-label="Deselect component"
             title="Deselect"
             style={{ padding: '2px 6px', border: '1px solid #E5E7EB', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 10, color: '#6B7280' }}
           >✕</button>
@@ -2571,6 +2967,11 @@ function SlicePropEditor({ slice, readOnly, onPropChange, onDeselect }: {
         {readOnly && (
           <div style={{ marginTop: 6, padding: '4px 8px', background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 5, fontSize: 10, color: '#C2410C', fontWeight: 600 }}>
             🔒 Read-only
+          </div>
+        )}
+        {isTranslating && (
+          <div style={{ marginTop: 6, padding: '4px 8px', background: '#EEF2FF', border: '1px solid #C7D2FE', borderRadius: 5, fontSize: 10, color: '#4338CA', fontWeight: 600 }}>
+            🌐 Editing {activeLocale} translation — text fields only
           </div>
         )}
       </div>
@@ -2584,7 +2985,12 @@ function SlicePropEditor({ slice, readOnly, onPropChange, onDeselect }: {
             <div style={sectionHead}>Properties</div>
             {fields.map(f => (
               <div key={f.key} style={fieldRow}>
-                <div style={fieldLabel}>{f.label}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <div style={fieldLabel}>{f.label}</div>
+                  {isTranslating && translatableKeys.includes(f.key) && (
+                    <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 3, background: '#EEF2FF', color: '#6366F1', fontWeight: 700 }}>T</span>
+                  )}
+                </div>
                 {readOnly ? (
                   <div style={{ padding: '5px 8px', background: '#F3F4F6', borderRadius: 5, fontSize: 12, color: '#374151', border: '1px solid #E5E7EB', wordBreak: 'break-all' }}>
                     {String(props[f.key] ?? '—')}
@@ -2670,6 +3076,49 @@ function SlicePropEditor({ slice, readOnly, onPropChange, onDeselect }: {
           </div>
         )}
 
+        {slice.type === 'WEALTH_STUDIO_CAROUSEL' && (
+          <div style={fieldRow}>
+            <div style={sectionHead}>Episodes</div>
+            {readOnly ? (
+              <div style={{ fontSize: 11, color: '#6B7280' }}>{((props.items as WealthStudioItem[]) ?? []).length} episode(s)</div>
+            ) : (
+              <WealthStudioItemsEditor
+                items={(props.items as WealthStudioItem[]) ?? []}
+                onChange={items => onPropChange('items', items)}
+                draggingAsset={draggingAsset ?? { current: null }}
+              />
+            )}
+          </div>
+        )}
+
+        {slice.type === 'GUIDES_INSIGHTS_CAROUSEL' && (
+          <div style={fieldRow}>
+            <div style={sectionHead}>Articles</div>
+            {readOnly ? (
+              <div style={{ fontSize: 11, color: '#6B7280' }}>{((props.items as GuidesInsightsItem[]) ?? []).length} article(s)</div>
+            ) : (
+              <GuidesInsightsItemsEditor
+                items={(props.items as GuidesInsightsItem[]) ?? []}
+                onChange={items => onPropChange('items', items)}
+              />
+            )}
+          </div>
+        )}
+
+        {slice.type === 'DISCOVER_MORE_CAROUSEL' && (
+          <div style={fieldRow}>
+            <div style={sectionHead}>Cards</div>
+            {readOnly ? (
+              <div style={{ fontSize: 11, color: '#6B7280' }}>{((props.items as DiscoverMoreItem[]) ?? []).length} card(s)</div>
+            ) : (
+              <DiscoverMoreItemsEditor
+                items={(props.items as DiscoverMoreItem[]) ?? []}
+                onChange={items => onPropChange('items', items)}
+              />
+            )}
+          </div>
+        )}
+
         {slice.type === 'COMBO_QUICK_ACCESS' && (() => {
           const row1 = Array.isArray(props.row1Items) ? props.row1Items as ComboItem[] : [];
           const row2 = Array.isArray(props.row2Items) ? props.row2Items as ComboItem[] : [];
@@ -2677,7 +3126,7 @@ function SlicePropEditor({ slice, readOnly, onPropChange, onDeselect }: {
             const seen = new Set<string>();
             const combined: ComboItem[] = [];
             for (const it of [...row1, ...row2]) {
-              if (!seen.has(it.id)) { seen.add(it.id); combined.push({ group: 'my-pick', ...it }); }
+              if (!seen.has(it.id)) { seen.add(it.id); combined.push({ ...it, group: 'my-pick' }); }
             }
             if (!combined.find(it => it.id === ALL_ITEM_ID)) {
               combined.push({ id: ALL_ITEM_ID, icon: 'all', label: 'All product & services', deepLink: 'hsbc://all-services', group: 'my-pick' });
@@ -2812,8 +3261,8 @@ type ConditionField = keyof typeof FIELD_META;
 
 function fieldValueLabel(field: ConditionField, value: string): string {
   if (field === 'customerSegment') return SEGMENT_META[value as CustomerSegment]?.label ?? value;
-  if (field === 'accountType')     return `${ACCOUNT_META[value as AccountType]?.icon} ${ACCOUNT_META[value as AccountType]?.label}` ?? value;
-  if (field === 'customerLocation') return `${LOCATION_META[value as CustomerLocation]?.flag} ${LOCATION_META[value as CustomerLocation]?.label}` ?? value;
+  if (field === 'accountType')     return `${ACCOUNT_META[value as AccountType]?.icon} ${ACCOUNT_META[value as AccountType]?.label}`;
+  if (field === 'customerLocation') return `${LOCATION_META[value as CustomerLocation]?.flag} ${LOCATION_META[value as CustomerLocation]?.label}`;
   return value;
 }
 
@@ -2978,7 +3427,7 @@ function RuleConsolePanel({
     if (!rule) return;
     let newCond: RuleCondition;
     if (field === 'custom') {
-      newCond = { field: 'custom', customFieldName: '', operator: 'equals', value: '' } as CustomFieldCondition;
+      newCond = { field: 'custom', customFieldName: '', operator: 'is', value: '' } as CustomFieldCondition;
     } else {
       const defVal = defaultValueForField(field);
       newCond = { field, operator: 'is', value: defVal } as RuleCondition;
@@ -3516,6 +3965,7 @@ export function PageEditorView() {
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('components');
   const [contentSearch, setContentSearch] = useState('');
   const [rightTab, setRightTab] = useState<'props' | 'rules'>('props');
+  const [activeEditorLocale, setActiveEditorLocale] = useState<string>(() => page?.locale ?? 'en');
   const draggingComp = useRef<PaletteComponent | null>(null);
   const draggingAsset = useRef<UCPContentAsset | null>(null);
 
@@ -3533,8 +3983,8 @@ export function PageEditorView() {
   }
 
   const slices = page.slices;
-
-  // Palette filtering
+  const pageId = editorPageId; // narrowed: string (not null, guarded above)
+  const selectedSlice = slices.find(s => s.instanceId === selectedSliceId) ?? null;
   const paletteFiltered = PALETTE_COMPONENTS.filter(c => {
     const catMatch = paletteCat === 'all' || c.category === paletteCat;
     const searchMatch = !paletteSearch || c.label.toLowerCase().includes(paletteSearch.toLowerCase()) || c.category.toLowerCase().includes(paletteSearch.toLowerCase());
@@ -3724,9 +4174,9 @@ export function PageEditorView() {
     const newSlice = { type: comp.sliceType, props: defaultProps, visible: true, locked: false };
 
     if (isJourneyPage) {
-      dispatch({ type: 'ADD_JOURNEY_PAGE_SLICE', pageId: editorPageId, slice: newSlice });
+      dispatch({ type: 'ADD_JOURNEY_PAGE_SLICE', pageId, slice: newSlice });
     } else {
-      dispatch({ type: 'ADD_SLICE', pageId: editorPageId, slice: newSlice });
+      dispatch({ type: 'ADD_SLICE', pageId, slice: newSlice });
     }
     // If dropped at specific index we'd need to reorder — simplify by appending then moving
     // atIndex handling: reorder after add
@@ -3738,9 +4188,9 @@ export function PageEditorView() {
     if (!mapped) return;
     const newSlice = { type: mapped.type as CanvasSlice['type'], props: mapped.props, visible: true, locked: false };
     if (isJourneyPage) {
-      dispatch({ type: 'ADD_JOURNEY_PAGE_SLICE', pageId: editorPageId, slice: newSlice });
+      dispatch({ type: 'ADD_JOURNEY_PAGE_SLICE', pageId, slice: newSlice });
     } else {
-      dispatch({ type: 'ADD_SLICE', pageId: editorPageId, slice: newSlice });
+      dispatch({ type: 'ADD_SLICE', pageId, slice: newSlice });
     }
   }
 
@@ -3759,9 +4209,9 @@ export function PageEditorView() {
       s.instanceId !== instanceId ? s : { ...s, props: { ...s.props, ...patch } }
     );
     if (isJourneyPage) {
-      dispatch({ type: 'REORDER_JOURNEY_PAGE_SLICES', pageId: editorPageId, slices: updated });
+      dispatch({ type: 'REORDER_JOURNEY_PAGE_SLICES', pageId, slices: updated });
     } else {
-      dispatch({ type: 'EDIT_PAGE', pageId: editorPageId, updates: { slices: updated } });
+      dispatch({ type: 'EDIT_PAGE', pageId, updates: { slices: updated } });
     }
     dispatch({ type: 'SHOW_TOAST', message: `Video "${asset.name}" loaded into player`, toastType: 'success' });
     draggingAsset.current = null;
@@ -3769,28 +4219,28 @@ export function PageEditorView() {
 
   function removeSlice(instanceId: string) {
     if (isJourneyPage) {
-      dispatch({ type: 'REMOVE_JOURNEY_PAGE_SLICE', pageId: editorPageId, instanceId });
+      dispatch({ type: 'REMOVE_JOURNEY_PAGE_SLICE', pageId, instanceId });
     } else {
-      dispatch({ type: 'REMOVE_SLICE', pageId: editorPageId, instanceId });
+      dispatch({ type: 'REMOVE_SLICE', pageId, instanceId });
     }
     if (selectedSliceId === instanceId) setSelectedSliceId(null);
   }
 
   function toggleVisible(instanceId: string) {
     if (isJourneyPage) {
-      dispatch({ type: 'TOGGLE_JOURNEY_PAGE_SLICE_VISIBLE', pageId: editorPageId, instanceId });
+      dispatch({ type: 'TOGGLE_JOURNEY_PAGE_SLICE_VISIBLE', pageId, instanceId });
     } else {
       const slice = slices.find(s => s.instanceId === instanceId);
-      if (slice) dispatch({ type: 'EDIT_PAGE', pageId: editorPageId, updates: { slices: slices.map(s => s.instanceId === instanceId ? { ...s, visible: !s.visible } : s) } });
+      if (slice) dispatch({ type: 'EDIT_PAGE', pageId, updates: { slices: slices.map(s => s.instanceId === instanceId ? { ...s, visible: !s.visible } : s) } });
     }
   }
 
   function toggleLock(instanceId: string) {
     if (isJourneyPage) {
-      dispatch({ type: 'TOGGLE_JOURNEY_PAGE_SLICE_LOCK', pageId: editorPageId, instanceId });
+      dispatch({ type: 'TOGGLE_JOURNEY_PAGE_SLICE_LOCK', pageId, instanceId });
     } else {
       const slice = slices.find(s => s.instanceId === instanceId);
-      if (slice) dispatch({ type: 'EDIT_PAGE', pageId: editorPageId, updates: { slices: slices.map(s => s.instanceId === instanceId ? { ...s, locked: !s.locked } : s) } });
+      if (slice) dispatch({ type: 'EDIT_PAGE', pageId, updates: { slices: slices.map(s => s.instanceId === instanceId ? { ...s, locked: !s.locked } : s) } });
     }
   }
 
@@ -3800,52 +4250,63 @@ export function PageEditorView() {
     const [item] = reordered.splice(from, 1);
     reordered.splice(to, 0, item);
     if (isJourneyPage) {
-      dispatch({ type: 'REORDER_JOURNEY_PAGE_SLICES', pageId: editorPageId, slices: reordered });
+      dispatch({ type: 'REORDER_JOURNEY_PAGE_SLICES', pageId, slices: reordered });
     } else {
-      dispatch({ type: 'EDIT_PAGE', pageId: editorPageId, updates: { slices: reordered } });
+      dispatch({ type: 'EDIT_PAGE', pageId, updates: { slices: reordered } });
     }
   }
 
   function updateSliceProp(instanceId: string, key: string, value: unknown) {
+    // When editing in a non-primary locale, write to translation map instead of primary props
+    const textKeys = selectedSlice ? (TRANSLATABLE_PROP_KEYS[selectedSlice.type] ?? []) : [];
+    if (activeEditorLocale !== page!.locale && textKeys.includes(key) && typeof value === 'string') {
+      dispatch({ type: 'SET_PAGE_TRANSLATION', pageId, locale: activeEditorLocale, instanceId, propKey: key, value });
+      return;
+    }
     const updated = slices.map(s =>
       s.instanceId !== instanceId ? s : { ...s, props: { ...s.props, [key]: value } }
     );
     if (isJourneyPage) {
-      dispatch({ type: 'REORDER_JOURNEY_PAGE_SLICES', pageId: editorPageId, slices: updated });
+      dispatch({ type: 'REORDER_JOURNEY_PAGE_SLICES', pageId, slices: updated });
     } else {
-      dispatch({ type: 'EDIT_PAGE', pageId: editorPageId, updates: { slices: updated } });
+      dispatch({ type: 'EDIT_PAGE', pageId, updates: { slices: updated } });
     }
   }
 
   function saveChanges(name: string, description: string) {
     if (isJourneyPage) {
-      dispatch({ type: 'EDIT_JOURNEY_PAGE', pageId: editorPageId, updates: { name, description } });
+      dispatch({ type: 'EDIT_JOURNEY_PAGE', pageId, updates: { name, description } });
     } else {
-      dispatch({ type: 'EDIT_PAGE', pageId: editorPageId, updates: { name, description } });
+      dispatch({ type: 'EDIT_PAGE', pageId, updates: { name, description } });
     }
     dispatch({ type: 'SHOW_TOAST', message: `"${name}" saved`, toastType: 'success' });
   }
 
   function updateSliceRule(instanceId: string, rule: VisibilityRule | undefined) {
     if (isJourneyPage) {
-      dispatch({ type: 'SET_JOURNEY_SLICE_RULE', pageId: editorPageId, instanceId, rule });
+      dispatch({ type: 'SET_JOURNEY_SLICE_RULE', pageId, instanceId, rule });
     } else {
-      dispatch({ type: 'SET_SLICE_RULE', pageId: editorPageId, instanceId, rule });
+      dispatch({ type: 'SET_SLICE_RULE', pageId, instanceId, rule });
     }
   }
 
   function handleScheduleChange(schedule: CampaignSchedule | undefined) {
     if (!isJourneyPage) {
-      dispatch({ type: 'SET_CAMPAIGN_SCHEDULE', pageId: editorPageId, schedule });
+      dispatch({ type: 'SET_CAMPAIGN_SCHEDULE', pageId, schedule });
     }
   }
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: 'var(--surface-bg)' }}>
+    <div
+      role="main"
+      aria-label={`Page editor: ${page.name}`}
+      style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: 'var(--surface-bg)' }}
+    >
       {/* Top bar */}
-      <div style={{ height: 50, background: '#1A1A1A', display: 'flex', alignItems: 'center', padding: '0 16px', gap: 12, flexShrink: 0 }}>
+      <header style={{ height: 50, background: '#1A1A1A', display: 'flex', alignItems: 'center', padding: '0 16px', gap: 12, flexShrink: 0 }}>
         <button
           onClick={() => dispatch({ type: 'CLOSE_PAGE_EDITOR' })}
+          aria-label={editorReadOnly ? 'Back to page list' : 'Exit page editor'}
           style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 6, color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
         >
           ← {editorReadOnly ? 'Back' : 'Exit Editor'}
@@ -3872,9 +4333,57 @@ export function PageEditorView() {
         <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: '#DB0011', color: '#fff', fontWeight: 700 }}>
           {page.channel}
         </span>
-      </div>
+      </header>
 
-      {/* 3-pane body */}
+      <div
+        style={{ height: 38, background: '#111', borderBottom: '1px solid #2D2D2D', display: 'flex', alignItems: 'center', padding: '0 16px', gap: 10, flexShrink: 0 }}
+        role="toolbar"
+        aria-label="Language switcher"
+      >
+        <span style={{ fontSize: 10, color: '#9CA3AF', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}>
+          Language
+        </span>
+        <LanguageSelector
+          primaryLocale={page.locale}
+          supportedLocales={page.supportedLocales ?? [page.locale]}
+          activeLocale={activeEditorLocale}
+          onSelectLocale={locale => setActiveEditorLocale(locale)}
+          onAddLocale={locale => {
+            const current = page.supportedLocales ?? [page.locale];
+            dispatch({ type: 'SET_PAGE_LOCALES', pageId, locales: [...current, locale] });
+            setActiveEditorLocale(locale);
+          }}
+          onRemoveLocale={locale => {
+            const current = page.supportedLocales ?? [page.locale];
+            dispatch({ type: 'SET_PAGE_LOCALES', pageId, locales: current.filter(l => l !== locale) });
+            if (activeEditorLocale === locale) setActiveEditorLocale(page.locale);
+          }}
+          disabled={editorReadOnly}
+          size="sm"
+        />
+        {activeEditorLocale !== page.locale && (
+          <>
+            <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 4, background: '#6366F1', color: '#fff', fontWeight: 700, flexShrink: 0 }}>
+              Translating
+            </span>
+            {!editorReadOnly && (
+              <button
+                onClick={() => dispatch({ type: 'TRANSLATE_PAGE', pageId, locale: activeEditorLocale })}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  padding: '3px 10px', background: '#DB0011', color: '#fff',
+                  border: 'none', borderRadius: 4, fontSize: 10, fontWeight: 700,
+                  cursor: 'pointer', flexShrink: 0, letterSpacing: '0.02em',
+                  fontFamily: 'var(--font-family)',
+                }}
+                title={`Auto-translate all text fields to ${activeEditorLocale}`}
+              >
+                🌐 Translate
+              </button>
+            )}
+          </>
+        )}
+      </div>
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
         {/* LEFT: UCP Sidebar — Components / Content / UCP Components tabs */}
@@ -3887,7 +4396,7 @@ export function PageEditorView() {
           )}
 
           {/* Tab bar */}
-          <div style={{ display: 'flex', borderBottom: '1px solid var(--border-light)', flexShrink: 0 }}>
+          <div role="tablist" aria-label="Component panel tabs" style={{ display: 'flex', borderBottom: '1px solid var(--border-light)', flexShrink: 0 }}>
             {(
               [
                 { id: 'components' as SidebarTab,     label: 'Components', icon: '🧩' },
@@ -3896,6 +4405,9 @@ export function PageEditorView() {
             ).map(tab => (
               <button
                 key={tab.id}
+                role="tab"
+                aria-selected={sidebarTab === tab.id}
+                aria-label={tab.label}
                 onClick={() => setSidebarTab(tab.id)}
                 style={{
                   flex: 1, padding: '9px 4px', border: 'none', background: 'none',
@@ -3906,7 +4418,7 @@ export function PageEditorView() {
                   transition: 'color 0.15s',
                 }}
               >
-                <span style={{ fontSize: 14 }}>{tab.icon}</span>
+                <span style={{ fontSize: 14 }} aria-hidden="true">{tab.icon}</span>
                 {tab.label}
               </button>
             ))}
@@ -4077,6 +4589,8 @@ export function PageEditorView() {
             </div>
             {/* Screen area */}
             <div
+              dir={getLocaleDir(activeEditorLocale)}
+              lang={activeEditorLocale}
               style={{ background: '#F9FAFB', border: '4px solid #1A1A1A', borderTop: 'none', borderRadius: '0 0 20px 20px', minHeight: 600, padding: '0 0 20px 0' }}
             >
               {slices.length === 0 && dragOverIndex === null && (
@@ -4093,6 +4607,9 @@ export function PageEditorView() {
               )}
               {slices.map((slice, i) => {
                 const ruleHidden = previewContext !== null && !evaluateSliceVisible(slice, previewContext);
+                const effectiveSlice = activeEditorLocale !== page.locale
+                  ? { ...slice, props: getSliceProps(slice.props, slice.instanceId, page.translations, activeEditorLocale, page.locale) }
+                  : slice;
                 return (
                   <div key={slice.instanceId} style={{ padding: '0 0', opacity: ruleHidden ? 0.3 : 1, transition: 'opacity 0.2s' }}>
                     {!editorReadOnly && dragOverIndex === i && (
@@ -4111,7 +4628,7 @@ export function PageEditorView() {
                       </div>
                     )}
                     <CanvasCard
-                      slice={slice} index={i} total={slices.length}
+                      slice={effectiveSlice} index={i} total={slices.length}
                       selected={selectedSliceId === slice.instanceId}
                       readOnly={editorReadOnly}
                       segment={previewContext?.customerSegment}
@@ -4149,9 +4666,9 @@ export function PageEditorView() {
                 const selectedSlice = slices.find(s => s.instanceId === selectedSliceId)!;
                 const hasRule = !!selectedSlice.visibilityRule;
                 return (
-                  <div style={{ display: 'flex', borderBottom: '1px solid #E5E7EB', flexShrink: 0 }}>
+                  <div role="tablist" aria-label="Component editor tabs" style={{ display: 'flex', borderBottom: '1px solid #E5E7EB', flexShrink: 0 }}>
                     {(['props', 'rules'] as const).map(t => (
-                      <button key={t} onClick={() => setRightTab(t)} style={{
+                      <button key={t} role="tab" aria-selected={rightTab === t} aria-controls={`tabpanel-${t}`} onClick={() => setRightTab(t)} style={{
                         flex: 1, padding: '8px 4px', border: 'none', background: 'none',
                         fontSize: 11, fontWeight: rightTab === t ? 700 : 500,
                         color: rightTab === t ? '#DB0011' : '#6B7280',
@@ -4159,7 +4676,7 @@ export function PageEditorView() {
                         cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
                       }}>
                         {t === 'props' ? '⚙️ Properties' : (
-                          <>🎯 Rules{hasRule && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#DB0011', display: 'inline-block' }} />}</>
+                          <>🎯 Rules{hasRule && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#DB0011', display: 'inline-block' }} aria-hidden="true" />}</>
                         )}
                       </button>
                     ))}
@@ -4176,10 +4693,17 @@ export function PageEditorView() {
                 />
               ) : (
                 <SlicePropEditor
-                  slice={slices.find(s => s.instanceId === selectedSliceId)!}
+                  slice={(() => {
+                    const s = slices.find(sl => sl.instanceId === selectedSliceId)!;
+                    const effectiveProps = getSliceProps(s.props, s.instanceId, page.translations, activeEditorLocale, page.locale);
+                    return { ...s, props: effectiveProps };
+                  })()}
                   readOnly={editorReadOnly}
                   onPropChange={(key, value) => updateSliceProp(selectedSliceId, key, value)}
                   onDeselect={() => setSelectedSliceId(null)}
+                  activeLocale={activeEditorLocale}
+                  primaryLocale={page.locale}
+                  draggingAsset={draggingAsset}
                 />
               )}
             </>
@@ -4224,6 +4748,7 @@ function MetaPanelWrapper({
   onScheduleChange: (s: CampaignSchedule | undefined) => void;
   onToggleNativeTarget: (t: 'ios' | 'android' | 'harmonynext' | 'web') => void;
 }) {
+  const { dispatch } = useOCDP();
   const [name, setName] = useState(page.name);
   const [desc, setDesc] = useState(page.description ?? '');
 
@@ -4244,6 +4769,7 @@ function MetaPanelWrapper({
       onChangeName={setName}
       onChangeDesc={setDesc}
       onToggleNativeTarget={onToggleNativeTarget}
+      onTogglePublic={(v) => dispatch({ type: 'EDIT_PAGE', pageId: page.pageId, updates: { isPublic: v } })}
       campaignSchedule={page.campaignSchedule}
       onScheduleChange={onScheduleChange}
     />

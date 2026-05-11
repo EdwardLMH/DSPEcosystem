@@ -379,7 +379,7 @@ private fun FXBriefingCard(sectionTitle: String, bullets: List<String>, disclaim
 
 @Composable
 private fun FXContactRMCTA(slice: FXSlice) {
-    FXContactRMBar(
+    FXContactRMPill(
         label = slice.str("label").ifEmpty { "Contact Your RM" },
         subLabel = slice.str("subLabel").ifEmpty { null },
         bgColor = HsbcRed,
@@ -388,17 +388,34 @@ private fun FXContactRMCTA(slice: FXSlice) {
 
 @Composable
 private fun FXContactRMBar(label: String, subLabel: String?, bgColor: Color = HsbcRed) {
+    FXContactRMPill(label = label, subLabel = subLabel, bgColor = bgColor)
+}
+
+@Composable
+private fun FXContactRMPill(label: String, subLabel: String?, bgColor: Color = HsbcRed) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth().background(bgColor)
-            .padding(horizontal = 20.dp, vertical = 14.dp)
+        horizontalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(White)
+            .padding(horizontal = 20.dp, vertical = 10.dp)
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(label, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = White)
-            if (!subLabel.isNullOrBlank()) {
-                Text(subLabel, fontSize = 12.sp, color = White.copy(alpha = 0.85f))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .clip(RoundedCornerShape(24.dp))
+                .background(bgColor)
+                .padding(horizontal = 20.dp, vertical = 9.dp)
+        ) {
+            Text("📞", fontSize = 15.sp, modifier = Modifier.padding(end = 8.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(label, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = White)
+                if (!subLabel.isNullOrBlank()) {
+                    Text(subLabel, fontSize = 11.sp, color = White.copy(alpha = 0.85f))
+                }
             }
+            Text("›", fontSize = 18.sp, color = White, modifier = Modifier.padding(start = 8.dp))
         }
-        Text("›", fontSize = 20.sp, color = White)
     }
 }

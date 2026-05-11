@@ -1,7 +1,7 @@
 # CMS Maker-Checker Workflow — Design Document
 
-**Document Version:** 1.1  
-**Date:** 2026-05-04  
+**Document Version:** 1.2  
+**Date:** 2026-05-11  
 **Scope:** OCDP/UCP Console content governance, approval workflow, audit trail  
 
 ---
@@ -125,8 +125,11 @@ This ensures **segregation of duties** — a core HKMA and internal audit requir
 ├──────────────────────────────────────────────────────────────────────────┤
 │  CONTENT          SEGMENTS       LOCALISATION    AEO         AUDIT LOG   │
 │                                                                           │
+│  Language: [🇬🇧 English ▼]  [🇨🇳 繁中] [🇨🇳 简中] [🇸🇦 AR] [🇪🇸 ES]          │
+│  (locale pill bar — active locale governs which prop translations show)   │
+│                                                                           │
 │  ┌──────────────────────────────────────────────────────────────────┐   │
-│  │  Title *                                                          │   │
+│  │  Title *  [en]                                                    │   │
 │  │  ┌──────────────────────────────────────────────────────────┐   │   │
 │  │  │ Elevate to HSBC Jade                                      │   │   │
 │  │  └──────────────────────────────────────────────────────────┘   │   │
@@ -137,14 +140,15 @@ This ensures **segregation of duties** — a core HKMA and internal audit requir
 │  │  └──────────────────────────────────────────────────────────┘   │   │
 │  │                                                                   │   │
 │  │  Hero Image *                  CTA Text *                         │   │
-│  │  [Upload / Browse CDN]         ┌──────────────────────────┐      │   │
-│  │  ┌────────────┐                │ Discover Jade Benefits    │      │   │
-│  │  │ [preview]  │                └──────────────────────────┘      │   │
-│  │  └────────────┘                                                   │   │
-│  │                                CTA Destination *                  │   │
-│  │                                ┌──────────────────────────┐      │   │
-│  │                                │ JadeUpgradeJourney        │      │   │
-│  │                                └──────────────────────────┘      │   │
+│  │  ┌── Content Source ───────┐   ┌──────────────────────────┐      │   │
+│  │  │ ◉ UCP  ○ AEM            │   │ Discover Jade Benefits    │      │   │
+│  │  │ [Browse UCP Library...] │   └──────────────────────────┘      │   │
+│  │  │  — or —                 │                                      │   │
+│  │  │ [Browse AEM Assets...]  │   CTA Destination *                  │   │
+│  │  │ ┌────────────────────┐  │   ┌──────────────────────────┐      │   │
+│  │  │ │   [image preview]  │  │   │ JadeUpgradeJourney        │      │   │
+│  │  │ └────────────────────┘  │   └──────────────────────────┘      │   │
+│  │  └─────────────────────────┘                                      │   │
 │  │                                                                   │   │
 │  │  Eligible Segments *           Valid From / To                    │   │
 │  │  ☑ Premier   ☑ Jade            2026-04-01  →  2026-06-30         │   │
@@ -163,10 +167,24 @@ This ensures **segregation of duties** — a core HKMA and internal audit requir
 │                                                                           │
 │  AEO Score: 82/100 (Grade A) ✅         Last Reviewed: 2026-04-15       │
 │                                                                           │
+│  Supported Locales: en · zh-TW · zh-CN · ar · es                        │
+│  [Manage Translations →]  (opens per-locale translation editor)          │
+│                                                                           │
+│  ⓘ Accessibility: all form fields have visible labels; keyboard          │
+│    navigable; screen-reader announcements on save/submit.                │
+│                                                                           │
 │  [Save Draft]                                          [Submit for Review→]│
 │  Submitting will notify the Checker team for approval.                   │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
+
+**Content Source Picker (Hero Image / Media fields):**
+
+The left-hand content source picker in each media field lets the Maker choose between:
+- **UCP** — browse the UCP content library (component registry, asset library) for internally managed assets
+- **AEM** — browse HSBC AEM content fragments and assets via the AEM Content Delivery API
+
+Selected content is stored as `contentRef: { source: "UCP" | "AEM", id: "..." }` on the slice. The BFF fetches from the appropriate provider at composition time.
 
 ### 4.3 Checker Review View
 
@@ -292,3 +310,45 @@ Every action is immutably logged. Auditors and admins can view full history per 
 - Emergency override (Admin) is logged with mandatory justification text
 - All approvals require 2FA authentication (HSBC SSO with hardware token)
 - Content hash recorded at each state transition for tamper evidence
+
+---
+
+## 8. Multi-Language Authoring (i18n)
+
+Content in the OCDP and UCP editors is authored in a **primary locale** (typically English) and can be translated into additional supported locales without duplicating the content entry:
+
+| Supported Locale | Language | Notes |
+|-----------------|----------|-------|
+| `en` | English | Primary authoring locale |
+| `zh-TW` | Traditional Chinese | HK, TW markets |
+| `zh-CN` | Simplified Chinese | Mainland China market |
+| `ar` | Arabic | RTL layout auto-applied |
+| `es` | Spanish | LATAM markets |
+
+**Translation model:**
+- Base props (`title`, `subtitle`, `ctaText`, `altText`, `description`, `body`) live in `slice.props` for the primary locale
+- Locale-specific overrides stored in `page.translations[locale][instanceId][propKey]`
+- `getSliceProps(slice, locale, translations)` merges them at render time; falls back to primary locale if translation is missing
+- The locale pill bar in the page editor canvas switches between locales; only translatable props are editable when a non-primary locale is active
+
+**Workflow note:** Translation completeness is shown per locale in the Submit modal. Incomplete translations generate a non-blocking warning — Maker can submit and complete translations in a follow-up draft.
+
+---
+
+## 9. Accessibility (WCAG 2.1 AA)
+
+Both OCDP and UCP consoles implement WCAG 2.1 Level AA across all editor and review views:
+
+| Control | Implementation |
+|---------|---------------|
+| Skip link | `Skip to main content` rendered at page top; `id="main-content"` on main area |
+| Keyboard navigation | All panels fully keyboard-navigable; Tab order follows visual reading order |
+| Focus rings | `:focus-visible` CSS rules ensure visible focus indicators on all interactive elements |
+| Screen reader | Toast alerts use `role="status"` + `aria-live="polite"`; modal dialogs trap focus; `aria-modal="true"` on overlays |
+| Form labels | Every input has an associated `<label>` element; required fields marked with `aria-required="true"` |
+| Icon-only buttons | `aria-label` on all icon buttons (Save, Delete, Edit, Approve, Reject) |
+| Colour contrast | HIVE token palette meets ≥ 4.5:1 for normal text, ≥ 3:1 for large text and UI components |
+| Error messages | Validation errors linked to inputs via `aria-describedby`; errors not communicated by colour alone |
+| RTL support | `dir="rtl"` applied to canvas and form when Arabic locale is active; layout mirrors via CSS logical properties |
+
+Maker-Checker status badges (DRAFT / PENDING / APPROVED / PUBLISHED / REJECTED) use both colour and text label — never colour alone — satisfying WCAG 1.4.1 (Use of Colour).

@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { hive } from '../../tokens/hiveTokens';
 import { tealium } from '../../analytics/TealiumClient';
+import { useSDUIContext } from '../../context/SDUIContext';
+import { getLocaleInfo } from '../../utils/i18n';
 import {
   KYCFullNameField, KYCDateOfBirth, KYCNationalitySelect,
   KYCUniqueIdentifier, KYCPhoneField, KYCAddressBlock,
@@ -65,6 +67,8 @@ const SECTION_LABELS: Record<string,string> = {
 // ─── Main KYC Demo Page ───────────────────────────────────────────────────────
 
 export function KYCDemoPage() {
+  const { locale, textDir } = useSDUIContext();
+  const localeInfo = getLocaleInfo(locale);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   const [stepIdx, setStepIdx]   = useState(0);
   const [answers, setAnswers]   = useState<Record<string, any>>({});
@@ -76,6 +80,12 @@ export function KYCDemoPage() {
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
+
+  // Apply lang + dir on mount
+  useEffect(() => {
+    document.documentElement.setAttribute('lang', localeInfo.lang);
+    document.documentElement.setAttribute('dir', textDir);
+  }, [localeInfo.lang, textDir]);
 
   // Fire journey-started on first mount
   useEffect(() => { tealium.kycJourneyStarted(); }, []);

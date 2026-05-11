@@ -169,3 +169,46 @@ img { max-width: 100%; display: block; }
 .animate-fade-in { animation: fadeIn 0.2s ease-out; }
 .animate-slide-in { animation: slideIn 0.2s ease-out; }
 .animate-spin { animation: spin 0.8s linear infinite; }
+
+/* ─── Accessibility ───────────────────────────────────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid var(--hsbc-red);
+  outline-offset: 2px;
+}
+
+header :focus-visible,
+nav :focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Skip-to-content link */
+.skip-link {
+  position: absolute;
+  top: -999px;
+  left: 0;
+  padding: 8px 16px;
+  background: var(--hsbc-red);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  z-index: 9999;
+  border-radius: 0 0 4px 4px;
+}
+.skip-link:focus-visible { top: 0; }
+
+/* ─── RTL Support ────────────────────────────────────────────────────────── */
+
+[dir="rtl"] {
+  text-align: right;
+}
+
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select {
+  text-align: right;
+  direction: rtl;
+}
+
+[dir="rtl"] .arrow-icon { transform: scaleX(-1); }

@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import React from 'react';
-import { useOCDP } from '../../store/OCDPStore';
+import { useOCDP, isAdmin } from '../../store/OCDPStore';
 import { NewJourneyModal } from './NewJourneyModal';
 import { DevicePreview } from '../shared/DevicePreview';
 import { AEOAssessmentModal } from './AEOAssessmentModal';
 import { calculateAEOScore, shouldShowAEOAssessment } from '../../utils/aeoCalculator';
 import { evaluateSliceVisible } from './PageEditorView';
+import { LanguageSelector } from './LanguageSelector';
 import type { Journey, JourneyStep } from '../../store/mockData';
 import type { CanvasSlice, NativeTarget, AEOScore, VisibilityRule, PreviewContext, RuleCondition, RuleOperator, CustomFieldCondition, CustomerSegment, AccountType, CustomerLocation } from '../../types/ocdp';
 
@@ -97,7 +98,9 @@ function AddStepPageForm({ journeyId, stepIndex, journeyChannel, journeyNativeTa
         pageType,
         description: `Step ${stepIndex + 1} page`,
         nativeTargets: journeyNativeTargets as import('../../types/ocdp').NativeTarget[],
-        locale: 'en-HK',
+        locale: 'en',
+        supportedLocales: ['en'],
+        translations: {},
         thumbnail: icon,
         tags: [],
         channel: journeyChannel as import('../../types/ocdp').Channel,
@@ -248,7 +251,7 @@ function MiniKYCPreview({ slices, thumbnail }: { slices: CanvasSlice[]; thumbnai
 // Re-uses evaluateSliceVisible by wrapping the step in a dummy CanvasSlice shape.
 function evaluateStepVisible(step: JourneyStep, ctx: PreviewContext | null): boolean {
   if (!step.visibilityRule || !ctx) return true;
-  const dummySlice = { instanceId: step.stepId, type: 'KYC_INTRO' as const, props: {}, visible: true, locked: false, visibilityRule: step.visibilityRule };
+  const dummySlice = { instanceId: step.stepId, type: 'KYC_NAME_DOB' as const, props: {}, visible: true, locked: false, visibilityRule: step.visibilityRule };
   return evaluateSliceVisible(dummySlice, ctx);
 }
 
@@ -344,7 +347,7 @@ function StepRulePanel({
     if (!rule) return;
     let newCond: RuleCondition;
     if (field === 'custom') {
-      newCond = { field: 'custom', customFieldName: '', operator: 'equals', value: '' } as CustomFieldCondition;
+      newCond = { field: 'custom', customFieldName: '', operator: 'is', value: '' } as CustomFieldCondition;
     } else {
       newCond = { field, operator: 'is', value: stepDefaultValue(field) } as RuleCondition;
     }
@@ -657,14 +660,18 @@ function JourneyDetail({ journey }: { journey: Journey }) {
   const [stepPreviewCtx, setStepPreviewCtx] = useState<PreviewContext | null>(null);
   const [stepPreviewOpen, setStepPreviewOpen] = useState(false);
 
+  // Multi-language
+  const primaryLocale = (journey.supportedLocales ?? ['en'])[0];
+  const [activeJourneyLocale, setActiveJourneyLocale] = useState(primaryLocale);
+
   // Meta editing state
   const [editName, setEditName]   = useState(journey.name);
   const [editDesc, setEditDesc]   = useState(journey.description ?? '');
   const [editNativeTargets, setEditNativeTargets] = useState<NativeTarget[]>(journey.nativeTargets ?? []);
   const [metaDirty, setMetaDirty] = useState(false);
 
-  const isApprover = currentUser.role.endsWith('-APPROVER') || currentUser.role === 'ADMIN';
-  const isAuthor   = currentUser.role.endsWith('-AUTHOR')   || currentUser.role === 'ADMIN';
+  const isApprover = currentUser.role.endsWith('-APPROVER') || isAdmin(currentUser.role);
+  const isAuthor   = currentUser.role.endsWith('-AUTHOR')   || isAdmin(currentUser.role);
   const status     = journey.status;
 
   // Journey-owned pages sorted by stepIndex
@@ -767,9 +774,9 @@ function JourneyDetail({ journey }: { journey: Journey }) {
         </div>
         <WorkflowTimeline status={status} />
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: 0, marginTop: 14, borderBottom: '1px solid var(--border-light)' }}>
+        <div role="tablist" aria-label="Journey detail tabs" style={{ display: 'flex', gap: 0, marginTop: 14, borderBottom: '1px solid var(--border-light)' }}>
           {(['steps', 'meta', 'approval', 'preview'] as const).map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab)} style={{
+            <button key={tab} role="tab" aria-selected={activeTab === tab} onClick={() => setActiveTab(tab)} style={{
               padding: '6px 16px', fontSize: 12, fontWeight: activeTab === tab ? 700 : 500,
               color: activeTab === tab ? '#DB0011' : 'var(--text-muted)',
               background: 'none', border: 'none', borderBottom: activeTab === tab ? '2px solid #DB0011' : '2px solid transparent',
@@ -911,21 +918,87 @@ function JourneyDetail({ journey }: { journey: Journey }) {
 
         {activeTab === 'meta' && (
           <div style={{ maxWidth: 520, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Language management */}
+            <div style={{ padding: 16, background: '#F0F4FF', borderRadius: 12, border: '1px solid #C7D2FE', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#4338CA', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Languages</div>
+              <LanguageSelector
+                primaryLocale={primaryLocale}
+                supportedLocales={journey.supportedLocales ?? [primaryLocale]}
+                activeLocale={activeJourneyLocale}
+                onSelectLocale={l => setActiveJourneyLocale(l)}
+                onAddLocale={locale => {
+                  const current = journey.supportedLocales ?? [primaryLocale];
+                  dispatch({ type: 'SET_JOURNEY_LOCALES', journeyId: journey.journeyId, locales: [...current, locale] });
+                  setActiveJourneyLocale(locale);
+                }}
+                onRemoveLocale={locale => {
+                  const current = journey.supportedLocales ?? [primaryLocale];
+                  dispatch({ type: 'SET_JOURNEY_LOCALES', journeyId: journey.journeyId, locales: current.filter(l => l !== locale) });
+                  if (activeJourneyLocale === locale) setActiveJourneyLocale(primaryLocale);
+                }}
+                disabled={status !== 'DRAFT' && status !== 'REJECTED'}
+              />
+              {activeJourneyLocale !== primaryLocale && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <p style={{ margin: 0, fontSize: 10, color: '#6366F1', flex: 1 }}>Editing {activeJourneyLocale} — changes are saved as translations</p>
+                  {(status === 'DRAFT' || status === 'REJECTED') && (
+                    <button
+                      onClick={() => dispatch({ type: 'TRANSLATE_JOURNEY', journeyId: journey.journeyId, locale: activeJourneyLocale })}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 4,
+                        padding: '4px 10px', background: '#DB0011', color: '#fff',
+                        border: 'none', borderRadius: 4, fontSize: 10, fontWeight: 700,
+                        cursor: 'pointer', whiteSpace: 'nowrap',
+                        fontFamily: 'var(--font-family)',
+                      }}
+                    >
+                      🌐 Translate
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
             {/* Journey info fields */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16, background: '#F9FAFB', borderRadius: 12, border: '1px solid #E5E7EB' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Journey Information</div>
 
               <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 5 }}>Journey Name</label>
-                <input value={editName} onChange={e => { setEditName(e.target.value); setMetaDirty(true); }} style={inp}
-                  disabled={status !== 'DRAFT' && status !== 'REJECTED'} />
+                <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 5 }} htmlFor="journey-name-input">Journey Name</label>
+                <input
+                  id="journey-name-input"
+                  value={activeJourneyLocale !== primaryLocale
+                    ? (journey.translations?.[activeJourneyLocale]?.name ?? editName)
+                    : editName}
+                  onChange={e => {
+                    if (activeJourneyLocale !== primaryLocale) {
+                      dispatch({ type: 'SET_JOURNEY_TRANSLATION', journeyId: journey.journeyId, locale: activeJourneyLocale, field: 'name', value: e.target.value });
+                    } else {
+                      setEditName(e.target.value); setMetaDirty(true);
+                    }
+                  }}
+                  style={inp}
+                  disabled={status !== 'DRAFT' && status !== 'REJECTED'}
+                />
               </div>
 
               <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 5 }}>Description</label>
-                <textarea value={editDesc} onChange={e => { setEditDesc(e.target.value); setMetaDirty(true); }} rows={3}
+                <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 5 }} htmlFor="journey-desc-input">Description</label>
+                <textarea
+                  id="journey-desc-input"
+                  value={activeJourneyLocale !== primaryLocale
+                    ? (journey.translations?.[activeJourneyLocale]?.description ?? editDesc)
+                    : editDesc}
+                  onChange={e => {
+                    if (activeJourneyLocale !== primaryLocale) {
+                      dispatch({ type: 'SET_JOURNEY_TRANSLATION', journeyId: journey.journeyId, locale: activeJourneyLocale, field: 'description', value: e.target.value });
+                    } else {
+                      setEditDesc(e.target.value); setMetaDirty(true);
+                    }
+                  }}
+                  rows={3}
                   style={{ ...inp, resize: 'vertical' }}
-                  disabled={status !== 'DRAFT' && status !== 'REJECTED'} />
+                  disabled={status !== 'DRAFT' && status !== 'REJECTED'}
+                />
               </div>
 
               {journey.channel === 'SDUI' && (

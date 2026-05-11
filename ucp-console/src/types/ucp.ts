@@ -43,6 +43,9 @@ export type SliceType =
   | 'DEPOSIT_RATE_TABLE'
   | 'DEPOSIT_OPEN_CTA'
   | 'DEPOSIT_FAQ'
+  | 'CAMPAIGN_HERO'
+  | 'CAMPAIGN_BENEFITS'
+  | 'CAMPAIGN_CTA'
   // Home Hub components (new design)
   | 'HOME_SEARCH_HEADER'
   | 'PREMIER_HEADER'
@@ -59,9 +62,13 @@ export type SliceType =
   | 'WEALTH_STUDIO_CAROUSEL'
   | 'GUIDES_INSIGHTS_CAROUSEL'
   | 'FX_WATCHLIST'
-  | 'DISCOVER_MORE_CAROUSEL';
+  | 'DISCOVER_MORE_CAROUSEL'
+  // SEO / AEO compliance slices (predefined, auto-injected)
+  | 'SEO_HERO_HEADER'
+  | 'SEO_FAQ'
+  | 'SEO_STRUCTURED_DATA';
 
-export type SliceCategory = 'navigation' | 'promotion' | 'function' | 'wealth' | 'lifestyle' | 'layout' | 'insight';
+export type SliceCategory = 'navigation' | 'promotion' | 'function' | 'wealth' | 'lifestyle' | 'layout' | 'insight' | 'grid';
 
 export interface SliceDefinition {
   type: SliceType;
@@ -191,6 +198,9 @@ export interface ContentAsset {
   approvalComment?: string;
   // Blob object URL for in-browser preview after upload (not persisted)
   localObjectUrl?: string;
+  // Multi-language support
+  supportedLocales: string[];
+  translations: Record<string, Record<string, string>>; // locale → field → value (e.g. 'name', 'altText')
 }
 
 export interface ContentApprovalFlow {
@@ -203,6 +213,21 @@ export interface ContentApprovalFlow {
 }
 
 // ─── UI Components ────────────────────────────────────────────────────────────
+
+export interface ComponentSourceFile {
+  fileId: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  language: 'typescript' | 'javascript' | 'swift' | 'kotlin' | 'dart' | 'other';
+  platform: 'web' | 'ios' | 'android' | 'cross-platform';
+  uploadedAt: string;
+  uploadedBy: string;
+  /** Object URL (in-browser only, not persisted) */
+  objectUrl?: string;
+  /** Raw source text if already read */
+  sourceText?: string;
+}
 
 export interface UIComponent {
   componentId: string;
@@ -219,8 +244,12 @@ export interface UIComponent {
   createdAt: string;
   updatedAt: string;
   status: 'ACTIVE' | 'DEPRECATED';
+  sourceFiles?: ComponentSourceFile[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   meta?: Record<string, any>;
+  // Multi-language support
+  supportedLocales: string[];
+  translations: Record<string, Record<string, string>>; // locale → field → value (e.g. 'label', 'description')
 }
 
 // ─── Staff Identity ───────────────────────────────────────────────────────────
@@ -254,6 +283,37 @@ export type NavView =
   | 'editor'
   | 'content'
   | 'components'
+  | 'templates'
   | 'audit'
   | 'history'
   | 'admin-bizlines';
+
+// ─── Page Templates ───────────────────────────────────────────────────────────
+
+export type TemplateChannel = 'SDUI' | 'WEB_STANDARD' | 'WEB_WECHAT';
+
+export interface PageTemplateSlice {
+  type: SliceType;
+  props: Record<string, unknown>;
+  locked?: boolean;
+}
+
+export interface PageTemplate {
+  templateId: string;
+  name: string;
+  description: string;
+  icon: string;
+  channels: TemplateChannel[];
+  bizLineIds: BizLineId[];
+  category: 'generic' | 'campaign' | 'product' | 'insight' | 'journey';
+  starterSlices: PageTemplateSlice[];
+  seoAeoCompliance: boolean;
+  status: 'ACTIVE' | 'DEPRECATED';
+  createdAt: string;
+  updatedAt: string;
+  maintainedBy: string;
+  usageCount: number;
+  // Multi-language support
+  supportedLocales: string[];
+  translations: Record<string, Record<string, string>>; // locale → field → value (e.g. 'name', 'description')
+}

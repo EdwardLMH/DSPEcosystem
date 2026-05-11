@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useOCDP } from '../../store/OCDPStore';
+import { useOCDP, isAdmin } from '../../store/OCDPStore';
 import { NewPageModal } from './NewPageModal';
 import { DevicePreview } from '../shared/DevicePreview';
 import { AEOAssessmentModal } from './AEOAssessmentModal';
@@ -277,6 +277,7 @@ function EditPageForm({ page, onDone }: { page: PageLayout; onDone: () => void }
   const [name,        setName]        = useState(page.name);
   const [description, setDescription] = useState(page.description ?? '');
   const [nativeTargets, setNativeTargets] = useState<NativeTarget[]>(page.nativeTargets ?? []);
+  const [isPublic,    setIsPublic]    = useState<boolean>(page.isPublic ?? false);
   const [webSlug,     setWebSlug]     = useState(page.webSlug ?? '');
   const [webTitle,    setWebTitle]    = useState(page.webMetaTitle ?? '');
   const [webDesc,     setWebDesc]     = useState(page.webMetaDescription ?? '');
@@ -298,7 +299,10 @@ function EditPageForm({ page, onDone }: { page: PageLayout; onDone: () => void }
 
   function save() {
     const updates: Partial<PageLayout> = { name, description };
-    if (page.channel === 'SDUI')         Object.assign(updates, { nativeTargets });
+    if (page.channel === 'SDUI') {
+      Object.assign(updates, { nativeTargets });
+      if (nativeTargets.includes('web')) Object.assign(updates, { isPublic });
+    }
     if (page.channel === 'WEB_STANDARD') Object.assign(updates, { webSlug, webMetaTitle: webTitle, webMetaDescription: webDesc });
     if (page.channel === 'WEB_WECHAT')   Object.assign(updates, { wechatPageUrl: wechatUrl, wechatShareTitle: wechatTitle, wechatShareDesc: wechatDesc });
     dispatch({ type: 'EDIT_PAGE', pageId: page.pageId, updates });
@@ -345,6 +349,35 @@ function EditPageForm({ page, onDone }: { page: PageLayout; onDone: () => void }
               );
             })}
           </div>
+
+          {/* Web Visibility — shown only when web target is selected */}
+          {nativeTargets.includes('web') && (
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #FDDCB5' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: '#92400E', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+                Web Visibility
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => setIsPublic(false)} style={{
+                  flex: 1, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
+                  border: !isPublic ? '2px solid #6B7280' : '2px solid #E5E7EB',
+                  background: !isPublic ? '#F3F4F6' : '#fff',
+                  transition: 'all 0.12s',
+                }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: !isPublic ? '#374151' : '#9CA3AF' }}>🔒 Private</div>
+                  <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>Authenticated users only — no AEO/SEO assessment</div>
+                </button>
+                <button onClick={() => setIsPublic(true)} style={{
+                  flex: 1, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
+                  border: isPublic ? '2px solid #059669' : '2px solid #E5E7EB',
+                  background: isPublic ? '#D1FAE5' : '#fff',
+                  transition: 'all 0.12s',
+                }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: isPublic ? '#059669' : '#9CA3AF' }}>🌐 Public</div>
+                  <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>Indexed by search engines — AEO/SEO assessed on submit</div>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
       {page.channel === 'WEB_STANDARD' && (
@@ -433,8 +466,8 @@ function PageDetailDrawer({ page }: { page: PageLayout }) {
 
   const status      = page.authoringStatus;
   const isCampaign  = page.pageType === 'CAMPAIGN';
-  const isApprover  = currentUser.role.endsWith('-APPROVER') || currentUser.role === 'ADMIN';
-  const isAuthor    = currentUser.role.endsWith('-AUTHOR')   || currentUser.role === 'ADMIN';
+  const isApprover  = currentUser.role.endsWith('-APPROVER') || isAdmin(currentUser.role);
+  const isAuthor    = currentUser.role.endsWith('-AUTHOR')   || isAdmin(currentUser.role);
   const liveTargets = marketStatus.filter(ms => ms.pageId === page.pageId && ms.productionStatus === 'LIVE');
   const pageTargets = page.releaseMarketIds ?? [];
   const isLive      = liveTargets.length > 0;
@@ -442,8 +475,8 @@ function PageDetailDrawer({ page }: { page: PageLayout }) {
   const isSDUI      = page.channel === 'SDUI';
   const hasCampaignTimer = isCampaign && !!page.campaignSchedule;
 
-  // AEO score for this page (if exists)
-  const existingAEOScore = isWebStd ? state.aeoScores.find(s => s.pageId === page.pageId) : null;
+  // AEO score for this page (if exists) — applies to any page that goes through AEO assessment
+  const existingAEOScore = shouldShowAEOAssessment(page) ? state.aeoScores.find(s => s.pageId === page.pageId) : null;
 
   // Handle submission with AEO assessment for Web Standard pages
   function handleSubmit() {
@@ -534,8 +567,21 @@ function PageDetailDrawer({ page }: { page: PageLayout }) {
         {activeTab === 'overview' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <InfoRow label="Page ID"    value={page.pageId} mono />
-            <InfoRow label="Type"       value={page.pageType} />
-            <InfoRow label="Platform"   value={page.platform} />
+            {(() => {
+              const tpl = state.pageTemplates?.find(t => t.templateId === page.pageTemplateId);
+              if (tpl) return (
+                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', minWidth: 80 }}>Template</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: '#111', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <span>{tpl.icon}</span>
+                    <span>{tpl.name}</span>
+                    {tpl.seoRequired && <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 4, background: '#EEF2FF', color: '#4F46E5', fontWeight: 700 }}>SEO</span>}
+                    {tpl.aeoRequired && <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 4, background: '#F0FDF4', color: '#059669', fontWeight: 700 }}>AEO</span>}
+                  </span>
+                </div>
+              );
+              return <InfoRow label="Template" value="Generic (no template)" />;
+            })()}
             <InfoRow label="Locale"     value={page.locale} />
             <InfoRow label="Market"     value={page.marketId} />
             <InfoRow label="Scope"      value={page.scope} />
@@ -627,8 +673,8 @@ function PageDetailDrawer({ page }: { page: PageLayout }) {
               <WorkflowTimeline status={status} />
             </div>
 
-            {/* AEO/SEO Score for Web Standard — visible to approvers */}
-            {isWebStd && existingAEOScore && (status === 'PENDING_APPROVAL' || status === 'APPROVED') && (
+            {/* AEO/SEO Score — visible to approvers for any public web page */}
+            {existingAEOScore && (status === 'PENDING_APPROVAL' || status === 'APPROVED') && (
               <div style={{ padding: '14px 16px', background: existingAEOScore.grade === 'A' || existingAEOScore.grade === 'B' ? '#F0FDF4' : existingAEOScore.grade === 'C' ? '#FFFBEB' : '#FEF2F2', border: `1px solid ${existingAEOScore.grade === 'A' || existingAEOScore.grade === 'B' ? '#BBF7D0' : existingAEOScore.grade === 'C' ? '#FDE68A' : '#FECACA'}`, borderRadius: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                   <div style={{ width: 36, height: 36, borderRadius: 18, background: existingAEOScore.grade === 'A' || existingAEOScore.grade === 'B' ? '#059669' : existingAEOScore.grade === 'C' ? '#D97706' : '#DC2626', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, color: '#fff' }}>
@@ -944,6 +990,11 @@ export function PageLibraryPanel() {
                           {page.isPublic === true && (
                             <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: '#D1FAE5', color: '#059669', border: '1px solid #A7F3D0' }}>🌐 Public</span>
                           )}
+                          {(() => {
+                            const tpl = state.pageTemplates?.find(t => t.templateId === page.pageTemplateId);
+                            if (!tpl) return null;
+                            return <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: '#F3F4F6', color: '#374151', border: '1px solid #E5E7EB' }}>{tpl.icon} {tpl.name}</span>;
+                          })()}
                         </div>
                       </div>
                     </div>

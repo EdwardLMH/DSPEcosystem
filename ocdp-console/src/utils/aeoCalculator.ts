@@ -67,7 +67,9 @@ export function calculateAEOScore(page: PageLayout, targetId: string): AEOScore 
   const hasFAQ = page.slices.some(s =>
     s.type === 'AI_ASSISTANT' ||
     s.type === 'AI_SEARCH_BAR' ||
-    (s.props && typeof s.props === 'object' && 'faq' in s.props)
+    s.type === 'DEPOSIT_FAQ' ||
+    (s.props && typeof s.props === 'object' && 'faq' in s.props) ||
+    (s.props && typeof s.props === 'object' && 'items' in s.props && Array.isArray((s.props as Record<string, unknown>).items) && ((s.props as Record<string, unknown>).items as unknown[]).length >= 2 && s.type.toLowerCase().includes('faq'))
   );
   const faqScore = hasFAQ ? 10 : 0;
   breakdown.push({

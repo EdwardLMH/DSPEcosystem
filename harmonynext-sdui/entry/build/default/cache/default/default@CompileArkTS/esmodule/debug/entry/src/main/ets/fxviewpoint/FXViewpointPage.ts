@@ -1043,14 +1043,27 @@ class FXContactRMCTA extends ViewPU {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create();
             Row.width('100%');
-            Row.padding({ left: 20, right: 20, top: 14, bottom: 14 });
+            Row.justifyContent(FlexAlign.Center);
+            Row.padding({ left: 20, right: 20, top: 10, bottom: 10 });
+            Row.backgroundColor(Hive.Color.brandWhite);
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 8 });
+            Row.padding({ left: 20, right: 20, top: 9, bottom: 9 });
             Row.backgroundColor(this.bgColor);
+            Row.borderRadius(24);
+            Row.shadow({ radius: 4, color: '#2E000000', offsetX: 0, offsetY: 2 });
             Row.onClick(() => {
                 SensorDataClient.track('contact_rm_tap', 'FXViewpoint', 'contact_rm_tapped', '', 'fx_viewpoint_hk', 'fx_viewpoint');
             });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 2 });
+            Text.create('📞');
+            Text.fontSize(15);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 1 });
             Column.alignItems(HorizontalAlign.Start);
             Column.layoutWeight(1);
         }, Column);
@@ -1067,7 +1080,7 @@ class FXContactRMCTA extends ViewPU {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create(this.subLabel);
-                        Text.fontSize(12);
+                        Text.fontSize(11);
                         Text.fontColor('#D9FFFFFF');
                     }, Text);
                     Text.pop();
@@ -1082,10 +1095,11 @@ class FXContactRMCTA extends ViewPU {
         Column.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create('›');
-            Text.fontSize(20);
+            Text.fontSize(18);
             Text.fontColor('#FFFFFF');
         }, Text);
         Text.pop();
+        Row.pop();
         Row.pop();
     }
     rerender() {

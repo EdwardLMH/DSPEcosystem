@@ -4,18 +4,21 @@ import type {
   ApprovalFlow, WeChatServiceAccount, WeChatMessageTemplate,
   PageLayout, WorkflowEntry, AuditEntry, PageMarketStatus, AEOScore, PageUsageStat, JourneyUsageStat,
   Channel, AuthoringStatus, BizLineId, CampaignSchedule, CanvasSlice,
-  CustomerSegment, VisibilityRule, PreviewContext,
+  CustomerSegment, VisibilityRule, PreviewContext, PageTemplate,
+  CustomerSegmentDef, AccountTypeDef, LocationDef,
+  AISearchConfig,
 } from '../types/ocdp';
-export type { CustomerSegment, VisibilityRule, PreviewContext };
-import {
+export type { CustomerSegment, VisibilityRule, PreviewContext };import {
   MOCK_USERS, ALL_PAGES, MOCK_WORKFLOW, MOCK_AUDIT, MOCK_MARKET_STATUS,
   MOCK_AEO_SCORES, MOCK_USAGE_STATS, MOCK_JOURNEY_STATS, MOCK_JOURNEYS, MOCK_JOURNEY_PAGES, MOCK_JOURNEY_PAGES_WEB,
   MARKETS, RELEASE_TARGETS, BIZ_LINES, AD_GROUPS, APPROVAL_FLOWS,
-  WECHAT_ACCOUNTS, WECHAT_TEMPLATES,
+  WECHAT_ACCOUNTS, WECHAT_TEMPLATES, PAGE_TEMPLATES,
+  CUSTOMER_SEGMENT_DEFS, ACCOUNT_TYPE_DEFS, LOCATION_DEFS,
 } from './mockData';
 import type { Journey, JourneyStep, JourneyPage } from './mockData';
 export type { JourneyPage };
 import { v4 } from '../utils/uuid';
+import { mockTranslate, translateSliceProps, TRANSLATABLE_PROP_KEYS } from '../utils/i18n';
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -31,6 +34,15 @@ export interface OCDPState {
   approvalFlows: ApprovalFlow[];
   wechatAccounts: WeChatServiceAccount[];
   wechatTemplates: WeChatMessageTemplate[];
+  pageTemplates: PageTemplate[];
+
+  // Rule parameter catalogue
+  customerSegmentDefs: CustomerSegmentDef[];
+  accountTypeDefs: AccountTypeDef[];
+  locationDefs: LocationDef[];
+
+  // AI Search
+  aiSearchConfigs: AISearchConfig[];
 
   pages: PageLayout[];
   journeys: Journey[];
@@ -69,6 +81,18 @@ type Action =
   | { type: 'SET_USER';           user: StaffUser }
   | { type: 'SET_NAV_VIEW';       view: NavView }
   | { type: 'SET_PERSONA';        persona: Persona }
+  // Bulk-load all config param types from PGlite on startup
+  | {
+      type: 'LOAD_CONFIG_FROM_DB';
+      markets?:              Market[];
+      bizLines?:             BizLine[];
+      adGroups?:             AdGroup[];
+      approvalFlows?:        ApprovalFlow[];
+      customerSegmentDefs?:  CustomerSegmentDef[];
+      accountTypeDefs?:      AccountTypeDef[];
+      locationDefs?:         LocationDef[];
+      aiSearchConfigs?:      AISearchConfig[];
+    }
   | { type: 'TOGGLE_NEW_PAGE_MODAL' }
   | { type: 'TOGGLE_NEW_JOURNEY_MODAL' }
   | { type: 'TOGGLE_ENTITLEMENT_MODAL' }
@@ -112,6 +136,20 @@ type Action =
   | { type: 'ADD_APPROVAL_FLOW';  flow: ApprovalFlow }
   | { type: 'EDIT_APPROVAL_FLOW'; flowId: string; flow: ApprovalFlow }
   | { type: 'DELETE_APPROVAL_FLOW'; flowId: string }
+  // Rule parameter catalogue
+  | { type: 'ADD_CUSTOMER_SEGMENT';    def: CustomerSegmentDef }
+  | { type: 'EDIT_CUSTOMER_SEGMENT';   segmentId: string; updates: Partial<CustomerSegmentDef> }
+  | { type: 'DELETE_CUSTOMER_SEGMENT'; segmentId: string }
+  | { type: 'ADD_ACCOUNT_TYPE';        def: AccountTypeDef }
+  | { type: 'EDIT_ACCOUNT_TYPE';       typeId: string; updates: Partial<AccountTypeDef> }
+  | { type: 'DELETE_ACCOUNT_TYPE';     typeId: string }
+  | { type: 'ADD_LOCATION';            def: LocationDef }
+  | { type: 'EDIT_LOCATION';           locationId: string; updates: Partial<LocationDef> }
+  | { type: 'DELETE_LOCATION';         locationId: string }
+  // AI Search config CRUD
+  | { type: 'ADD_AI_SEARCH_CONFIG';    config: AISearchConfig }
+  | { type: 'EDIT_AI_SEARCH_CONFIG';   configId: string; updates: Partial<AISearchConfig> }
+  | { type: 'DELETE_AI_SEARCH_CONFIG'; configId: string }
   // Page approval workflow
   | { type: 'SUBMIT_PAGE';        pageId: string; targetIds: string[]; comment?: string }
   | { type: 'APPROVE_PAGE';       pageId: string; targetId: string; comment: string }
@@ -138,7 +176,14 @@ type Action =
   | { type: 'SET_PREVIEW_CONTEXT'; context: PreviewContext | null }
   | { type: 'SET_SLICE_RULE';      pageId: string; instanceId: string; rule: VisibilityRule | undefined }
   | { type: 'SET_JOURNEY_SLICE_RULE'; pageId: string; instanceId: string; rule: VisibilityRule | undefined }
-  | { type: 'SET_STEP_RULE'; journeyId: string; stepId: string; rule: VisibilityRule | undefined };
+  | { type: 'SET_STEP_RULE'; journeyId: string; stepId: string; rule: VisibilityRule | undefined }
+  // Multi-language
+  | { type: 'SET_PAGE_LOCALES'; pageId: string; locales: string[] }
+  | { type: 'SET_PAGE_TRANSLATION'; pageId: string; locale: string; instanceId: string; propKey: string; value: string }
+  | { type: 'TRANSLATE_PAGE'; pageId: string; locale: string }
+  | { type: 'SET_JOURNEY_LOCALES'; journeyId: string; locales: string[] }
+  | { type: 'SET_JOURNEY_TRANSLATION'; journeyId: string; locale: string; field: string; value: string }
+  | { type: 'TRANSLATE_JOURNEY'; journeyId: string; locale: string };
 
 // ─── Reducer ──────────────────────────────────────────────────────────────────
 
@@ -148,9 +193,21 @@ function makeAudit(user: StaffUser, action: string, pageId: string, pageName: st
 
 function reducer(state: OCDPState, action: Action): OCDPState {
   switch (action.type) {
-    case 'SET_USER':     return { ...state, currentUser: action.user };
+    case 'SET_USER':     return { ...state, currentUser: action.user, navView: action.user.role === 'AI-SEARCH-OPERATOR' ? 'ai-search' : state.navView };
     case 'SET_NAV_VIEW': return { ...state, navView: action.view };
     case 'SET_PERSONA':  return { ...state, activePersona: action.persona };
+
+    case 'LOAD_CONFIG_FROM_DB': return {
+      ...state,
+      ...(action.markets             && { markets:             action.markets }),
+      ...(action.bizLines            && { bizLines:            action.bizLines }),
+      ...(action.adGroups            && { adGroups:            action.adGroups }),
+      ...(action.approvalFlows       && { approvalFlows:       action.approvalFlows }),
+      ...(action.customerSegmentDefs && { customerSegmentDefs: action.customerSegmentDefs }),
+      ...(action.accountTypeDefs     && { accountTypeDefs:     action.accountTypeDefs }),
+      ...(action.locationDefs        && { locationDefs:        action.locationDefs }),
+      ...(action.aiSearchConfigs     && { aiSearchConfigs:     action.aiSearchConfigs }),
+    };
     case 'OPEN_PAGE':    return { ...state, detailPageId: action.pageId, navView: 'pages' };
     case 'OPEN_JOURNEY': return { ...state, detailJourneyId: action.journeyId, navView: 'journeys' };
     case 'CLOSE_DETAIL': return { ...state, detailPageId: null, detailJourneyId: null };
@@ -164,6 +221,8 @@ function reducer(state: OCDPState, action: Action): OCDPState {
         pageId: v4(),
         authoringStatus: 'DRAFT',
         slices: [],
+        supportedLocales: action.page.supportedLocales?.length ? action.page.supportedLocales : [action.page.locale],
+        translations: action.page.translations ?? {},
       };
       const wfEntry: WorkflowEntry = {
         entryId: v4(), pageId: newPage.pageId, pageName: newPage.name,
@@ -247,6 +306,8 @@ function reducer(state: OCDPState, action: Action): OCDPState {
         journeyId: v4(),
         status: 'DRAFT',
         steps: [],
+        supportedLocales: ['en'],
+        translations: {},
       };
       return {
         ...state,
@@ -292,6 +353,8 @@ function reducer(state: OCDPState, action: Action): OCDPState {
         pageId: v4(),
         authoringStatus: 'DRAFT',
         slices: [],
+        supportedLocales: action.page.supportedLocales?.length ? action.page.supportedLocales : [action.page.locale],
+        translations: action.page.translations ?? {},
       };
       const journeyPage: JourneyPage = { journeyId: action.journeyId, stepIndex: action.stepIndex, page: newPage };
       const newStep: JourneyStep = {
@@ -437,6 +500,18 @@ function reducer(state: OCDPState, action: Action): OCDPState {
     case 'ADD_APPROVAL_FLOW':    return { ...state, approvalFlows: [...state.approvalFlows, action.flow] };
     case 'EDIT_APPROVAL_FLOW':   return { ...state, approvalFlows: state.approvalFlows.map(f => f.flowId === action.flowId ? action.flow : f) };
     case 'DELETE_APPROVAL_FLOW': return { ...state, approvalFlows: state.approvalFlows.filter(f => f.flowId !== action.flowId) };
+
+    case 'ADD_CUSTOMER_SEGMENT':    return { ...state, customerSegmentDefs: [...state.customerSegmentDefs, action.def] };
+    case 'EDIT_CUSTOMER_SEGMENT':   return { ...state, customerSegmentDefs: state.customerSegmentDefs.map(d => d.segmentId === action.segmentId ? { ...d, ...action.updates } : d) };
+    case 'DELETE_CUSTOMER_SEGMENT': return { ...state, customerSegmentDefs: state.customerSegmentDefs.filter(d => d.segmentId !== action.segmentId) };
+
+    case 'ADD_ACCOUNT_TYPE':    return { ...state, accountTypeDefs: [...state.accountTypeDefs, action.def] };
+    case 'EDIT_ACCOUNT_TYPE':   return { ...state, accountTypeDefs: state.accountTypeDefs.map(d => d.typeId === action.typeId ? { ...d, ...action.updates } : d) };
+    case 'DELETE_ACCOUNT_TYPE': return { ...state, accountTypeDefs: state.accountTypeDefs.filter(d => d.typeId !== action.typeId) };
+
+    case 'ADD_LOCATION':    return { ...state, locationDefs: [...state.locationDefs, action.def] };
+    case 'EDIT_LOCATION':   return { ...state, locationDefs: state.locationDefs.map(d => d.locationId === action.locationId ? { ...d, ...action.updates } : d) };
+    case 'DELETE_LOCATION': return { ...state, locationDefs: state.locationDefs.filter(d => d.locationId !== action.locationId) };
 
     case 'SUBMIT_PAGE': {
       const page = state.pages.find(p => p.pageId === action.pageId);
@@ -650,6 +725,121 @@ function reducer(state: OCDPState, action: Action): OCDPState {
         ),
       };
 
+    case 'SET_PAGE_LOCALES': {
+      const page = state.pages.find(p => p.pageId === action.pageId)
+        ?? state.journeyPages.find(jp => jp.page.pageId === action.pageId)?.page;
+      if (!page) return state;
+      const primaryLocale = page.locale;
+      let translations = { ...page.translations };
+      const removedLocales = page.supportedLocales.filter(l => l !== primaryLocale && !action.locales.includes(l));
+      for (const locale of removedLocales) {
+        const { [locale]: _removed, ...rest } = translations;
+        translations = rest;
+      }
+      const updatePage = (p: PageLayout) =>
+        p.pageId === action.pageId ? { ...p, supportedLocales: action.locales, translations } : p;
+      return {
+        ...state,
+        pages: state.pages.map(updatePage),
+        journeyPages: state.journeyPages.map(jp => ({ ...jp, page: updatePage(jp.page) })),
+      };
+    }
+
+    case 'TRANSLATE_PAGE': {
+      const page = state.pages.find(p => p.pageId === action.pageId)
+        ?? state.journeyPages.find(jp => jp.page.pageId === action.pageId)?.page;
+      if (!page) return state;
+      const localeTranslations: Record<string, Record<string, string>> = {};
+      for (const slice of page.slices) {
+        const textKeys = TRANSLATABLE_PROP_KEYS[slice.type] ?? [];
+        const translated = translateSliceProps(slice.props, textKeys, action.locale);
+        if (Object.keys(translated).length > 0) localeTranslations[slice.instanceId] = translated;
+      }
+      const translations = { ...page.translations, [action.locale]: { ...(page.translations[action.locale] ?? {}), ...localeTranslations } };
+      const updatePage = (p: PageLayout) =>
+        p.pageId === action.pageId ? { ...p, translations } : p;
+      return {
+        ...state,
+        pages: state.pages.map(updatePage),
+        journeyPages: state.journeyPages.map(jp => ({ ...jp, page: updatePage(jp.page) })),
+      };
+    }
+
+    case 'SET_PAGE_TRANSLATION': {
+      const updatePage = (p: PageLayout) => {
+        if (p.pageId !== action.pageId) return p;
+        const localeMap = { ...(p.translations[action.locale] ?? {}) };
+        const sliceMap = { ...(localeMap[action.instanceId] ?? {}), [action.propKey]: action.value };
+        return { ...p, translations: { ...p.translations, [action.locale]: { ...localeMap, [action.instanceId]: sliceMap } } };
+      };
+      return {
+        ...state,
+        pages: state.pages.map(updatePage),
+        journeyPages: state.journeyPages.map(jp => ({ ...jp, page: updatePage(jp.page) })),
+      };
+    }
+
+    case 'SET_JOURNEY_LOCALES': {
+      const journey = state.journeys.find(j => j.journeyId === action.journeyId);
+      if (!journey) return state;
+      const primaryLocale = journey.supportedLocales[0] ?? 'en';
+      let translations = { ...journey.translations };
+      const removedLocales = journey.supportedLocales.filter(l => l !== primaryLocale && !action.locales.includes(l));
+      for (const locale of removedLocales) {
+        const { [locale]: _removed, ...rest } = translations;
+        translations = rest;
+      }
+      return {
+        ...state,
+        journeys: state.journeys.map(j =>
+          j.journeyId === action.journeyId ? { ...j, supportedLocales: action.locales, translations } : j
+        ),
+      };
+    }
+
+    case 'TRANSLATE_JOURNEY': {
+      const journey = state.journeys.find(j => j.journeyId === action.journeyId);
+      if (!journey) return state;
+      const existing = journey.translations?.[action.locale] ?? {};
+      return {
+        ...state,
+        journeys: state.journeys.map(j =>
+          j.journeyId !== action.journeyId ? j : {
+            ...j,
+            translations: {
+              ...j.translations,
+              [action.locale]: {
+                name: existing.name || mockTranslate(journey.name, action.locale),
+                description: existing.description || mockTranslate(journey.description, action.locale),
+              },
+            },
+          }
+        ),
+      };
+    }
+
+    case 'SET_JOURNEY_TRANSLATION':
+      return {
+        ...state,
+        journeys: state.journeys.map(j =>
+          j.journeyId === action.journeyId
+            ? { ...j, translations: { ...j.translations, [action.locale]: { ...(j.translations[action.locale] ?? {}), [action.field]: action.value } } }
+            : j
+        ),
+      };
+
+    case 'ADD_AI_SEARCH_CONFIG':
+      return { ...state, aiSearchConfigs: [...state.aiSearchConfigs, action.config] };
+    case 'EDIT_AI_SEARCH_CONFIG':
+      return {
+        ...state,
+        aiSearchConfigs: state.aiSearchConfigs.map(c =>
+          c.configId === action.configId ? { ...c, ...action.updates, updatedAt: new Date().toISOString() } : c
+        ),
+      };
+    case 'DELETE_AI_SEARCH_CONFIG':
+      return { ...state, aiSearchConfigs: state.aiSearchConfigs.filter(c => c.configId !== action.configId) };
+
     default: return state;
   }
 }
@@ -671,6 +861,11 @@ export function OCDPProvider({ children }: { children: React.ReactNode }) {
     approvalFlows: APPROVAL_FLOWS,
     wechatAccounts: WECHAT_ACCOUNTS,
     wechatTemplates: WECHAT_TEMPLATES,
+    pageTemplates: PAGE_TEMPLATES,
+    customerSegmentDefs: CUSTOMER_SEGMENT_DEFS,
+    accountTypeDefs: ACCOUNT_TYPE_DEFS,
+    locationDefs: LOCATION_DEFS,
+    aiSearchConfigs: [],
     pages: ALL_PAGES,
     journeys: MOCK_JOURNEYS,
     journeyPages: [...MOCK_JOURNEY_PAGES, ...MOCK_JOURNEY_PAGES_WEB],
@@ -702,4 +897,14 @@ export function useOCDP() {
   const ctx = useContext(OCDPContext);
   if (!ctx) throw new Error('useOCDP must be used inside OCDPProvider');
   return ctx;
+}
+
+// Returns true for market-scoped admins and the cross-market GLOBAL_ADMIN role.
+export function isAdmin(role: string) {
+  return role === 'ADMIN' || role === 'GLOBAL_ADMIN';
+}
+
+// Returns true only for the GLOBAL_ADMIN role (full cross-market access).
+export function isGlobalAdmin(role: string) {
+  return role === 'GLOBAL_ADMIN';
 }

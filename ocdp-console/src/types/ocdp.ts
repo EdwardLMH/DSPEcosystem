@@ -2,6 +2,32 @@
 
 export type Channel = 'SDUI' | 'WEB_STANDARD' | 'WEB_WECHAT';
 
+// ─── Page Templates (sourced from UCP) ────────────────────────────────────────
+
+export interface PageTemplateStarterSlice {
+  type: string;
+  props: Record<string, unknown>;
+  locked?: boolean;
+}
+
+export interface PageTemplate {
+  templateId: string;
+  name: string;
+  description: string;
+  icon: string;
+  channels: Channel[];
+  bizLineIds: BizLineId[];
+  category: 'generic' | 'campaign' | 'product' | 'insight' | 'journey';
+  starterSlices: PageTemplateStarterSlice[];
+  seoRequired: boolean;
+  aeoRequired: boolean;
+  status: 'ACTIVE' | 'DEPRECATED';
+  createdAt: string;
+  updatedAt: string;
+  maintainedBy: string;
+  usageCount: number;
+}
+
 export type BizLineId = 'PAYMENT' | 'WEB_ENABLER' | 'LENDING' | 'COLLECTION' | 'WEALTH' | 'MARKETING';
 
 export interface BizLine {
@@ -17,6 +43,10 @@ export interface Market {
   active: boolean;
   timezone: string;
   tzLabel: string;
+  // AD groups that are the default author/approver pool for this market.
+  // Global Admin AD groups (marketId === 'GLOBAL') apply as fallback when unset.
+  defaultAuthorGroupId?: string;
+  defaultApproverGroupId?: string;
 }
 
 export interface ReleaseTarget {
@@ -121,23 +151,34 @@ export type SliceType =
 
 // ─── Rule Engine ──────────────────────────────────────────────────────────────
 
-export type CustomerSegment = 'premier' | 'elite' | 'advance' | 'mass';
+export type CustomerSegment = string;  // seeded from CustomerSegmentDef.segmentId
 
-export type AccountType =
-  | 'wealth_account'
-  | 'credit_card'
-  | 'current_account'
-  | 'savings_account'
-  | 'mortgage'
-  | 'time_deposit';
+export type AccountType = string;      // seeded from AccountTypeDef.typeId
 
-export type CustomerLocation =
-  | 'HK'
-  | 'mainland_china'
-  | 'macau'
-  | 'singapore'
-  | 'uk'
-  | 'other';
+export type CustomerLocation = string; // seeded from LocationDef.locationId
+
+// ─── Rule Parameter Definitions (admin-managed catalogue) ─────────────────────
+
+export interface CustomerSegmentDef {
+  segmentId: string;
+  displayName: string;
+  description: string;
+  active: boolean;
+}
+
+export interface AccountTypeDef {
+  typeId: string;
+  displayName: string;
+  description: string;
+  active: boolean;
+}
+
+export interface LocationDef {
+  locationId: string;
+  displayName: string;
+  description: string;
+  active: boolean;
+}
 
 export type RuleOperator = 'is' | 'is_not' | 'in' | 'not_in';
 
@@ -214,10 +255,14 @@ export interface PageLayout {
   pageId: string;
   name: string;
   pageType: PageType;
+  pageTemplateId?: string;
   description?: string;
   // SDUI: which native clients render this page. Empty = none selected. Ignored for WEB_STANDARD/WEB_WECHAT.
   nativeTargets: NativeTarget[];
   locale: string;
+  // Multi-language support
+  supportedLocales: string[];  // locales this page is authored in; first entry = primary (same as locale)
+  translations: Record<string, Record<string, Record<string, string>>>;  // locale → instanceId → propKey → value
   thumbnail: string;
   tags: string[];
   channel: Channel;
@@ -311,7 +356,7 @@ export interface AEOScore {
   score: number;
   grade: 'A' | 'B' | 'C' | 'D' | 'F';
   checkedAt: string;
-  breakdown: { label: string; score: number; maxScore: number; pass: boolean }[];
+  breakdown: { label: string; score: number; maxScore: number; pass: boolean; recommendation?: string }[];
 }
 
 export interface PageUsageStat {
@@ -386,7 +431,8 @@ export type StaffRole =
   | 'CARDS-AUTHOR' | 'CARDS-APPROVER'
   | 'PAYMENT-AUTHOR' | 'PAYMENT-APPROVER'
   | 'MARKETING-AUTHOR' | 'MARKETING-APPROVER'
-  | 'ADMIN' | 'AUDITOR';
+  | 'ADMIN' | 'GLOBAL_ADMIN' | 'AUDITOR'
+  | 'AI-SEARCH-OPERATOR';
 
 export interface StaffUser {
   id: string;
@@ -396,7 +442,6 @@ export interface StaffUser {
   marketId: string;
   bizLineId: BizLineId;
   groupId: string;
-  isGlobalAdmin?: boolean;
 }
 
 export type Persona = 'Personal' | 'Business' | 'Global Banking and Markets' | 'HSBC Private Bank';
@@ -405,8 +450,56 @@ export type NavView =
   | 'pages' | 'journeys'
   | 'pending' | 'history'
   | 'stats' | 'aeo'
-  | 'admin-markets' | 'admin-bizlines' | 'admin-groups' | 'admin-flows' | 'audit'
+  | 'admin-markets' | 'admin-bizlines' | 'admin-groups' | 'admin-flows'
+  | 'admin-value-streams' | 'admin-rule-params' | 'audit'
+  | 'ai-search'
   | 'wechat';
+
+// ─── AI Search Configuration ──────────────────────────────────────────────────
+
+export type AISearchAppId = 'ios' | 'android' | 'harmonynext' | 'web';
+
+export type AISearchRefreshSchedule = 'manual' | 'hourly' | 'daily';
+
+export type AISearchContentSourceType = 'ocdp_page' | 'aem_url';
+
+export interface AISearchContentSource {
+  type: AISearchContentSourceType;
+  /** For ocdp_page: the pageId. For aem_url: the full AEM page URL. */
+  ref: string;
+  /** Human-readable label for this source (auto-populated from page name or URL). */
+  label: string;
+}
+
+export interface AISearchQuickAccessSource {
+  /** 'url' — BFF fetches + parses JSON from a remote URL at rebuild time. */
+  /** 'json' — Operator pastes/uploads raw JSON (stored inline). */
+  mode: 'url' | 'json';
+  url?: string;
+  json?: string;
+}
+
+export interface AISearchConfig {
+  configId: string;
+  appId: AISearchAppId;
+  displayName: string;
+  enabled: boolean;
+
+  quickAccessSource: AISearchQuickAccessSource;
+
+  contentSources: AISearchContentSource[];
+
+  searchEndpointOverride?: string;
+  refreshSchedule: AISearchRefreshSchedule;
+
+  /** ISO timestamp of the last corpus rebuild. Null = never rebuilt. */
+  lastRebuiltAt: string | null;
+  /** Number of items in the corpus after the last rebuild. */
+  corpusSize: number;
+
+  createdAt: string;
+  updatedAt: string;
+}
 
 // ─── UCP Content Assets (fetched from /api/v1/ucp/content-assets) ─────────────
 

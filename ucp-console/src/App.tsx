@@ -4,6 +4,8 @@ import { UCPDBSync } from './db/UCPDBSync';
 import { Header } from './components/layout/Header';
 import { ContentEditorPanel } from './components/content/ContentEditorPanel';
 import { ComponentRegistryPanel } from './components/content/ComponentRegistryPanel';
+import { PageTemplatePanel } from './components/content/PageTemplatePanel';
+import { TemplateEditorView } from './components/content/TemplateEditorView';
 import { UCPHistoryPanel } from './components/history/UCPHistoryPanel';
 import { BizLineAdminPanel } from './components/admin/BizLineAdminPanel';
 import { Toast } from './components/shared/Toast';
@@ -26,6 +28,7 @@ function AppLayout() {
     switch (navView) {
       case 'content':        return <ContentEditorPanel />;
       case 'components':     return <ComponentRegistryPanel />;
+      case 'templates':      return <PageTemplatePanel />;
       case 'history':        return <UCPHistoryPanel />;
       case 'audit':          return <PlaceholderPanel icon="🔒" title="Audit Log" subtitle="Full audit trail of all UCP content actions" />;
       case 'admin-bizlines': return <BizLineAdminPanel />;
@@ -35,12 +38,19 @@ function AppLayout() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', fontFamily: 'var(--font-family)' }}>
+      {/* Skip navigation link for keyboard and screen reader users */}
+      <a href="#ucp-main-content" className="skip-link">Skip to main content</a>
+
       <Header />
       <UCPDBSync />
-      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+
+      <main id="ucp-main-content" style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {renderMain()}
-      </div>
+      </main>
+
       <Toast />
+      {/* Template editor renders as a full-screen overlay when active */}
+      <TemplateEditorView />
     </div>
   );
 }

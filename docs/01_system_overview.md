@@ -1,8 +1,8 @@
 # HSBC Digital Sales Promotion Platform — System Overview
 
-**Document Version:** 1.2  
+**Document Version:** 1.4  
 **Classification:** Internal — Confidential  
-**Last Updated:** 2026-05-06  
+**Last Updated:** 2026-05-11  
 **Author:** Platform Architecture Team  
 **Status:** Approved  
 **Review Cycle:** Quarterly  
@@ -38,7 +38,9 @@
 
 - **Author Once, Deliver Everywhere** — One console publishes to five native platforms, server-rendered SEO pages, and WeChat — each with the right rendering, analytics, and data residency.
 
-- **Unified Platform** — Brings together UCP (content management), OCDP (page authoring and approvals), DAP (analytics and AEO monitoring), native mobile and web SDUI renderers, WeChat channel, and content from HSBC AEM — through a single BFF composition engine.
+- **Unified Platform** — Brings together UCP (content management), OCDP (page authoring and approvals), DAP (analytics and AEO monitoring), native mobile and web SDUI renderers, WeChat channel, and content from **both UCP and Adobe AEM** — through a single BFF composition engine. OCDP treats UCP and HSBC AEM as peer content providers: the page-editor left-hand panel lets authors browse and select content from either source to compose pages.
+
+- **Multi-Language & Accessibility by Design** — All staff consoles (OCDP and UCP) implement WCAG 2.1 AA accessibility and support multi-locale authoring across English, Traditional Chinese, Simplified Chinese, Arabic (RTL), and Spanish. Locale-aware content lives in a structured `translations` map keyed by locale and slice instance; RTL layout is applied automatically when Arabic is active.
 
 - **Mobile Intelligence Operations** — miPaaS (Mobile Intelligence PaaS) provides business and IT operators with unified visibility into mobile app performance (MAU/DAU, journey conversion, customer feedback) and full governance over the plugin and journey lifecycle within the PlatformHub mobile apps — without requiring app store releases.
 
@@ -271,31 +273,37 @@ OCDP Console                                  DAP
 │  │  Java BFF (Spring Boot/WebFlux)  │   │  OCDP Console (Staff CMS)        │    │
 │  │                                  │◄──►                                  │    │
 │  │  • SDUI Composition Engine       │   │  • Page/Journey Authoring UI     │    │
-│  │  • KYC Orchestrator              │   │  • Slice canvas editor           │    │
-│  │  • Personalisation Engine        │   │  • Maker-Checker approval queue  │    │
-│  │  • A/B Test Allocator (Optimizely│   │  • AEO / Statistics panels       │    │
-│  │  • Redis Cache Layer             │   │  • WeChatComposer, Admin panels  │    │
-│  │  • RBAC BizLineAccessGuard       │   └──────────────────────────────────┘    │
-│  │  • Immutable Audit Logger        │   ┌──────────────────────────────────┐    │
-│  │  • Analytics Event Forwarder     │   │  UCP Console (Content Platform)  │    │
-│  └──────────────────────────────────┘   │                                  │    │
-│                                         │  • Content Asset Library         │    │
-│  ┌──────────────────────────────────┐   │  • Component Registry (14 slice  │    │
-│  │  mock-BFF (Node.js — local dev)  │   │    types)                        │    │
-│  │  In-memory simulation of BFF +   │   │  • Content approval workflow     │    │
-│  │  OCDP/UCP. Port 4000.            │   │  • BizLine admin                 │    │
+│  │  • KYC Orchestrator              │   │  • Slice canvas + LEFT SIDEBAR   │    │
+│  │  • Personalisation Engine        │   │    (content picker: UCP + AEM)   │    │
+│  │  • A/B Test Allocator (Optimizely│   │  • Maker-Checker approval queue  │    │
+│  │  • Redis Cache Layer             │   │  • AEO / Statistics panels       │    │
+│  │  • RBAC BizLineAccessGuard       │   │  • WeChatComposer, Admin panels  │    │
+│  │  • Immutable Audit Logger        │   │  • Multi-locale authoring (i18n) │    │
+│  │  • Analytics Event Forwarder     │   │  • WCAG 2.1 AA accessibility     │    │
 │  └──────────────────────────────────┘   └──────────────────────────────────┘    │
+│                         ▲  calls both ▼                                           │
+│  ┌──────────────────────────────────┐   ┌──────────────────────────────────┐    │
+│  │  UCP Console (Content Platform)  │   │  HSBC AEM (Adobe Experience Mgr) │    │
+│  │                                  │   │                                  │    │
+│  │  • Content Asset Library         │   │  • Enterprise CMS for HSBC.com   │    │
+│  │  • Component Registry (14 slice  │   │  • Peer content provider to UCP  │    │
+│  │    types)                        │   │  • OCDP left sidebar browses AEM │    │
+│  │  • Content approval workflow     │   │    fragments, images & pages     │    │
+│  │  • BizLine admin                 │   │  • AEM Content Delivery API      │    │
+│  │  • Multi-locale i18n authoring   │   │    (REST/GraphQL) called by OCDP │    │
+│  │  • WCAG 2.1 AA accessibility     │   │  • Assets served via AEM CDN     │    │
+│  └──────────────────────────────────┘   └──────────────────────────────────┘    │
+│                    ▲  OCDP left sidebar fetches from both ▲                       │
 │                                                                                   │
 │  ┌──────────────────────────────────┐   ┌──────────────────────────────────┐    │
-│  │  HSBC AEM (Adobe Experience Mgr) │   │  Optimizely / LaunchDarkly       │    │
-│  │  Existing HSBC content source;   │   │  A/B test allocation + flags     │    │
-│  │  OCDP slices can reference AEM   │   └──────────────────────────────────┘    │
-│  │  URLs alongside UCP content      │                                          │
-│  └──────────────────────────────────┘                                          │
-│  ┌──────────────────────────────────┐                                          │
-│  │  Redis (AWS ElastiCache)         │                                          │
-│  │  SDUI JSON cache (TTL-based)     │                                          │
-│  └──────────────────────────────────┘                                          │
+│  │  mock-BFF (Node.js — local dev)  │   │  Optimizely / LaunchDarkly       │    │
+│  │  In-memory simulation of BFF +   │   │  A/B test allocation + flags     │    │
+│  │  OCDP/UCP/AEM APIs. Port 4000.   │   └──────────────────────────────────┘    │
+│  └──────────────────────────────────┘                                            │
+│  ┌──────────────────────────────────┐                                            │
+│  │  Redis (AWS ElastiCache)         │                                            │
+│  │  SDUI JSON cache (TTL-based)     │                                            │
+│  └──────────────────────────────────┘                                            │
 ├─────────────────────────────────────────────────────────────────────────────────┤
 │  LAYER 3 — INTELLIGENCE (DAP + Data Lake)                                        │
 │                                                                                   │
@@ -331,10 +339,10 @@ OCDP Console                                  DAP
 
 | Component | Layer | Responsibility | Owner |
 |-----------|-------|---------------|-------|
-| OCDP Console | Platform | Staff-facing CMS for authoring, reviewing, and publishing SDUI pages; page editor canvas with slice-level content source configuration (UCP or HSBC AEM URLs), journey builder, Maker-Checker approval queue, AEO/stats panels | Content Engineering |
-| UCP Console | Platform | Content asset library, component registry (14 slice types), approval workflow, biz-line admin | Content Engineering |
-| HSBC AEM | Platform | Existing Adobe Experience Manager instance; OCDP page editor can reference AEM-hosted content (images, pages, assets) alongside UCP content via configurable URLs per slice | Digital Channels |
-| mock-BFF | Platform | Node.js local dev simulator of bff-java + OCDP/UCP APIs; all state in-memory; port 4000 | Platform Engineering |
+| OCDP Console | Platform | Staff-facing CMS for authoring, reviewing, and publishing SDUI pages; page editor with a **left-hand content sidebar** that browses and selects content from both UCP and HSBC AEM as peer providers; journey builder, Maker-Checker approval queue, AEO/stats panels; **AI Search Admin** panel for configuring per-app semantic search corpora (content sources: OCDP pages + AEM URLs; corpus rebuild API); multi-locale (i18n) authoring with locale-aware slice props; WCAG 2.1 AA compliant UI | Content Engineering |
+| UCP Console | Platform | Content asset library, component registry (14 slice types), approval workflow, biz-line admin; multi-locale authoring support; WCAG 2.1 AA compliant UI | Content Engineering |
+| HSBC AEM | Platform | Adobe Experience Manager — enterprise CMS for HSBC.com. Acts as a **peer content provider** to UCP: the OCDP page-editor left sidebar queries both UCP and AEM so authors can drag AEM fragments, images, and pages directly into slices. AEM Content Delivery API (REST/GraphQL) is called by OCDP at authoring time; assets are served to end-users via HSBC's existing AEM CDN, independent of the UCP/BFF pipeline | Digital Channels |
+| mock-BFF | Platform | Node.js local dev simulator of bff-java + OCDP/UCP/AEM APIs; all state in-memory; port 4000 | Platform Engineering |
 | Java BFF | Platform | SDUI JSON composition, KYC orchestration, personalisation, A/B routing, Redis cache, RBAC, immutable audit log, event forwarding | Platform Engineering |
 | SDUI Composition Engine | Platform | Resolves screen template, fills slots, injects props, negotiates client schema version | Platform Engineering |
 | KYC Orchestrator | Platform | KYC step plan stored in Redis (72h TTL), branching logic (SHOW/HIDE), answer persistence, audit logging | Platform Engineering |
@@ -343,11 +351,14 @@ OCDP Console                                  DAP
 | RBAC BizLineAccessGuard | Platform | Enforces AUTHOR/APPROVER/AUDITOR/ADMIN roles + biz-line content isolation + Maker-Checker constraint | Security Engineering |
 | Immutable Audit Logger | Platform | PostgreSQL hash-chain audit log; UPDATE/DELETE revoked at DB level; `verify_ucp_audit_chain()` integrity function | Security Engineering |
 | Redis Cache | Platform | Caches SDUI JSON per screen+user+variant, TTL invalidation on CMS publish | Platform Engineering |
-| Web SDUI Renderer | Presentation | Parses JSON, resolves 24 React components, binds props, handles actions, fires Tealium analytics | Web Engineering |
-| iOS SDUI Renderer | Presentation | Parses JSON, resolves SwiftUI views (11 KYC steps + Wealth + FXViewpoint), handles actions, fires analytics | iOS Engineering |
-| Android SDUI Renderer | Presentation | Parses JSON, resolves Compose composables, handles actions, fires analytics | Android Engineering |
-| HarmonyOS NEXT Renderer | Presentation | Parses JSON, resolves ArkUI components (KYC + Wealth + FXViewpoint + AI Search), fires SensorData events | HarmonyNext Engineering |
-| HIVE Design Tokens | Cross-cutting | Single design token source-of-truth (JSON/CSS/Swift/Kotlin/ArkTS); HIVE Design Language v2.1.0 | Design Systems |
+| i18n / Translation Engine | Platform | Locale-aware slice prop merging via `translations[locale][instanceId][propKey]`; `getSliceProps()` helper; supported locales: `en`, `zh-TW`, `zh-CN`, `ar` (RTL), `es`; RTL dir attribute applied automatically | Content Engineering |
+| SDUI Static Distribution Manager | Platform | On OCDP publish: uploads canonical SDUI JSON per screen+platform to S3/OSS and regenerates `manifest.json`; invalidates CloudFront/Tencent CDN; runs in parallel with existing BFF Redis flush webhook | Platform Engineering |
+| AI Search Engine | Platform | Semantic search for HSBC mobile apps and web; per-app corpus configured in OCDP Admin (content sources: OCDP pages + AEM URLs; quick-access entry points via remote URL or inline JSON); corpus rebuilt on demand or scheduled (hourly/daily); BFF endpoint `POST /api/v1/search` ranks results via TF-IDF + keyword-overlap scoring; `GET /api/v1/search/corpus` for client-side corpus caching; `AI_SEARCH_BAR` / `HOME_SEARCH_HEADER` SDUI slice types deliver search to iOS, Android, HarmonyOS NEXT, and Web | Platform Engineering |
+| Web SDUI Renderer | Presentation | Parses JSON, resolves 24 React components, binds props, handles actions, fires Tealium analytics; implements 3-tier resolution chain (CDN manifest → local storage → bundled baseline); merges self-pick preferences for `SELF_PICK_ENTRY_POINTS` slices; honours `selfPickForceUpdate` flag | Web Engineering |
+| iOS SDUI Renderer | Presentation | Parses JSON, resolves SwiftUI views (11 KYC steps + Wealth + FXViewpoint), handles actions, fires analytics; implements 3-tier resolution chain; persists screens to `Caches/SDUI/`; merges self-pick from `UserDefaults`; honours `selfPickForceUpdate` | iOS Engineering |
+| Android SDUI Renderer | Presentation | Parses JSON, resolves Compose composables, handles actions, fires analytics; implements 3-tier resolution chain; persists screens via `DataStore` + file cache; merges self-pick preferences; honours `selfPickForceUpdate` | Android Engineering |
+| HarmonyOS NEXT Renderer | Presentation | Parses JSON, resolves ArkUI components (KYC + Wealth + FXViewpoint + AI Search), fires SensorData events; implements 3-tier resolution chain; persists screens via `preferences` + `fileio`; merges self-pick preferences; honours `selfPickForceUpdate` | HarmonyNext Engineering |
+| HIVE Design Tokens | Cross-cutting | Single design token source-of-truth (JSON/CSS/Swift/Kotlin/ArkTS); HIVE Design Language v2.1.0; token names used in WCAG 2.1 AA colour-contrast compliance | Design Systems |
 | GCP BigQuery + Looker | Intelligence | Data lake + BI for overseas; journey funnels, cohort, content leaderboard dashboards | Data Engineering |
 | SensorData (神策) | Intelligence | Behavioural analytics SDK + BI for mainland China; real-time event pipeline | China Data Engineering |
 | App Store Harvester | Intelligence | Polls AppFollow/AppBot for reviews, NLP sentiment + topic tagging, maps to contentId | DAP Engineering |
@@ -382,16 +393,43 @@ OCDP Console                                  DAP
 | Cache | `Cache-Control: max-age=60` for anonymous; `no-store` for personalised |
 | Compression | Brotli / gzip; target payload < 80KB |
 
-### 5.3 OCDP / BFF ↔ HSBC AEM
+### 5.3 OCDP ↔ HSBC AEM (Content Provider)
 
 | Attribute | Detail |
 |-----------|--------|
-| Integration | OCDP page editor allows each slice's content URLs (images, videos, deep links) to reference either UCP-hosted assets or existing HSBC AEM content |
-| Pattern | Editor configures `imageUrl`, `videoUrl`, or `ctaDeepLink` per slice — URL can point to UCP (`/media/*`) or AEM (`https://www.hsbc.com.hk/...`) |
-| BFF behaviour | Composition engine resolves content URLs as-is; no transformation needed — both UCP and AEM URLs are passed through to the SDUI JSON payload |
-| CDN | UCP assets served via CloudFront / Tencent CDN; AEM assets served via HSBC's existing AEM CDN infrastructure |
+| Relationship | AEM is a **peer content provider** alongside UCP. The OCDP page-editor left-hand sidebar queries both UCP and AEM so authors choose content from either source when composing a slice. |
+| OCDP → AEM (authoring time) | OCDP calls AEM Content Delivery API (REST/GraphQL, OAuth 2.0 client credentials) to list and search AEM content fragments, assets, and experience fragments for the left sidebar |
+| Content selection model | Author opens left sidebar in page editor → switches between **UCP** tab and **AEM** tab → searches/browses → drags item onto slice canvas; selected item recorded as `contentRef: { source: "UCP" \| "AEM", id: "..." }` per slice |
+| BFF at runtime | BFF composition engine reads `contentRef.source`; for `AEM` refs it passes the AEM-resolved URL through to the SDUI JSON as-is — no content transformation; AEM assets are served to end-users via HSBC's AEM CDN independent of BFF |
+| Content URL pattern | UCP assets: `/media/*` (via CloudFront / Tencent CDN); AEM assets: `https://www.hsbc.com.hk/content/...` (via AEM CDN) |
+| Auth (OCDP → AEM) | OAuth 2.0 client credentials; AEM instance on HSBC intranet; mTLS for internal network call |
+| Caching | AEM content fragments are cached in BFF Redis alongside UCP content; same TTL and invalidation webhook model applies |
+| Fallback | If AEM API unavailable at authoring time, OCDP sidebar shows cached fragment list with staleness indicator; at BFF composition time, stale AEM content is served from Redis until TTL expires |
 
-### 5.4 Clients ↔ DAP Event Ingestion
+### 5.4 OCDP / UCP — Multi-Language Authoring (i18n)
+
+| Attribute | Detail |
+|-----------|--------|
+| Translation model | Primary-language copy lives in `slice.props`; translations for all other locales stored in `page.translations[locale][instanceId][propKey]` |
+| Supported locales | `en` (English), `zh-TW` (Traditional Chinese), `zh-CN` (Simplified Chinese), `ar` (Arabic — RTL), `es` (Spanish) |
+| Helper | `getSliceProps(slice, locale, translations)` in `src/utils/i18n.ts` merges locale-specific overrides onto the base props at render time |
+| RTL support | When `ar` locale is active, `dir="rtl"` is set on the slice canvas; CSS `[dir="rtl"]` rules in `global.css` flip layout automatically |
+| Locale selector | Language selector dropdown in both OCDP and UCP console headers; locale pill bar inside the page editor canvas; per-slice prop editor becomes locale-aware when a non-primary locale is selected |
+| BFF delivery | Locale passed via `x-locale` request header; BFF selects the translated copy for the resolved locale before composing SDUI JSON |
+
+### 5.5 Accessibility (WCAG 2.1 AA)
+
+| Attribute | Detail |
+|-----------|--------|
+| Standard | WCAG 2.1 Level AA across all staff consoles (OCDP and UCP) |
+| Skip links | `Skip to main content` skip-link rendered at top of each console page; main content area has `id="main-content"` |
+| Focus management | `:focus-visible` CSS rules in `global.css` ensure keyboard focus rings are visible on all interactive elements |
+| Live regions | Toast / alert components use `role="status"` + `aria-live="polite"` so screen readers announce state changes |
+| Colour contrast | HIVE Design Tokens v2.1.0 mapped to WCAG AA contrast ratios (≥ 4.5:1 for normal text, ≥ 3:1 for large text and UI components) |
+| Keyboard navigation | All console panels navigable by keyboard; modal sheets trap focus; escape key closes overlays |
+| ARIA labelling | Icon-only buttons have `aria-label`; data tables have `scope` on headers; form fields have associated `<label>` elements |
+
+### 5.6 Clients ↔ DAP Event Ingestion
 
 | Attribute | Detail |
 |-----------|--------|
@@ -402,7 +440,7 @@ OCDP Console                                  DAP
 | China | → SensorData SDK endpoint (China-resident servers) |
 | PII | userId hashed (SHA-256 + per-user salt) before leaving device |
 
-### 5.5 DAP ↔ CMS Feedback Loop
+### 5.7 DAP ↔ CMS Feedback Loop
 
 | Attribute | Detail |
 |-----------|--------|
@@ -411,7 +449,7 @@ OCDP Console                                  DAP
 | Payload | `{contentId, cpsScore, band, recommendations[], alertType}` |
 | Notifications | Slack webhook + email digest; in-CMS score badge |
 
-### 5.6 AEO Probe ↔ LLM APIs
+### 5.8 AEO Probe ↔ LLM APIs
 
 | Attribute | Detail |
 |-----------|--------|
@@ -420,6 +458,206 @@ OCDP Console                                  DAP
 | Google AI | Google Search Console API + weekly manual spot-check pipeline |
 | Bing Copilot | Bing Web Search API for AI-generated answer sampling |
 | Schedule | Daily cron 03:00 HKT (off-peak); results to BigQuery `dap.aeo_probe_results` |
+
+### 5.9 AI Search — Semantic Search API
+
+HSBC mobile apps and the website surface an AI-powered search experience via the `AI_SEARCH_BAR` and `HOME_SEARCH_HEADER` SDUI slice types. The search corpus is configured and managed through the OCDP Admin console.
+
+**Corpus Configuration (OCDP AI Search Admin Panel)**
+
+OCDP operators create one `AISearchConfig` per app platform (`ios | android | harmonynext | web`). Each config specifies:
+
+| Field | Description |
+|-------|-------------|
+| `quickAccessSource` | Entry-point functions (quick-access buttons). Provided either as a remote URL (BFF fetches + parses JSON at rebuild time) or as inline JSON pasted by the operator |
+| `contentSources` | List of content pages to include in the search corpus. Each source is either an `ocdp_page` (references a live OCDP page by `pageId`) or an `aem_url` (references an AEM page URL) |
+| `refreshSchedule` | `manual` / `hourly` / `daily` — controls automatic corpus rebuild frequency |
+| `searchEndpointOverride` | Optional custom BFF search URL; defaults to `POST /api/v1/search` |
+
+**Corpus Rebuild Pipeline**
+
+```
+OCDP Admin triggers "Rebuild Corpus"
+   │
+   ▼
+POST /api/v1/search/config/{configId}/rebuild
+   │
+   ├── 1. Quick-access source
+   │      mode=url  → BFF fetches JSON from remote URL, parses items
+   │      mode=json → BFF parses inline JSON
+   │
+   ├── 2. Content sources (parallel)
+   │      type=ocdp_page → extract title/description/keywords from SDUI screen data
+   │      type=aem_url   → synthesise corpus entry from AEM page URL + metadata
+   │
+   ├── 3. Merge + deduplicate → AI_SEARCH_CORPORA[appId]
+   │
+   └── Response: { appId, corpusSize, rebuiltAt }
+       → OCDP console updates config card with corpus size + timestamp
+```
+
+**Runtime Search Flow**
+
+```
+Mobile App / Web
+   │  search query typed by user
+   ▼
+POST /api/v1/search
+  { query, limit, types?, appId }
+   │
+   ▼
+BFF Semantic Search Engine
+   ├── Selects corpus: AI_SEARCH_CORPORA[appId] (if configured + non-empty)
+   │   else falls back to default SEARCH_CORPUS
+   ├── Tokenises query → TF-IDF term vectors
+   ├── Scores each corpus entry: keyword overlap + cosine-similarity
+   ├── Returns top-N results ranked by score
+   │
+   └── Response: { query, totalMatched, results: SearchResultItem[] }
+       Each result: { id, type, title, description, icon, category, deepLink, score }
+```
+
+**Client-Side Corpus Caching**
+
+```
+GET /api/v1/search/corpus?appId={appId}
+   → Returns full corpus (SearchCorpusResponse)
+   → Clients cache with short TTL (recommended 5 min)
+   → Enables client-side instant search without round-trip per keystroke
+```
+
+| Attribute | Detail |
+|-----------|--------|
+| Slice types | `AI_SEARCH_BAR` (standalone search bar) and `HOME_SEARCH_HEADER` (segment-adaptive header with integrated search) |
+| Platforms | iOS, Android, HarmonyOS NEXT, Web — all call the same BFF endpoint |
+| Configurable props | `placeholder`, `enableSemanticSearch`, `enableQRScan`, `enableChatbot`, `enableMessageInbox`, `searchApiEndpoint` |
+| Content source types | `ocdp_page` (live OCDP-authored pages) and `aem_url` (AEM pages — peer provider) |
+| Production ranking | In production the TF-IDF mock is replaced by Vertex AI Matching Engine (vector embeddings); API contract and result shape are identical |
+| Corpus per app | Each `appId` has an independent corpus; prevents cross-app result leakage |
+
+### 5.10 SDUI Static Distribution — S3/CDN Delivery, Offline Fallback & Self-Pick Customisation
+
+OCDP publishes approved SDUI screen JSON to a static object store (S3 overseas, OSS in China) in addition to the live BFF path. Each native client (iOS, Android, HarmonyOS NEXT, Web) then manages a three-tier resolution chain: **remote manifest check → local storage → bundled baseline**.
+
+#### 5.10.1 Publish Pipeline
+
+```
+OCDP Approval (Maker-Checker passes)
+   │
+   ▼
+BFF composes canonical SDUI JSON for each screen + platform combination
+   │
+   ├── Uploads to S3 / OSS:
+   │     s3://hsbc-sdui/{region}/{appId}/{platform}/{screenId}/{version}.json
+   │     s3://hsbc-sdui/{region}/{appId}/{platform}/manifest.json   ← version index
+   │
+   ├── Invalidates CloudFront / Tencent CDN edge cache for affected paths
+   │
+   └── Publishes existing BFF Redis webhook (unchanged)
+
+manifest.json shape:
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-05-11T03:00:00Z",
+  "screens": {
+    "home":   { "version": "a3f9c1", "etag": "\"abc123\"", "sizeBytes": 41230 },
+    "wealth": { "version": "b7d2e4", "etag": "\"def456\"", "sizeBytes": 38910 }
+  },
+  "selfPickForceUpdate": false      ← global flag; see §5.10.4
+}
+```
+
+#### 5.10.2 Client Resolution Chain
+
+All four clients follow the same logic on app open / screen request:
+
+```
+App requests screen "home"
+   │
+   ├─ 1. FETCH manifest.json from CDN
+   │       success → compare remote screens["home"].version vs locally stored version
+   │       failure (no network / CDN error) → go to step 3
+   │
+   ├─ 2a. Version unchanged → serve from local storage (no download)
+   │
+   ├─ 2b. Version changed (or no local file exists)
+   │       → download new {screenId}/{version}.json from CDN
+   │       → validate JSON (schema version check)
+   │       → persist to local storage, evicting old version
+   │       → render new JSON
+   │
+   └─ 3. Local storage present → serve local storage copy
+          Local storage absent → serve bundled baseline (shipped with app binary)
+```
+
+Failure modes handled:
+
+| Condition | Resolution |
+|-----------|-----------|
+| No network on first launch | Bundled baseline (shipped inside the app) |
+| Manifest fetch fails but local copy exists | Serve local copy (stale-ok) |
+| CDN returns corrupted / invalid JSON | Discard, keep existing local copy; alert DAP |
+| Remote file missing (accidental S3 delete) | Same as corrupted: fall back to local |
+| Local storage full | Evict LRU screens; keep current + home |
+
+#### 5.10.3 Self-Pick Customisation
+
+Customers may personalise certain **entry-point slots** (e.g. quick-access shortcuts, pinned features on the home tab bar) — collectively called **self-pick entry points**. These slots are rendered via a dedicated slice type `SELF_PICK_ENTRY_POINTS` inside the SDUI JSON.
+
+**Authoring:** When OCDP authors compose a screen, they mark specific component slots as `selfPickable: true`. The BFF emits a `SELF_PICK_ENTRY_POINTS` slice containing the full catalogue of available entry-points and the default ordering.
+
+**Client behaviour:**
+
+```
+Render screen "home"
+   │
+   ├─ For all slices where selfPickable == false:
+   │     render exactly as received from remote / local JSON  (no override)
+   │
+   └─ For the SELF_PICK_ENTRY_POINTS slice:
+         read customer's saved preferences from device storage
+         (key: "selfPick_{userId}_{screenId}")
+         │
+         ├─ Preferences exist AND selfPickForceUpdate == false in manifest
+         │     → merge: customer ordering / selection overrides the remote defaults
+         │     → render merged result
+         │
+         └─ No preferences OR selfPickForceUpdate == true in manifest
+               → render remote defaults as-is
+               → if selfPickForceUpdate: clear saved preferences after render
+                  (customer sees the new defaults; can re-customise afterwards)
+```
+
+Self-pick data is stored only on-device — it is never uploaded to the BFF or analytics pipeline. PII impact: none (preferences are UI state, not identity data).
+
+#### 5.10.4 Force-Update Flag (`selfPickForceUpdate`)
+
+The `selfPickForceUpdate` boolean in `manifest.json` lets the platform team push a breaking layout change that must override all saved customer preferences (e.g. a regulatory restructuring of the home screen, removal of a deprecated entry-point type).
+
+| `selfPickForceUpdate` | Customer has preferences | Behaviour |
+|-----------------------|--------------------------|-----------|
+| `false` (default) | Yes | Customer preferences preserved; remote defaults ignored for self-pick slots |
+| `false` | No | Remote defaults rendered |
+| `true` | Yes | Remote defaults rendered; saved preferences **cleared** |
+| `true` | No | Remote defaults rendered (no change) |
+
+The flag is set to `true` only for the single publish cycle that requires the reset; OCDP authors revert it to `false` in the next publish after clients have received the update, preventing perpetual preference clearing.
+
+#### 5.10.5 Integration Points Summary
+
+| Attribute | Detail |
+|-----------|--------|
+| Storage (overseas) | AWS S3 `hsbc-sdui-{region}` bucket; served via CloudFront CDN |
+| Storage (China) | Alibaba OSS; served via Tencent CDN |
+| Manifest URL | `https://cdn.hsbc.com/sdui/{appId}/{platform}/manifest.json` |
+| Screen JSON URL | `https://cdn.hsbc.com/sdui/{appId}/{platform}/{screenId}/{version}.json` |
+| Client local storage | iOS: `UserDefaults` + file cache under `Caches/SDUI/`; Android: `DataStore` + file cache; HarmonyOS: `preferences` + `fileio`; Web: `localStorage` + `Cache API` |
+| Bundled baseline | Shipped in app binary; updated only on app release; used only as last-resort fallback |
+| Self-pick storage key | `selfPick_{userId}_{screenId}` — device-local only |
+| Manifest polling | On every cold app launch + periodic background refresh every 30 min (WiFi) / 60 min (cellular) |
+| Integrity check | Each downloaded JSON is SHA-256 verified against `etag` in manifest before persisting |
+| Publish trigger | Same OCDP approval webhook that flushes BFF Redis; S3 upload added as parallel step |
+| OCDP author control | `selfPickable` toggle per slice in page editor; `selfPickForceUpdate` checkbox on publish confirmation dialog |
 
 ---
 
@@ -517,7 +755,9 @@ OCDP Console                                  DAP
 | Compliance | China PIPL | Data in China, explicit consent, no cross-border PII | — |
 | Compliance | PCI-DSS | No card data in SDUI or DAP pipelines | — |
 | Resilience | BFF → Redis miss → CMS unavailable | Serve stale cache; degrade gracefully | — |
-| Resilience | SDUI client: BFF unavailable | Serve device-cached last-known-good screen | — |
+| Resilience | SDUI client: BFF unavailable | Serve device-cached last-known-good screen |
+| Resilience | SDUI client: CDN manifest fetch fails | Serve device local storage copy; fall back to bundled baseline if no local copy |
+| Resilience | SDUI client: corrupted/missing CDN screen file | Discard download; keep existing local copy; alert DAP | — |
 | Observability | Distributed tracing | OpenTelemetry → Datadog | — |
 | Observability | Error budget | < 0.05% error rate on SDUI endpoint | > 0.1% |
 
@@ -610,8 +850,9 @@ OCDP Console                                  DAP
 
 | Layer | Component | Technology |
 |-------|-----------|------------|
-| CMS (Authoring) | OCDP Console | React 18, TypeScript 5, Vite; IndexedDB local state; port 3002 |
-| CMS (Content) | UCP Console | React 18, TypeScript 5, Vite; 14-slice registry; port 3001 |
+| CMS (Authoring) | OCDP Console | React 18, TypeScript 5, Vite; IndexedDB local state; multi-locale i18n authoring; WCAG 2.1 AA; AI Search Admin panel; `selfPickable` slice toggle; `selfPickForceUpdate` publish flag; port 5173 by Vite default |
+| CMS (Content) | UCP Console | React 18, TypeScript 5, Vite; 14-slice registry; multi-locale i18n authoring; WCAG 2.1 AA; port 3001 |
+| CMS (Content — External) | HSBC AEM | Adobe Experience Manager; peer content provider to UCP; queried via AEM Content Delivery API (REST/GraphQL); OCDP left sidebar browses both UCP and AEM |
 | CMS (Local Dev) | mock-BFF | Node.js / Express; single-file in-memory simulator; port 4000 |
 | BFF | Backend for Frontend | Java 17, Spring Boot 3.x, WebFlux (reactive) |
 | BFF | API Layer | Spring Cloud Gateway + REST |
@@ -620,6 +861,7 @@ OCDP Console                                  DAP
 | BFF | A/B Testing | Optimizely Feature Experimentation |
 | BFF | Feature Flags | LaunchDarkly |
 | BFF | Audit Log | PostgreSQL + Flyway (V3 hash-chain immutable log) |
+| BFF / Search | AI Search Engine | TF-IDF + keyword-overlap ranking (mock); Vertex AI Matching Engine (production vector search); per-app corpus keyed by `appId`; `POST /api/v1/search`, `GET /api/v1/search/corpus` |
 | Web | SDUI Renderer | React 18, TypeScript 5, Vite; 24-component registry |
 | iOS | SDUI Renderer | Swift 5.9, SwiftUI, Combine |
 | Android | SDUI Renderer | Kotlin, Jetpack Compose, Coroutines |
@@ -635,8 +877,14 @@ OCDP Console                                  DAP
 | Surveys | Platform | Qualtrics XM + in-app SDUI SurveyWidget |
 | AEO Monitor | LLM Probing | Python + OpenAI API (gpt-4o) + Perplexity API (sonar-pro) |
 | AEO Monitor | Schema | Schema.org JSON-LD (auto-generated by CMS) |
-| CDN (Overseas) | Edge | AWS CloudFront (WAF + cache) |
-| CDN (China) | Edge | Tencent CDN |
+| CDN (Overseas) | Edge | AWS CloudFront (WAF + cache); also serves SDUI static JSON from S3 `hsbc-sdui-{region}` bucket |
+| CDN (China) | Edge | Tencent CDN; also serves SDUI static JSON from Alibaba OSS |
+| SDUI Static Store (Overseas) | Object Storage | AWS S3 `hsbc-sdui-{region}`; `manifest.json` + per-screen versioned JSON; uploaded on every OCDP publish |
+| SDUI Static Store (China) | Object Storage | Alibaba OSS; same structure; PIPL-compliant China-resident storage |
+| SDUI Client Cache (iOS) | Device | `UserDefaults` (self-pick) + file cache under `Caches/SDUI/` (screen JSON) + bundled baseline in app binary |
+| SDUI Client Cache (Android) | Device | `DataStore` (self-pick) + file cache (screen JSON) + bundled baseline in app binary |
+| SDUI Client Cache (HarmonyOS NEXT) | Device | `preferences` API (self-pick) + `fileio` (screen JSON) + bundled baseline |
+| SDUI Client Cache (Web) | Browser | `localStorage` (self-pick) + Cache API (screen JSON) + bundled fallback |
 | Observability | Tracing | OpenTelemetry → Datadog |
 | Observability | Logging | GCP Cloud Logging + ELK |
 | CI/CD | Pipeline | GitHub Actions + ArgoCD (GitOps) |

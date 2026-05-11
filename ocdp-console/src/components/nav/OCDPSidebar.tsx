@@ -1,5 +1,5 @@
 import React from 'react';
-import { useOCDP } from '../../store/OCDPStore';
+import { useOCDP, isAdmin } from '../../store/OCDPStore';
 import type { NavView } from '../../types/ocdp';
 
 interface NavItem { view: NavView; label: string; icon: string; adminOnly?: boolean }
@@ -10,7 +10,7 @@ const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
     items: [
       { view: 'pages',    label: 'Pages',    icon: '📄' },
       { view: 'journeys', label: 'Journeys', icon: '🗺️' },
-      { view: 'preview',  label: 'Preview',  icon: '📱' },
+      { view: 'wechat',   label: 'WeChat',   icon: '💬' },
     ],
   },
   {
@@ -30,11 +30,11 @@ const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
   {
     label: 'ADMIN',
     items: [
-      { view: 'admin-markets',  label: 'Markets',         icon: '🌏', adminOnly: true },
-      { view: 'admin-bizlines', label: 'Biz Lines',       icon: '🏢', adminOnly: true },
-      { view: 'admin-groups',   label: 'AD Groups',       icon: '👥', adminOnly: true },
-      { view: 'admin-flows',    label: 'Approval Flows',  icon: '⚙️', adminOnly: true },
-      { view: 'audit',          label: 'Audit Log',       icon: '🔒', adminOnly: true },
+      { view: 'admin-markets',       label: 'Markets',         icon: '🌏', adminOnly: true },
+      { view: 'admin-value-streams', label: 'Value Streams',   icon: '🏢', adminOnly: true },
+      { view: 'admin-flows',         label: 'Approval Flows',  icon: '⚙️', adminOnly: true },
+      { view: 'admin-rule-params',   label: 'Rule Params',     icon: '🔧', adminOnly: true },
+      { view: 'audit',               label: 'Audit Log',       icon: '🔒', adminOnly: true },
     ],
   },
   {
@@ -46,6 +46,7 @@ const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
 ];
 
 function roleBadgeStyle(role: string): React.CSSProperties {
+  if (role === 'GLOBAL_ADMIN') return { background: 'rgba(124,58,237,0.2)', color: '#C4B5FD' };
   if (role === 'ADMIN')    return { background: 'rgba(219,0,17,0.2)', color: '#FF6677' };
   if (role === 'AUDITOR')  return { background: 'rgba(200,169,81,0.2)', color: '#C8A951' };
   if (role.endsWith('-APPROVER')) return { background: 'rgba(5,150,105,0.2)', color: '#34D399' };
@@ -56,9 +57,9 @@ export function OCDPSidebar() {
   const { state, dispatch } = useOCDP();
   const { currentUser, navView } = state;
 
-  const isAdmin   = currentUser.role === 'ADMIN' || !!currentUser.isGlobalAdmin;
+  const isAdmin_  = isAdmin(currentUser.role);
   const isAuditor = currentUser.role === 'AUDITOR';
-  const showAdmin = isAdmin || isAuditor;
+  const showAdmin = isAdmin_ || isAuditor;
 
   return (
     <div style={{ width: 200, flexShrink: 0, background: 'var(--surface-sidebar)', display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>

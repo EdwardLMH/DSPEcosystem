@@ -1,12 +1,15 @@
 import { ScreenPayload } from '../types/sdui';
 
-const CACHE_PREFIX = 'sdui_screen_';
-const MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_PREFIX    = 'sdui_screen_';
+const FALLBACK_PREFIX = 'sdui_fallback_';
+const MAX_AGE_MS      = 24 * 60 * 60 * 1000; // 24 hours
 
 export function cacheScreen(screenId: string, payload: ScreenPayload): void {
   try {
     const entry = { payload, cachedAt: Date.now() };
     localStorage.setItem(CACHE_PREFIX + screenId, JSON.stringify(entry));
+    // Also write a raw-JSON fallback used by SDUIStaticDistribution as last resort
+    localStorage.setItem(FALLBACK_PREFIX + screenId, JSON.stringify(payload));
   } catch {
     // Storage quota exceeded — silently skip
   }

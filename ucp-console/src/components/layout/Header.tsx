@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useUCP } from '../../store/UCPStore';
 import { MOCK_USERS } from '../../store/mockData';
 import type { NavView } from '../../types/ucp';
+import { SUPPORTED_LOCALES, getLocaleInfo } from '../../utils/i18n';
 
 // ─── UCP nav items for the second strip ───────────────────────────────────────
 
@@ -10,6 +11,7 @@ interface NavItem { view: NavView; label: string; section: string; adminOnly?: b
 const NAV_ITEMS: NavItem[] = [
   { view: 'content',         label: 'Content',       section: 'AUTHOR'  },
   { view: 'components',      label: 'Components',    section: 'AUTHOR'  },
+  { view: 'templates',       label: 'Templates',     section: 'AUTHOR'  },
   { view: 'history',         label: 'History',       section: 'ADMIN',  adminOnly: true },
   { view: 'admin-bizlines',  label: 'Biz Lines',     section: 'ADMIN',  adminOnly: true },
   { view: 'audit',           label: 'Audit Log',     section: 'ADMIN',  adminOnly: true },
@@ -35,6 +37,18 @@ export function Header() {
   const { state, dispatch } = useUCP();
   const { navView, currentUser } = state;
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [uiLocale, setUiLocale] = useState('en');
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef<HTMLDivElement>(null);
+  const localeInfo = getLocaleInfo(uiLocale);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) setLangOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const isAdmin = currentUser.role === 'ADMIN' || !!currentUser.isGlobalAdmin;
   const visibleItems = NAV_ITEMS.filter(i => !i.adminOnly || isAdmin);
@@ -42,7 +56,7 @@ export function Header() {
   return (
     <>
       {/* ── Top strip: platform identity + user ───────────────────────────── */}
-      <div style={{
+      <header style={{
         background: '#1A1A1A',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
         flexShrink: 0,
@@ -63,15 +77,66 @@ export function Header() {
 
           {/* Right: language + user */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button style={{
-              fontSize: 12, color: 'rgba(255,255,255,0.65)',
-              background: 'transparent', border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 4,
-              fontFamily: 'var(--font-family)',
-            }}>
-              English
-              <span style={{ fontSize: 9 }}>▾</span>
-            </button>
+            {/* Language selector */}
+            <div ref={langRef} style={{ position: 'relative' }}>
+              <button
+                aria-label={`Interface language: ${localeInfo.label}. Click to change.`}
+                aria-expanded={langOpen}
+                aria-haspopup="listbox"
+                onClick={() => setLangOpen(o => !o)}
+                style={{
+                  fontSize: 12, color: 'rgba(255,255,255,0.65)',
+                  background: 'transparent', border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  fontFamily: 'var(--font-family)',
+                }}
+              >
+                {localeInfo.label}
+                <span style={{ fontSize: 9 }} aria-hidden="true">▾</span>
+              </button>
+
+              {langOpen && (
+                <div
+                  role="listbox"
+                  aria-label="Select interface language"
+                  style={{
+                    position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+                    background: '#fff', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+                    border: '1px solid #E5E7EB', minWidth: 196, zIndex: 300, overflow: 'hidden',
+                  }}
+                >
+                  <div style={{ padding: '8px 12px 6px', fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    Interface Language
+                  </div>
+                  {SUPPORTED_LOCALES.map(loc => {
+                    const isActive = loc.code === uiLocale;
+                    return (
+                      <button
+                        key={loc.code}
+                        role="option"
+                        aria-selected={isActive}
+                        onClick={() => { setUiLocale(loc.code); setLangOpen(false); }}
+                        style={{
+                          width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                          padding: '8px 12px', background: isActive ? 'rgba(219,0,17,0.05)' : 'transparent',
+                          border: 'none', cursor: 'pointer', textAlign: 'left',
+                          borderLeft: isActive ? '3px solid #DB0011' : '3px solid transparent',
+                          fontFamily: 'var(--font-family)',
+                        }}
+                        onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#F9FAFB'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = isActive ? 'rgba(219,0,17,0.05)' : 'transparent'; }}
+                      >
+                        <span style={{ fontSize: 12, fontWeight: isActive ? 700 : 500, color: isActive ? '#DB0011' : '#111' }}>{loc.label}</span>
+                        {loc.dir === 'rtl' && (
+                          <span style={{ fontSize: 10, color: '#6B7280', marginLeft: 'auto' }}>RTL</span>
+                        )}
+                        {isActive && <span style={{ fontSize: 12, color: '#DB0011', marginLeft: 'auto' }}>✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             <div style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.15)' }} />
 
@@ -79,6 +144,9 @@ export function Header() {
             <div style={{ position: 'relative' }}>
               <button
                 onClick={() => setShowUserMenu(v => !v)}
+                aria-expanded={showUserMenu}
+                aria-haspopup="listbox"
+                aria-label={`Current user: ${currentUser.name} (${currentUser.role}). Click to switch profile.`}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 5,
                   padding: '4px 12px',
@@ -95,10 +163,12 @@ export function Header() {
               >
                 {currentUser.name}
                 <span style={{ fontSize: 9, opacity: 0.5, marginLeft: 2 }}>({currentUser.role})</span>
-                <span style={{ fontSize: 9, opacity: 0.5, marginLeft: 4 }}>▾</span>
+                <span style={{ fontSize: 9, opacity: 0.5, marginLeft: 4 }} aria-hidden="true">▾</span>
               </button>
               {showUserMenu && (
                 <div
+                  role="listbox"
+                  aria-label="Switch profile"
                   style={{
                     position: 'absolute', top: 'calc(100% + 6px)', right: 0,
                     background: '#fff', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
@@ -114,6 +184,8 @@ export function Header() {
                     return (
                       <button
                         key={u.id}
+                        role="option"
+                        aria-selected={isActive}
                         onClick={() => { dispatch({ type: 'SET_USER', user: u }); setShowUserMenu(false); }}
                         style={{
                           width: '100%', display: 'flex', alignItems: 'center', gap: 10,
@@ -136,10 +208,12 @@ export function Header() {
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* ── Second strip: HSBC logo + UCP nav ────────────────────────────── */}
-      <div style={{
+      <nav
+        aria-label="UCP navigation"
+        style={{
         background: '#fff',
         borderBottom: '1px solid #E5E7EB',
         flexShrink: 0,
@@ -163,12 +237,15 @@ export function Header() {
           <div style={{ width: 1, background: '#E5E7EB', margin: '10px 20px 10px 0', flexShrink: 0 }} />
 
           {/* Nav items */}
-          <div style={{ display: 'flex', alignItems: 'stretch' }}>
+          <div role="tablist" aria-label="Content sections" style={{ display: 'flex', alignItems: 'stretch' }}>
             {visibleItems.map(item => {
               const isActive = navView === item.view;
               return (
                 <button
                   key={item.view}
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-label={`${item.label} (${item.section})`}
                   onClick={() => dispatch({ type: 'SET_NAV_VIEW', view: item.view })}
                   style={{
                     padding: '0 16px',
@@ -222,7 +299,7 @@ export function Header() {
             }} title="Platform online" />
           </div>
         </div>
-      </div>
+      </nav>
     </>
   );
 }

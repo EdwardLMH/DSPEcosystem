@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useSDUIContext } from '../../context/SDUIContext';
+import { useChannelMeta } from '../../hooks/useChannelMeta';
 
 // ─── BFF base URL ─────────────────────────────────────────────────────────────
 
@@ -16,12 +18,19 @@ interface FXSlice {
 // ─── Root page ────────────────────────────────────────────────────────────────
 
 export function FXViewpointPage() {
+  const { bffHeaders } = useSDUIContext();
   const [slices, setSlices] = useState<FXSlice[] | null>(null);
   const [error, setError]   = useState(false);
 
+  useChannelMeta({
+    title: 'FX Viewpoint — EUR & GBP Market Insights | HSBC Hong Kong',
+    description: 'Expert FX market insights from HSBC Global Research covering EUR and GBP outlook for 2026.',
+    jsonLd: { '@type': 'Article', name: 'FX Viewpoint EUR & GBP', publisher: { '@type': 'Organization', name: 'HSBC' } },
+  });
+
   useEffect(() => {
     fetch(`${BFF_BASE}/screen/fx-viewpoint-hk`, {
-      headers: { 'x-platform': 'web', Accept: 'application/json' },
+      headers: { ...bffHeaders, 'x-platform': 'web', Accept: 'application/json' },
     })
       .then(r => r.json())
       .then(data => {
@@ -29,7 +38,7 @@ export function FXViewpointPage() {
         setSlices(children.filter(s => s.visible !== false));
       })
       .catch(() => setError(true));
-  }, []);
+  }, [bffHeaders['x-locale'], bffHeaders['x-channel']]);
 
   const stickySlice = slices?.find(
     s => s.type === 'CONTACT_RM_CTA' && s.props['sticky'] === true
@@ -102,32 +111,57 @@ function FXHeaderBar({ title = 'FX Viewpoint', showBack = true }: {
 // ─── 2. Video Player ──────────────────────────────────────────────────────────
 
 function FXVideoPlayer({ slice }: { slice: FXSlice }) {
-  return (
-    <FXVideoThumbnail
-      title={String(slice.props['title'] ?? '')}
-      presenterName={String(slice.props['presenterName'] ?? '')}
-      presenterTitle={String(slice.props['presenterTitle'] ?? '')}
-    />
-  );
-}
+  const [playing, setPlaying] = useState(false);
+  const videoUrl = String(slice.props['videoUrl'] ?? '');
 
-function FXVideoThumbnail({ title, presenterName, presenterTitle }: {
-  title: string; presenterName: string; presenterTitle: string;
-}) {
   return (
     <div>
-      <div style={styles.videoThumb}>
-        <div style={styles.playIcon}>▶</div>
-        <div style={styles.videoTitle}>{title}</div>
-      </div>
+      {playing && videoUrl ? (
+        <video
+          src={videoUrl}
+          controls
+          autoPlay
+          style={{ width: '100%', height: 210, background: '#000', display: 'block' }}
+        />
+      ) : (
+        <FXVideoThumbnail
+          title={String(slice.props['title'] ?? '')}
+          onClick={videoUrl ? () => setPlaying(true) : undefined}
+        />
+      )}
       <div style={styles.presenterBar}>
         <div style={styles.presenterAvatar}>👤</div>
         <div>
-          <div style={styles.presenterName}>{presenterName}</div>
-          <div style={styles.presenterRole}>{presenterTitle}</div>
+          <div style={styles.presenterName}>{String(slice.props['presenterName'] ?? '')}</div>
+          <div style={styles.presenterRole}>{String(slice.props['presenterTitle'] ?? '')}</div>
         </div>
       </div>
       <div style={styles.divider} />
+    </div>
+  );
+}
+
+function FXVideoThumbnail({ title, presenterName, presenterTitle, onClick }: {
+  title: string; presenterName?: string; presenterTitle?: string; onClick?: () => void;
+}) {
+  return (
+    <div>
+      <div style={{ ...styles.videoThumb, cursor: onClick ? 'pointer' : 'default' }} onClick={onClick}>
+        <div style={styles.playIcon}>▶</div>
+        <div style={styles.videoTitle}>{title}</div>
+      </div>
+      {(presenterName || presenterTitle) && (
+        <>
+          <div style={styles.presenterBar}>
+            <div style={styles.presenterAvatar}>👤</div>
+            <div>
+              <div style={styles.presenterName}>{presenterName}</div>
+              <div style={styles.presenterRole}>{presenterTitle}</div>
+            </div>
+          </div>
+          <div style={styles.divider} />
+        </>
+      )}
     </div>
   );
 }

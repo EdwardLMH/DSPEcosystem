@@ -1,4 +1,5 @@
 import SwiftUI
+import AVKit
 
 // MARK: - QuickActionGrid
 
@@ -162,6 +163,373 @@ extension Color {
         let g = Double((int >> 8) & 0xFF) / 255
         let b = Double(int & 0xFF) / 255
         self.init(red: r, green: g, blue: b)
+    }
+}
+
+// MARK: - WealthStudioCarouselView
+// SDUI renderer for WEALTH_STUDIO_CAROUSEL slice.
+// Supports numColumns (1 = horizontal scroll, 2+ = LazyVGrid).
+// Each card has an image area, episode label, title, and play CTA.
+
+struct WealthStudioCarouselView: View {
+    let props: [String: Any]
+    @State private var playingVideoUrl: String? = nil
+
+    private var sectionTitle: String { props["sectionTitle"] as? String ?? "Premier Elite Wealth Studio" }
+    private var moreLabel: String    { props["moreLabel"]    as? String ?? "View all" }
+    private var numColumns: Int {
+        let raw = props["numColumns"]
+        if let n = raw as? Int { return max(1, n) }
+        if let s = raw as? String, let n = Int(s) { return max(1, n) }
+        return 1
+    }
+    private var items: [[String: Any]] { props["items"] as? [[String: Any]] ?? [] }
+
+    private let hsbcRed = Color(hex: "#DB0011")
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Header
+            HStack {
+                Text(sectionTitle).font(.system(size: 15, weight: .bold)).foregroundColor(Color(hex: "#1A1A2E"))
+                Spacer()
+                Text("\(moreLabel) ›").font(.system(size: 12, weight: .semibold)).foregroundColor(hsbcRed)
+            }
+            .padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 12)
+
+            if numColumns > 1 {
+                let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: numColumns)
+                LazyVGrid(columns: columns, spacing: 10) {
+                    ForEach(items.indices, id: \.self) { i in
+                        WealthStudioCardView(item: items[i], onPlay: { url in playingVideoUrl = url })
+                    }
+                }
+                .padding(.horizontal, 16).padding(.bottom, 14)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: 10) {
+                        ForEach(items.indices, id: \.self) { i in
+                            WealthStudioCardView(item: items[i], onPlay: { url in playingVideoUrl = url })
+                                .frame(width: 220)
+                        }
+                    }
+                    .padding(.horizontal, 16).padding(.bottom, 14)
+                }
+            }
+        }
+        .background(Color.white)
+        .padding(.top, 8)
+        .fullScreenCover(isPresented: Binding(
+            get: { playingVideoUrl != nil },
+            set: { if !$0 { playingVideoUrl = nil } }
+        )) {
+            VideoPlayerOverlay(url: playingVideoUrl ?? "", onClose: { playingVideoUrl = nil })
+        }
+    }
+}
+
+struct WealthStudioCardView: View {
+    let item: [String: Any]
+    let onPlay: (String) -> Void
+
+    private var episodeLabel: String { item["episodeLabel"] as? String ?? "" }
+    private var title: String        { item["title"]        as? String ?? "" }
+    private var ctaLabel: String     { item["ctaLabel"]     as? String ?? "Watch now" }
+    private var liveBadge: String?   { item["liveBadge"]    as? String }
+    private var videoUrl: String     { item["videoUrl"]     as? String ?? "" }
+    private var imageColor: Color    { Color(hex: item["imageColor"] as? String ?? "#1A1A2E") }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Image area
+            ZStack(alignment: .bottomLeading) {
+                ZStack {
+                    Rectangle().fill(imageColor).frame(height: 120)
+                    Text("▶")
+                        .font(.system(size: 20))
+                        .foregroundColor(.white)
+                        .frame(width: 36, height: 36)
+                        .background(Color.black.opacity(0.3))
+                        .clipShape(Circle())
+                }
+                if let badge = liveBadge {
+                    Text("🔴 \(badge)")
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8).padding(.vertical, 3)
+                        .background(Color(hex: "#DB0011").opacity(0.85))
+                        .cornerRadius(6)
+                        .padding(.horizontal, 10).padding(.bottom, 8)
+                }
+                VStack {
+                    HStack {
+                        Text(episodeLabel)
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8).padding(.vertical, 2)
+                            .background(Color.white.opacity(0.15))
+                            .cornerRadius(10)
+                        Spacer()
+                    }
+                    Spacer()
+                }.padding(10)
+            }
+            .frame(height: 120)
+            .onTapGesture { onPlay(videoUrl) }
+
+            // Text area
+            VStack(alignment: .leading, spacing: 8) {
+                Text(title)
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(Color(hex: "#1A1A2E"))
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button(ctaLabel) { onPlay(videoUrl) }
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 5)
+                    .background(Color(hex: "#DB0011"))
+                    .cornerRadius(14)
+            }
+            .padding(12)
+            .frame(height: 80)
+            .background(Color.white)
+        }
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+    }
+}
+
+struct VideoPlayerOverlay: View {
+    let url: String
+    let onClose: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            if let videoURL = resolvedURL(from: url) {
+                AVPlayerControllerRepresentable(url: videoURL)
+                    .ignoresSafeArea()
+            } else {
+                Text("Unable to load video")
+                    .foregroundColor(.white)
+            }
+            VStack {
+                HStack {
+                    Spacer()
+                    Button(action: onClose) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 28))
+                            .foregroundColor(.white)
+                            .padding(16)
+                    }
+                }
+                Spacer()
+            }
+        }
+        .onTapGesture {}
+    }
+
+    private func resolvedURL(from raw: String) -> URL? {
+        guard !raw.isEmpty else { return nil }
+        var resolved = raw
+        // Remap localhost/127.0.0.1 to simulator-reachable address
+        if resolved.contains("localhost") || resolved.contains("127.0.0.1") {
+            resolved = resolved
+                .replacingOccurrences(of: "localhost", with: "127.0.0.1")
+        }
+        return URL(string: resolved)
+    }
+}
+
+private struct AVPlayerControllerRepresentable: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context: Context) -> AVPlayerViewController {
+        let player = AVPlayer(url: url)
+        let vc = AVPlayerViewController()
+        vc.player = player
+        vc.showsPlaybackControls = true
+        player.play()
+        return vc
+    }
+
+    func updateUIViewController(_ vc: AVPlayerViewController, context: Context) {}
+}
+
+// MARK: - GuidesInsightsCarouselView
+// SDUI renderer for GUIDES_INSIGHTS_CAROUSEL slice.
+// Supports numColumns (1 = horizontal scroll, 2+ = LazyVGrid).
+
+struct GuidesInsightsCarouselView: View {
+    let props: [String: Any]
+
+    private var sectionTitle: String { props["sectionTitle"] as? String ?? "Guides and insights" }
+    private var moreLabel: String    { props["moreLabel"]    as? String ?? "View all" }
+    private var numColumns: Int {
+        let raw = props["numColumns"]
+        if let n = raw as? Int { return max(1, n) }
+        if let s = raw as? String, let n = Int(s) { return max(1, n) }
+        return 1
+    }
+    private var items: [[String: Any]] { props["items"] as? [[String: Any]] ?? [] }
+
+    private let hsbcRed = Color(hex: "#DB0011")
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Text(sectionTitle).font(.system(size: 15, weight: .bold)).foregroundColor(Color(hex: "#1A1A2E"))
+                Spacer()
+                Text("\(moreLabel) ›").font(.system(size: 12, weight: .semibold)).foregroundColor(hsbcRed)
+            }
+            .padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 12)
+
+            if numColumns > 1 {
+                let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: numColumns)
+                LazyVGrid(columns: columns, spacing: 10) {
+                    ForEach(items.indices, id: \.self) { i in GuidesCardView(item: items[i]) }
+                }
+                .padding(.horizontal, 16).padding(.bottom, 14)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: 10) {
+                        ForEach(items.indices, id: \.self) { i in
+                            GuidesCardView(item: items[i]).frame(width: 190)
+                        }
+                    }
+                    .padding(.horizontal, 16).padding(.bottom, 14)
+                }
+            }
+        }
+        .background(Color.white)
+        .padding(.top, 8)
+    }
+}
+
+struct GuidesCardView: View {
+    let item: [String: Any]
+
+    private var title: String       { item["title"]       as? String ?? "" }
+    private var description: String { item["description"] as? String ?? "" }
+    private var date: String        { item["date"]        as? String ?? "" }
+    private var imageColor: Color   { Color(hex: item["imageColor"] as? String ?? "#2D3748") }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ZStack {
+                Rectangle().fill(imageColor).frame(height: 100)
+                Text("📖").font(.system(size: 28)).opacity(0.6)
+            }
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(Color(hex: "#1A1A2E"))
+                    .lineLimit(3)
+                    .fixedSize(horizontal: false, vertical: true)
+                if !description.isEmpty {
+                    Text(description)
+                        .font(.system(size: 10))
+                        .foregroundColor(Color(hex: "#6B7280"))
+                        .lineLimit(2)
+                }
+                Text(date).font(.system(size: 10)).foregroundColor(Color(hex: "#9CA3AF"))
+            }
+            .padding(10)
+        }
+        .cornerRadius(12)
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: "#F3F4F6"), lineWidth: 1))
+        .shadow(color: .black.opacity(0.06), radius: 2, x: 0, y: 1)
+    }
+}
+
+// MARK: - DiscoverMoreCarouselView
+// SDUI renderer for DISCOVER_MORE_CAROUSEL slice.
+// Supports numColumns (1 = horizontal scroll, 2+ = LazyVGrid).
+
+struct DiscoverMoreCarouselView: View {
+    let props: [String: Any]
+
+    private var sectionTitle: String { props["sectionTitle"] as? String ?? "Discover more" }
+    private var numColumns: Int {
+        let raw = props["numColumns"]
+        if let n = raw as? Int { return max(1, n) }
+        if let s = raw as? String, let n = Int(s) { return max(1, n) }
+        return 1
+    }
+    private var items: [[String: Any]] { props["items"] as? [[String: Any]] ?? [] }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(sectionTitle)
+                .font(.system(size: 15, weight: .bold))
+                .foregroundColor(Color(hex: "#1A1A2E"))
+                .padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 12)
+
+            if numColumns > 1 {
+                let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: numColumns)
+                LazyVGrid(columns: columns, spacing: 8) {
+                    ForEach(items.indices, id: \.self) { i in DiscoverMoreCardView(item: items[i]) }
+                }
+                .padding(.horizontal, 16).padding(.bottom, 14)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: 10) {
+                        ForEach(items.indices, id: \.self) { i in
+                            DiscoverMoreCardView(item: items[i]).frame(width: 200)
+                        }
+                    }
+                    .padding(.horizontal, 16).padding(.bottom, 14)
+                }
+            }
+        }
+        .background(Color.white)
+        .padding(.top, 8)
+    }
+}
+
+struct DiscoverMoreCardView: View {
+    let item: [String: Any]
+
+    private var tag: String        { item["tag"]        as? String ?? "" }
+    private var tagColor: Color    { Color(hex: item["tagColor"]   as? String ?? "#DB0011") }
+    private var title: String      { item["title"]      as? String ?? "" }
+    private var subtitle: String   {
+        (item["description"] as? String) ?? (item["subtitle"] as? String) ?? ""
+    }
+    private var imageColor: Color  { Color(hex: item["imageColor"] as? String ?? "#1A2E4A") }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ZStack(alignment: .topLeading) {
+                Rectangle().fill(imageColor).frame(height: 110)
+                Text(tag)
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8).padding(.vertical, 4)
+                    .background(tagColor)
+                    .cornerRadius(10)
+                    .padding(10)
+            }
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Color(hex: "#1A1A2E"))
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                if !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.system(size: 10))
+                        .foregroundColor(Color(hex: "#6B7280"))
+                        .lineLimit(2)
+                }
+            }
+            .padding(12)
+        }
+        .cornerRadius(12)
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: "#F3F4F6"), lineWidth: 1))
+        .shadow(color: .black.opacity(0.06), radius: 2, x: 0, y: 1)
     }
 }
 

@@ -12,9 +12,11 @@ export async function getDB(): Promise<PGlite> {
 }
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
-// Two separate tables:
-//   1. ocdp_metadata  — page + journey records
-//   2. ocdp_activity  — audit / activity log
+// Tables:
+//   1. ocdp_metadata      — page + journey records
+//   2. ocdp_activity      — audit / activity log
+//   3. ocdp_config_params — admin-managed configuration catalogue (markets, biz lines,
+//                           AD groups, approval flows, rule parameter defs)
 
 const SCHEMA = `
   CREATE TABLE IF NOT EXISTS ocdp_metadata (
@@ -44,11 +46,26 @@ const SCHEMA = `
     biz_line_id  TEXT
   );
 
+  -- Single configuration parameters table.
+  -- param_type discriminates the catalogue (MARKET | BIZ_LINE | AD_GROUP |
+  --   APPROVAL_FLOW | CUSTOMER_SEGMENT | ACCOUNT_TYPE | LOCATION).
+  -- entity_id is the natural key for that type (marketId, bizLineId, etc.).
+  -- payload stores the full JSON object for the record.
+  CREATE TABLE IF NOT EXISTS ocdp_config_params (
+    param_type   TEXT        NOT NULL,
+    entity_id    TEXT        NOT NULL,
+    payload      JSONB       NOT NULL,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (param_type, entity_id)
+  );
+
   CREATE INDEX IF NOT EXISTS idx_ocdp_metadata_kind    ON ocdp_metadata(kind);
   CREATE INDEX IF NOT EXISTS idx_ocdp_metadata_channel ON ocdp_metadata(channel);
   CREATE INDEX IF NOT EXISTS idx_ocdp_metadata_market  ON ocdp_metadata(market_id);
   CREATE INDEX IF NOT EXISTS idx_ocdp_activity_ts      ON ocdp_activity(ts DESC);
   CREATE INDEX IF NOT EXISTS idx_ocdp_activity_entity  ON ocdp_activity(entity_id);
+  CREATE INDEX IF NOT EXISTS idx_ocdp_config_type      ON ocdp_config_params(param_type);
 `;
 
 // ─── Typed row shapes ─────────────────────────────────────────────────────────
@@ -200,5 +217,84 @@ export async function seedIfEmpty(
       status: j.status as string,
       payload: j as Record<string, unknown>,
     });
+  }
+}
+
+// ─── Config param types ───────────────────────────────────────────────────────
+
+export type ConfigParamType =
+  | 'MARKET'
+  | 'BIZ_LINE'
+  | 'AD_GROUP'
+  | 'APPROVAL_FLOW'
+  | 'CUSTOMER_SEGMENT'
+  | 'ACCOUNT_TYPE'
+  | 'LOCATION'
+  | 'AI_SEARCH_CONFIG';
+
+export interface OcdpConfigParamRow {
+  param_type: ConfigParamType;
+  entity_id:  string;
+  payload:    Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+// ─── Config param writes ──────────────────────────────────────────────────────
+
+export async function upsertConfigParam(
+  db: PGlite,
+  paramType: ConfigParamType,
+  entityId: string,
+  payload: Record<string, unknown>
+) {
+  await db.query(
+    `INSERT INTO ocdp_config_params (param_type, entity_id, payload, created_at, updated_at)
+     VALUES ($1, $2, $3, now(), now())
+     ON CONFLICT (param_type, entity_id) DO UPDATE SET
+       payload    = EXCLUDED.payload,
+       updated_at = now()`,
+    [paramType, entityId, payload]
+  );
+}
+
+export async function deleteConfigParam(
+  db: PGlite,
+  paramType: ConfigParamType,
+  entityId: string
+) {
+  await db.query(
+    `DELETE FROM ocdp_config_params WHERE param_type = $1 AND entity_id = $2`,
+    [paramType, entityId]
+  );
+}
+
+// ─── Config param reads ───────────────────────────────────────────────────────
+
+export async function loadConfigParams(
+  db: PGlite,
+  paramType: ConfigParamType
+): Promise<OcdpConfigParamRow[]> {
+  const result = await db.query<OcdpConfigParamRow>(
+    `SELECT * FROM ocdp_config_params WHERE param_type = $1 ORDER BY created_at ASC`,
+    [paramType]
+  );
+  return result.rows;
+}
+
+// Seed all config params from mock data if the table is empty for that type.
+export async function seedConfigParamsIfEmpty(
+  db: PGlite,
+  paramType: ConfigParamType,
+  rows: { id: string; payload: Record<string, unknown> }[]
+) {
+  const { rows: existing } = await db.query<{ c: string }>(
+    `SELECT COUNT(*)::text AS c FROM ocdp_config_params WHERE param_type = $1`,
+    [paramType]
+  );
+  if (parseInt(existing[0].c) > 0) return;
+
+  for (const row of rows) {
+    await upsertConfigParam(db, paramType, row.id, row.payload);
   }
 }

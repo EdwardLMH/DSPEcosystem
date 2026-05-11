@@ -1,8 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useOCDP } from '../../store/OCDPStore';
-import type { Channel, BizLineId, NativeTarget } from '../../types/ocdp';
-
-const PAGE_TYPES = ['WEALTH_HUB', 'KYC_JOURNEY', 'PRODUCT', 'CAMPAIGN', 'MARKET_INSIGHT', 'CUSTOM'] as const;
+import type { Channel, BizLineId, NativeTarget, PageTemplate } from '../../types/ocdp';
 
 const CHANNELS: { value: Channel; label: string; icon: string; desc: string }[] = [
   { value: 'SDUI',         label: 'SDUI',         icon: '📱', desc: 'JSON-driven — rendered by mobile native & web clients' },
@@ -17,23 +15,60 @@ const NATIVE_TARGETS: { value: NativeTarget; label: string; icon: string }[] = [
   { value: 'web',          label: 'Web',          icon: '🌐' },
 ];
 
+const CHANNEL_LABELS: Record<Channel, string> = {
+  SDUI: 'SDUI',
+  WEB_STANDARD: 'Web Standard',
+  WEB_WECHAT: 'WeChat H5',
+};
+
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '8px 12px', border: '1px solid #D1D5DB', borderRadius: 8,
   fontSize: 13, fontFamily: 'var(--font-family)', outline: 'none', boxSizing: 'border-box',
 };
 const labelStyle: React.CSSProperties = { fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6, display: 'block' };
 
+function TemplateCard({ template, selected, onClick }: { template: PageTemplate; selected: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        width: '100%', textAlign: 'left', padding: '12px 14px', borderRadius: 10,
+        border: selected ? '2px solid #DB0011' : '2px solid #E5E7EB',
+        background: selected ? 'rgba(219,0,17,0.03)' : '#fff',
+        cursor: 'pointer', transition: 'all 0.12s',
+        display: 'flex', gap: 12, alignItems: 'flex-start',
+        fontFamily: 'var(--font-family)',
+      }}
+    >
+      <span style={{ fontSize: 24, lineHeight: 1, flexShrink: 0, marginTop: 2 }}>{template.icon}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: selected ? '#DB0011' : '#111' }}>{template.name}</span>
+          {template.seoRequired && <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 4, background: '#EEF2FF', color: '#4F46E5', fontWeight: 700 }}>SEO</span>}
+          {template.aeoRequired && <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 4, background: '#F0FDF4', color: '#059669', fontWeight: 700 }}>AEO</span>}
+        </div>
+        <div style={{ fontSize: 11, color: '#6B7280', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          {template.description}
+        </div>
+        <div style={{ marginTop: 5, fontSize: 9, color: '#9CA3AF' }}>
+          {template.starterSlices.length} starter slice{template.starterSlices.length !== 1 ? 's' : ''} · {template.usageCount} page{template.usageCount !== 1 ? 's' : ''} using this template
+        </div>
+      </div>
+      {selected && <span style={{ color: '#DB0011', fontSize: 16, flexShrink: 0 }}>✓</span>}
+    </button>
+  );
+}
+
 export function NewPageModal() {
   const { state, dispatch } = useOCDP();
-  const { bizLines, markets, releaseTargets } = state;
+  const { bizLines, markets, releaseTargets, pageTemplates } = state;
 
   const [step, setStep] = useState<1 | 2>(1);
   const [name,          setName]          = useState('');
-  const [pageType,      setPageType]      = useState<typeof PAGE_TYPES[number]>('PRODUCT');
   const [channel,       setChannel]       = useState<Channel>('SDUI');
-  // SDUI: all 4 native targets checked by default
+  const [templateId,    setTemplateId]    = useState<string>('tpl-generic');
   const [nativeTargets, setNativeTargets] = useState<NativeTarget[]>(['ios', 'android', 'harmonynext', 'web']);
-  const [locale,        setLocale]        = useState('en-HK');
+  const [locale,        setLocale]        = useState('en');
   const [bizLineId,     setBizLineId]     = useState<BizLineId>('WEALTH');
   const [marketId,      setMarketId]      = useState(markets[1]?.marketId ?? 'HK');
   const [scope,         setScope]         = useState<'MARKET' | 'GLOBAL'>('MARKET');
@@ -44,12 +79,30 @@ export function NewPageModal() {
   const [webSlug,      setWebSlug]      = useState('');
   const [webTitle,     setWebTitle]     = useState('');
   const [webDesc,      setWebDesc]      = useState('');
-  const [isPublic,     setIsPublic]     = useState(false); // SDUI default is private; flips to true when WEB_STANDARD is selected
+  const [isPublic,     setIsPublic]     = useState(false);
   // WeChat extra
   const [wcPageUrl,    setWcPageUrl]    = useState('');
   const [wcShareTitle, setWcShareTitle] = useState('');
 
   const canProceed = name.trim().length > 0;
+
+  // Filter templates by selected channel
+  const availableTemplates = useMemo(
+    () => pageTemplates.filter(t => t.status === 'ACTIVE' && t.channels.includes(channel)),
+    [pageTemplates, channel]
+  );
+
+  // Auto-select first matching template when channel changes
+  function handleChannelChange(ch: Channel) {
+    setChannel(ch);
+    if (ch === 'SDUI') { setNativeTargets(['ios', 'android', 'harmonynext', 'web']); setIsPublic(false); }
+    if (ch === 'WEB_STANDARD') setIsPublic(true);
+    if (ch === 'WEB_WECHAT')   setIsPublic(false);
+    // Pick first template compatible with new channel
+    const firstMatch = pageTemplates.find(t => t.status === 'ACTIVE' && t.channels.includes(ch));
+    if (firstMatch) setTemplateId(firstMatch.templateId);
+    else setTemplateId('');
+  }
 
   function toggleNative(t: NativeTarget) {
     setNativeTargets(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
@@ -59,13 +112,7 @@ export function NewPageModal() {
     setReleaseIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   }
 
-  function handleChannelChange(ch: Channel) {
-    setChannel(ch);
-    // Reset native targets to all-on when switching to SDUI; reset isPublic to channel default
-    if (ch === 'SDUI') { setNativeTargets(['ios', 'android', 'harmonynext', 'web']); setIsPublic(false); }
-    if (ch === 'WEB_STANDARD') setIsPublic(true);
-    if (ch === 'WEB_WECHAT')   setIsPublic(false);
-  }
+  const selectedTemplate = pageTemplates.find(t => t.templateId === templateId);
 
   function handleCreate() {
     const groupId = state.currentUser.groupId;
@@ -73,10 +120,13 @@ export function NewPageModal() {
       type: 'CREATE_PAGE',
       page: {
         name: name.trim(),
-        pageType,
-        description: description.trim() || undefined,
+        pageType: 'CUSTOM',
+        pageTemplateId: templateId || undefined,
+        description: description.trim() || selectedTemplate?.description || undefined,
         nativeTargets: channel === 'SDUI' ? nativeTargets : [],
         locale,
+        supportedLocales: [locale],
+        translations: {},
         bizLineId,
         groupId,
         channel,
@@ -93,22 +143,36 @@ export function NewPageModal() {
   }
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1000,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }} onClick={e => { if (e.target === e.currentTarget) dispatch({ type: 'TOGGLE_NEW_PAGE_MODAL' }); }}>
-      <div style={{
-        background: '#fff', borderRadius: 16, width: 620, maxHeight: '90vh',
-        display: 'flex', flexDirection: 'column', boxShadow: '0 24px 80px rgba(0,0,0,0.18)',
-      }}>
+    <div
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1000,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}
+      role="presentation"
+      onClick={e => { if (e.target === e.currentTarget) dispatch({ type: 'TOGGLE_NEW_PAGE_MODAL' }); }}
+      onKeyDown={e => { if (e.key === 'Escape') dispatch({ type: 'TOGGLE_NEW_PAGE_MODAL' }); }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="new-page-modal-title"
+        style={{
+          background: '#fff', borderRadius: 16, width: 640, maxHeight: '92vh',
+          display: 'flex', flexDirection: 'column', boxShadow: '0 24px 80px rgba(0,0,0,0.18)',
+        }}
+      >
         {/* Header */}
         <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #F3F4F6', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <div style={{ fontSize: 17, fontWeight: 700, color: '#111' }}>New Page</div>
-              <div style={{ fontSize: 12, color: '#6B7280', marginTop: 2 }}>Step {step} of 2 — {step === 1 ? 'Channel & Identity' : 'Market & Release Targets'}</div>
+              <div id="new-page-modal-title" style={{ fontSize: 17, fontWeight: 700, color: '#111' }}>New Page</div>
+              <div style={{ fontSize: 12, color: '#6B7280', marginTop: 2 }}>Step {step} of 2 — {step === 1 ? 'Channel, Template & Identity' : 'Market & Release Targets'}</div>
             </div>
-            <button onClick={() => dispatch({ type: 'TOGGLE_NEW_PAGE_MODAL' })} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: '#9CA3AF', lineHeight: 1 }}>×</button>
+            <button
+              onClick={() => dispatch({ type: 'TOGGLE_NEW_PAGE_MODAL' })}
+              aria-label="Close dialog"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: '#9CA3AF', lineHeight: 1 }}
+            >×</button>
           </div>
           <div style={{ marginTop: 12, height: 3, background: '#F3F4F6', borderRadius: 2 }}>
             <div style={{ height: '100%', width: step === 1 ? '50%' : '100%', background: '#DB0011', borderRadius: 2, transition: 'width 0.3s' }} />
@@ -171,29 +235,15 @@ export function NewPageModal() {
                   <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 8 }}>
                     SDUI JSON will be delivered to all selected clients — iOS, Android, HarmonyNext native apps, and the Web SDUI renderer.
                   </div>
-
-                  {/* Web public toggle — only shown when web target is selected */}
                   {nativeTargets.includes('web') && (
                     <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #FDDCB5' }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: '#92400E', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
-                        Web Visibility
-                      </div>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#92400E', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Web Visibility</div>
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <button onClick={() => setIsPublic(false)} style={{
-                          flex: 1, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
-                          border: !isPublic ? '2px solid #6B7280' : '2px solid #E5E7EB',
-                          background: !isPublic ? '#F3F4F6' : '#fff',
-                          transition: 'all 0.12s',
-                        }}>
+                        <button onClick={() => setIsPublic(false)} style={{ flex: 1, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', textAlign: 'left', border: !isPublic ? '2px solid #6B7280' : '2px solid #E5E7EB', background: !isPublic ? '#F3F4F6' : '#fff', transition: 'all 0.12s' }}>
                           <div style={{ fontSize: 11, fontWeight: 700, color: !isPublic ? '#374151' : '#9CA3AF' }}>🔒 Private</div>
                           <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>Authenticated users only — no AEO/SEO assessment</div>
                         </button>
-                        <button onClick={() => setIsPublic(true)} style={{
-                          flex: 1, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
-                          border: isPublic ? '2px solid #059669' : '2px solid #E5E7EB',
-                          background: isPublic ? '#D1FAE5' : '#fff',
-                          transition: 'all 0.12s',
-                        }}>
+                        <button onClick={() => setIsPublic(true)} style={{ flex: 1, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', textAlign: 'left', border: isPublic ? '2px solid #059669' : '2px solid #E5E7EB', background: isPublic ? '#D1FAE5' : '#fff', transition: 'all 0.12s' }}>
                           <div style={{ fontSize: 11, fontWeight: 700, color: isPublic ? '#059669' : '#9CA3AF' }}>🌐 Public</div>
                           <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>Indexed by search engines — AEO/SEO assessed on submit</div>
                         </button>
@@ -203,55 +253,54 @@ export function NewPageModal() {
                 </div>
               )}
 
-              {/* Page type + locale in a row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                <div>
-                  <label style={labelStyle}>Page Type</label>
-                  <select value={pageType} onChange={e => setPageType(e.target.value as typeof PAGE_TYPES[number])} style={{ ...inputStyle, background: '#fff', cursor: 'pointer' }}>
-                    {PAGE_TYPES.map(t => <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={labelStyle}>Locale</label>
-                  <input value={locale} onChange={e => setLocale(e.target.value)} placeholder="en-HK" style={inputStyle} />
-                </div>
+              {/* Page Template selector */}
+              <div>
+                <label style={labelStyle}>
+                  Page Template
+                  <span style={{ marginLeft: 6, fontSize: 10, color: '#9CA3AF', fontWeight: 400 }}>— pre-loads starter slices and requirements for {CHANNEL_LABELS[channel]} channel</span>
+                </label>
+                {availableTemplates.length === 0 ? (
+                  <div style={{ padding: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, fontSize: 11, color: '#DC2626' }}>
+                    No templates available for {CHANNEL_LABELS[channel]} channel. Select a different channel or start with Generic Page.
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {availableTemplates.map(t => (
+                      <TemplateCard key={t.templateId} template={t} selected={templateId === t.templateId} onClick={() => setTemplateId(t.templateId)} />
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Biz line */}
-              <div>
-                <label style={labelStyle}>Business Line</label>
-                <select value={bizLineId} onChange={e => setBizLineId(e.target.value as BizLineId)} style={{ ...inputStyle, background: '#fff', cursor: 'pointer' }}>
-                  {bizLines.map(b => <option key={b.bizLineId} value={b.bizLineId}>{b.displayName}</option>)}
-                </select>
+              {/* Locale + Biz Line row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div>
+                  <label style={labelStyle}>Locale</label>
+                  <input value={locale} onChange={e => setLocale(e.target.value)} placeholder="en" style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Business Line</label>
+                  <select value={bizLineId} onChange={e => setBizLineId(e.target.value as BizLineId)} style={{ ...inputStyle, background: '#fff', cursor: 'pointer' }}>
+                    {bizLines.map(b => <option key={b.bizLineId} value={b.bizLineId}>{b.displayName}</option>)}
+                  </select>
+                </div>
               </div>
 
               {/* Web Standard extra fields */}
               {channel === 'WEB_STANDARD' && (
                 <div style={{ padding: 14, background: '#F9FAFB', borderRadius: 10, display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Web Standard — SEO</div>
-
-                  {/* Public / Private toggle */}
                   <div>
                     <label style={labelStyle}>Page Visibility</label>
                     <div style={{ display: 'flex', gap: 8 }}>
                       {([true, false] as const).map(val => (
-                        <button key={String(val)} onClick={() => setIsPublic(val)} style={{
-                          flex: 1, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
-                          border: isPublic === val ? `2px solid ${val ? '#059669' : '#6B7280'}` : '2px solid #E5E7EB',
-                          background: isPublic === val ? (val ? '#D1FAE5' : '#F3F4F6') : '#fff',
-                          transition: 'all 0.12s',
-                        }}>
-                          <div style={{ fontSize: 12, fontWeight: 700, color: isPublic === val ? (val ? '#059669' : '#374151') : '#9CA3AF' }}>
-                            {val ? '🌐 Public' : '🔒 Private'}
-                          </div>
-                          <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>
-                            {val ? 'Indexed by search engines — AEO/SEO assessed' : 'Authenticated users only — no AEO/SEO assessment'}
-                          </div>
+                        <button key={String(val)} onClick={() => setIsPublic(val)} style={{ flex: 1, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', textAlign: 'left', border: isPublic === val ? `2px solid ${val ? '#059669' : '#6B7280'}` : '2px solid #E5E7EB', background: isPublic === val ? (val ? '#D1FAE5' : '#F3F4F6') : '#fff', transition: 'all 0.12s' }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: isPublic === val ? (val ? '#059669' : '#374151') : '#9CA3AF' }}>{val ? '🌐 Public' : '🔒 Private'}</div>
+                          <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>{val ? 'Indexed by search engines — AEO/SEO assessed' : 'Authenticated users only — no AEO/SEO assessment'}</div>
                         </button>
                       ))}
                     </div>
                   </div>
-
                   <div>
                     <label style={labelStyle}>URL Slug</label>
                     <input value={webSlug} onChange={e => setWebSlug(e.target.value)} placeholder="/credit-cards/visa-platinum" style={inputStyle} />
@@ -296,13 +345,7 @@ export function NewPageModal() {
                 <label style={labelStyle}>Scope</label>
                 <div style={{ display: 'flex', gap: 10 }}>
                   {(['MARKET', 'GLOBAL'] as const).map(s => (
-                    <button key={s} onClick={() => setScope(s)} style={{
-                      flex: 1, padding: '10px', borderRadius: 8, cursor: 'pointer',
-                      border: scope === s ? '2px solid #DB0011' : '2px solid #E5E7EB',
-                      background: scope === s ? 'rgba(219,0,17,0.04)' : '#fff',
-                      fontSize: 13, fontWeight: scope === s ? 700 : 500,
-                      color: scope === s ? '#DB0011' : '#374151',
-                    }}>
+                    <button key={s} onClick={() => setScope(s)} style={{ flex: 1, padding: '10px', borderRadius: 8, cursor: 'pointer', border: scope === s ? '2px solid #DB0011' : '2px solid #E5E7EB', background: scope === s ? 'rgba(219,0,17,0.04)' : '#fff', fontSize: 13, fontWeight: scope === s ? 700 : 500, color: scope === s ? '#DB0011' : '#374151' }}>
                       {s === 'MARKET' ? '🌏 Market-Specific' : '🌍 Global'}
                     </button>
                   ))}
@@ -323,8 +366,7 @@ export function NewPageModal() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 14, background: '#F9FAFB', borderRadius: 10 }}>
                   {releaseTargets.map(rt => (
                     <label key={rt.targetId} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 13 }}>
-                      <input type="checkbox" checked={releaseIds.includes(rt.targetId)} onChange={() => toggleRelease(rt.targetId)}
-                        style={{ width: 15, height: 15, accentColor: '#DB0011', cursor: 'pointer' }} />
+                      <input type="checkbox" checked={releaseIds.includes(rt.targetId)} onChange={() => toggleRelease(rt.targetId)} style={{ width: 15, height: 15, accentColor: '#DB0011', cursor: 'pointer' }} />
                       <span style={{ fontWeight: 600, color: '#111' }}>{rt.targetId}</span>
                       <span style={{ color: '#6B7280' }}>{rt.displayName}</span>
                       {rt.isGlobal && <span style={{ fontSize: 10, background: '#EEF2FF', color: '#4F46E5', padding: '1px 6px', borderRadius: 3, fontWeight: 700 }}>GLOBAL</span>}
@@ -345,11 +387,19 @@ export function NewPageModal() {
                   {channel === 'SDUI' && (
                     <><div style={{ color: '#6B7280' }}>Native Targets</div><div style={{ fontWeight: 600 }}>{nativeTargets.length ? nativeTargets.join(', ') : 'none'}</div></>
                   )}
-                  <div style={{ color: '#6B7280' }}>Type</div><div style={{ fontWeight: 600 }}>{pageType}</div>
+                  <div style={{ color: '#6B7280' }}>Template</div>
+                  <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {selectedTemplate ? <><span>{selectedTemplate.icon}</span><span>{selectedTemplate.name}</span></> : '—'}
+                  </div>
                   <div style={{ color: '#6B7280' }}>Biz Line</div><div style={{ fontWeight: 600 }}>{bizLineId}</div>
                   <div style={{ color: '#6B7280' }}>Scope</div><div style={{ fontWeight: 600 }}>{scope}</div>
                   <div style={{ color: '#6B7280' }}>Targets</div><div style={{ fontWeight: 600 }}>{releaseIds.length ? releaseIds.join(', ') : marketId}</div>
                 </div>
+                {selectedTemplate && (selectedTemplate.seoRequired || selectedTemplate.aeoRequired) && (
+                  <div style={{ marginTop: 10, padding: '8px 10px', background: '#EEF2FF', borderRadius: 6, fontSize: 11, color: '#4338CA' }}>
+                    ℹ This template requires {[selectedTemplate.seoRequired && 'SEO', selectedTemplate.aeoRequired && 'AEO'].filter(Boolean).join(' & ')} assessment before publishing.
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -359,23 +409,15 @@ export function NewPageModal() {
         <div style={{ padding: '16px 24px', borderTop: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
           {step === 1 ? (
             <>
-              <button onClick={() => dispatch({ type: 'TOGGLE_NEW_PAGE_MODAL' })}
-                style={{ padding: '9px 20px', background: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>
-                Cancel
-              </button>
-              <button onClick={() => setStep(2)} disabled={!canProceed}
-                style={{ padding: '9px 24px', background: canProceed ? '#DB0011' : '#F3F4F6', color: canProceed ? '#fff' : '#9CA3AF', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: canProceed ? 'pointer' : 'not-allowed' }}>
+              <button onClick={() => dispatch({ type: 'TOGGLE_NEW_PAGE_MODAL' })} style={{ padding: '9px 20px', background: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => setStep(2)} disabled={!canProceed} style={{ padding: '9px 24px', background: canProceed ? '#DB0011' : '#F3F4F6', color: canProceed ? '#fff' : '#9CA3AF', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: canProceed ? 'pointer' : 'not-allowed' }}>
                 Next: Release Targets →
               </button>
             </>
           ) : (
             <>
-              <button onClick={() => setStep(1)}
-                style={{ padding: '9px 20px', background: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>
-                ← Back
-              </button>
-              <button onClick={handleCreate}
-                style={{ padding: '9px 24px', background: '#DB0011', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              <button onClick={() => setStep(1)} style={{ padding: '9px 20px', background: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>← Back</button>
+              <button onClick={handleCreate} style={{ padding: '9px 24px', background: '#DB0011', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                 Create Page (Draft)
               </button>
             </>

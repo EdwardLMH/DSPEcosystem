@@ -167,6 +167,24 @@ object TealiumClient {
         custom = mapOf("brand_name" to brand, "deal_tag" to tag)
     )
 
+    fun wealthStudioTapped(episodeLabel: String, title: String, ctaLabel: String) = track(
+        event = "studio_tap", category = "Wealth", action = "studio_tapped",
+        label = title, screen = "wealth_hub_hk", journey = "wealth_hub",
+        custom = mapOf("episode_label" to episodeLabel, "cta_label" to ctaLabel)
+    )
+
+    fun guidesTapped(title: String, id: String, deepLink: String) = track(
+        event = "guide_tap", category = "Wealth", action = "guide_tapped",
+        label = title, screen = "wealth_hub_hk", journey = "wealth_hub",
+        componentId = id, custom = mapOf("deep_link" to deepLink)
+    )
+
+    fun discoverMoreTapped(tag: String, title: String, deepLink: String) = track(
+        event = "discover_tap", category = "Wealth", action = "discover_tapped",
+        label = title, screen = "wealth_hub_hk", journey = "wealth_hub",
+        custom = mapOf("card_tag" to tag, "deep_link" to deepLink)
+    )
+
     fun adBannerDismissed(title: String) = track(
         event = "ad_dismissed", category = "Wealth", action = "ad_banner_dismissed",
         label = title, screen = "wealth_hub_hk", journey = "wealth_hub",

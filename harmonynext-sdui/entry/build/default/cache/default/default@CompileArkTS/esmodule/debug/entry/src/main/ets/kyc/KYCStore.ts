@@ -1,6 +1,6 @@
 import { KYCState } from "@normalized:N&&&entry/src/main/ets/models/SDUIModels&";
 import type { KYCAction, AnswerEntry } from "@normalized:N&&&entry/src/main/ets/models/SDUIModels&";
-import { startSession, resume, getStep, submitStep } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
+import { fetchConfig, startSession, resume, getStep, submitStep } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
 import { SensorDataClient } from "@normalized:N&&&entry/src/main/ets/network/SensorDataClient&";
 @Observed
 export class KYCStore {
@@ -21,7 +21,14 @@ export class KYCStore {
     // Mirrors iOS AppStore.handleEffect() and Android KYCViewModel coroutine blocks.
     // Only START_SESSION and SUBMIT_STEP trigger network calls.
     handleEffect(action: KYCAction): void {
-        if (action.type === 'START_SESSION') {
+        if (action.type === 'LOAD_CONFIG') {
+            fetchConfig()
+                .then(cfg => {
+                this.dispatch({ type: 'CONFIG_LOADED', config: cfg });
+            })
+                .catch(() => { });
+        }
+        else if (action.type === 'START_SESSION') {
             SensorDataClient.kycJourneyStarted();
             startSession('harmonynext')
                 .then(res => {

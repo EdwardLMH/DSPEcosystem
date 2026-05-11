@@ -663,17 +663,17 @@ function SliceRow({ type, props, segment }: { type: string; props?: Record<strin
   if (type === 'AI_SEARCH_BAR') {
     return (
       <div style={{ background: '#DB0011', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-        {p.enableQRScan && (
+        {!!p.enableQRScan && (
           <QRScanIcon color="rgba(255,255,255,0.9)" size={14} />
         )}
         <div style={{ flex: 1, background: 'rgba(255,255,255,0.15)', borderRadius: 14, padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 5 }}>
           <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10 }}>🔍</span>
           <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: 9 }}>{String(p.placeholder ?? '搜尋功能、產品')}</span>
         </div>
-        {p.enableChatbot && (
+        {!!p.enableChatbot && (
           <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14, lineHeight: 1, flexShrink: 0 }}>🤖</span>
         )}
-        {p.enableMessageInbox && (
+        {!!p.enableMessageInbox && (
           <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14, lineHeight: 1, flexShrink: 0 }}>✉️</span>
         )}
       </div>
@@ -685,8 +685,8 @@ function SliceRow({ type, props, segment }: { type: string; props?: Record<strin
       <div style={{ background: '#DB0011', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
         <span style={{ color: '#fff', fontWeight: 800, fontSize: 13 }}>HSBC</span>
         <span style={{ color: 'rgba(255,255,255,0.85)', flex: 1, fontSize: 11 }}>{String(p.title ?? 'Header')}</span>
-        {p.showNotificationBell && <span style={{ color: '#fff' }}>🔔</span>}
-        {p.showQRScanner && <QRScanIcon color="#fff" size={14} />}
+        {!!p.showNotificationBell && <span style={{ color: '#fff' }}>🔔</span>}
+        {!!p.showQRScanner && <QRScanIcon color="#fff" size={14} />}
       </div>
     );
   }
@@ -694,16 +694,16 @@ function SliceRow({ type, props, segment }: { type: string; props?: Record<strin
   if (type === 'PROMO_BANNER') {
     return (
       <div style={{ background: String(p.backgroundColor ?? '#E8F4FD'), flexShrink: 0, padding: p.imageUrl && !p.title ? 0 : '12px 14px' }}>
-        {p.imageUrl && (
+        {!!p.imageUrl && (
           <img src={String(p.imageUrl)} alt={String(p.altText ?? '')}
             style={{ width: '100%', display: 'block', objectFit: 'cover', height: p.title ? 60 : 72 }} />
         )}
-        {p.title && (
+        {!!p.title && (
           <div style={{ padding: p.imageUrl ? '8px 14px 12px' : undefined }}>
-            {p.badgeText && <div style={{ display: 'inline-block', fontSize: 9, fontWeight: 700, background: '#DB0011', color: '#fff', borderRadius: 3, padding: '1px 6px', marginBottom: 4 }}>{String(p.badgeText)}</div>}
+            {!!p.badgeText && <div style={{ display: 'inline-block', fontSize: 9, fontWeight: 700, background: '#DB0011', color: '#fff', borderRadius: 3, padding: '1px 6px', marginBottom: 4 }}>{String(p.badgeText)}</div>}
             <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 2 }}>{String(p.title)}</div>
-            {p.subtitle && <div style={{ fontSize: 10, marginBottom: 6, color: '#555' }}>{String(p.subtitle)}</div>}
-            {p.ctaLabel && <div style={{ display: 'inline-block', padding: '3px 10px', background: '#DB0011', color: '#fff', borderRadius: 4, fontSize: 10, fontWeight: 700 }}>{String(p.ctaLabel)}</div>}
+            {!!p.subtitle && <div style={{ fontSize: 10, marginBottom: 6, color: '#555' }}>{String(p.subtitle)}</div>}
+            {!!p.ctaLabel && <div style={{ display: 'inline-block', padding: '3px 10px', background: '#DB0011', color: '#fff', borderRadius: 4, fontSize: 10, fontWeight: 700 }}>{String(p.ctaLabel)}</div>}
           </div>
         )}
       </div>
@@ -805,7 +805,7 @@ function SliceRow({ type, props, segment }: { type: string; props?: Record<strin
           <div style={{ fontWeight: 700, fontSize: 11 }}>{String(p.title ?? 'Ad Banner')}</div>
           <div style={{ fontSize: 9, color: '#6B7280' }}>{String(p.subtitle ?? '')}</div>
         </div>
-        {p.dismissible && <span style={{ color: '#9CA3AF', fontSize: 14 }}>×</span>}
+        {!!p.dismissible && <span style={{ color: '#9CA3AF', fontSize: 14 }}>×</span>}
       </div>
     );
   }
@@ -825,7 +825,7 @@ function SliceRow({ type, props, segment }: { type: string; props?: Record<strin
             <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>+{(p.bulletPoints as unknown[]).length - 3} more…</div>
           )}
         </div>
-        {p.disclaimer && (
+        {!!p.disclaimer && (
           <div style={{ marginTop: 8, padding: '6px 8px', background: '#F9FAFB', borderRadius: 4, fontSize: 8, color: '#9CA3AF', lineHeight: 1.4, borderLeft: '2px solid #E5E7EB' }}>
             {String(p.disclaimer).substring(0, 80)}…
           </div>
@@ -851,12 +851,12 @@ function SliceRow({ type, props, segment }: { type: string; props?: Record<strin
         </div>
         {/* Caption bar */}
         <div style={{ padding: '6px 10px 8px' }}>
-          {p.title && (
+          {!!p.title && (
             <div style={{ fontWeight: 700, fontSize: 9, color: '#fff', marginBottom: 2, lineHeight: 1.3 }}>
               {String(p.title)}
             </div>
           )}
-          {p.presenterName && (
+          {!!p.presenterName && (
             <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.6)' }}>
               {String(p.presenterName)}{p.presenterTitle ? ` · ${String(p.presenterTitle)}` : ''}
             </div>
@@ -870,8 +870,8 @@ function SliceRow({ type, props, segment }: { type: string; props?: Record<strin
     return (
       <div style={{ padding: '12px 16px', background: String(p.backgroundColor ?? '#DB0011'), display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, flexShrink: 0 }}>
         <div style={{ fontWeight: 700, fontSize: 13, color: String(p.textColor ?? '#FFFFFF') }}>{String(p.label ?? 'Contact Your RM')}</div>
-        {p.subLabel && <div style={{ fontSize: 9, color: `${String(p.textColor ?? '#FFFFFF')}CC`, textAlign: 'center' }}>{String(p.subLabel)}</div>}
-        {p.sticky && <div style={{ marginTop: 4, fontSize: 8, padding: '1px 6px', background: 'rgba(255,255,255,0.2)', borderRadius: 8, color: '#fff', fontWeight: 600 }}>STICKY</div>}
+        {!!p.subLabel && <div style={{ fontSize: 9, color: `${String(p.textColor ?? '#FFFFFF')}CC`, textAlign: 'center' }}>{String(p.subLabel)}</div>}
+        {!!p.sticky && <div style={{ marginTop: 4, fontSize: 8, padding: '1px 6px', background: 'rgba(255,255,255,0.2)', borderRadius: 8, color: '#fff', fontWeight: 600 }}>STICKY</div>}
       </div>
     );
   }
@@ -889,7 +889,7 @@ function SliceRow({ type, props, segment }: { type: string; props?: Record<strin
     return (
       <div style={{ padding: '10px 12px', background: '#fff', flexShrink: 0 }}>
         <div style={{ fontWeight: 700, fontSize: 11, color: '#111', marginBottom: 4 }}>{String(p.sectionTitle ?? 'Time Deposit Rate:')}</div>
-        {p.asAtDate && <div style={{ fontSize: 8, color: '#6B7280', marginBottom: 6 }}>As at {String(p.asAtDate)}</div>}
+        {!!p.asAtDate && <div style={{ fontSize: 8, color: '#6B7280', marginBottom: 6 }}>As at {String(p.asAtDate)}</div>}
         <div style={{ border: '1px solid #E5E7EB', borderRadius: 6, overflow: 'hidden', marginBottom: 6 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#F9FAFB', padding: '4px 8px', borderBottom: '1px solid #E5E7EB' }}>
             <span style={{ fontSize: 8, fontWeight: 700, color: '#6B7280' }}>Term</span>
@@ -902,7 +902,7 @@ function SliceRow({ type, props, segment }: { type: string; props?: Record<strin
             </div>
           ))}
         </div>
-        {p.footnote && <div style={{ fontSize: 8, color: '#6B7280' }}>{String(p.footnote)}</div>}
+        {!!p.footnote && <div style={{ fontSize: 8, color: '#6B7280' }}>{String(p.footnote)}</div>}
       </div>
     );
   }
@@ -911,6 +911,73 @@ function SliceRow({ type, props, segment }: { type: string; props?: Record<strin
     return (
       <div style={{ padding: '12px 16px', background: String(p.backgroundColor ?? '#C41E3A'), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         <div style={{ fontWeight: 700, fontSize: 13, color: String(p.textColor ?? '#FFFFFF') }}>{String(p.label ?? 'Open a Deposit')}</div>
+      </div>
+    );
+  }
+
+  if (type === 'CAMPAIGN_HERO') {
+    const bg = String(p.bgGradient ?? 'linear-gradient(160deg,#0A1A3D 0%,#0D2B6B 100%)');
+    return (
+      <div style={{ background: bg, padding: '24px 20px 20px', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
+        {!!p.imageUrl && (
+          <img src={String(p.imageUrl)} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.25 }} />
+        )}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {!!p.badge && (
+            <div style={{ display: 'inline-block', fontSize: 9, fontWeight: 700, background: String(p.accentColor ?? '#C9A84C'), color: '#fff', borderRadius: 4, padding: '2px 8px', marginBottom: 10, letterSpacing: '0.04em' }}>
+              {String(p.badge)}
+            </div>
+          )}
+          <div style={{ fontSize: 18, fontWeight: 800, color: '#fff', lineHeight: 1.2, marginBottom: 8 }}>
+            {String(p.headline ?? 'Campaign Headline')}
+          </div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', lineHeight: 1.5 }}>
+            {String(p.subHeadline ?? 'Campaign sub-headline copy goes here')}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'CAMPAIGN_BENEFITS') {
+    const items = Array.isArray(p.items) ? p.items as { icon: string; title: string; description?: string }[] : [];
+    return (
+      <div style={{ padding: '16px 20px', background: '#fff', flexShrink: 0 }}>
+        {!!p.sectionTitle && <div style={{ fontWeight: 700, fontSize: 13, color: '#111', marginBottom: 12 }}>{String(p.sectionTitle)}</div>}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+          {(items.length > 0 ? items : [
+            { icon: '🌍', title: '0% Foreign Transaction Fee' },
+            { icon: '✈️', title: 'Airport Lounge Access' },
+            { icon: '🛡️', title: 'Travel Insurance' },
+            { icon: '🎭', title: 'Lifestyle Rewards' },
+          ]).map((item, i) => (
+            <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', padding: '8px 10px', background: '#F9FAFB', borderRadius: 8, border: '1px solid #F3F4F6' }}>
+              <span style={{ fontSize: 16, flexShrink: 0 }}>{item.icon}</span>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#111', lineHeight: 1.3 }}>{item.title}</div>
+                {item.description && <div style={{ fontSize: 9, color: '#6B7280', marginTop: 2, lineHeight: 1.4 }}>{item.description}</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'CAMPAIGN_CTA') {
+    return (
+      <div style={{ padding: '20px 20px 16px', background: '#fff', flexShrink: 0, textAlign: 'center' }}>
+        <div style={{ background: '#DB0011', color: '#fff', fontWeight: 700, fontSize: 14, padding: '14px 24px', borderRadius: 8, marginBottom: 8, cursor: 'pointer' }}>
+          {String(p.primaryLabel ?? 'Apply Now')}
+        </div>
+        {!!p.subNote && (
+          <div style={{ fontSize: 10, color: '#059669', fontWeight: 600, marginBottom: 8 }}>{String(p.subNote)}</div>
+        )}
+        {!!p.secondaryLabel && (
+          <div style={{ fontSize: 11, color: '#DB0011', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}>
+            {String(p.secondaryLabel)}
+          </div>
+        )}
       </div>
     );
   }
@@ -932,8 +999,8 @@ function SliceRow({ type, props, segment }: { type: string; props?: Record<strin
             <span style={{ color: accent, fontSize: 10, fontWeight: 900 }}>H</span>
           </div>
           <span style={{ color: accent, fontSize: 11, fontWeight: 700, flex: 1 }}>{segLabel}</span>
-          {p.enableNotification && <span style={{ color: accent, fontSize: 14 }}>🔔</span>}
-          {p.enableHeadset      && <span style={{ color: accent, fontSize: 13 }}>🎧</span>}
+          {!!p.enableNotification && <span style={{ color: accent, fontSize: 14 }}>🔔</span>}
+          {!!p.enableHeadset      && <span style={{ color: accent, fontSize: 13 }}>🎧</span>}
         </div>
         {/* White search bar — full width, no arc */}
         <div style={{ background: '#fff', borderRadius: 0, padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -958,8 +1025,8 @@ function SliceRow({ type, props, segment }: { type: string; props?: Record<strin
           </div>
           <span style={{ color: '#fff', fontSize: 11, fontWeight: 700 }}>{String(p.brandLabel ?? 'HSBC Premier')}</span>
         </div>
-        {p.enableNotification && <span style={{ color: '#fff', fontSize: 14 }}>🔔</span>}
-        {p.enableHeadset && <span style={{ color: '#fff', fontSize: 13 }}>🎧</span>}
+        {!!p.enableNotification && <span style={{ color: '#fff', fontSize: 14 }}>🔔</span>}
+        {!!p.enableHeadset && <span style={{ color: '#fff', fontSize: 13 }}>🎧</span>}
       </div>
     );
   }
@@ -1167,7 +1234,7 @@ function SliceRow({ type, props, segment }: { type: string; props?: Record<strin
             </div>
           ))}
         </div>
-        {p.moreLabel && (
+        {!!p.moreLabel && (
           <div style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 4 }}>
             <span style={{ fontSize: 8, color: '#374151' }}>{String(p.moreLabel)}</span>
             <span style={{ fontSize: 10, color: '#9CA3AF' }}>›</span>
@@ -1178,67 +1245,99 @@ function SliceRow({ type, props, segment }: { type: string; props?: Record<strin
   }
 
   if (type === 'WEALTH_STUDIO_CAROUSEL') {
-    const items = Array.isArray(p.items) ? p.items as { id: string; episodeLabel: string; liveBadge: string; title: string; ctaLabel: string; imageColor: string }[] : [];
+    const items = Array.isArray(p.items) ? p.items as { id: string; episodeLabel?: string; liveBadge?: string; title?: string; ctaLabel?: string; imageColor?: string; videoUrl?: string; thumbnailUrl?: string; presenter?: string }[] : [];
+    const cols = Math.max(1, parseInt(String(p.numColumns ?? '1'), 10) || 1);
+    const isGrid = cols > 1;
     return (
-      <div style={{ background: '#F9FAFB', padding: '10px 0', flexShrink: 0 }}>
+      <div style={{ background: '#0A1628', padding: '10px 0', flexShrink: 0 }}>
         <div style={{ padding: '0 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <span style={{ fontWeight: 700, fontSize: 11, color: '#111' }}>{String(p.sectionTitle ?? 'Premier Elite Wealth Studio')}</span>
-          <span style={{ fontSize: 8, color: '#DB0011', fontWeight: 600 }}>{String(p.moreLabel ?? 'View all')} ›</span>
+          <span style={{ fontWeight: 700, fontSize: 11, color: '#fff' }}>{String(p.sectionTitle ?? 'Premier Elite Wealth Studio')}</span>
+          <span style={{ fontSize: 8, color: '#c9a96e', fontWeight: 600 }}>{String(p.moreLabel ?? 'View all')} ›</span>
         </div>
-        <div style={{ padding: '0 12px', display: 'flex', gap: 8, overflowX: 'auto' as const }}>
+        <div style={{
+          padding: '0 12px',
+          ...(isGrid
+            ? { display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 8 }
+            : { display: 'flex', gap: 8, overflowX: 'auto' as const }),
+        }}>
           {items.map(item => (
-            <div key={item.id} style={{ width: 120, flexShrink: 0, borderRadius: 8, overflow: 'hidden', background: item.imageColor, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
-              <div style={{ padding: '6px 8px' }}>
-                <div style={{ background: '#DB0011', display: 'inline-block', padding: '1px 5px', borderRadius: 3, fontSize: 7, color: '#fff', fontWeight: 700, marginBottom: 4 }}>{item.liveBadge}</div>
-                <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)', marginBottom: 3 }}>{item.episodeLabel}</div>
-                <div style={{ fontSize: 9, fontWeight: 700, color: '#fff', lineHeight: 1.3, marginBottom: 16 }}>{item.title}</div>
+            <div key={item.id} style={{ ...(isGrid ? {} : { width: 120, flexShrink: 0 }), borderRadius: 8, overflow: 'hidden', background: item.imageColor ?? '#1A1A2E', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+              {item.videoUrl
+                ? (
+                  <video
+                    src={item.videoUrl}
+                    style={{ width: '100%', height: 70, objectFit: 'cover', display: 'block', background: '#000' }}
+                    muted playsInline preload="metadata" controls
+                  />
+                )
+                : item.thumbnailUrl
+                  ? <img src={item.thumbnailUrl} alt={item.title ?? ''} style={{ width: '100%', height: 70, objectFit: 'cover', display: 'block' }} />
+                  : <div style={{ width: '100%', height: 70, background: '#1A2A4A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 20, opacity: 0.5 }}>🎬</span></div>
+              }
+              <div style={{ padding: '6px 8px 8px' }}>
+                {item.liveBadge ? <div style={{ background: '#DB0011', display: 'inline-block', padding: '1px 5px', borderRadius: 3, fontSize: 7, color: '#fff', fontWeight: 700, marginBottom: 4 }}>{item.liveBadge}</div> : null}
+                <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.6)', marginBottom: 3 }}>{item.episodeLabel ?? ''}</div>
+                <div style={{ fontSize: 9, fontWeight: 700, color: '#fff', lineHeight: 1.3, marginBottom: 6 }}>{item.title ?? ''}</div>
+                {item.presenter && <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>{item.presenter}</div>}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                   <div style={{ width: 14, height: 14, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <span style={{ color: '#fff', fontSize: 6, marginLeft: 1 }}>▶</span>
                   </div>
-                  <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.85)' }}>{item.ctaLabel}</span>
+                  <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.85)' }}>{item.ctaLabel ?? 'Watch now'}</span>
                 </div>
               </div>
             </div>
           ))}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 3, marginTop: 8 }}>
-          {items.map((_, i) => (
-            <div key={i} style={{ width: i === 0 ? 14 : 5, height: 4, borderRadius: 2, background: i === 0 ? '#111' : '#D1D5DB' }} />
-          ))}
-          {Array.from({ length: Math.max(0, 5 - items.length) }).map((_, i) => (
-            <div key={`dot-${i}`} style={{ width: 5, height: 4, borderRadius: 2, background: '#D1D5DB' }} />
-          ))}
-        </div>
+        {!isGrid && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 3, marginTop: 8 }}>
+            {items.map((_, i) => (
+              <div key={i} style={{ width: i === 0 ? 14 : 5, height: 4, borderRadius: 2, background: i === 0 ? '#c9a96e' : 'rgba(255,255,255,0.3)' }} />
+            ))}
+            {Array.from({ length: Math.max(0, 5 - items.length) }).map((_, i) => (
+              <div key={`dot-${i}`} style={{ width: 5, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.2)' }} />
+            ))}
+          </div>
+        )}
       </div>
     );
   }
 
   if (type === 'GUIDES_INSIGHTS_CAROUSEL') {
-    const items = Array.isArray(p.items) ? p.items as { id: string; title: string; date: string; imageColor: string }[] : [];
+    const items = Array.isArray(p.items) ? p.items as { id: string; title?: string; description?: string; date?: string; imageColor?: string; deepLink?: string }[] : [];
+    const cols = Math.max(1, parseInt(String(p.numColumns ?? '1'), 10) || 1);
+    const isGrid = cols > 1;
     return (
       <div style={{ background: '#fff', padding: '10px 0', flexShrink: 0 }}>
         <div style={{ padding: '0 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
           <span style={{ fontWeight: 700, fontSize: 11, color: '#111' }}>{String(p.sectionTitle ?? 'Guides and insights')}</span>
           <span style={{ fontSize: 8, color: '#DB0011', fontWeight: 600 }}>{String(p.moreLabel ?? 'View all')} ›</span>
         </div>
-        <div style={{ padding: '0 12px', display: 'flex', gap: 8 }}>
+        <div style={{
+          padding: '0 12px',
+          ...(isGrid
+            ? { display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 8 }
+            : { display: 'flex', gap: 8 }),
+        }}>
           {items.map(item => (
-            <div key={item.id} style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ height: 60, background: item.imageColor, borderRadius: 6, marginBottom: 5 }} />
-              <div style={{ fontSize: 8, color: '#111', lineHeight: 1.3, marginBottom: 3 }}>{item.title}</div>
+            <div key={item.id} style={{ ...(isGrid ? {} : { flex: 1, minWidth: 0 }) }}>
+              <div style={{ height: 60, background: item.imageColor ?? '#2D3748', borderRadius: 6, marginBottom: 5 }} />
+              <div style={{ fontSize: 8, color: '#111', lineHeight: 1.3, marginBottom: 3 }}>{item.title ?? ''}</div>
+              {item.description && <div style={{ fontSize: 7, color: '#6B7280', lineHeight: 1.3, marginBottom: 3 }}>{item.description}</div>}
               <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                 <span style={{ fontSize: 7, color: '#9CA3AF' }}>🕐</span>
-                <span style={{ fontSize: 7, color: '#9CA3AF' }}>{item.date}</span>
+                <span style={{ fontSize: 7, color: '#9CA3AF' }}>{item.date ?? ''}</span>
               </div>
             </div>
           ))}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 3, marginTop: 8 }}>
-          {[0,1,2,3,4].map(i => (
-            <div key={i} style={{ width: i === 0 ? 14 : 5, height: 4, borderRadius: 2, background: i === 0 ? '#111' : '#D1D5DB' }} />
-          ))}
-        </div>
+        {!isGrid && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 3, marginTop: 8 }}>
+            {[0,1,2,3,4].map(i => (
+              <div key={i} style={{ width: i === 0 ? 14 : 5, height: 4, borderRadius: 2, background: i === 0 ? '#111' : '#D1D5DB' }} />
+            ))}
+          </div>
+        )}
       </div>
     );
   }
@@ -1248,7 +1347,7 @@ function SliceRow({ type, props, segment }: { type: string; props?: Record<strin
     return (
       <div style={{ background: '#fff', padding: '10px 0', flexShrink: 0 }}>
         <div style={{ padding: '0 12px', fontWeight: 700, fontSize: 11, color: '#111', marginBottom: 8 }}>{String(p.sectionTitle ?? 'FX watchlist')}</div>
-        {p.tierBadge && (
+        {!!p.tierBadge && (
           <div style={{ margin: '0 12px 8px', background: '#FFFBEB', borderRadius: 8, padding: '8px 10px', display: 'flex', alignItems: 'flex-start', gap: 8, border: '1px solid #FDE68A' }}>
             <span style={{ fontSize: 18, flexShrink: 0 }}>🏅</span>
             <div>
@@ -1276,7 +1375,7 @@ function SliceRow({ type, props, segment }: { type: string; props?: Record<strin
             </div>
           ))}
         </div>
-        {p.moreLabel && (
+        {!!p.moreLabel && (
           <div style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 4 }}>
             <span style={{ fontSize: 8, color: '#374151' }}>{String(p.moreLabel)}</span>
             <span style={{ fontSize: 10, color: '#9CA3AF' }}>›</span>
@@ -1287,31 +1386,40 @@ function SliceRow({ type, props, segment }: { type: string; props?: Record<strin
   }
 
   if (type === 'DISCOVER_MORE_CAROUSEL') {
-    const items = Array.isArray(p.items) ? p.items as { id: string; tag: string; tagColor: string; title: string; subtitle: string; imageColor: string }[] : [];
+    const items = Array.isArray(p.items) ? p.items as { id: string; tag?: string; tagColor?: string; title?: string; description?: string; subtitle?: string; imageColor?: string; deepLink?: string }[] : [];
+    const cols = Math.max(1, parseInt(String(p.numColumns ?? '1'), 10) || 1);
+    const isGrid = cols > 1;
     return (
       <div style={{ background: '#F9FAFB', padding: '10px 0', flexShrink: 0 }}>
         <div style={{ padding: '0 12px', fontWeight: 700, fontSize: 11, color: '#111', marginBottom: 8 }}>{String(p.sectionTitle ?? 'Discover more')}</div>
-        <div style={{ padding: '0 12px', display: 'flex', gap: 8, overflowX: 'auto' as const }}>
+        <div style={{
+          padding: '0 12px',
+          ...(isGrid
+            ? { display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 8 }
+            : { display: 'flex', gap: 8, overflowX: 'auto' as const }),
+        }}>
           {items.map(item => (
-            <div key={item.id} style={{ width: 110, flexShrink: 0, borderRadius: 8, overflow: 'hidden', background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.08)' }}>
-              <div style={{ height: 64, background: item.imageColor, position: 'relative' }}>
-                <div style={{ position: 'absolute', top: 6, left: 6, background: item.tagColor, borderRadius: 3, padding: '1px 5px', fontSize: 7, color: '#fff', fontWeight: 700 }}>{item.tag}</div>
+            <div key={item.id} style={{ ...(isGrid ? {} : { width: 110, flexShrink: 0 }), borderRadius: 8, overflow: 'hidden', background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.08)' }}>
+              <div style={{ height: 64, background: item.imageColor ?? '#1A2E4A', position: 'relative' }}>
+                <div style={{ position: 'absolute', top: 6, left: 6, background: item.tagColor ?? '#DB0011', borderRadius: 3, padding: '1px 5px', fontSize: 7, color: '#fff', fontWeight: 700 }}>{item.tag ?? ''}</div>
                 <div style={{ position: 'absolute', top: 4, right: 4, width: 16, height: 16, background: 'rgba(255,255,255,0.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <span style={{ color: '#fff', fontSize: 8 }}>⋮</span>
                 </div>
               </div>
               <div style={{ padding: '6px 8px 8px' }}>
-                <div style={{ fontSize: 8, fontWeight: 600, color: '#111', lineHeight: 1.3, marginBottom: 2 }}>{item.title}</div>
-                {item.subtitle && <div style={{ fontSize: 7, color: '#9CA3AF', lineHeight: 1.3 }}>{item.subtitle}</div>}
+                <div style={{ fontSize: 8, fontWeight: 600, color: '#111', lineHeight: 1.3, marginBottom: 2 }}>{item.title ?? ''}</div>
+                {(item.description ?? item.subtitle) && <div style={{ fontSize: 7, color: '#9CA3AF', lineHeight: 1.3 }}>{item.description ?? item.subtitle}</div>}
               </div>
             </div>
           ))}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 3, marginTop: 8 }}>
-          {[0,1,2,3].map(i => (
-            <div key={i} style={{ width: i === 0 ? 14 : 5, height: 4, borderRadius: 2, background: i === 0 ? '#111' : '#D1D5DB' }} />
-          ))}
-        </div>
+        {!isGrid && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 3, marginTop: 8 }}>
+            {[0,1,2,3].map(i => (
+              <div key={i} style={{ width: i === 0 ? 14 : 5, height: 4, borderRadius: 2, background: i === 0 ? '#111' : '#D1D5DB' }} />
+            ))}
+          </div>
+        )}
       </div>
     );
   }
@@ -1470,30 +1578,53 @@ function WebBrowserFrame({ slices, webSlug }: { slices: CanvasSlice[]; webSlug?:
       </div>
 
       {/* Page content */}
-      <div style={{ background: '#fff', height: 280, overflowY: 'auto' }}>
-        {/* HSBC web header */}
-        <div style={{ background: '#DB0011', height: 44, display: 'flex', alignItems: 'center', padding: '0 16px', gap: 16 }}>
-          <span style={{ color: '#fff', fontSize: 13, fontWeight: 800 }}>HSBC</span>
+      <div style={{ background: '#fff', maxHeight: 480, overflowY: 'auto' }}>
+        {/* HSBC global web header */}
+        <div style={{ background: '#DB0011', height: 48, display: 'flex', alignItems: 'center', padding: '0 20px', gap: 20, flexShrink: 0 }}>
+          <span style={{ color: '#fff', fontSize: 14, fontWeight: 800, letterSpacing: '-0.02em' }}>HSBC</span>
           {['Accounts', 'Wealth', 'Cards', 'Borrowing', 'Insurance'].map(item => (
-            <span key={item} style={{ color: 'rgba(255,255,255,0.85)', fontSize: 10, cursor: 'pointer' }}>{item}</span>
+            <span key={item} style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11, cursor: 'pointer' }}>{item}</span>
           ))}
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 10, alignItems: 'center' }}>
-            <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 10 }}>🔔</span>
-            <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 12, padding: '2px 8px', fontSize: 10, color: '#fff' }}>Premier</div>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, alignItems: 'center' }}>
+            <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>🔔</span>
+            <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 12, padding: '3px 10px', fontSize: 11, color: '#fff', fontWeight: 600 }}>Premier</div>
           </div>
         </div>
 
-        {/* Page slices rendered as wider blocks */}
-        <div style={{ padding: '12px 16px' }}>
-          {visibleSlices.length === 0 ? (
-            <div style={{ textAlign: 'center', paddingTop: 40, color: '#9CA3AF', fontSize: 12 }}>No components — add slices in the page editor</div>
-          ) : (
-            visibleSlices.map(s => (
-              <div key={s.instanceId} style={{ marginBottom: 8 }}>
-                <SliceRow type={s.type} props={s.props as Record<string, unknown>} />
-              </div>
-            ))
-          )}
+        {/* Breadcrumb */}
+        {webSlug && (
+          <div style={{ padding: '8px 20px', background: '#F9FAFB', borderBottom: '1px solid #F3F4F6' }}>
+            <span style={{ fontSize: 10, color: '#9CA3AF' }}>Home</span>
+            {webSlug.split('/').filter(Boolean).map((seg, i, arr) => (
+              <span key={i}>
+                <span style={{ fontSize: 10, color: '#9CA3AF', margin: '0 4px' }}>›</span>
+                <span style={{ fontSize: 10, color: i === arr.length - 1 ? '#374151' : '#9CA3AF', fontWeight: i === arr.length - 1 ? 600 : 400 }}>
+                  {seg.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                </span>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Page slices — rendered full-width, no extra padding wrapper */}
+        {visibleSlices.length === 0 ? (
+          <div style={{ textAlign: 'center', paddingTop: 60, color: '#9CA3AF', fontSize: 12 }}>No components — add slices in the page editor</div>
+        ) : (
+          visibleSlices.map(s => (
+            <SliceRow key={s.instanceId} type={s.type} props={s.props as Record<string, unknown>} />
+          ))
+        )}
+
+        {/* Web footer */}
+        <div style={{ background: '#1A1A1A', padding: '16px 20px', marginTop: 8 }}>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 10 }}>
+            {['Privacy Notice', 'Cookie Policy', 'Terms of Use', 'Accessibility', 'Site Map'].map(item => (
+              <span key={item} style={{ fontSize: 9, color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}>{item}</span>
+            ))}
+          </div>
+          <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)', lineHeight: 1.5 }}>
+            © HSBC Holdings plc · Authorised and regulated by the HKMA · FSCS protected
+          </div>
         </div>
       </div>
 

@@ -73,6 +73,8 @@ export function NewJourneyModal() {
         nativeTargets: channel === 'SDUI' ? nativeTargets : [],
         marketId,
         bizLineId,
+        supportedLocales: ['en'],
+        translations: {},
         ...(channel === 'WEB_STANDARD' ? { isPublic } : {}),
         ...(channel === 'SDUI' && nativeTargets.includes('web') ? { isPublic } : {}),
       },

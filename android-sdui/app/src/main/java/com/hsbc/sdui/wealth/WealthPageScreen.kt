@@ -1,5 +1,8 @@
 package com.hsbc.sdui.wealth
 
+import android.net.Uri
+import android.widget.MediaController
+import android.widget.VideoView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,6 +25,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.hsbc.sdui.analytics.TealiumClient
 import kotlinx.coroutines.launch
 
@@ -497,6 +503,41 @@ private fun SDUIWealthStudioCarousel(props: Map<String, Any?>) {
     val moreLabel    = props["moreLabel"] as? String ?: "View all"
     val moreLink     = props["moreDeepLink"] as? String ?: "hsbc://wealth-studio"
     val items        = (props["items"] as? List<*>)?.filterIsInstance<Map<String, Any?>>() ?: emptyList()
+    var playingUrl by remember { mutableStateOf<String?>(null) }
+
+    if (playingUrl != null) {
+        Dialog(
+            onDismissRequest = { playingUrl = null },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Box(
+                Modifier.fillMaxWidth().background(Color.Black),
+                contentAlignment = Alignment.Center
+            ) {
+                AndroidView(
+                    modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f),
+                    factory = { ctx ->
+                        VideoView(ctx).apply {
+                            val rawUrl = playingUrl ?: ""
+                            val resolved = rawUrl.replace("localhost", "10.0.2.2")
+                                .replace("127.0.0.1", "10.0.2.2")
+                            setVideoURI(Uri.parse(resolved))
+                            val mc = MediaController(ctx)
+                            mc.setAnchorView(this)
+                            setMediaController(mc)
+                            start()
+                        }
+                    }
+                )
+                IconButton(
+                    onClick = { playingUrl = null },
+                    modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
+                ) {
+                    Text("✕", color = Color.White, fontSize = 18.sp)
+                }
+            }
+        }
+    }
 
     Column(modifier = Modifier.fillMaxWidth().background(White).padding(vertical = 12.dp)) {
         Row(
@@ -525,13 +566,17 @@ private fun SDUIWealthStudioCarousel(props: Map<String, Any?>) {
                 val liveBadge    = item["liveBadge"] as? String ?: ""
                 val title        = item["title"] as? String ?: ""
                 val ctaLabel     = item["ctaLabel"] as? String ?: "Watch now"
+                val videoUrl     = item["videoUrl"] as? String ?: ""
                 val imgColorHex  = item["imageColor"] as? String ?: "#1A1A2E"
                 val imgColor     = try { Color(android.graphics.Color.parseColor(imgColorHex)) } catch (_: Exception) { Color(0xFF1A1A2E) }
 
                 Column(
                     modifier = Modifier.width(240.dp).height(160.dp).clip(RoundedCornerShape(14.dp))
                         .background(imgColor)
-                        .clickable { TealiumClient.wealthStudioTapped(title, id) },
+                        .clickable {
+                            TealiumClient.wealthStudioTapped(title, id)
+                            if (videoUrl.isNotEmpty()) playingUrl = videoUrl
+                        },
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     // Top: live badge + episode + title — fills remaining space

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { tealium } from '../../analytics/TealiumClient';
+import { useSDUIContext } from '../../context/SDUIContext';
+import { useChannelMeta } from '../../hooks/useChannelMeta';
 
 // ─── SDUI types ───────────────────────────────────────────────────────────────
 
@@ -15,6 +17,7 @@ type LoadState = 'loading' | 'sdui' | 'fallback';
 const BFF_BASE = 'http://localhost:4000';
 
 function useWealthSDUI() {
+  const { bffHeaders } = useSDUIContext();
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [slices, setSlices] = useState<WealthSlice[]>([]);
 
@@ -22,7 +25,9 @@ function useWealthSDUI() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`${BFF_BASE}/api/v1/screen/home-wealth-hk`);
+        const res = await fetch(`${BFF_BASE}/api/v1/screen/home-wealth-hk`, {
+          headers: { ...bffHeaders, 'x-platform': 'web' },
+        });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const visible: WealthSlice[] = (data.layout?.children ?? []).filter(
@@ -306,6 +311,12 @@ function useImpressionOnce(fn: () => void) {
 export function WealthHubPage() {
   const { loadState, slices } = useWealthSDUI();
   useImpressionOnce(() => tealium.wealthHubViewed());
+  // Channel-aware meta: WEB_STANDARD gets JSON-LD; WEB_WECHAT gets weixin meta
+  useChannelMeta({
+    title: 'HSBC Wealth Hub — Hong Kong',
+    description: 'Manage your wealth, investments, and foreign exchange with HSBC Premier.',
+    jsonLd: { '@type': 'FinancialService', name: 'HSBC Wealth Hub HK' },
+  });
 
   const s: React.CSSProperties = { fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif" };
   const wrap = { ...s, maxWidth: 480, margin: '0 auto', background: '#F5F5F5', minHeight: '100vh' };
@@ -676,6 +687,8 @@ function WHWealthStudioCarousel({ p }: { p?: Record<string, any> } = {}) {
   const moreLabel    = p?.moreLabel    ?? WEALTH_STUDIO_DATA.moreLabel;
   const moreDeepLink = p?.moreDeepLink ?? WEALTH_STUDIO_DATA.moreDeepLink;
   const items        = p?.items        ?? WEALTH_STUDIO_DATA.items;
+  const cols         = Math.max(1, parseInt(String(p?.numColumns ?? '1'), 10) || 1);
+  const isGrid       = cols > 1;
   const [activeIdx, setActiveIdx] = useState(0);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -745,35 +758,34 @@ function WHWealthStudioCarousel({ p }: { p?: Record<string, any> } = {}) {
           </span>
         </div>
         <div
-          ref={scrollRef}
-          onScroll={handleScroll}
+          ref={isGrid ? undefined : scrollRef}
+          onScroll={isGrid ? undefined : handleScroll}
           style={{
-            display: 'flex', overflowX: 'auto', gap: GAP,
             paddingLeft: 16, paddingRight: 16,
-            scrollbarWidth: 'none', scrollSnapType: 'x mandatory',
-            alignItems: 'flex-start',
+            ...(isGrid
+              ? { display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: GAP }
+              : { display: 'flex', overflowX: 'auto', gap: GAP, scrollbarWidth: 'none', scrollSnapType: 'x mandatory', alignItems: 'flex-start' }),
           }}
         >
           {items.map((item: any) => (
             <div
               key={item.id}
               style={{
-                flex: `0 0 ${CARD_W}px`, borderRadius: 12, overflow: 'hidden',
+                ...(isGrid ? {} : { flex: `0 0 ${CARD_W}px`, scrollSnapAlign: 'start' }),
+                borderRadius: 12, overflow: 'hidden',
                 background: item.imageColor, cursor: 'pointer',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-                scrollSnapAlign: 'start',
                 display: 'flex', flexDirection: 'column',
                 height: 200,
               }}
               onClick={() => tealium.wealthStudioTapped(item.episodeLabel, item.title, item.ctaLabel)}
             >
-              {/* Image area — fixed height so all cards align */}
+              {/* Image area */}
               <div style={{ height: 120, background: item.imageColor, position: 'relative', padding: 10 }}>
                 <span style={{
                   display: 'inline-block', background: 'rgba(255,255,255,0.15)',
                   color: '#fff', fontSize: 9, fontWeight: 600, padding: '2px 8px', borderRadius: 10,
                 }}>{item.episodeLabel}</span>
-                {/* Play button centred */}
                 <div style={{
                   position: 'absolute', inset: 0, display: 'flex',
                   alignItems: 'center', justifyContent: 'center',
@@ -788,46 +800,52 @@ function WHWealthStudioCarousel({ p }: { p?: Record<string, any> } = {}) {
                     onClick={e => { e.stopPropagation(); setPlayingId(item.id); }}
                   >▶</div>
                 </div>
-                <div style={{
-                  position: 'absolute', bottom: 8, left: 10, right: 10,
-                  background: 'rgba(219,0,17,0.85)', borderRadius: 6, padding: '3px 8px',
-                }}>
-                  <span style={{ fontSize: 9, color: '#fff', fontWeight: 500 }}>🔴 {item.liveBadge}</span>
-                </div>
+                {item.liveBadge && (
+                  <div style={{
+                    position: 'absolute', bottom: 8, left: 10, right: 10,
+                    background: 'rgba(219,0,17,0.85)', borderRadius: 6, padding: '3px 8px',
+                  }}>
+                    <span style={{ fontSize: 9, color: '#fff', fontWeight: 500 }}>🔴 {item.liveBadge}</span>
+                  </div>
+                )}
               </div>
-              {/* Text area — fixed height so CTA button always aligns */}
+              {/* Text area */}
               <div style={{ background: '#fff', padding: '10px 12px', height: 80, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div style={{
                   fontSize: 12, fontWeight: 700, color: '#1A1A2E',
                   lineHeight: 1.3, marginBottom: 8,
                   display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
                 } as React.CSSProperties}>{item.title}</div>
-                <button
-                  style={{
-                    background: '#DB0011', color: '#fff', fontSize: 10,
-                    fontWeight: 700, padding: '5px 12px', borderRadius: 14,
-                    border: 'none', cursor: 'pointer', width: '100%',
-                  }}
-                  onClick={e => { e.stopPropagation(); setPlayingId(item.id); }}
-                >{item.ctaLabel}</button>
+                {item.ctaLabel && (
+                  <button
+                    style={{
+                      background: '#DB0011', color: '#fff', fontSize: 10,
+                      fontWeight: 700, padding: '5px 12px', borderRadius: 14,
+                      border: 'none', cursor: 'pointer', width: '100%',
+                    }}
+                    onClick={e => { e.stopPropagation(); setPlayingId(item.id); }}
+                  >{item.ctaLabel}</button>
+                )}
               </div>
             </div>
           ))}
         </div>
-        {/* Dot indicators */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 5, marginTop: 10 }}>
-          {items.map((_: any, i: number) => (
-            <div
-              key={i}
-              onClick={() => scrollTo(i)}
-              style={{
-                width: activeIdx === i ? 16 : 6, height: 6, borderRadius: 3,
-                background: activeIdx === i ? '#DB0011' : '#D1D5DB',
-                cursor: 'pointer', transition: 'width 0.2s, background 0.2s',
-              }}
-            />
-          ))}
-        </div>
+        {/* Dot indicators — scroll mode only */}
+        {!isGrid && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 5, marginTop: 10 }}>
+            {items.map((_: any, i: number) => (
+              <div
+                key={i}
+                onClick={() => scrollTo(i)}
+                style={{
+                  width: activeIdx === i ? 16 : 6, height: 6, borderRadius: 3,
+                  background: activeIdx === i ? '#DB0011' : '#D1D5DB',
+                  cursor: 'pointer', transition: 'width 0.2s, background 0.2s',
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </>
   );
@@ -841,6 +859,8 @@ function WHGuidesInsights({ p }: { p?: Record<string, any> } = {}) {
   const moreLabel    = p?.moreLabel    ?? GUIDES_INSIGHTS_CAROUSEL_DATA.moreLabel;
   const moreDeepLink = p?.moreDeepLink ?? GUIDES_INSIGHTS_CAROUSEL_DATA.moreDeepLink;
   const items        = p?.items        ?? GUIDES_INSIGHTS_CAROUSEL_DATA.items;
+  const cols         = Math.max(1, parseInt(String(p?.numColumns ?? '1'), 10) || 1);
+  const isGrid       = cols > 1;
   const [activeIdx, setActiveIdx] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -872,62 +892,69 @@ function WHGuidesInsights({ p }: { p?: Record<string, any> } = {}) {
         </span>
       </div>
       <div
-        ref={scrollRef}
-        onScroll={handleScroll}
+        ref={isGrid ? undefined : scrollRef}
+        onScroll={isGrid ? undefined : handleScroll}
         style={{
-          display: 'flex', overflowX: 'auto', gap: GAP,
           paddingLeft: 16, paddingRight: 16,
-          scrollbarWidth: 'none', scrollSnapType: 'x mandatory',
-          alignItems: 'flex-start',
+          ...(isGrid
+            ? { display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: GAP }
+            : { display: 'flex', overflowX: 'auto', gap: GAP, scrollbarWidth: 'none', scrollSnapType: 'x mandatory', alignItems: 'flex-start' }),
         }}
       >
         {items.map((item: any) => (
           <div
             key={item.id}
             style={{
-              flex: `0 0 ${CARD_W}px`, borderRadius: 12, overflow: 'hidden',
+              ...(isGrid ? {} : { flex: `0 0 ${CARD_W}px`, scrollSnapAlign: 'start' }),
+              borderRadius: 12, overflow: 'hidden',
               background: '#fff', cursor: 'pointer',
               border: '1px solid #F3F4F6',
               boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-              scrollSnapAlign: 'start',
               display: 'flex', flexDirection: 'column',
-              height: 172,
             }}
             onClick={() => tealium.guidesTapped(item.title, item.id, item.deepLink)}
           >
-            {/* Fixed-height image area so icon is always centred at the same position */}
+            {/* Fixed-height image area */}
             <div style={{
               height: 100, background: item.imageColor, flexShrink: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               <span style={{ fontSize: 28, opacity: 0.6 }}>📖</span>
             </div>
-            {/* Text area fills remaining card height */}
+            {/* Text area */}
             <div style={{ padding: '10px 10px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div style={{
                 fontSize: 11, fontWeight: 600, color: '#1A1A2E',
-                lineHeight: 1.4, marginBottom: 6,
+                lineHeight: 1.4, marginBottom: 4,
                 display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
               } as React.CSSProperties}>{item.title}</div>
+              {item.description && (
+                <div style={{
+                  fontSize: 10, color: '#6B7280', lineHeight: 1.3, marginBottom: 4,
+                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                } as React.CSSProperties}>{item.description}</div>
+              )}
               <div style={{ fontSize: 10, color: '#9CA3AF' }}>{item.date}</div>
             </div>
           </div>
         ))}
       </div>
-      {/* Dot indicators */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 5, marginTop: 10 }}>
-        {items.map((_: any, i: number) => (
-          <div
-            key={i}
-            onClick={() => scrollTo(i)}
-            style={{
-              width: activeIdx === i ? 16 : 6, height: 6, borderRadius: 3,
-              background: activeIdx === i ? '#DB0011' : '#D1D5DB',
-              cursor: 'pointer', transition: 'width 0.2s, background 0.2s',
-            }}
-          />
-        ))}
-      </div>
+      {/* Dot indicators — scroll mode only */}
+      {!isGrid && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 5, marginTop: 10 }}>
+          {items.map((_: any, i: number) => (
+            <div
+              key={i}
+              onClick={() => scrollTo(i)}
+              style={{
+                width: activeIdx === i ? 16 : 6, height: 6, borderRadius: 3,
+                background: activeIdx === i ? '#DB0011' : '#D1D5DB',
+                cursor: 'pointer', transition: 'width 0.2s, background 0.2s',
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -1018,6 +1045,8 @@ function WHDiscoverMore({ p }: { p?: Record<string, any> } = {}) {
   useImpressionOnce(() => tealium.sliceImpression('DISCOVER_MORE_CAROUSEL', 'slice-discover-more', 8));
   const sectionTitle = p?.sectionTitle ?? DISCOVER_MORE_CAROUSEL_DATA.sectionTitle;
   const items        = p?.items        ?? DISCOVER_MORE_CAROUSEL_DATA.items;
+  const cols         = Math.max(1, parseInt(String(p?.numColumns ?? '1'), 10) || 1);
+  const isGrid       = cols > 1;
   const [activeIdx, setActiveIdx] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -1043,30 +1072,29 @@ function WHDiscoverMore({ p }: { p?: Record<string, any> } = {}) {
         </span>
       </div>
       <div
-        ref={scrollRef}
-        onScroll={handleScroll}
+        ref={isGrid ? undefined : scrollRef}
+        onScroll={isGrid ? undefined : handleScroll}
         style={{
-          display: 'flex', overflowX: 'auto', gap: GAP,
           paddingLeft: 16, paddingRight: 16,
-          scrollbarWidth: 'none', scrollSnapType: 'x mandatory',
-          alignItems: 'flex-start',
+          ...(isGrid
+            ? { display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: GAP }
+            : { display: 'flex', overflowX: 'auto', gap: GAP, scrollbarWidth: 'none', scrollSnapType: 'x mandatory', alignItems: 'flex-start' }),
         }}
       >
         {items.map((item: any) => (
           <div
             key={item.id}
             style={{
-              flex: `0 0 ${CARD_W}px`, borderRadius: 12, overflow: 'hidden',
+              ...(isGrid ? {} : { flex: `0 0 ${CARD_W}px`, scrollSnapAlign: 'start' }),
+              borderRadius: 12, overflow: 'hidden',
               background: '#fff', cursor: 'pointer',
               border: '1px solid #F3F4F6',
               boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-              scrollSnapAlign: 'start',
               display: 'flex', flexDirection: 'column',
-              height: 178,
             }}
             onClick={() => tealium.discoverMoreTapped(item.tag, item.title, item.deepLink)}
           >
-            {/* Fixed-height image area so tag badge is always at same size/position */}
+            {/* Fixed-height image area with tag badge */}
             <div style={{
               height: 110, background: item.imageColor, flexShrink: 0,
               position: 'relative', padding: 10,
@@ -1078,37 +1106,39 @@ function WHDiscoverMore({ p }: { p?: Record<string, any> } = {}) {
                 fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
               }}>{item.tag}</span>
             </div>
-            {/* Text area fills remaining card height */}
+            {/* Text area */}
             <div style={{ padding: '10px 12px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
               <div style={{
                 fontSize: 12, fontWeight: 700, color: '#1A1A2E',
                 lineHeight: 1.3, marginBottom: 4,
                 display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
               } as React.CSSProperties}>{item.title}</div>
-              {item.subtitle ? (
+              {(item.description ?? item.subtitle) ? (
                 <div style={{
                   fontSize: 10, color: '#6B7280', lineHeight: 1.3,
                   display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                } as React.CSSProperties}>{item.subtitle}</div>
+                } as React.CSSProperties}>{item.description ?? item.subtitle}</div>
               ) : null}
             </div>
           </div>
         ))}
       </div>
-      {/* Dot indicators */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 5, marginTop: 10 }}>
-        {items.map((_: any, i: number) => (
-          <div
-            key={i}
-            onClick={() => scrollTo(i)}
-            style={{
-              width: activeIdx === i ? 16 : 6, height: 6, borderRadius: 3,
-              background: activeIdx === i ? '#DB0011' : '#D1D5DB',
-              cursor: 'pointer', transition: 'width 0.2s, background 0.2s',
-            }}
-          />
-        ))}
-      </div>
+      {/* Dot indicators — scroll mode only */}
+      {!isGrid && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 5, marginTop: 10 }}>
+          {items.map((_: any, i: number) => (
+            <div
+              key={i}
+              onClick={() => scrollTo(i)}
+              style={{
+                width: activeIdx === i ? 16 : 6, height: 6, borderRadius: 3,
+                background: activeIdx === i ? '#DB0011' : '#D1D5DB',
+                cursor: 'pointer', transition: 'width 0.2s, background 0.2s',
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

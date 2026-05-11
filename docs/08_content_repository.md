@@ -1,18 +1,19 @@
 # Content Repository, Versioning & Archive Design
 
-**Document Version:** 1.0  
-**Date:** 2026-04-19  
-**Scope:** Global/Market content reuse, version history, 7-year audit retention, S3 archive lifecycle  
+**Document Version:** 1.1  
+**Date:** 2026-05-11  
+**Scope:** Global/Market content reuse, version history, 7-year audit retention, S3 archive lifecycle, AEM integration, multi-language support  
 
 ---
 
 ## 1. Overview
 
-The Content Repository provides three capabilities beyond basic CMS authoring:
+The Content Repository provides four capabilities beyond basic CMS authoring:
 
-1. **Reusable Content Library** — Global content (shared across all markets) and Market content (HK, CN, SG) that can be composed into any SDUI screen without re-authoring
-2. **Immutable Version History** — Every published state of every content piece is recorded permanently, with the full audit trail (who created, who approved, what changed), accessible to editors, approvers, and auditors
-3. **7-Year Retention with S3 Tiered Archive** — All published content versions are stored in S3 with automatic lifecycle tiering: Standard → Infrequent Access → Glacier after defined access thresholds, meeting HKMA/MAS/GDPR retention mandates
+1. **Dual Content Provider Model** — OCDP can pull content from two peer sources: **UCP** (internally managed content asset library) and **HSBC AEM** (Adobe Experience Manager, enterprise CMS for HSBC.com). Both appear in the OCDP left-hand sidebar content picker. Content entries record which provider they came from (`contentRef.source`).
+2. **Reusable Content Library** — Global content (shared across all markets) and Market content (HK, CN, SG) that can be composed into any SDUI screen without re-authoring
+3. **Immutable Version History** — Every published state of every content piece is recorded permanently, with the full audit trail (who created, who approved, what changed), accessible to editors, approvers, and auditors
+4. **7-Year Retention with S3 Tiered Archive** — All published content versions are stored in S3 with automatic lifecycle tiering: Standard → Infrequent Access → Glacier after defined access thresholds, meeting HKMA/MAS/GDPR retention mandates
 
 ---
 
@@ -104,11 +105,32 @@ SDUI JSON — content reference example:
   "scope": "market",
   "market": "HK",
   "contentType": "PromoBanner",
+  "contentRef": {
+    "source": "UCP",
+    "id": "hk-jade-upgrade-banner-q2"
+  },
   "globalReferences": [
     "global-jade-benefit-copy-block",
     "global-hsbc-disclaimer-investment"
   ],
   "locale": ["en-HK", "zh-HK"],
+  "supportedLocales": ["en", "zh-TW", "zh-CN", "ar", "es"],
+  "translations": {
+    "zh-TW": {
+      "jade-banner-q2": {
+        "title": "晉升至滙豐翡翠",
+        "subtitle": "為卓越理財客戶提供的尊享禮遇",
+        "ctaText": "探索翡翠禮遇"
+      }
+    },
+    "zh-CN": {
+      "jade-banner-q2": {
+        "title": "晋升至汇丰翡翠",
+        "subtitle": "专为卓越理财客户提供的专属礼遇",
+        "ctaText": "探索翡翠礼遇"
+      }
+    }
+  },
   "eligibleSegments": ["premier", "jade"],
   "channels": ["ios", "android", "web"],
   "validFrom": "2026-04-01",
@@ -123,6 +145,8 @@ SDUI JSON — content reference example:
   "publishedAt": "2026-04-19T14:32:00Z"
 }
 ```
+
+**Content Provider note:** When `contentRef.source` is `"AEM"`, the `contentId` refers to an AEM content fragment path (e.g. `/content/dam/hsbc/hk/jade/banner`). The BFF fetches this from the AEM Content Delivery API at composition time and passes AEM asset URLs through to the SDUI JSON unchanged. AEM-sourced content entries are versioned and archived in S3 alongside UCP-sourced entries using the same lifecycle policy.
 
 ---
 
@@ -163,10 +187,14 @@ CREATE TABLE content_versions (
     scope             VARCHAR(20) NOT NULL,     -- global | market
     market            VARCHAR(10),              -- HK | CN | SG | null for global
     content_type      VARCHAR(100) NOT NULL,
+    content_source    VARCHAR(10) NOT NULL DEFAULT 'UCP', -- UCP | AEM
+    aem_path          VARCHAR(512),             -- AEM fragment path (when source=AEM)
     status            VARCHAR(30) NOT NULL,     -- DRAFT | PUBLISHED | ARCHIVED
     content_hash      VARCHAR(64) NOT NULL,     -- SHA-256 of full content JSON
     content_s3_key    VARCHAR(512) NOT NULL,    -- pointer to S3 object
     fields_snapshot   JSONB NOT NULL,           -- full content fields at this version
+    translations      JSONB,                    -- {locale: {instanceId: {propKey: value}}}
+    supported_locales TEXT[],                   -- e.g. {en,zh-TW,zh-CN,ar,es}
     author_id         VARCHAR(255) NOT NULL,
     checker_id        VARCHAR(255),
     submitted_at      TIMESTAMPTZ,
@@ -181,6 +209,7 @@ CREATE TABLE content_versions (
 CREATE INDEX idx_cv_content_id    ON content_versions(content_id);
 CREATE INDEX idx_cv_status        ON content_versions(status);
 CREATE INDEX idx_cv_market        ON content_versions(market);
+CREATE INDEX idx_cv_source        ON content_versions(content_source);
 CREATE INDEX idx_cv_published_at  ON content_versions(published_at);
 CREATE INDEX idx_cv_last_accessed ON content_versions(last_accessed_at);
 

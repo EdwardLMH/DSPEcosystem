@@ -1,24 +1,18 @@
 // WealthPage.ets
 // HarmonyNext ArkTS — Home Hub HK page (OCDP "Home Hub (HK)" design)
-// Loads slice layout from the OCDP BFF (GET /api/v1/screen/home-wealth-hk) when a
-// LIVE page has been approved and published.  Falls back to the static layout when
-// the BFF has no live page yet (404 / connection refused).
+// Loads slice layout using the 3-tier resolution chain (§5.10):
+//   1. CDN manifest + static JSON (SDUIStaticDistribution)
+//   2. BFF live endpoint (personalised)
+//   3. Bundled rawfile baseline
 //
-// Slice order (OCDP design):
-//   1. HOME_SEARCH_HEADER       — red header + search bar
-//   2. COMBO_QUICK_ACCESS       — tab bar + 2×5 quick-access icons
-//   3. CARD_ACTIVATION_BANNER   — card activation notification strip
-//   4. QUEST_BANNER             — "Getting started" quest card
-//   5. FEATURE_PRODUCT          — featured fund list with tabs
-//   6. WEALTH_STUDIO_CAROUSEL   — Premier Elite Wealth Studio episodes
-//   7. GUIDES_INSIGHTS_CAROUSEL          — Guides and insights card carousel
-//   8. FX_WATCHLIST             — FX watchlist with tier badge + table
-//   9. DISCOVER_MORE_CAROUSEL            — Discover more campaign card carousel
+// Self-pick entry points (SELF_PICK_ENTRY_POINTS slice) are merged from
+// device preferences unless selfPickForceUpdate is set in the manifest.
 
 import { Hive } from '../common/HiveTokens'
 import { SensorDataClient } from '../network/SensorDataClient'
 import { AISearchPage } from './AISearchPage'
 import { fetchWealthScreen, WealthSlice } from '../network/KYCNetworkService'
+import { SDUIStaticDistribution } from '../network/SDUIStaticDistribution'
 
 // ─── Data models ──────────────────────────────────────────────────────────────
 
@@ -33,6 +27,14 @@ interface FXPair     { base: string; quote: string; rate: string
                        change: string; positive: boolean }
 interface CampaignCard { id: string; title: string; tag: string
                          imageEmoji: string; deepLink: string }
+
+interface StaticScreenPayload {
+  layout: StaticLayout
+}
+
+interface StaticLayout {
+  children: WealthSlice[]
+}
 
 // ─── Static fallback data ─────────────────────────────────────────────────────
 // Mirrors OCDP mockData.ts — used on LOAD_ERROR path.
@@ -141,6 +143,9 @@ struct SDUISliceView {
         onSearchTap: () => { this.onSearchTap() } })
     } else if (this.slice.type === 'COMBO_QUICK_ACCESS') {
       SDUIComboQuickAccess({ props: this.slice.props })
+    } else if (this.slice.type === 'SELF_PICK_ENTRY_POINTS') {
+      // Self-pick items have already been merged by WealthPageView before render
+      SDUIComboQuickAccess({ props: this.slice.props })
     } else if (this.slice.type === 'CARD_ACTIVATION_BANNER') {
       SDUICardActivationBanner({ props: this.slice.props })
     } else if (this.slice.type === 'QUEST_BANNER') {
@@ -168,22 +173,84 @@ struct SDUISliceView {
 export struct WealthPageView {
   @State searchOpen: boolean  = false
   @State loadState: number    = LOAD_IDLE    // LOAD_* constants
-  @State sdui: WealthSlice[]  = []           // BFF slices when loaded
+  @State sdui: WealthSlice[]  = []           // BFF / static slices when loaded
+
+  // Static distribution manager (userId would come from auth context in production)
+  private staticDist: SDUIStaticDistribution = new SDUIStaticDistribution(
+    getContext(this), 'anonymous'
+  )
+  private selfPickForceUpdate: boolean = false
 
   aboutToAppear() {
     SensorDataClient.wealthHubViewed()
-    this.loadFromBFF()
+    this.loadWithStaticChain()
   }
 
-  private async loadFromBFF(): Promise<void> {
+  // ── 3-tier resolution chain ─────────────────────────────────────────────────
+
+  private async loadWithStaticChain(): Promise<void> {
     this.loadState = LOAD_LOADING
+
     try {
-      const payload = await fetchWealthScreen()
-      this.sdui = payload.layout.children.filter((s: WealthSlice) => s.visible !== false)
-      this.loadState = LOAD_DONE
-    } catch (_e) {
-      // BFF not live or unreachable — fall back to static layout
+      // Step 1 — CDN static distribution (concurrent with BFF call)
+      const staticPromise = this.staticDist.resolve('home-wealth-hk')
+      const bffPromise    = fetchWealthScreen().catch(() => null)
+
+      // Await both; prefer the BFF if it succeeds (personalised/A-B), else use static
+      const results = await Promise.all([staticPromise, bffPromise])
+      const staticResult = results[0]
+      const bffPayload   = results[1]
+
+      if (bffPayload !== null) {
+        // BFF success — use personalised payload
+        const slices: WealthSlice[] = bffPayload.layout.children.filter(
+          (s: WealthSlice) => s.visible !== false
+        )
+        await this.mergeSelfPick(slices)
+        this.sdui      = slices
+        this.loadState = LOAD_DONE
+        return
+      }
+
+      if (staticResult.json !== null) {
+        // Static / local / bundled baseline
+        try {
+          const parsed = JSON.parse(staticResult.json) as StaticScreenPayload
+          const slices: WealthSlice[] = parsed.layout.children.filter(
+            (s: WealthSlice) => s.visible !== false
+          )
+          await this.mergeSelfPick(slices)
+          this.sdui      = slices
+          this.loadState = LOAD_DONE
+        } catch (e) {
+          this.loadState = LOAD_ERROR
+        }
+        return
+      }
+
+      // All tiers exhausted — render hardcoded static fallback
       this.loadState = LOAD_ERROR
+    } catch (e) {
+      // Safety net: any unhandled crash must not leave loadState at LOAD_LOADING
+      this.loadState = LOAD_ERROR
+    }
+  }
+
+  // Merge self-pick preferences into any SELF_PICK_ENTRY_POINTS slices
+  private async mergeSelfPick(slices: WealthSlice[]): Promise<void> {
+    for (let i = 0; i < slices.length; i++) {
+      const slice = slices[i]
+      if (slice.type === 'SELF_PICK_ENTRY_POINTS' || slice.type === 'COMBO_QUICK_ACCESS') {
+        const remoteRow1: Record<string, string>[] =
+          (slice.props['row1Items'] as Record<string, string>[]) ?? []
+        const merged = await this.staticDist.resolvedSelfPickItems(
+          'home-wealth-hk', remoteRow1, this.selfPickForceUpdate
+        )
+        const updatedProps = slice.props
+        updatedProps['row1Items'] = merged as ESObject
+        slices[i] = { instanceId: slice.instanceId, type: slice.type,
+                      props: updatedProps, visible: slice.visible }
+      }
     }
   }
 
@@ -611,87 +678,188 @@ struct SDUIFeatureProduct {
 
 // ── 6. WEALTH_STUDIO_CAROUSEL ─────────────────────────────────────────────────
 // "Premier Elite Wealth Studio" horizontal carousel with episode cards.
+// numColumns=1 → horizontal scroll; numColumns>1 → wrapped grid rows.
 
 @Component
 struct SDUIWealthStudioCarousel {
   props: Record<string, ESObject> = {}
+  @State private playingUrl: string = ''
 
   private sectionTitle(): string { return this.props['sectionTitle'] as string ?? 'Premier Elite Wealth Studio' }
   private moreLabel(): string    { return this.props['moreLabel'] as string ?? 'View all' }
   private items(): ESObject[]    { return this.props['items'] as ESObject[] ?? [] as ESObject[] }
+  private numColumns(): number {
+    const asNum: number = this.props['numColumns'] as number
+    if (!isNaN(asNum)) return Math.max(1, asNum)
+    const asStr: string = this.props['numColumns'] as string
+    if (asStr) { const n: number = parseInt(asStr, 10); return isNaN(n) ? 1 : Math.max(1, n) }
+    return 1
+  }
+
+  private resolveVideoUrl(raw: string): string {
+    return raw.replace('localhost', '10.0.2.2').replace('127.0.0.1', '10.0.2.2')
+  }
 
   build() {
-    Column({ space: 0 }) {
-      Row() {
-        Text(this.sectionTitle())
-          .fontSize(16).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
-        Blank().layoutWeight(1)
-        Text(`${this.moreLabel()} ›`).fontSize(12).fontColor('#DB0011')
-      }
-      .width('100%')
-      .padding({ left: 16, right: 16, top: 14, bottom: 10 })
-
-      Scroll() {
-        Row({ space: 12 }) {
-          ForEach(this.items(), (raw: ESObject) => {
-            Column({ space: 0 }) {
-              // Image area — fixed 100px height
-              Stack({ alignContent: Alignment.BottomStart }) {
-                Text('📹')
-                  .fontSize(32)
-                  .width(180).height(100)
-                  .textAlign(TextAlign.Center)
-                  .backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n700)
-                  .borderRadius({ topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 })
-                // Play button centred
-                Text('▶')
-                  .fontSize(20).fontColor(Hive.Color.brandWhite)
-                  .width(36).height(36).textAlign(TextAlign.Center)
-                  .borderRadius(18).backgroundColor('#80000000')
-                  .position({ x: 72, y: 32 })
-                // Live badge bottom-left
-                Text((raw as Record<string, string>)['liveBadge'] ?? '')
-                  .fontSize(8).fontWeight(FontWeight.Bold).fontColor(Hive.Color.brandWhite)
-                  .padding({ left: 6, right: 6, top: 2, bottom: 2 })
-                  .borderRadius(3).backgroundColor('#DB0011')
-                  .margin({ left: 8, bottom: 8 })
-              }
-              // Text area — fixed 72px height so cards align
-              Column({ space: 4 }) {
-                Text((raw as Record<string, string>)['episodeLabel'] ?? '')
-                  .fontSize(9).fontColor(Hive.Color.n400)
-                Text((raw as Record<string, string>)['title'] ?? '')
-                  .fontSize(11).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
-                  .maxLines(2).width(180)
-              }
-              .alignItems(HorizontalAlign.Start)
-              .width(180).height(72)
-              .padding({ left: 10, right: 10, top: 8, bottom: 8 })
-              .backgroundColor(Hive.Color.brandWhite)
-              .borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 10, bottomRight: 10 })
-            }
-            .borderRadius(10).clip(true)
-            .shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 })
-            .onClick(() => {
-              SensorDataClient.wealthStudioTapped(
-                (raw as Record<string, string>)['title'] ?? '',
-                (raw as Record<string, string>)['id'] ?? '')
-            })
-          })
+    Stack({ alignContent: Alignment.TopStart }) {
+      Column({ space: 0 }) {
+        Row() {
+          Text(this.sectionTitle())
+            .fontSize(16).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
+          Blank().layoutWeight(1)
+          Text(`${this.moreLabel()} ›`).fontSize(12).fontColor('#DB0011')
         }
-        .padding({ left: 16, right: 16, bottom: 14 })
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 14, bottom: 10 })
+
+        if (this.numColumns() > 1) {
+          // Grid mode — wrap items in rows of numColumns
+          Flex({ wrap: FlexWrap.Wrap, direction: FlexDirection.Row, alignItems: ItemAlign.Start }) {
+            ForEach(this.items(), (raw: ESObject) => {
+              Column({ space: 0 }) {
+                Stack({ alignContent: Alignment.BottomStart }) {
+                  Text('📹')
+                    .fontSize(32)
+                    .width('100%').height(100)
+                    .textAlign(TextAlign.Center)
+                    .backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n700)
+                    .borderRadius({ topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 })
+                  Text('▶')
+                    .fontSize(20).fontColor(Hive.Color.brandWhite)
+                    .width(36).height(36).textAlign(TextAlign.Center)
+                    .borderRadius(18).backgroundColor('#80000000')
+                    .position({ x: '38%', y: 32 })
+                  if ((raw as Record<string, string>)['liveBadge']) {
+                    Text((raw as Record<string, string>)['liveBadge'] ?? '')
+                      .fontSize(8).fontWeight(FontWeight.Bold).fontColor(Hive.Color.brandWhite)
+                      .padding({ left: 6, right: 6, top: 2, bottom: 2 })
+                      .borderRadius(3).backgroundColor('#DB0011')
+                      .margin({ left: 8, bottom: 8 })
+                  }
+                }
+                Column({ space: 4 }) {
+                  Text((raw as Record<string, string>)['episodeLabel'] ?? '')
+                    .fontSize(9).fontColor(Hive.Color.n400)
+                  Text((raw as Record<string, string>)['title'] ?? '')
+                    .fontSize(11).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
+                    .maxLines(2).width('100%')
+                  if ((raw as Record<string, string>)['ctaLabel']) {
+                    Button((raw as Record<string, string>)['ctaLabel'] ?? 'Watch now')
+                      .height(28).width('100%')
+                      .backgroundColor('#DB0011').fontColor(Hive.Color.brandWhite)
+                      .fontSize(10).fontWeight(FontWeight.Bold).borderRadius(14)
+                  }
+                }
+                .alignItems(HorizontalAlign.Start)
+                .width('100%').padding({ left: 8, right: 8, top: 8, bottom: 8 })
+                .backgroundColor(Hive.Color.brandWhite)
+                .borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 10, bottomRight: 10 })
+              }
+              .borderRadius(10).clip(true)
+              .shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 })
+              .width(`${Math.floor(100 / this.numColumns()) - 2}%`)
+              .margin({ right: 8, bottom: 10 })
+              .onClick(() => {
+                SensorDataClient.wealthStudioTapped(
+                  (raw as Record<string, string>)['title'] ?? '',
+                  (raw as Record<string, string>)['id'] ?? '')
+                const vUrl: string = (raw as Record<string, string>)['videoUrl'] ?? ''
+                if (vUrl) { this.playingUrl = this.resolveVideoUrl(vUrl) }
+              })
+            })
+          }
+          .padding({ left: 16, right: 16, bottom: 14 })
+          .width('100%')
+        } else {
+          Scroll() {
+            Row({ space: 12 }) {
+              ForEach(this.items(), (raw: ESObject) => {
+                Column({ space: 0 }) {
+                  // Image area — fixed 100px height
+                  Stack({ alignContent: Alignment.BottomStart }) {
+                    Text('📹')
+                      .fontSize(32)
+                      .width(180).height(100)
+                      .textAlign(TextAlign.Center)
+                      .backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n700)
+                      .borderRadius({ topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 })
+                    Text('▶')
+                      .fontSize(20).fontColor(Hive.Color.brandWhite)
+                      .width(36).height(36).textAlign(TextAlign.Center)
+                      .borderRadius(18).backgroundColor('#80000000')
+                      .position({ x: 72, y: 32 })
+                    Text((raw as Record<string, string>)['liveBadge'] ?? '')
+                      .fontSize(8).fontWeight(FontWeight.Bold).fontColor(Hive.Color.brandWhite)
+                      .padding({ left: 6, right: 6, top: 2, bottom: 2 })
+                      .borderRadius(3).backgroundColor('#DB0011')
+                      .margin({ left: 8, bottom: 8 })
+                  }
+                  // Text area — fixed 72px height so cards align
+                  Column({ space: 4 }) {
+                    Text((raw as Record<string, string>)['episodeLabel'] ?? '')
+                      .fontSize(9).fontColor(Hive.Color.n400)
+                    Text((raw as Record<string, string>)['title'] ?? '')
+                      .fontSize(11).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
+                      .maxLines(2).width(180)
+                  }
+                  .alignItems(HorizontalAlign.Start)
+                  .width(180).height(72)
+                  .padding({ left: 10, right: 10, top: 8, bottom: 8 })
+                  .backgroundColor(Hive.Color.brandWhite)
+                  .borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 10, bottomRight: 10 })
+                }
+                .borderRadius(10).clip(true)
+                .shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 })
+                .onClick(() => {
+                  SensorDataClient.wealthStudioTapped(
+                    (raw as Record<string, string>)['title'] ?? '',
+                    (raw as Record<string, string>)['id'] ?? '')
+                  const vUrl: string = (raw as Record<string, string>)['videoUrl'] ?? ''
+                  if (vUrl) { this.playingUrl = this.resolveVideoUrl(vUrl) }
+                })
+              })
+            }
+            .padding({ left: 16, right: 16, bottom: 14 })
+          }
+          .scrollable(ScrollDirection.Horizontal)
+          .scrollBar(BarState.Off)
+          .width('100%')
+        }
       }
-      .scrollable(ScrollDirection.Horizontal)
-      .scrollBar(BarState.Off)
-      .width('100%')
+      .width('100%').backgroundColor(Hive.Color.brandWhite)
+      .margin({ top: 8 })
+
+      // Full-screen video overlay
+      if (this.playingUrl !== '') {
+        Column() {
+          Stack({ alignContent: Alignment.TopEnd }) {
+            Video({ src: this.playingUrl })
+              .width('100%')
+              .aspectRatio(16 / 9)
+              .autoPlay(true)
+              .controls(true)
+            Text('✕')
+              .fontSize(22).fontColor(Color.White)
+              .width(40).height(40).textAlign(TextAlign.Center)
+              .borderRadius(20).backgroundColor('#80000000')
+              .margin({ top: 8, right: 8 })
+              .onClick(() => { this.playingUrl = '' })
+          }
+        }
+        .width('100%')
+        .backgroundColor(Color.Black)
+        .position({ x: 0, y: 0 })
+        .zIndex(100)
+        .onClick(() => { this.playingUrl = '' })
+      }
     }
-    .width('100%').backgroundColor(Hive.Color.brandWhite)
-    .margin({ top: 8 })
+    .width('100%')
   }
 }
 
 // ── 7. GUIDES_INSIGHTS_CAROUSEL ────────────────────────────────────────────────────────
 // "Guides and insights" horizontal card carousel.
+// numColumns=1 → horizontal scroll; numColumns>1 → wrapped grid rows.
 
 @Component
 struct SDUIGuidesInsights {
@@ -700,6 +868,13 @@ struct SDUIGuidesInsights {
   private sectionTitle(): string { return this.props['sectionTitle'] as string ?? 'Guides and insights' }
   private moreLabel(): string    { return this.props['moreLabel'] as string ?? 'View all' }
   private items(): ESObject[]    { return this.props['items'] as ESObject[] ?? [] as ESObject[] }
+  private numColumns(): number {
+    const asNum: number = this.props['numColumns'] as number
+    if (!isNaN(asNum)) return Math.max(1, asNum)
+    const asStr: string = this.props['numColumns'] as string
+    if (asStr) { const n: number = parseInt(asStr, 10); return isNaN(n) ? 1 : Math.max(1, n) }
+    return 1
+  }
 
   build() {
     Column({ space: 0 }) {
@@ -712,33 +887,37 @@ struct SDUIGuidesInsights {
       .width('100%')
       .padding({ left: 16, right: 16, top: 14, bottom: 10 })
 
-      Scroll() {
-        Row({ space: 12 }) {
+      if (this.numColumns() > 1) {
+        Flex({ wrap: FlexWrap.Wrap, direction: FlexDirection.Row, alignItems: ItemAlign.Start }) {
           ForEach(this.items(), (raw: ESObject) => {
             Column({ space: 0 }) {
-              // Fixed-height image area
               Text('📖')
                 .fontSize(36)
-                .width(160).height(90)
+                .width('100%').height(90)
                 .textAlign(TextAlign.Center)
                 .backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n100)
                 .borderRadius({ topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 })
-              // Fixed-height text area so cards stay same height
               Column({ space: 4 }) {
                 Text((raw as Record<string, string>)['title'] ?? '')
                   .fontSize(11).fontWeight(FontWeight.Medium).fontColor(Hive.Color.n900)
-                  .maxLines(3).width(160)
+                  .maxLines(3).width('100%')
+                if ((raw as Record<string, string>)['description']) {
+                  Text((raw as Record<string, string>)['description'] ?? '')
+                    .fontSize(10).fontColor(Hive.Color.n500).maxLines(2)
+                }
                 Text((raw as Record<string, string>)['date'] ?? '')
                   .fontSize(9).fontColor(Hive.Color.n400)
               }
               .alignItems(HorizontalAlign.Start)
-              .width(160).height(72)
+              .width('100%')
               .padding({ left: 8, right: 8, top: 8, bottom: 8 })
               .backgroundColor(Hive.Color.brandWhite)
               .borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 10, bottomRight: 10 })
             }
             .borderRadius(10).clip(true)
             .shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 })
+            .width(`${Math.floor(100 / this.numColumns()) - 2}%`)
+            .margin({ right: 8, bottom: 10 })
             .onClick(() => {
               SensorDataClient.guidesTapped(
                 (raw as Record<string, string>)['title'] ?? '',
@@ -747,10 +926,52 @@ struct SDUIGuidesInsights {
           })
         }
         .padding({ left: 16, right: 16, bottom: 14 })
+        .width('100%')
+      } else {
+        Scroll() {
+          Row({ space: 12 }) {
+            ForEach(this.items(), (raw: ESObject) => {
+              Column({ space: 0 }) {
+                // Fixed-height image area
+                Text('📖')
+                  .fontSize(36)
+                  .width(160).height(90)
+                  .textAlign(TextAlign.Center)
+                  .backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n100)
+                  .borderRadius({ topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 })
+                // Fixed-height text area so cards stay same height
+                Column({ space: 4 }) {
+                  Text((raw as Record<string, string>)['title'] ?? '')
+                    .fontSize(11).fontWeight(FontWeight.Medium).fontColor(Hive.Color.n900)
+                    .maxLines(3).width(160)
+                  if ((raw as Record<string, string>)['description']) {
+                    Text((raw as Record<string, string>)['description'] ?? '')
+                      .fontSize(10).fontColor(Hive.Color.n500).maxLines(2).width(160)
+                  }
+                  Text((raw as Record<string, string>)['date'] ?? '')
+                    .fontSize(9).fontColor(Hive.Color.n400)
+                }
+                .alignItems(HorizontalAlign.Start)
+                .width(160).height(72)
+                .padding({ left: 8, right: 8, top: 8, bottom: 8 })
+                .backgroundColor(Hive.Color.brandWhite)
+                .borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 10, bottomRight: 10 })
+              }
+              .borderRadius(10).clip(true)
+              .shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 })
+              .onClick(() => {
+                SensorDataClient.guidesTapped(
+                  (raw as Record<string, string>)['title'] ?? '',
+                  (raw as Record<string, string>)['id'] ?? '')
+              })
+            })
+          }
+          .padding({ left: 16, right: 16, bottom: 14 })
+        }
+        .scrollable(ScrollDirection.Horizontal)
+        .scrollBar(BarState.Off)
+        .width('100%')
       }
-      .scrollable(ScrollDirection.Horizontal)
-      .scrollBar(BarState.Off)
-      .width('100%')
     }
     .width('100%').backgroundColor(Hive.Color.brandWhite)
     .margin({ top: 8 })
@@ -766,7 +987,28 @@ struct SDUIFXWatchlist {
 
   private sectionTitle(): string { return this.props['sectionTitle'] as string ?? 'FX watchlist' }
   private tierBadge(): string    { return this.props['tierBadge'] as string ?? 'Premier' }
+  private moreLabel(): string    { return this.props['moreLabel'] as string ?? 'View all' }
   private pairs(): ESObject[]    { return this.props['pairs'] as ESObject[] ?? [] as ESObject[] }
+
+  // BFF shape: { pair: "USD/JPY", sellRate: "148.44", buyRate: "148.12", sellLabel, buyLabel }
+  private pairLabel(raw: ESObject): string {
+    const p = (raw as Record<string, string>)['pair'] ?? ''
+    return p.replace('/', ' / ')
+  }
+
+  private pairSellRate(raw: ESObject): string {
+    const r = raw as Record<string, string>
+    return r['sellRate'] ?? r['rate'] ?? ''
+  }
+
+  private pairBuyRate(raw: ESObject): string {
+    const r = raw as Record<string, string>
+    return r['buyRate'] ?? r['change'] ?? ''
+  }
+
+  private pairId(raw: ESObject): string {
+    return (raw as Record<string, string>)['pair'] ?? ''
+  }
 
   build() {
     Column({ space: 0 }) {
@@ -779,40 +1021,38 @@ struct SDUIFXWatchlist {
           .padding({ left: 8, right: 8, top: 3, bottom: 3 })
           .borderRadius(10).backgroundColor('#FEF2F2')
         Blank().layoutWeight(1)
-        Text('View all ›').fontSize(12).fontColor('#DB0011')
+        Text(`${this.moreLabel()} ›`).fontSize(12).fontColor('#DB0011')
       }
       .width('100%')
       .padding({ left: 16, right: 16, top: 14, bottom: 8 })
 
-      // Column headers
+      // Column headers — match BFF field names
       Row() {
         Text('Currency pair').fontSize(11).fontColor(Hive.Color.n400).layoutWeight(2)
-        Text('Rate').fontSize(11).fontColor(Hive.Color.n400).layoutWeight(1).textAlign(TextAlign.End)
-        Text('Change').fontSize(11).fontColor(Hive.Color.n400).layoutWeight(1).textAlign(TextAlign.End)
+        Text('Sell').fontSize(11).fontColor(Hive.Color.n400).layoutWeight(1).textAlign(TextAlign.End)
+        Text('Buy').fontSize(11).fontColor(Hive.Color.n400).layoutWeight(1).textAlign(TextAlign.End)
       }
       .width('100%')
       .padding({ left: 16, right: 16, bottom: 6 })
 
       Divider().color(Hive.Color.n100).margin({ left: 16, right: 16 })
 
-      // FX rows
+      // FX rows — BFF uses 'pair', 'sellRate', 'buyRate'
       ForEach(this.pairs(), (raw: ESObject, index: number) => {
         Row({ space: 0 }) {
-          Text(`${(raw as Record<string, string>)['base'] ?? ''} / ${(raw as Record<string, string>)['quote'] ?? ''}`)
+          Text(this.pairLabel(raw))
             .fontSize(13).fontWeight(FontWeight.Medium).fontColor(Hive.Color.n900).layoutWeight(2)
-          Text((raw as Record<string, string>)['rate'] ?? '')
+          Text(this.pairSellRate(raw))
             .fontSize(13).fontColor(Hive.Color.n900).layoutWeight(1).textAlign(TextAlign.End)
-          Text((raw as Record<string, string>)['change'] ?? '')
-            .fontSize(13).fontWeight(FontWeight.Medium)
-            .fontColor((raw as Record<string, boolean>)['positive'] ? '#16A34A' : '#DC2626')
+          Text(this.pairBuyRate(raw))
+            .fontSize(13).fontColor(Hive.Color.n500)
             .layoutWeight(1).textAlign(TextAlign.End)
         }
         .width('100%')
         .padding({ left: 16, right: 16, top: 10, bottom: 10 })
         .onClick(() => {
           SensorDataClient.track('fx_pair_tap', 'Wealth', 'fx_pair_tapped',
-            `${(raw as Record<string, string>)['base'] ?? ''}/${(raw as Record<string, string>)['quote'] ?? ''}`,
-            'fx_watchlist', 'wealth_hub')
+            this.pairId(raw), 'fx_watchlist', 'wealth_hub')
         })
 
         if (index < this.pairs().length - 1) {
@@ -829,6 +1069,7 @@ struct SDUIFXWatchlist {
 
 // ── 9. DISCOVER_MORE_CAROUSEL ──────────────────────────────────────────────────────────
 // "Discover more" horizontal campaign card carousel.
+// numColumns=1 → horizontal scroll; numColumns>1 → wrapped grid rows.
 
 @Component
 struct SDUIDiscoverMore {
@@ -836,6 +1077,13 @@ struct SDUIDiscoverMore {
 
   private sectionTitle(): string   { return this.props['sectionTitle'] as string ?? 'Discover more' }
   private items(): ESObject[]      { return this.props['items'] as ESObject[] ?? [] as ESObject[] }
+  private numColumns(): number {
+    const asNum: number = this.props['numColumns'] as number
+    if (!isNaN(asNum)) return Math.max(1, asNum)
+    const asStr: string = this.props['numColumns'] as string
+    if (asStr) { const n: number = parseInt(asStr, 10); return isNaN(n) ? 1 : Math.max(1, n) }
+    return 1
+  }
 
   build() {
     Column({ space: 0 }) {
@@ -847,15 +1095,14 @@ struct SDUIDiscoverMore {
       .width('100%')
       .padding({ left: 16, right: 16, top: 14, bottom: 10 })
 
-      Scroll() {
-        Row({ space: 12 }) {
+      if (this.numColumns() > 1) {
+        Flex({ wrap: FlexWrap.Wrap, direction: FlexDirection.Row, alignItems: ItemAlign.Start }) {
           ForEach(this.items(), (raw: ESObject) => {
             Column({ space: 0 }) {
-              // Fixed-height image area with tag chip
               Stack({ alignContent: Alignment.TopStart }) {
                 Text('🏦')
                   .fontSize(40)
-                  .width(200).height(110)
+                  .width('100%').height(110)
                   .textAlign(TextAlign.Center)
                   .backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n700)
                   .borderRadius({ topLeft: 12, topRight: 12, bottomLeft: 0, bottomRight: 0 })
@@ -866,16 +1113,15 @@ struct SDUIDiscoverMore {
                   .backgroundColor((raw as Record<string, string>)['tagColor'] ?? '#DB0011')
                   .margin({ left: 10, top: 10 })
               }
-              // Fixed-height text area
               Column({ space: 4 }) {
                 Text((raw as Record<string, string>)['title'] ?? '')
                   .fontSize(12).fontWeight(FontWeight.Medium).fontColor(Hive.Color.n900)
-                  .maxLines(2).width(200)
-                Text((raw as Record<string, string>)['subtitle'] ?? '')
-                  .fontSize(10).fontColor(Hive.Color.n400).maxLines(2).width(200)
+                  .maxLines(2).width('100%')
+                Text((raw as Record<string, string>)['description'] ?? (raw as Record<string, string>)['subtitle'] ?? '')
+                  .fontSize(10).fontColor(Hive.Color.n400).maxLines(2).width('100%')
               }
               .alignItems(HorizontalAlign.Start)
-              .width(200).height(72)
+              .width('100%')
               .padding({ left: 10, right: 10, top: 8, bottom: 8 })
               .backgroundColor(Hive.Color.brandWhite)
               .borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 12, bottomRight: 12 })
@@ -883,6 +1129,8 @@ struct SDUIDiscoverMore {
             .borderRadius(12).clip(true)
             .backgroundColor(Hive.Color.brandWhite)
             .shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 })
+            .width(`${Math.floor(100 / this.numColumns()) - 2}%`)
+            .margin({ right: 8, bottom: 10 })
             .onClick(() => {
               SensorDataClient.discoverMoreTapped(
                 (raw as Record<string, string>)['title'] ?? '',
@@ -891,10 +1139,57 @@ struct SDUIDiscoverMore {
           })
         }
         .padding({ left: 16, right: 16, bottom: 14 })
+        .width('100%')
+      } else {
+        Scroll() {
+          Row({ space: 12 }) {
+            ForEach(this.items(), (raw: ESObject) => {
+              Column({ space: 0 }) {
+                // Fixed-height image area with tag chip
+                Stack({ alignContent: Alignment.TopStart }) {
+                  Text('🏦')
+                    .fontSize(40)
+                    .width(200).height(110)
+                    .textAlign(TextAlign.Center)
+                    .backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n700)
+                    .borderRadius({ topLeft: 12, topRight: 12, bottomLeft: 0, bottomRight: 0 })
+                  Text((raw as Record<string, string>)['tag'] ?? '')
+                    .fontSize(9).fontWeight(FontWeight.Bold).fontColor(Hive.Color.brandWhite)
+                    .padding({ left: 8, right: 8, top: 4, bottom: 4 })
+                    .borderRadius(10)
+                    .backgroundColor((raw as Record<string, string>)['tagColor'] ?? '#DB0011')
+                    .margin({ left: 10, top: 10 })
+                }
+                // Fixed-height text area
+                Column({ space: 4 }) {
+                  Text((raw as Record<string, string>)['title'] ?? '')
+                    .fontSize(12).fontWeight(FontWeight.Medium).fontColor(Hive.Color.n900)
+                    .maxLines(2).width(200)
+                  Text((raw as Record<string, string>)['description'] ?? (raw as Record<string, string>)['subtitle'] ?? '')
+                    .fontSize(10).fontColor(Hive.Color.n400).maxLines(2).width(200)
+                }
+                .alignItems(HorizontalAlign.Start)
+                .width(200).height(72)
+                .padding({ left: 10, right: 10, top: 8, bottom: 8 })
+                .backgroundColor(Hive.Color.brandWhite)
+                .borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 12, bottomRight: 12 })
+              }
+              .borderRadius(12).clip(true)
+              .backgroundColor(Hive.Color.brandWhite)
+              .shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 })
+              .onClick(() => {
+                SensorDataClient.discoverMoreTapped(
+                  (raw as Record<string, string>)['title'] ?? '',
+                  (raw as Record<string, string>)['tag'] ?? '')
+              })
+            })
+          }
+          .padding({ left: 16, right: 16, bottom: 14 })
+        }
+        .scrollable(ScrollDirection.Horizontal)
+        .scrollBar(BarState.Off)
+        .width('100%')
       }
-      .scrollable(ScrollDirection.Horizontal)
-      .scrollBar(BarState.Off)
-      .width('100%')
     }
     .width('100%').backgroundColor(Hive.Color.n50)
     .margin({ top: 8 })

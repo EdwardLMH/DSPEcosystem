@@ -16,6 +16,17 @@ struct ScreenMetadata: Codable {
     let totalSteps: Int
     let sectionTitle: String
     let platform: String
+    let locale: String?
+    let textDir: String?
+    let channel: String?
+    let a11y: ScreenA11y?
+}
+
+struct ScreenA11y: Codable {
+    let reduceMotion: Bool?
+    let highContrast: Bool?
+    let largeText: Bool?
+    let voiceOver: Bool?
 }
 
 struct SDUINode: Codable {

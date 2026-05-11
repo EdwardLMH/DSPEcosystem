@@ -1,8 +1,8 @@
 # AEO & SEO Strategy — LLM Visibility and Search Performance
 
-**Document Version:** 1.0  
-**Date:** 2026-04-19  
-**Scope:** AEO Monitoring, Schema.org Implementation, SEO Foundations, Feedback to CMS  
+**Document Version:** 1.1  
+**Date:** 2026-05-12  
+**Scope:** AEO monitoring, implemented OCDP assessment, Schema.org strategy, SEO foundations, feedback to CMS  
 
 ---
 
@@ -12,7 +12,21 @@ As of 2025–2026, a significant and accelerating shift in customer search behav
 
 **Answer Engine Optimisation (AEO)** is the discipline of structuring, tagging, and maintaining content so that LLM engines select it as the authoritative cited answer for financial queries. Unlike traditional SEO — which optimises for ranking position in a list — AEO optimises for being selected as *the* answer in a conversational response.
 
-This document defines the AEO strategy, the technical implementation within the Stripes CMS and DAP, the LLM visibility monitoring architecture, and the SEO foundations that underpin discoverability for both traditional and AI-powered search.
+This document defines the AEO strategy, the current OCDP assessment implementation, the DAP LLM visibility monitoring architecture, and the SEO foundations that underpin discoverability for both traditional and AI-powered search.
+
+## Implementation Status
+
+The repository currently implements AEO assessment inside the OCDP Console for `WEB_STANDARD` pages and journeys:
+
+| Implemented file | Responsibility |
+|------------------|----------------|
+| `ocdp-console/src/utils/aeoCalculator.ts` | Client-side 100-point assessment: SEO metadata, content structure, content quality, technical SEO |
+| `ocdp-console/src/components/deliver/AEOAssessmentModal.tsx` | A-F modal with recommendations and submit/improve/cancel actions |
+| `ocdp-console/src/components/deliver/PageLibraryPanel.tsx` | Intercepts Web Standard page submission and runs assessment |
+| `ocdp-console/src/components/deliver/JourneyBuilderPanel.tsx` | Intercepts journeys containing Web Standard pages |
+| `ocdp-console/src/store/OCDPStore.tsx` | Persists assessment results through `SAVE_AEO_SCORE` |
+
+The DAP probe, schema generation, and feedback loop described later in this document are architecture targets represented by Python worker modules under `dap-python/`.
 
 ---
 
@@ -396,6 +410,29 @@ Regulated by the Hong Kong Monetary Authority (HKMA).
 
 ## 7. AEO Content Scoring Rubric (Per Page — 100 Points)
 
+### 7.1 Implemented OCDP Assessment
+
+The OCDP Console currently gates Web Standard submission with this implemented rubric:
+
+| Category | Points | Examples |
+|----------|--------|----------|
+| SEO metadata | 40 | Page title, meta description, slug quality, canonical/search metadata |
+| Content structure | 30 | Heading/content structure, FAQ or answer blocks, crawlable text |
+| Content quality | 20 | Direct answer quality, keyword coverage, freshness signals |
+| Technical SEO | 10 | Technical page readiness checks available to the console |
+
+**Implemented grade scale:**
+
+- A: 90-100
+- B: 80-89
+- C: 70-79
+- D: 60-69
+- F: 0-59
+
+`SDUI` and `WEB_WECHAT` pages bypass this assessment because they are not public crawl targets.
+
+### 7.2 Target DAP / Schema Rubric
+
 | Criterion | Points | How to Earn |
 |-----------|--------|------------|
 | FAQPage schema present and valid | 20 | Validated by Schema.org validator on publish |
@@ -407,7 +444,7 @@ Regulated by the Hong Kong Monetary Authority (HKMA).
 | Direct answer in first 60 words | 10 | CMS writing guideline gate; editorial checklist |
 | Cited by at least 1 LLM engine in last 30 days | 5 | From DAP AEO probe results |
 
-**AEO Grade:**
+**Target DAP / schema grade:**
 - A: 85–100 pts  
 - B: 70–84 pts  
 - C: 50–69 pts  

@@ -1,7 +1,7 @@
 # Local Development Environment
 
-**Document Version:** 1.0  
-**Date:** 2026-05-04  
+**Document Version:** 1.1  
+**Date:** 2026-05-12  
 **Scope:** mock-BFF, UCP Console, OCDP Console, SDUI client local setup  
 
 ---
@@ -25,7 +25,7 @@ For local development the ecosystem runs three services that simulate the produc
 │     │                              │                                  │
 │  ┌──▼───────────────┐   ┌─────────▼──────────┐                       │
 │  │  UCP Console      │   │  OCDP Console       │                       │
-│  │  Port 3001        │   │  Port 3002           │                       │
+│  │  Port 3001        │   │  Port 5173           │                       │
 │  │  (Vite + React)   │   │  (Vite + React)      │                       │
 │  │                   │   │                      │                       │
 │  │  Proxy: /api →    │   │  Proxy: /ucp-api →   │                       │
@@ -49,15 +49,15 @@ For local development the ecosystem runs three services that simulate the produc
 |---------|------|---------|
 | mock-BFF | 4000 | Simulates Java BFF + CMS backend; serves KYC steps, SDUI screens, search, Zone 2 CMS APIs |
 | UCP Console | 3001 | Content asset library, component registry, approval workflow; proxies `/api` to `:4000`; serves `/media/*` static files |
-| OCDP Console | 3002 | Page authoring, journey builder, approval queue; proxies `/ucp-api` to `:3001/api`; proxies `/media` to `:3001` |
-| web-sdui | 5173 | Web SDUI renderer (Vite default); fetches screens from `:4000` |
+| OCDP Console | 5173 | Page authoring, journey builder, approval queue, AEO, AI Search admin; proxies `/ucp-api` to `:3001/api`; proxies `/media` to `:3001` |
+| web-sdui | 3000 | Web SDUI renderer; fetches screens from `:4000` |
 
 ---
 
 ## 3. Proxy Chain
 
 ```
-OCDP Console (:3002)
+OCDP Console (:5173)
   /ucp-api/*  ──rewrite──►  UCP Console (:3001) /api/*  ──proxy──►  mock-BFF (:4000) /api/*
   /media/*    ─────────────► UCP Console (:3001) /media/*
 
@@ -83,7 +83,10 @@ This means the OCDP Console can reference UCP content assets and component defin
 | GET | `/api/v1/screen/home-wealth-hk` | Deliver Home Wealth Hub SDUI JSON (only if page status is LIVE) |
 | GET | `/api/v1/screen/fx-viewpoint-hk` | Deliver FX Viewpoint market insight SDUI JSON (schemaVersion 3.0) |
 | POST | `/api/v1/search` | Cosine-similarity semantic search over 30-item corpus (TF-IDF, bilingual) |
-| GET | `/api/v1/search/corpus` | Return full embedding corpus for client-side caching |
+| GET | `/api/v1/search/corpus` | Return full embedding corpus for client-side caching; accepts optional `?appId=` |
+| GET | `/api/v1/search/config/:configId` | Read an AI Search corpus configuration |
+| POST | `/api/v1/search/config/:configId` | Save or upsert an AI Search corpus configuration |
+| POST | `/api/v1/search/config/:configId/rebuild` | Rebuild corpus entries from quick-access JSON, OCDP pages, and AEM URL sources |
 | GET | `/health` | Health check; returns `{status:'ok', sessions: N}` |
 
 ### Zone 2 — Internal (requires `x-mock-staff-role` header)
@@ -125,8 +128,8 @@ The mock-BFF starts with pre-seeded in-memory data:
 
 | Data | Description |
 |------|-------------|
-| KYC step plan | 10 steps across 5 categories (CIP, BIOMETRIC, CDD, OPENBANKING, DECLARATION); branching logic on nationality |
-| `home-wealth-hk` page | 10 slice sections: HEADER_NAV, QUICK_ACCESS, PROMO_BANNER, FUNCTION_GRID, AI_ASSISTANT, AD_BANNER, FLASH_LOAN, WEALTH_SELECTION, FEATURED_RANKINGS, LIFE_DEALS |
+| KYC step plan | Platform-split plan with web compound steps and mobile-native steps across CIP, biometric, CDD, open banking, and declaration categories; branching logic on nationality |
+| `home-wealth-hk` page | 9 slices: `HOME_SEARCH_HEADER`, `COMBO_QUICK_ACCESS`, `CARD_ACTIVATION_BANNER`, `QUEST_BANNER`, `FEATURE_PRODUCT`, `WEALTH_STUDIO_CAROUSEL`, `GUIDES_INSIGHTS_CAROUSEL`, `FX_WATCHLIST`, `DISCOVER_MORE_CAROUSEL` |
 | `fx-viewpoint-hk` page | 3 slices: VIDEO_PLAYER, MARKET_BRIEFING_TEXT, CONTACT_RM_CTA (schema v3.0) |
 | Content assets | 8 assets (videos, images, documents) with UCP asset IDs |
 | Component registry | 14 slice type definitions with configurable props, versions, maintainer info |
@@ -147,11 +150,11 @@ cd ucp-console && npm install && npm run dev
 
 # Terminal 3 — OCDP Console
 cd ocdp-console && npm install && npm run dev
-# → http://localhost:3002
+# → http://localhost:5173
 
 # Terminal 4 — web SDUI client
 cd web-sdui && npm install && npm run dev
-# → http://localhost:5173
+# → http://localhost:3000
 ```
 
 ---

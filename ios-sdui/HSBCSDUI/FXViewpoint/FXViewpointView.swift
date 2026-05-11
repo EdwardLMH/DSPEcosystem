@@ -276,58 +276,73 @@ private struct FXVideoPlayer: View {
 }
 
 // MARK: - Inline AVPlayer (replaces thumbnail in-place, no modal)
+// Uses AVPlayerLayer via UIViewRepresentable so it stays within its SwiftUI .frame().
+// AVPlayerViewController always expands to full-screen and must not be used here.
 
-private struct InlineAVPlayer: UIViewControllerRepresentable {
+private struct InlineAVPlayer: UIViewRepresentable {
     let url: URL
     let onClose: () -> Void
 
-    func makeUIViewController(context: Context) -> UIViewController {
-        let player = AVPlayer(url: url)
-        let playerVC = AVPlayerViewController()
-        playerVC.player = player
-        player.play()
+    func makeUIView(context: Context) -> FXPlayerView {
+        let view = FXPlayerView()
+        view.configure(url: url, onClose: onClose)
+        return view
+    }
 
-        // Close button top-right
-        let wrapper = UIViewController()
-        wrapper.view.backgroundColor = .black
-        wrapper.addChild(playerVC)
-        wrapper.view.addSubview(playerVC.view)
-        playerVC.view.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            playerVC.view.topAnchor.constraint(equalTo: wrapper.view.topAnchor),
-            playerVC.view.bottomAnchor.constraint(equalTo: wrapper.view.bottomAnchor),
-            playerVC.view.leadingAnchor.constraint(equalTo: wrapper.view.leadingAnchor),
-            playerVC.view.trailingAnchor.constraint(equalTo: wrapper.view.trailingAnchor),
-        ])
-        playerVC.didMove(toParent: wrapper)
+    func updateUIView(_ view: FXPlayerView, context: Context) {}
+}
+
+final class FXPlayerView: UIView {
+    private var player: AVPlayer?
+    private var playerLayer: AVPlayerLayer?
+    private var onClose: (() -> Void)?
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        playerLayer?.frame = bounds
+    }
+
+    func configure(url: URL, onClose: @escaping () -> Void) {
+        self.onClose = onClose
+        backgroundColor = .black
+
+        let player = AVPlayer(url: url)
+        self.player = player
+
+        let layer = AVPlayerLayer(player: player)
+        layer.videoGravity = .resizeAspect
+        layer.frame = bounds
+        self.layer.addSublayer(layer)
+        self.playerLayer = layer
+
+        player.play()
 
         let btn = UIButton(type: .system)
         btn.setTitle("✕", for: .normal)
-        btn.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
+        btn.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .bold)
         btn.setTitleColor(.white, for: .normal)
+        btn.backgroundColor = UIColor.black.withAlphaComponent(0.45)
+        btn.layer.cornerRadius = 14
         btn.translatesAutoresizingMaskIntoConstraints = false
-        btn.addAction(UIAction { [weak player] _ in
-            player?.pause()
-            context.coordinator.onClose()
+        btn.addAction(UIAction { [weak self] _ in
+            self?.player?.pause()
+            self?.onClose?()
         }, for: .touchUpInside)
-        wrapper.view.addSubview(btn)
+        addSubview(btn)
         NSLayoutConstraint.activate([
-            btn.topAnchor.constraint(equalTo: wrapper.view.safeAreaLayoutGuide.topAnchor, constant: 6),
-            btn.trailingAnchor.constraint(equalTo: wrapper.view.trailingAnchor, constant: -12),
-            btn.widthAnchor.constraint(equalToConstant: 36),
-            btn.heightAnchor.constraint(equalToConstant: 36),
+            btn.topAnchor.constraint(equalTo: topAnchor, constant: 8),
+            btn.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            btn.widthAnchor.constraint(equalToConstant: 28),
+            btn.heightAnchor.constraint(equalToConstant: 28),
         ])
 
-        return wrapper
+        let tap = UITapGestureRecognizer(target: self, action: #selector(togglePlayPause))
+        addGestureRecognizer(tap)
     }
 
-    func updateUIViewController(_ vc: UIViewController, context: Context) {}
-
-    func makeCoordinator() -> Coordinator { Coordinator(onClose: onClose) }
-
-    class Coordinator: NSObject {
-        let onClose: () -> Void
-        init(onClose: @escaping () -> Void) { self.onClose = onClose }
+    @objc private func togglePlayPause() {
+        guard let player else { return }
+        player.timeControlStatus == .playing ? player.pause() : player.play()
     }
 }
 
@@ -380,30 +395,52 @@ private struct FXContactRMCTA: View {
     }
 
     var body: some View {
-        Button {
-            // deep-link handled by app router in production
-        } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(slice.string("label") ?? "Contact Your RM")
-                        .font(Hive.Typography.labelBase)
-                        .foregroundColor(.white)
-                    if let sub = slice.string("subLabel") {
-                        Text(sub)
-                            .font(Hive.Typography.caption)
-                            .foregroundColor(.white.opacity(0.85))
+        FXContactRMPill(
+            label: slice.string("label") ?? "Contact Your RM",
+            subLabel: slice.string("subLabel"),
+            bgColor: bgColor
+        )
+    }
+}
+
+private struct FXContactRMPill: View {
+    let label: String
+    let subLabel: String?
+    var bgColor: Color = Color(hex: "#DB0011")
+
+    var body: some View {
+        HStack {
+            Button {
+                // deep-link handled by app router in production
+            } label: {
+                HStack(spacing: 8) {
+                    Text("📞").font(.system(size: 15))
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(label)
+                            .font(Hive.Typography.labelBase)
+                            .foregroundColor(.white)
+                        if let sub = subLabel, !sub.isEmpty {
+                            Text(sub)
+                                .font(Hive.Typography.caption)
+                                .foregroundColor(.white.opacity(0.85))
+                        }
                     }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.white)
                 }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 9)
+                .background(bgColor)
+                .clipShape(Capsule())
+                .shadow(color: .black.opacity(0.18), radius: 4, x: 0, y: 2)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 14)
-            .background(bgColor)
+            .buttonStyle(.plain)
         }
-        .buttonStyle(.plain)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
+        .background(Hive.Color.brandWhite)
     }
 }
 
@@ -507,19 +544,10 @@ private struct FXHardcodedView: View {
             }
 
             // Sticky Contact RM CTA
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Contact Your RM")
-                        .font(Hive.Typography.labelBase).foregroundColor(.white)
-                    Text("Speak to your Relationship Manager about FX opportunities")
-                        .font(Hive.Typography.caption).foregroundColor(.white.opacity(0.85))
-                }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold)).foregroundColor(.white)
-            }
-            .padding(.horizontal, 20).padding(.vertical, 14)
-            .background(Hive.Color.brandPrimary)
+            FXContactRMPill(
+                label: "Contact Your RM",
+                subLabel: "Speak to your Relationship Manager about FX opportunities"
+            )
         }
     }
 }

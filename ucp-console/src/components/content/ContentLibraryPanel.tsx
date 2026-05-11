@@ -1,7 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { MOCK_CONTENT_ASSETS, BIZ_LINES as BIZ_LINES_DATA } from '../../store/mockData';
 import type { ContentAsset, AssetType, BizLineId } from '../../types/ucp';
 import { useUCP } from '../../store/UCPStore';
+import { LanguageSelector } from '../shared/LanguageSelector';
+import { mockTranslate } from '../../utils/i18n';
 
 const ASSET_ICONS: Record<AssetType, string> = {
   IMAGE:    '🖼️',
@@ -49,6 +51,7 @@ export function ContentLibraryPanel() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'ACTIVE' | 'ARCHIVED'>('ACTIVE');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [selected, setSelected] = useState<ContentAsset | null>(null);
+  const [activeAssetLocale, setActiveAssetLocale] = useState('en');
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [showNewModal, setShowNewModal] = useState(false);
   const [form, setForm] = useState<NewAssetForm>(EMPTY_FORM);
@@ -93,6 +96,8 @@ export function ContentLibraryPanel() {
       uploadedByName: state.currentUser.name,
       uploadedAt: new Date().toISOString(),
       status: 'ACTIVE',
+      supportedLocales: ['en'],
+      translations: {},
     };
     setAssets(prev => [newAsset, ...prev]);
     setShowNewModal(false);
@@ -267,7 +272,7 @@ export function ContentLibraryPanel() {
                 return (
                   <div
                     key={asset.assetId}
-                    onClick={() => setSelected(isSelected ? null : asset)}
+                    onClick={() => { const next = isSelected ? null : asset; setSelected(next); setActiveAssetLocale((next?.supportedLocales ?? ['en'])[0]); }}
                     style={{
                       borderRadius: 10, overflow: 'hidden', cursor: 'pointer',
                       border: isSelected ? `2px solid var(--hsbc-red)` : '2px solid var(--surface-border)',
@@ -342,7 +347,7 @@ export function ContentLibraryPanel() {
                   return (
                     <tr
                       key={asset.assetId}
-                      onClick={() => setSelected(isSelected ? null : asset)}
+                      onClick={() => { const next = isSelected ? null : asset; setSelected(next); setActiveAssetLocale((next?.supportedLocales ?? ['en'])[0]); }}
                       style={{
                         borderBottom: '1px solid var(--surface-border)',
                         background: isSelected ? 'rgba(219,0,17,0.06)' : 'transparent',
@@ -422,105 +427,196 @@ export function ContentLibraryPanel() {
             background: 'var(--surface-panel)', overflowY: 'auto', padding: 20,
             display: 'flex', flexDirection: 'column', gap: 14,
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>{selected.name}</div>
-              <button
-                onClick={() => setSelected(null)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 16 }}
-              >✕</button>
-            </div>
+            {(() => {
+              const primaryLocale = (selected.supportedLocales ?? ['en'])[0];
+              const isTranslating = activeAssetLocale !== primaryLocale;
+              const displayName = isTranslating ? (selected.translations?.[activeAssetLocale]?.name ?? selected.name) : selected.name;
+              const displayAlt  = isTranslating ? (selected.translations?.[activeAssetLocale]?.altText ?? selected.altText) : selected.altText;
+              return (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>{displayName}</div>
+                    <button
+                      onClick={() => { setSelected(null); setActiveAssetLocale('en'); }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 16 }}
+                    >✕</button>
+                  </div>
 
-            {/* Full image preview — click to lightbox */}
-            {selected.assetType === 'IMAGE' && (selected.url || selected.thumbnailUrl) && (
-              <div
-                onClick={() => setLightbox(selected.url || selected.thumbnailUrl!)}
-                style={{ cursor: 'zoom-in', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--surface-border)', position: 'relative' }}
-                title="Click to view full size"
-              >
-                <img
-                  src={selected.url || selected.thumbnailUrl}
-                  alt={selected.name}
-                  style={{ width: '100%', display: 'block', objectFit: 'cover', maxHeight: 180 }}
-                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                />
-                <div style={{
-                  position: 'absolute', bottom: 0, right: 0,
-                  background: 'rgba(0,0,0,0.5)', color: '#fff',
-                  fontSize: 10, padding: '2px 6px', borderTopLeftRadius: 4,
-                }}>🔍 Click to enlarge</div>
-              </div>
-            )}
-            {selected.assetType === 'VIDEO' && selected.thumbnailUrl && (
-              <div style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid var(--surface-border)', position: 'relative' }}>
-                <img
-                  src={selected.thumbnailUrl}
-                  alt={selected.name}
-                  style={{ width: '100%', display: 'block', objectFit: 'cover', maxHeight: 160 }}
-                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                />
-                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: 32, opacity: 0.85 }}>▶️</span>
-                </div>
-              </div>
-            )}
+                  {/* Language selector */}
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Languages</div>
+                    <LanguageSelector
+                      primaryLocale={primaryLocale}
+                      supportedLocales={selected.supportedLocales ?? [primaryLocale]}
+                      activeLocale={activeAssetLocale}
+                      onSelectLocale={l => setActiveAssetLocale(l)}
+                      onAddLocale={locale => {
+                        const newLocales = [...(selected.supportedLocales ?? [primaryLocale]), locale];
+                        setAssets(prev => prev.map(a => a.assetId === selected.assetId ? { ...a, supportedLocales: newLocales } : a));
+                        setSelected(prev => prev ? { ...prev, supportedLocales: newLocales } : prev);
+                        setActiveAssetLocale(locale);
+                      }}
+                      onRemoveLocale={locale => {
+                        const newLocales = (selected.supportedLocales ?? [primaryLocale]).filter(l => l !== locale);
+                        setAssets(prev => prev.map(a => a.assetId === selected.assetId ? { ...a, supportedLocales: newLocales } : a));
+                        setSelected(prev => prev ? { ...prev, supportedLocales: newLocales } : prev);
+                        if (activeAssetLocale === locale) setActiveAssetLocale(primaryLocale);
+                      }}
+                      size="sm"
+                    />
+                  </div>
 
-            <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
-              {[
-                ['Type',        selected.assetType],
-                ['MIME',        selected.mimeType],
-                ['Size',        formatSize(selected.sizeBytes)],
-                ['Market',      selected.marketId],
-                ['Biz Line',    selected.bizLineId],
-                ['Uploaded By', selected.uploadedByName],
-                ['Date',        formatDate(selected.uploadedAt)],
-                ['Status',      selected.status],
-              ].map(([k, v]) => (
-                <tr key={k} style={{ borderBottom: '1px solid var(--surface-border)' }}>
-                  <td style={{ padding: '6px 0', color: 'var(--text-muted)', width: 90 }}>{k}</td>
-                  <td style={{ padding: '6px 0', color: 'var(--text-primary)', fontWeight: 500 }}>{v}</td>
-                </tr>
-              ))}
-            </table>
-            {selected.altText && (
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Alt Text</div>
-                <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontStyle: 'italic' }}>{selected.altText}</div>
-              </div>
-            )}
-            {selected.tags && selected.tags.length > 0 && (
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Tags</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                  {selected.tags.map(t => (
-                    <span key={t} style={{
-                      fontSize: 11, padding: '2px 8px', borderRadius: 10,
-                      background: 'var(--surface-bg)', color: 'var(--text-secondary)',
-                      border: '1px solid var(--surface-border)',
-                    }}>{t}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
-              <button
-                onClick={() => navigator.clipboard.writeText(selected.url)}
-                style={{
-                  padding: '8px', borderRadius: 6, border: '1px solid var(--surface-border)',
-                  background: 'transparent', color: 'var(--text-secondary)', fontSize: 12,
-                  cursor: 'pointer', textAlign: 'left',
-                }}
-              >📋 Copy URL</button>
-              {selected.status === 'ACTIVE' && (
-                <button
-                  onClick={() => handleArchive(selected.assetId)}
-                  style={{
-                    padding: '8px', borderRadius: 6, border: '1px solid var(--surface-border)',
-                    background: 'transparent', color: '#ef4444', fontSize: 12,
-                    cursor: 'pointer', textAlign: 'left',
-                  }}
-                >🗂️ Archive Asset</button>
-              )}
-            </div>
+                  {/* Translation edit area */}
+                  {isTranslating && (
+                    <div style={{ padding: '10px 12px', background: '#EEF2FF', border: '1px solid #C7D2FE', borderRadius: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                        <div style={{ fontSize: 9, fontWeight: 700, color: '#4338CA', textTransform: 'uppercase', flex: 1 }}>🌐 {activeAssetLocale} Translation</div>
+                        <button
+                          onClick={() => {
+                            const translated = {
+                              name: mockTranslate(selected.name, activeAssetLocale),
+                              ...(selected.altText ? { altText: mockTranslate(selected.altText, activeAssetLocale) } : {}),
+                            };
+                            const updated = { ...selected, translations: { ...selected.translations, [activeAssetLocale]: translated } };
+                            setAssets(prev => prev.map(a => a.assetId === selected.assetId ? updated : a));
+                            setSelected(updated);
+                          }}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 4,
+                            padding: '4px 10px', background: '#DB0011', color: '#fff',
+                            border: 'none', borderRadius: 4, fontSize: 10, fontWeight: 700,
+                            cursor: 'pointer', whiteSpace: 'nowrap',
+                            fontFamily: 'var(--font-family)',
+                          }}
+                        >
+                          🌐 Translate
+                        </button>
+                      </div>
+                      <div style={{ marginBottom: 8 }}>
+                        <label style={{ fontSize: 10, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Name</label>
+                        <input
+                          value={selected.translations?.[activeAssetLocale]?.name ?? ''}
+                          onChange={e => {
+                            const updated = { ...selected, translations: { ...selected.translations, [activeAssetLocale]: { ...(selected.translations?.[activeAssetLocale] ?? {}), name: e.target.value } } };
+                            setAssets(prev => prev.map(a => a.assetId === selected.assetId ? updated : a));
+                            setSelected(updated);
+                          }}
+                          placeholder={selected.name}
+                          style={{ width: '100%', fontSize: 12, padding: '5px 7px', border: '1px solid #C7D2FE', borderRadius: 5, fontFamily: 'var(--font-family)', boxSizing: 'border-box', background: '#fff' }}
+                        />
+                      </div>
+                      {selected.altText && (
+                        <div>
+                          <label style={{ fontSize: 10, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Alt Text</label>
+                          <input
+                            value={selected.translations?.[activeAssetLocale]?.altText ?? ''}
+                            onChange={e => {
+                              const updated = { ...selected, translations: { ...selected.translations, [activeAssetLocale]: { ...(selected.translations?.[activeAssetLocale] ?? {}), altText: e.target.value } } };
+                              setAssets(prev => prev.map(a => a.assetId === selected.assetId ? updated : a));
+                              setSelected(updated);
+                            }}
+                            placeholder={selected.altText}
+                            style={{ width: '100%', fontSize: 12, padding: '5px 7px', border: '1px solid #C7D2FE', borderRadius: 5, fontFamily: 'var(--font-family)', boxSizing: 'border-box', background: '#fff' }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Full image preview — click to lightbox */}
+                  {selected.assetType === 'IMAGE' && (selected.url || selected.thumbnailUrl) && (
+                    <div
+                      onClick={() => setLightbox(selected.url || selected.thumbnailUrl!)}
+                      style={{ cursor: 'zoom-in', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--surface-border)', position: 'relative' }}
+                      title="Click to view full size"
+                    >
+                      <img
+                        src={selected.url || selected.thumbnailUrl}
+                        alt={displayAlt ?? displayName}
+                        style={{ width: '100%', display: 'block', objectFit: 'cover', maxHeight: 180 }}
+                        onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                      <div style={{
+                        position: 'absolute', bottom: 0, right: 0,
+                        background: 'rgba(0,0,0,0.5)', color: '#fff',
+                        fontSize: 10, padding: '2px 6px', borderTopLeftRadius: 4,
+                      }}>🔍 Click to enlarge</div>
+                    </div>
+                  )}
+                  {selected.assetType === 'VIDEO' && selected.thumbnailUrl && (
+                    <div style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid var(--surface-border)', position: 'relative' }}>
+                      <img
+                        src={selected.thumbnailUrl}
+                        alt={displayName}
+                        style={{ width: '100%', display: 'block', objectFit: 'cover', maxHeight: 160 }}
+                        onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ fontSize: 32, opacity: 0.85 }}>▶️</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+                    {[
+                      ['Type',        selected.assetType],
+                      ['MIME',        selected.mimeType],
+                      ['Size',        formatSize(selected.sizeBytes)],
+                      ['Market',      selected.marketId],
+                      ['Biz Line',    selected.bizLineId],
+                      ['Uploaded By', selected.uploadedByName],
+                      ['Date',        formatDate(selected.uploadedAt)],
+                      ['Status',      selected.status],
+                    ].map(([k, v]) => (
+                      <tr key={k} style={{ borderBottom: '1px solid var(--surface-border)' }}>
+                        <td style={{ padding: '6px 0', color: 'var(--text-muted)', width: 90 }}>{k}</td>
+                        <td style={{ padding: '6px 0', color: 'var(--text-primary)', fontWeight: 500 }}>{v}</td>
+                      </tr>
+                    ))}
+                  </table>
+                  {!isTranslating && displayAlt && (
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Alt Text</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontStyle: 'italic' }}>{displayAlt}</div>
+                    </div>
+                  )}
+                  {selected.tags && selected.tags.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Tags</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                        {selected.tags.map(t => (
+                          <span key={t} style={{
+                            fontSize: 11, padding: '2px 8px', borderRadius: 10,
+                            background: 'var(--surface-bg)', color: 'var(--text-secondary)',
+                            border: '1px solid var(--surface-border)',
+                          }}>{t}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+                    <button
+                      onClick={() => navigator.clipboard.writeText(selected.url)}
+                      style={{
+                        padding: '8px', borderRadius: 6, border: '1px solid var(--surface-border)',
+                        background: 'transparent', color: 'var(--text-secondary)', fontSize: 12,
+                        cursor: 'pointer', textAlign: 'left',
+                      }}
+                    >📋 Copy URL</button>
+                    {selected.status === 'ACTIVE' && (
+                      <button
+                        onClick={() => handleArchive(selected.assetId)}
+                        style={{
+                          padding: '8px', borderRadius: 6, border: '1px solid var(--surface-border)',
+                          background: 'transparent', color: '#ef4444', fontSize: 12,
+                          cursor: 'pointer', textAlign: 'left',
+                        }}
+                      >🗂️ Archive Asset</button>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
           </div>
         )}
       </div>

@@ -35,6 +35,7 @@ interface SDUIGuidesInsights_Params {
 }
 interface SDUIWealthStudioCarousel_Params {
     props?: Record<string, ESObject>;
+    playingUrl?: string;
 }
 interface SDUIFeatureProduct_Params {
     props?: Record<string, ESObject>;
@@ -58,6 +59,8 @@ interface WealthPageView_Params {
     searchOpen?: boolean;
     loadState?: number;
     sdui?: WealthSlice[];
+    staticDist?: SDUIStaticDistribution;
+    selfPickForceUpdate?: boolean;
 }
 interface SDUISliceView_Params {
     slice?: WealthSlice;
@@ -68,6 +71,7 @@ import { SensorDataClient } from "@normalized:N&&&entry/src/main/ets/network/Sen
 import { AISearchPage } from "@normalized:N&&&entry/src/main/ets/wealth/AISearchPage&";
 import { fetchWealthScreen } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
 import type { WealthSlice } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
+import { SDUIStaticDistribution } from "@normalized:N&&&entry/src/main/ets/network/SDUIStaticDistribution&";
 // ─── Data models ──────────────────────────────────────────────────────────────
 interface QuickItem {
     icon: string;
@@ -110,6 +114,12 @@ interface CampaignCard {
     tag: string;
     imageEmoji: string;
     deepLink: string;
+}
+interface StaticScreenPayload {
+    layout: StaticLayout;
+}
+interface StaticLayout {
+    children: WealthSlice[];
 }
 // ─── Static fallback data ─────────────────────────────────────────────────────
 // Mirrors OCDP mockData.ts — used on LOAD_ERROR path.
@@ -244,7 +254,7 @@ class SDUISliceView extends ViewPU {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
                                 let componentCall = new SDUIHomeSearchHeader(this, { props: this.slice.props,
-                                    onSearchTap: () => { this.onSearchTap(); } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 140, col: 7 });
+                                    onSearchTap: () => { this.onSearchTap(); } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 142, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -266,7 +276,30 @@ class SDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIComboQuickAccess(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 143, col: 7 });
+                                let componentCall = new SDUIComboQuickAccess(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 145, col: 7 });
+                                ViewPU.create(componentCall);
+                                let paramsLambda = () => {
+                                    return {
+                                        props: this.slice.props
+                                    };
+                                };
+                                componentCall.paramsGenerator_ = paramsLambda;
+                            }
+                            else {
+                                this.updateStateVarsOfChildByElmtId(elmtId, {});
+                            }
+                        }, { name: "SDUIComboQuickAccess" });
+                    }
+                });
+            }
+            else if (this.slice.type === 'SELF_PICK_ENTRY_POINTS') {
+                this.ifElseBranchUpdateFunction(2, () => {
+                    {
+                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                            if (isInitialRender) {
+                                let componentCall = new 
+                                // Self-pick items have already been merged by WealthPageView before render
+                                SDUIComboQuickAccess(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 148, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -283,11 +316,11 @@ class SDUISliceView extends ViewPU {
                 });
             }
             else if (this.slice.type === 'CARD_ACTIVATION_BANNER') {
-                this.ifElseBranchUpdateFunction(2, () => {
+                this.ifElseBranchUpdateFunction(3, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUICardActivationBanner(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 145, col: 7 });
+                                let componentCall = new SDUICardActivationBanner(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 150, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -304,11 +337,11 @@ class SDUISliceView extends ViewPU {
                 });
             }
             else if (this.slice.type === 'QUEST_BANNER') {
-                this.ifElseBranchUpdateFunction(3, () => {
+                this.ifElseBranchUpdateFunction(4, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIQuestBanner(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 147, col: 7 });
+                                let componentCall = new SDUIQuestBanner(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 152, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -325,11 +358,11 @@ class SDUISliceView extends ViewPU {
                 });
             }
             else if (this.slice.type === 'FEATURE_PRODUCT') {
-                this.ifElseBranchUpdateFunction(4, () => {
+                this.ifElseBranchUpdateFunction(5, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIFeatureProduct(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 149, col: 7 });
+                                let componentCall = new SDUIFeatureProduct(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 154, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -346,11 +379,11 @@ class SDUISliceView extends ViewPU {
                 });
             }
             else if (this.slice.type === 'WEALTH_STUDIO_CAROUSEL') {
-                this.ifElseBranchUpdateFunction(5, () => {
+                this.ifElseBranchUpdateFunction(6, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIWealthStudioCarousel(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 151, col: 7 });
+                                let componentCall = new SDUIWealthStudioCarousel(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 156, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -367,11 +400,11 @@ class SDUISliceView extends ViewPU {
                 });
             }
             else if (this.slice.type === 'GUIDES_INSIGHTS_CAROUSEL') {
-                this.ifElseBranchUpdateFunction(6, () => {
+                this.ifElseBranchUpdateFunction(7, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIGuidesInsights(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 153, col: 7 });
+                                let componentCall = new SDUIGuidesInsights(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 158, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -388,11 +421,11 @@ class SDUISliceView extends ViewPU {
                 });
             }
             else if (this.slice.type === 'FX_WATCHLIST') {
-                this.ifElseBranchUpdateFunction(7, () => {
+                this.ifElseBranchUpdateFunction(8, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIFXWatchlist(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 155, col: 7 });
+                                let componentCall = new SDUIFXWatchlist(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 160, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -409,11 +442,11 @@ class SDUISliceView extends ViewPU {
                 });
             }
             else if (this.slice.type === 'DISCOVER_MORE_CAROUSEL') {
-                this.ifElseBranchUpdateFunction(8, () => {
+                this.ifElseBranchUpdateFunction(9, () => {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIDiscoverMore(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 157, col: 7 });
+                                let componentCall = new SDUIDiscoverMore(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 162, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -430,7 +463,7 @@ class SDUISliceView extends ViewPU {
                 });
             }
             else if (this.slice.type === 'SPACER') {
-                this.ifElseBranchUpdateFunction(9, () => {
+                this.ifElseBranchUpdateFunction(10, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Blank.create();
                         Blank.height(this.slice.props['height'] as number ?? 16);
@@ -440,7 +473,7 @@ class SDUISliceView extends ViewPU {
             }
             // unknown types silently omitted
             else {
-                this.ifElseBranchUpdateFunction(10, () => {
+                this.ifElseBranchUpdateFunction(11, () => {
                 });
             }
         }, If);
@@ -459,8 +492,11 @@ export class WealthPageView extends ViewPU {
         this.__searchOpen = new ObservedPropertySimplePU(false, this, "searchOpen");
         this.__loadState = new ObservedPropertySimplePU(LOAD_IDLE // LOAD_* constants
         , this, "loadState");
-        this.__sdui = new ObservedPropertyObjectPU([] // BFF slices when loaded
+        this.__sdui = new ObservedPropertyObjectPU([] // BFF / static slices when loaded
+        // Static distribution manager (userId would come from auth context in production)
         , this, "sdui");
+        this.staticDist = new SDUIStaticDistribution(getContext(this), 'anonymous');
+        this.selfPickForceUpdate = false;
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
@@ -473,6 +509,12 @@ export class WealthPageView extends ViewPU {
         }
         if (params.sdui !== undefined) {
             this.sdui = params.sdui;
+        }
+        if (params.staticDist !== undefined) {
+            this.staticDist = params.staticDist;
+        }
+        if (params.selfPickForceUpdate !== undefined) {
+            this.selfPickForceUpdate = params.selfPickForceUpdate;
         }
     }
     updateStateVars(params: WealthPageView_Params) {
@@ -503,27 +545,73 @@ export class WealthPageView extends ViewPU {
     set loadState(newValue: number) {
         this.__loadState.set(newValue);
     }
-    private __sdui: ObservedPropertyObjectPU<WealthSlice[]>; // BFF slices when loaded
+    private __sdui: ObservedPropertyObjectPU<WealthSlice[]>; // BFF / static slices when loaded
     get sdui() {
         return this.__sdui.get();
     }
     set sdui(newValue: WealthSlice[]) {
         this.__sdui.set(newValue);
     }
+    // Static distribution manager (userId would come from auth context in production)
+    private staticDist: SDUIStaticDistribution;
+    private selfPickForceUpdate: boolean;
     aboutToAppear() {
         SensorDataClient.wealthHubViewed();
-        this.loadFromBFF();
+        this.loadWithStaticChain();
     }
-    private async loadFromBFF(): Promise<void> {
+    // ── 3-tier resolution chain ─────────────────────────────────────────────────
+    private async loadWithStaticChain(): Promise<void> {
         this.loadState = LOAD_LOADING;
         try {
-            const payload = await fetchWealthScreen();
-            this.sdui = payload.layout.children.filter((s: WealthSlice) => s.visible !== false);
-            this.loadState = LOAD_DONE;
-        }
-        catch (_e) {
-            // BFF not live or unreachable — fall back to static layout
+            // Step 1 — CDN static distribution (concurrent with BFF call)
+            const staticPromise = this.staticDist.resolve('home-wealth-hk');
+            const bffPromise = fetchWealthScreen().catch(() => null);
+            // Await both; prefer the BFF if it succeeds (personalised/A-B), else use static
+            const results = await Promise.all([staticPromise, bffPromise]);
+            const staticResult = results[0];
+            const bffPayload = results[1];
+            if (bffPayload !== null) {
+                // BFF success — use personalised payload
+                const slices: WealthSlice[] = bffPayload.layout.children.filter((s: WealthSlice) => s.visible !== false);
+                await this.mergeSelfPick(slices);
+                this.sdui = slices;
+                this.loadState = LOAD_DONE;
+                return;
+            }
+            if (staticResult.json !== null) {
+                // Static / local / bundled baseline
+                try {
+                    const parsed = JSON.parse(staticResult.json) as StaticScreenPayload;
+                    const slices: WealthSlice[] = parsed.layout.children.filter((s: WealthSlice) => s.visible !== false);
+                    await this.mergeSelfPick(slices);
+                    this.sdui = slices;
+                    this.loadState = LOAD_DONE;
+                }
+                catch (e) {
+                    this.loadState = LOAD_ERROR;
+                }
+                return;
+            }
+            // All tiers exhausted — render hardcoded static fallback
             this.loadState = LOAD_ERROR;
+        }
+        catch (e) {
+            // Safety net: any unhandled crash must not leave loadState at LOAD_LOADING
+            this.loadState = LOAD_ERROR;
+        }
+    }
+    // Merge self-pick preferences into any SELF_PICK_ENTRY_POINTS slices
+    private async mergeSelfPick(slices: WealthSlice[]): Promise<void> {
+        for (let i = 0; i < slices.length; i++) {
+            const slice = slices[i];
+            if (slice.type === 'SELF_PICK_ENTRY_POINTS' || slice.type === 'COMBO_QUICK_ACCESS') {
+                const remoteRow1: Record<string, string>[] = (slice.props['row1Items'] as Record<string, string>[]) ?? [];
+                const merged = await this.staticDist.resolvedSelfPickItems('home-wealth-hk', remoteRow1, this.selfPickForceUpdate);
+                const updatedProps = slice.props;
+                updatedProps['row1Items'] = merged as any;
+                slices[i] = { instanceId: slice.instanceId, type: slice.type,
+                    props: updatedProps, visible: slice.visible };
+            }
         }
     }
     initialRender() {
@@ -551,7 +639,7 @@ export class WealthPageView extends ViewPU {
                             if (isInitialRender) {
                                 let componentCall = new 
                                 // Minimal loading state — show header so page doesn't flash blank
-                                WHHomeSearchHeader(this, { onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 196, col: 13 });
+                                WHHomeSearchHeader(this, { onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 263, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -590,7 +678,7 @@ export class WealthPageView extends ViewPU {
                             {
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     if (isInitialRender) {
-                                        let componentCall = new SDUISliceView(this, { slice: slice, onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 205, col: 15 });
+                                        let componentCall = new SDUISliceView(this, { slice: slice, onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 272, col: 15 });
                                         ViewPU.create(componentCall);
                                         let paramsLambda = () => {
                                             return {
@@ -619,7 +707,7 @@ export class WealthPageView extends ViewPU {
                             if (isInitialRender) {
                                 let componentCall = new 
                                 // ── Static fallback: BFF not live yet (LOAD_IDLE or LOAD_ERROR) ─
-                                WHHomeSearchHeader(this, { onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 209, col: 13 });
+                                WHHomeSearchHeader(this, { onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 276, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -636,7 +724,7 @@ export class WealthPageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHComboQuickAccess(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 210, col: 13 });
+                                let componentCall = new WHComboQuickAccess(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 277, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -651,7 +739,7 @@ export class WealthPageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHCardActivationBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 211, col: 13 });
+                                let componentCall = new WHCardActivationBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 278, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -666,7 +754,7 @@ export class WealthPageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHQuestBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 212, col: 13 });
+                                let componentCall = new WHQuestBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 279, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -681,7 +769,7 @@ export class WealthPageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHFeatureProduct(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 213, col: 13 });
+                                let componentCall = new WHFeatureProduct(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 280, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -696,7 +784,7 @@ export class WealthPageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHWealthStudioCarousel(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 214, col: 13 });
+                                let componentCall = new WHWealthStudioCarousel(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 281, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -711,7 +799,7 @@ export class WealthPageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHGuidesInsights(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 215, col: 13 });
+                                let componentCall = new WHGuidesInsights(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 282, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -726,7 +814,7 @@ export class WealthPageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHFXWatchlist(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 216, col: 13 });
+                                let componentCall = new WHFXWatchlist(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 283, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -741,7 +829,7 @@ export class WealthPageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHDiscoverMore(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 217, col: 13 });
+                                let componentCall = new WHDiscoverMore(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 284, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -778,7 +866,7 @@ export class WealthPageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new AISearchPage(this, { onDismiss: () => { this.searchOpen = false; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 224, col: 9 });
+                                let componentCall = new AISearchPage(this, { onDismiss: () => { this.searchOpen = false; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 291, col: 9 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -1622,6 +1710,7 @@ class SDUIWealthStudioCarousel extends ViewPU {
             this.paramsGenerator_ = paramsLambda;
         }
         this.props = {};
+        this.__playingUrl = new ObservedPropertySimplePU('', this, "playingUrl");
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
@@ -1629,20 +1718,50 @@ class SDUIWealthStudioCarousel extends ViewPU {
         if (params.props !== undefined) {
             this.props = params.props;
         }
+        if (params.playingUrl !== undefined) {
+            this.playingUrl = params.playingUrl;
+        }
     }
     updateStateVars(params: SDUIWealthStudioCarousel_Params) {
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
+        this.__playingUrl.purgeDependencyOnElmtId(rmElmtId);
     }
     aboutToBeDeleted() {
+        this.__playingUrl.aboutToBeDeleted();
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
     private props: Record<string, any>;
+    private __playingUrl: ObservedPropertySimplePU<string>;
+    get playingUrl() {
+        return this.__playingUrl.get();
+    }
+    set playingUrl(newValue: string) {
+        this.__playingUrl.set(newValue);
+    }
     private sectionTitle(): string { return this.props['sectionTitle'] as string ?? 'Premier Elite Wealth Studio'; }
     private moreLabel(): string { return this.props['moreLabel'] as string ?? 'View all'; }
     private items(): any[] { return this.props['items'] as any[] ?? [] as any[]; }
+    private numColumns(): number {
+        const asNum: number = this.props['numColumns'] as number;
+        if (!isNaN(asNum))
+            return Math.max(1, asNum);
+        const asStr: string = this.props['numColumns'] as string;
+        if (asStr) {
+            const n: number = parseInt(asStr, 10);
+            return isNaN(n) ? 1 : Math.max(1, n);
+        }
+        return 1;
+    }
+    private resolveVideoUrl(raw: string): string {
+        return raw.replace('localhost', '10.0.2.2').replace('127.0.0.1', '10.0.2.2');
+    }
     initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Stack.create({ alignContent: Alignment.TopStart });
+            Stack.width('100%');
+        }, Stack);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 0 });
             Column.width('100%');
@@ -1674,127 +1793,301 @@ class SDUIWealthStudioCarousel extends ViewPU {
         Text.pop();
         Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Scroll.create();
-            Scroll.scrollable(ScrollDirection.Horizontal);
-            Scroll.scrollBar(BarState.Off);
-            Scroll.width('100%');
-        }, Scroll);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create({ space: 12 });
-            Row.padding({ left: 16, right: 16, bottom: 14 });
-        }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            ForEach.create();
-            const forEachItemGenFunction = _item => {
-                const raw = _item;
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Column.create({ space: 0 });
-                    Column.borderRadius(10);
-                    Column.clip(true);
-                    Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
-                    Column.onClick(() => {
-                        SensorDataClient.wealthStudioTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['id'] ?? '');
-                    });
-                }, Column);
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    // Image area — fixed 100px height
-                    Stack.create({ alignContent: Alignment.BottomStart });
-                }, Stack);
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create('📹');
-                    Text.fontSize(32);
-                    Text.width(180);
-                    Text.height(100);
-                    Text.textAlign(TextAlign.Center);
-                    Text.backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n700);
-                    Text.borderRadius({ topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 });
-                }, Text);
-                Text.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    // Play button centred
-                    Text.create('▶');
-                    // Play button centred
-                    Text.fontSize(20);
-                    // Play button centred
-                    Text.fontColor(Hive.Color.brandWhite);
-                    // Play button centred
-                    Text.width(36);
-                    // Play button centred
-                    Text.height(36);
-                    // Play button centred
-                    Text.textAlign(TextAlign.Center);
-                    // Play button centred
-                    Text.borderRadius(18);
-                    // Play button centred
-                    Text.backgroundColor('#80000000');
-                    // Play button centred
-                    Text.position({ x: 72, y: 32 });
-                }, Text);
-                // Play button centred
-                Text.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    // Live badge bottom-left
-                    Text.create((raw as Record<string, string>)['liveBadge'] ?? '');
-                    // Live badge bottom-left
-                    Text.fontSize(8);
-                    // Live badge bottom-left
-                    Text.fontWeight(FontWeight.Bold);
-                    // Live badge bottom-left
-                    Text.fontColor(Hive.Color.brandWhite);
-                    // Live badge bottom-left
-                    Text.padding({ left: 6, right: 6, top: 2, bottom: 2 });
-                    // Live badge bottom-left
-                    Text.borderRadius(3);
-                    // Live badge bottom-left
-                    Text.backgroundColor('#DB0011');
-                    // Live badge bottom-left
-                    Text.margin({ left: 8, bottom: 8 });
-                }, Text);
-                // Live badge bottom-left
-                Text.pop();
-                // Image area — fixed 100px height
-                Stack.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    // Text area — fixed 72px height so cards align
-                    Column.create({ space: 4 });
-                    // Text area — fixed 72px height so cards align
-                    Column.alignItems(HorizontalAlign.Start);
-                    // Text area — fixed 72px height so cards align
-                    Column.width(180);
-                    // Text area — fixed 72px height so cards align
-                    Column.height(72);
-                    // Text area — fixed 72px height so cards align
-                    Column.padding({ left: 10, right: 10, top: 8, bottom: 8 });
-                    // Text area — fixed 72px height so cards align
-                    Column.backgroundColor(Hive.Color.brandWhite);
-                    // Text area — fixed 72px height so cards align
-                    Column.borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 10, bottomRight: 10 });
-                }, Column);
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, string>)['episodeLabel'] ?? '');
-                    Text.fontSize(9);
-                    Text.fontColor(Hive.Color.n400);
-                }, Text);
-                Text.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, string>)['title'] ?? '');
-                    Text.fontSize(11);
-                    Text.fontWeight(FontWeight.Bold);
-                    Text.fontColor(Hive.Color.n900);
-                    Text.maxLines(2);
-                    Text.width(180);
-                }, Text);
-                Text.pop();
-                // Text area — fixed 72px height so cards align
-                Column.pop();
-                Column.pop();
-            };
-            this.forEachUpdateFunction(elmtId, this.items(), forEachItemGenFunction);
-        }, ForEach);
-        ForEach.pop();
-        Row.pop();
-        Scroll.pop();
+            If.create();
+            if (this.numColumns() > 1) {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        // Grid mode — wrap items in rows of numColumns
+                        Flex.create({ wrap: FlexWrap.Wrap, direction: FlexDirection.Row, alignItems: ItemAlign.Start });
+                        // Grid mode — wrap items in rows of numColumns
+                        Flex.padding({ left: 16, right: 16, bottom: 14 });
+                        // Grid mode — wrap items in rows of numColumns
+                        Flex.width('100%');
+                    }, Flex);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        ForEach.create();
+                        const forEachItemGenFunction = _item => {
+                            const raw = _item;
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Column.create({ space: 0 });
+                                Column.borderRadius(10);
+                                Column.clip(true);
+                                Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
+                                Column.width(`${Math.floor(100 / this.numColumns()) - 2}%`);
+                                Column.margin({ right: 8, bottom: 10 });
+                                Column.onClick(() => {
+                                    SensorDataClient.wealthStudioTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['id'] ?? '');
+                                    const vUrl: string = (raw as Record<string, string>)['videoUrl'] ?? '';
+                                    if (vUrl) {
+                                        this.playingUrl = this.resolveVideoUrl(vUrl);
+                                    }
+                                });
+                            }, Column);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Stack.create({ alignContent: Alignment.BottomStart });
+                            }, Stack);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create('📹');
+                                Text.fontSize(32);
+                                Text.width('100%');
+                                Text.height(100);
+                                Text.textAlign(TextAlign.Center);
+                                Text.backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n700);
+                                Text.borderRadius({ topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 });
+                            }, Text);
+                            Text.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create('▶');
+                                Text.fontSize(20);
+                                Text.fontColor(Hive.Color.brandWhite);
+                                Text.width(36);
+                                Text.height(36);
+                                Text.textAlign(TextAlign.Center);
+                                Text.borderRadius(18);
+                                Text.backgroundColor('#80000000');
+                                Text.position({ x: '38%', y: 32 });
+                            }, Text);
+                            Text.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                If.create();
+                                if ((raw as Record<string, string>)['liveBadge']) {
+                                    this.ifElseBranchUpdateFunction(0, () => {
+                                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                            Text.create((raw as Record<string, string>)['liveBadge'] ?? '');
+                                            Text.fontSize(8);
+                                            Text.fontWeight(FontWeight.Bold);
+                                            Text.fontColor(Hive.Color.brandWhite);
+                                            Text.padding({ left: 6, right: 6, top: 2, bottom: 2 });
+                                            Text.borderRadius(3);
+                                            Text.backgroundColor('#DB0011');
+                                            Text.margin({ left: 8, bottom: 8 });
+                                        }, Text);
+                                        Text.pop();
+                                    });
+                                }
+                                else {
+                                    this.ifElseBranchUpdateFunction(1, () => {
+                                    });
+                                }
+                            }, If);
+                            If.pop();
+                            Stack.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Column.create({ space: 4 });
+                                Column.alignItems(HorizontalAlign.Start);
+                                Column.width('100%');
+                                Column.padding({ left: 8, right: 8, top: 8, bottom: 8 });
+                                Column.backgroundColor(Hive.Color.brandWhite);
+                                Column.borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 10, bottomRight: 10 });
+                            }, Column);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create((raw as Record<string, string>)['episodeLabel'] ?? '');
+                                Text.fontSize(9);
+                                Text.fontColor(Hive.Color.n400);
+                            }, Text);
+                            Text.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create((raw as Record<string, string>)['title'] ?? '');
+                                Text.fontSize(11);
+                                Text.fontWeight(FontWeight.Bold);
+                                Text.fontColor(Hive.Color.n900);
+                                Text.maxLines(2);
+                                Text.width('100%');
+                            }, Text);
+                            Text.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                If.create();
+                                if ((raw as Record<string, string>)['ctaLabel']) {
+                                    this.ifElseBranchUpdateFunction(0, () => {
+                                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                            Button.createWithLabel((raw as Record<string, string>)['ctaLabel'] ?? 'Watch now');
+                                            Button.height(28);
+                                            Button.width('100%');
+                                            Button.backgroundColor('#DB0011');
+                                            Button.fontColor(Hive.Color.brandWhite);
+                                            Button.fontSize(10);
+                                            Button.fontWeight(FontWeight.Bold);
+                                            Button.borderRadius(14);
+                                        }, Button);
+                                        Button.pop();
+                                    });
+                                }
+                                else {
+                                    this.ifElseBranchUpdateFunction(1, () => {
+                                    });
+                                }
+                            }, If);
+                            If.pop();
+                            Column.pop();
+                            Column.pop();
+                        };
+                        this.forEachUpdateFunction(elmtId, this.items(), forEachItemGenFunction);
+                    }, ForEach);
+                    ForEach.pop();
+                    // Grid mode — wrap items in rows of numColumns
+                    Flex.pop();
+                });
+            }
+            else {
+                this.ifElseBranchUpdateFunction(1, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Scroll.create();
+                        Scroll.scrollable(ScrollDirection.Horizontal);
+                        Scroll.scrollBar(BarState.Off);
+                        Scroll.width('100%');
+                    }, Scroll);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Row.create({ space: 12 });
+                        Row.padding({ left: 16, right: 16, bottom: 14 });
+                    }, Row);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        ForEach.create();
+                        const forEachItemGenFunction = _item => {
+                            const raw = _item;
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Column.create({ space: 0 });
+                                Column.borderRadius(10);
+                                Column.clip(true);
+                                Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
+                                Column.onClick(() => {
+                                    SensorDataClient.wealthStudioTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['id'] ?? '');
+                                    const vUrl: string = (raw as Record<string, string>)['videoUrl'] ?? '';
+                                    if (vUrl) {
+                                        this.playingUrl = this.resolveVideoUrl(vUrl);
+                                    }
+                                });
+                            }, Column);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                // Image area — fixed 100px height
+                                Stack.create({ alignContent: Alignment.BottomStart });
+                            }, Stack);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create('📹');
+                                Text.fontSize(32);
+                                Text.width(180);
+                                Text.height(100);
+                                Text.textAlign(TextAlign.Center);
+                                Text.backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n700);
+                                Text.borderRadius({ topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 });
+                            }, Text);
+                            Text.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create('▶');
+                                Text.fontSize(20);
+                                Text.fontColor(Hive.Color.brandWhite);
+                                Text.width(36);
+                                Text.height(36);
+                                Text.textAlign(TextAlign.Center);
+                                Text.borderRadius(18);
+                                Text.backgroundColor('#80000000');
+                                Text.position({ x: 72, y: 32 });
+                            }, Text);
+                            Text.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create((raw as Record<string, string>)['liveBadge'] ?? '');
+                                Text.fontSize(8);
+                                Text.fontWeight(FontWeight.Bold);
+                                Text.fontColor(Hive.Color.brandWhite);
+                                Text.padding({ left: 6, right: 6, top: 2, bottom: 2 });
+                                Text.borderRadius(3);
+                                Text.backgroundColor('#DB0011');
+                                Text.margin({ left: 8, bottom: 8 });
+                            }, Text);
+                            Text.pop();
+                            // Image area — fixed 100px height
+                            Stack.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                // Text area — fixed 72px height so cards align
+                                Column.create({ space: 4 });
+                                // Text area — fixed 72px height so cards align
+                                Column.alignItems(HorizontalAlign.Start);
+                                // Text area — fixed 72px height so cards align
+                                Column.width(180);
+                                // Text area — fixed 72px height so cards align
+                                Column.height(72);
+                                // Text area — fixed 72px height so cards align
+                                Column.padding({ left: 10, right: 10, top: 8, bottom: 8 });
+                                // Text area — fixed 72px height so cards align
+                                Column.backgroundColor(Hive.Color.brandWhite);
+                                // Text area — fixed 72px height so cards align
+                                Column.borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 10, bottomRight: 10 });
+                            }, Column);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create((raw as Record<string, string>)['episodeLabel'] ?? '');
+                                Text.fontSize(9);
+                                Text.fontColor(Hive.Color.n400);
+                            }, Text);
+                            Text.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create((raw as Record<string, string>)['title'] ?? '');
+                                Text.fontSize(11);
+                                Text.fontWeight(FontWeight.Bold);
+                                Text.fontColor(Hive.Color.n900);
+                                Text.maxLines(2);
+                                Text.width(180);
+                            }, Text);
+                            Text.pop();
+                            // Text area — fixed 72px height so cards align
+                            Column.pop();
+                            Column.pop();
+                        };
+                        this.forEachUpdateFunction(elmtId, this.items(), forEachItemGenFunction);
+                    }, ForEach);
+                    ForEach.pop();
+                    Row.pop();
+                    Scroll.pop();
+                });
+            }
+        }, If);
+        If.pop();
         Column.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            If.create();
+            // Full-screen video overlay
+            if (this.playingUrl !== '') {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Column.create();
+                        Column.width('100%');
+                        Column.backgroundColor(Color.Black);
+                        Column.position({ x: 0, y: 0 });
+                        Column.zIndex(100);
+                        Column.onClick(() => { this.playingUrl = ''; });
+                    }, Column);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Stack.create({ alignContent: Alignment.TopEnd });
+                    }, Stack);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Video.create({ src: this.playingUrl });
+                        Video.width('100%');
+                        Video.aspectRatio(16 / 9);
+                        Video.autoPlay(true);
+                        Video.controls(true);
+                    }, Video);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create('✕');
+                        Text.fontSize(22);
+                        Text.fontColor(Color.White);
+                        Text.width(40);
+                        Text.height(40);
+                        Text.textAlign(TextAlign.Center);
+                        Text.borderRadius(20);
+                        Text.backgroundColor('#80000000');
+                        Text.margin({ top: 8, right: 8 });
+                        Text.onClick(() => { this.playingUrl = ''; });
+                    }, Text);
+                    Text.pop();
+                    Stack.pop();
+                    Column.pop();
+                });
+            }
+            else {
+                this.ifElseBranchUpdateFunction(1, () => {
+                });
+            }
+        }, If);
+        If.pop();
+        Stack.pop();
     }
     rerender() {
         this.updateDirtyElements();
@@ -1827,6 +2120,17 @@ class SDUIGuidesInsights extends ViewPU {
     private sectionTitle(): string { return this.props['sectionTitle'] as string ?? 'Guides and insights'; }
     private moreLabel(): string { return this.props['moreLabel'] as string ?? 'View all'; }
     private items(): any[] { return this.props['items'] as any[] ?? [] as any[]; }
+    private numColumns(): number {
+        const asNum: number = this.props['numColumns'] as number;
+        if (!isNaN(asNum))
+            return Math.max(1, asNum);
+        const asStr: string = this.props['numColumns'] as string;
+        if (asStr) {
+            const n: number = parseInt(asStr, 10);
+            return isNaN(n) ? 1 : Math.max(1, n);
+        }
+        return 1;
+    }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 0 });
@@ -1859,86 +2163,197 @@ class SDUIGuidesInsights extends ViewPU {
         Text.pop();
         Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Scroll.create();
-            Scroll.scrollable(ScrollDirection.Horizontal);
-            Scroll.scrollBar(BarState.Off);
-            Scroll.width('100%');
-        }, Scroll);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create({ space: 12 });
-            Row.padding({ left: 16, right: 16, bottom: 14 });
-        }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            ForEach.create();
-            const forEachItemGenFunction = _item => {
-                const raw = _item;
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Column.create({ space: 0 });
-                    Column.borderRadius(10);
-                    Column.clip(true);
-                    Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
-                    Column.onClick(() => {
-                        SensorDataClient.guidesTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['id'] ?? '');
-                    });
-                }, Column);
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    // Fixed-height image area
-                    Text.create('📖');
-                    // Fixed-height image area
-                    Text.fontSize(36);
-                    // Fixed-height image area
-                    Text.width(160);
-                    // Fixed-height image area
-                    Text.height(90);
-                    // Fixed-height image area
-                    Text.textAlign(TextAlign.Center);
-                    // Fixed-height image area
-                    Text.backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n100);
-                    // Fixed-height image area
-                    Text.borderRadius({ topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 });
-                }, Text);
-                // Fixed-height image area
-                Text.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    // Fixed-height text area so cards stay same height
-                    Column.create({ space: 4 });
-                    // Fixed-height text area so cards stay same height
-                    Column.alignItems(HorizontalAlign.Start);
-                    // Fixed-height text area so cards stay same height
-                    Column.width(160);
-                    // Fixed-height text area so cards stay same height
-                    Column.height(72);
-                    // Fixed-height text area so cards stay same height
-                    Column.padding({ left: 8, right: 8, top: 8, bottom: 8 });
-                    // Fixed-height text area so cards stay same height
-                    Column.backgroundColor(Hive.Color.brandWhite);
-                    // Fixed-height text area so cards stay same height
-                    Column.borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 10, bottomRight: 10 });
-                }, Column);
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, string>)['title'] ?? '');
-                    Text.fontSize(11);
-                    Text.fontWeight(FontWeight.Medium);
-                    Text.fontColor(Hive.Color.n900);
-                    Text.maxLines(3);
-                    Text.width(160);
-                }, Text);
-                Text.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, string>)['date'] ?? '');
-                    Text.fontSize(9);
-                    Text.fontColor(Hive.Color.n400);
-                }, Text);
-                Text.pop();
-                // Fixed-height text area so cards stay same height
-                Column.pop();
-                Column.pop();
-            };
-            this.forEachUpdateFunction(elmtId, this.items(), forEachItemGenFunction);
-        }, ForEach);
-        ForEach.pop();
-        Row.pop();
-        Scroll.pop();
+            If.create();
+            if (this.numColumns() > 1) {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Flex.create({ wrap: FlexWrap.Wrap, direction: FlexDirection.Row, alignItems: ItemAlign.Start });
+                        Flex.padding({ left: 16, right: 16, bottom: 14 });
+                        Flex.width('100%');
+                    }, Flex);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        ForEach.create();
+                        const forEachItemGenFunction = _item => {
+                            const raw = _item;
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Column.create({ space: 0 });
+                                Column.borderRadius(10);
+                                Column.clip(true);
+                                Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
+                                Column.width(`${Math.floor(100 / this.numColumns()) - 2}%`);
+                                Column.margin({ right: 8, bottom: 10 });
+                                Column.onClick(() => {
+                                    SensorDataClient.guidesTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['id'] ?? '');
+                                });
+                            }, Column);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create('📖');
+                                Text.fontSize(36);
+                                Text.width('100%');
+                                Text.height(90);
+                                Text.textAlign(TextAlign.Center);
+                                Text.backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n100);
+                                Text.borderRadius({ topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 });
+                            }, Text);
+                            Text.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Column.create({ space: 4 });
+                                Column.alignItems(HorizontalAlign.Start);
+                                Column.width('100%');
+                                Column.padding({ left: 8, right: 8, top: 8, bottom: 8 });
+                                Column.backgroundColor(Hive.Color.brandWhite);
+                                Column.borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 10, bottomRight: 10 });
+                            }, Column);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create((raw as Record<string, string>)['title'] ?? '');
+                                Text.fontSize(11);
+                                Text.fontWeight(FontWeight.Medium);
+                                Text.fontColor(Hive.Color.n900);
+                                Text.maxLines(3);
+                                Text.width('100%');
+                            }, Text);
+                            Text.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                If.create();
+                                if ((raw as Record<string, string>)['description']) {
+                                    this.ifElseBranchUpdateFunction(0, () => {
+                                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                            Text.create((raw as Record<string, string>)['description'] ?? '');
+                                            Text.fontSize(10);
+                                            Text.fontColor(Hive.Color.n500);
+                                            Text.maxLines(2);
+                                        }, Text);
+                                        Text.pop();
+                                    });
+                                }
+                                else {
+                                    this.ifElseBranchUpdateFunction(1, () => {
+                                    });
+                                }
+                            }, If);
+                            If.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create((raw as Record<string, string>)['date'] ?? '');
+                                Text.fontSize(9);
+                                Text.fontColor(Hive.Color.n400);
+                            }, Text);
+                            Text.pop();
+                            Column.pop();
+                            Column.pop();
+                        };
+                        this.forEachUpdateFunction(elmtId, this.items(), forEachItemGenFunction);
+                    }, ForEach);
+                    ForEach.pop();
+                    Flex.pop();
+                });
+            }
+            else {
+                this.ifElseBranchUpdateFunction(1, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Scroll.create();
+                        Scroll.scrollable(ScrollDirection.Horizontal);
+                        Scroll.scrollBar(BarState.Off);
+                        Scroll.width('100%');
+                    }, Scroll);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Row.create({ space: 12 });
+                        Row.padding({ left: 16, right: 16, bottom: 14 });
+                    }, Row);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        ForEach.create();
+                        const forEachItemGenFunction = _item => {
+                            const raw = _item;
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Column.create({ space: 0 });
+                                Column.borderRadius(10);
+                                Column.clip(true);
+                                Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
+                                Column.onClick(() => {
+                                    SensorDataClient.guidesTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['id'] ?? '');
+                                });
+                            }, Column);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                // Fixed-height image area
+                                Text.create('📖');
+                                // Fixed-height image area
+                                Text.fontSize(36);
+                                // Fixed-height image area
+                                Text.width(160);
+                                // Fixed-height image area
+                                Text.height(90);
+                                // Fixed-height image area
+                                Text.textAlign(TextAlign.Center);
+                                // Fixed-height image area
+                                Text.backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n100);
+                                // Fixed-height image area
+                                Text.borderRadius({ topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 });
+                            }, Text);
+                            // Fixed-height image area
+                            Text.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                // Fixed-height text area so cards stay same height
+                                Column.create({ space: 4 });
+                                // Fixed-height text area so cards stay same height
+                                Column.alignItems(HorizontalAlign.Start);
+                                // Fixed-height text area so cards stay same height
+                                Column.width(160);
+                                // Fixed-height text area so cards stay same height
+                                Column.height(72);
+                                // Fixed-height text area so cards stay same height
+                                Column.padding({ left: 8, right: 8, top: 8, bottom: 8 });
+                                // Fixed-height text area so cards stay same height
+                                Column.backgroundColor(Hive.Color.brandWhite);
+                                // Fixed-height text area so cards stay same height
+                                Column.borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 10, bottomRight: 10 });
+                            }, Column);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create((raw as Record<string, string>)['title'] ?? '');
+                                Text.fontSize(11);
+                                Text.fontWeight(FontWeight.Medium);
+                                Text.fontColor(Hive.Color.n900);
+                                Text.maxLines(3);
+                                Text.width(160);
+                            }, Text);
+                            Text.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                If.create();
+                                if ((raw as Record<string, string>)['description']) {
+                                    this.ifElseBranchUpdateFunction(0, () => {
+                                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                            Text.create((raw as Record<string, string>)['description'] ?? '');
+                                            Text.fontSize(10);
+                                            Text.fontColor(Hive.Color.n500);
+                                            Text.maxLines(2);
+                                            Text.width(160);
+                                        }, Text);
+                                        Text.pop();
+                                    });
+                                }
+                                else {
+                                    this.ifElseBranchUpdateFunction(1, () => {
+                                    });
+                                }
+                            }, If);
+                            If.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create((raw as Record<string, string>)['date'] ?? '');
+                                Text.fontSize(9);
+                                Text.fontColor(Hive.Color.n400);
+                            }, Text);
+                            Text.pop();
+                            // Fixed-height text area so cards stay same height
+                            Column.pop();
+                            Column.pop();
+                        };
+                        this.forEachUpdateFunction(elmtId, this.items(), forEachItemGenFunction);
+                    }, ForEach);
+                    ForEach.pop();
+                    Row.pop();
+                    Scroll.pop();
+                });
+            }
+        }, If);
+        If.pop();
         Column.pop();
     }
     rerender() {
@@ -1971,7 +2386,24 @@ class SDUIFXWatchlist extends ViewPU {
     private props: Record<string, any>;
     private sectionTitle(): string { return this.props['sectionTitle'] as string ?? 'FX watchlist'; }
     private tierBadge(): string { return this.props['tierBadge'] as string ?? 'Premier'; }
+    private moreLabel(): string { return this.props['moreLabel'] as string ?? 'View all'; }
     private pairs(): any[] { return this.props['pairs'] as any[] ?? [] as any[]; }
+    // BFF shape: { pair: "USD/JPY", sellRate: "148.44", buyRate: "148.12", sellLabel, buyLabel }
+    private pairLabel(raw: any): string {
+        const p = (raw as Record<string, string>)['pair'] ?? '';
+        return p.replace('/', ' / ');
+    }
+    private pairSellRate(raw: any): string {
+        const r = raw as Record<string, string>;
+        return r['sellRate'] ?? r['rate'] ?? '';
+    }
+    private pairBuyRate(raw: any): string {
+        const r = raw as Record<string, string>;
+        return r['buyRate'] ?? r['change'] ?? '';
+    }
+    private pairId(raw: any): string {
+        return (raw as Record<string, string>)['pair'] ?? '';
+    }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 0 });
@@ -2010,7 +2442,7 @@ class SDUIFXWatchlist extends ViewPU {
         }, Blank);
         Blank.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('View all ›');
+            Text.create(`${this.moreLabel()} ›`);
             Text.fontSize(12);
             Text.fontColor('#DB0011');
         }, Text);
@@ -2018,11 +2450,11 @@ class SDUIFXWatchlist extends ViewPU {
         // Header row
         Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Column headers
+            // Column headers — match BFF field names
             Row.create();
-            // Column headers
+            // Column headers — match BFF field names
             Row.width('100%');
-            // Column headers
+            // Column headers — match BFF field names
             Row.padding({ left: 16, right: 16, bottom: 6 });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -2033,7 +2465,7 @@ class SDUIFXWatchlist extends ViewPU {
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('Rate');
+            Text.create('Sell');
             Text.fontSize(11);
             Text.fontColor(Hive.Color.n400);
             Text.layoutWeight(1);
@@ -2041,14 +2473,14 @@ class SDUIFXWatchlist extends ViewPU {
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('Change');
+            Text.create('Buy');
             Text.fontSize(11);
             Text.fontColor(Hive.Color.n400);
             Text.layoutWeight(1);
             Text.textAlign(TextAlign.End);
         }, Text);
         Text.pop();
-        // Column headers
+        // Column headers — match BFF field names
         Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Divider.create();
@@ -2056,7 +2488,7 @@ class SDUIFXWatchlist extends ViewPU {
             Divider.margin({ left: 16, right: 16 });
         }, Divider);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // FX rows
+            // FX rows — BFF uses 'pair', 'sellRate', 'buyRate'
             ForEach.create();
             const forEachItemGenFunction = (_item, index: number) => {
                 const raw = _item;
@@ -2065,11 +2497,11 @@ class SDUIFXWatchlist extends ViewPU {
                     Row.width('100%');
                     Row.padding({ left: 16, right: 16, top: 10, bottom: 10 });
                     Row.onClick(() => {
-                        SensorDataClient.track('fx_pair_tap', 'Wealth', 'fx_pair_tapped', `${(raw as Record<string, string>)['base'] ?? ''}/${(raw as Record<string, string>)['quote'] ?? ''}`, 'fx_watchlist', 'wealth_hub');
+                        SensorDataClient.track('fx_pair_tap', 'Wealth', 'fx_pair_tapped', this.pairId(raw), 'fx_watchlist', 'wealth_hub');
                     });
                 }, Row);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create(`${(raw as Record<string, string>)['base'] ?? ''} / ${(raw as Record<string, string>)['quote'] ?? ''}`);
+                    Text.create(this.pairLabel(raw));
                     Text.fontSize(13);
                     Text.fontWeight(FontWeight.Medium);
                     Text.fontColor(Hive.Color.n900);
@@ -2077,7 +2509,7 @@ class SDUIFXWatchlist extends ViewPU {
                 }, Text);
                 Text.pop();
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, string>)['rate'] ?? '');
+                    Text.create(this.pairSellRate(raw));
                     Text.fontSize(13);
                     Text.fontColor(Hive.Color.n900);
                     Text.layoutWeight(1);
@@ -2085,10 +2517,9 @@ class SDUIFXWatchlist extends ViewPU {
                 }, Text);
                 Text.pop();
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, string>)['change'] ?? '');
+                    Text.create(this.pairBuyRate(raw));
                     Text.fontSize(13);
-                    Text.fontWeight(FontWeight.Medium);
-                    Text.fontColor((raw as Record<string, boolean>)['positive'] ? '#16A34A' : '#DC2626');
+                    Text.fontColor(Hive.Color.n500);
                     Text.layoutWeight(1);
                     Text.textAlign(TextAlign.End);
                 }, Text);
@@ -2114,7 +2545,7 @@ class SDUIFXWatchlist extends ViewPU {
             };
             this.forEachUpdateFunction(elmtId, this.pairs(), forEachItemGenFunction, undefined, true, false);
         }, ForEach);
-        // FX rows
+        // FX rows — BFF uses 'pair', 'sellRate', 'buyRate'
         ForEach.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Blank.create();
@@ -2153,6 +2584,17 @@ class SDUIDiscoverMore extends ViewPU {
     private props: Record<string, any>;
     private sectionTitle(): string { return this.props['sectionTitle'] as string ?? 'Discover more'; }
     private items(): any[] { return this.props['items'] as any[] ?? [] as any[]; }
+    private numColumns(): number {
+        const asNum: number = this.props['numColumns'] as number;
+        if (!isNaN(asNum))
+            return Math.max(1, asNum);
+        const asStr: string = this.props['numColumns'] as string;
+        if (asStr) {
+            const n: number = parseInt(asStr, 10);
+            return isNaN(n) ? 1 : Math.max(1, n);
+        }
+        return 1;
+    }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 0 });
@@ -2179,98 +2621,188 @@ class SDUIDiscoverMore extends ViewPU {
         Blank.pop();
         Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Scroll.create();
-            Scroll.scrollable(ScrollDirection.Horizontal);
-            Scroll.scrollBar(BarState.Off);
-            Scroll.width('100%');
-        }, Scroll);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create({ space: 12 });
-            Row.padding({ left: 16, right: 16, bottom: 14 });
-        }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            ForEach.create();
-            const forEachItemGenFunction = _item => {
-                const raw = _item;
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Column.create({ space: 0 });
-                    Column.borderRadius(12);
-                    Column.clip(true);
-                    Column.backgroundColor(Hive.Color.brandWhite);
-                    Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
-                    Column.onClick(() => {
-                        SensorDataClient.discoverMoreTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['tag'] ?? '');
-                    });
-                }, Column);
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    // Fixed-height image area with tag chip
-                    Stack.create({ alignContent: Alignment.TopStart });
-                }, Stack);
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create('🏦');
-                    Text.fontSize(40);
-                    Text.width(200);
-                    Text.height(110);
-                    Text.textAlign(TextAlign.Center);
-                    Text.backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n700);
-                    Text.borderRadius({ topLeft: 12, topRight: 12, bottomLeft: 0, bottomRight: 0 });
-                }, Text);
-                Text.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, string>)['tag'] ?? '');
-                    Text.fontSize(9);
-                    Text.fontWeight(FontWeight.Bold);
-                    Text.fontColor(Hive.Color.brandWhite);
-                    Text.padding({ left: 8, right: 8, top: 4, bottom: 4 });
-                    Text.borderRadius(10);
-                    Text.backgroundColor((raw as Record<string, string>)['tagColor'] ?? '#DB0011');
-                    Text.margin({ left: 10, top: 10 });
-                }, Text);
-                Text.pop();
-                // Fixed-height image area with tag chip
-                Stack.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    // Fixed-height text area
-                    Column.create({ space: 4 });
-                    // Fixed-height text area
-                    Column.alignItems(HorizontalAlign.Start);
-                    // Fixed-height text area
-                    Column.width(200);
-                    // Fixed-height text area
-                    Column.height(72);
-                    // Fixed-height text area
-                    Column.padding({ left: 10, right: 10, top: 8, bottom: 8 });
-                    // Fixed-height text area
-                    Column.backgroundColor(Hive.Color.brandWhite);
-                    // Fixed-height text area
-                    Column.borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 12, bottomRight: 12 });
-                }, Column);
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, string>)['title'] ?? '');
-                    Text.fontSize(12);
-                    Text.fontWeight(FontWeight.Medium);
-                    Text.fontColor(Hive.Color.n900);
-                    Text.maxLines(2);
-                    Text.width(200);
-                }, Text);
-                Text.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create((raw as Record<string, string>)['subtitle'] ?? '');
-                    Text.fontSize(10);
-                    Text.fontColor(Hive.Color.n400);
-                    Text.maxLines(2);
-                    Text.width(200);
-                }, Text);
-                Text.pop();
-                // Fixed-height text area
-                Column.pop();
-                Column.pop();
-            };
-            this.forEachUpdateFunction(elmtId, this.items(), forEachItemGenFunction);
-        }, ForEach);
-        ForEach.pop();
-        Row.pop();
-        Scroll.pop();
+            If.create();
+            if (this.numColumns() > 1) {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Flex.create({ wrap: FlexWrap.Wrap, direction: FlexDirection.Row, alignItems: ItemAlign.Start });
+                        Flex.padding({ left: 16, right: 16, bottom: 14 });
+                        Flex.width('100%');
+                    }, Flex);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        ForEach.create();
+                        const forEachItemGenFunction = _item => {
+                            const raw = _item;
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Column.create({ space: 0 });
+                                Column.borderRadius(12);
+                                Column.clip(true);
+                                Column.backgroundColor(Hive.Color.brandWhite);
+                                Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
+                                Column.width(`${Math.floor(100 / this.numColumns()) - 2}%`);
+                                Column.margin({ right: 8, bottom: 10 });
+                                Column.onClick(() => {
+                                    SensorDataClient.discoverMoreTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['tag'] ?? '');
+                                });
+                            }, Column);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Stack.create({ alignContent: Alignment.TopStart });
+                            }, Stack);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create('🏦');
+                                Text.fontSize(40);
+                                Text.width('100%');
+                                Text.height(110);
+                                Text.textAlign(TextAlign.Center);
+                                Text.backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n700);
+                                Text.borderRadius({ topLeft: 12, topRight: 12, bottomLeft: 0, bottomRight: 0 });
+                            }, Text);
+                            Text.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create((raw as Record<string, string>)['tag'] ?? '');
+                                Text.fontSize(9);
+                                Text.fontWeight(FontWeight.Bold);
+                                Text.fontColor(Hive.Color.brandWhite);
+                                Text.padding({ left: 8, right: 8, top: 4, bottom: 4 });
+                                Text.borderRadius(10);
+                                Text.backgroundColor((raw as Record<string, string>)['tagColor'] ?? '#DB0011');
+                                Text.margin({ left: 10, top: 10 });
+                            }, Text);
+                            Text.pop();
+                            Stack.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Column.create({ space: 4 });
+                                Column.alignItems(HorizontalAlign.Start);
+                                Column.width('100%');
+                                Column.padding({ left: 10, right: 10, top: 8, bottom: 8 });
+                                Column.backgroundColor(Hive.Color.brandWhite);
+                                Column.borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 12, bottomRight: 12 });
+                            }, Column);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create((raw as Record<string, string>)['title'] ?? '');
+                                Text.fontSize(12);
+                                Text.fontWeight(FontWeight.Medium);
+                                Text.fontColor(Hive.Color.n900);
+                                Text.maxLines(2);
+                                Text.width('100%');
+                            }, Text);
+                            Text.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create((raw as Record<string, string>)['description'] ?? (raw as Record<string, string>)['subtitle'] ?? '');
+                                Text.fontSize(10);
+                                Text.fontColor(Hive.Color.n400);
+                                Text.maxLines(2);
+                                Text.width('100%');
+                            }, Text);
+                            Text.pop();
+                            Column.pop();
+                            Column.pop();
+                        };
+                        this.forEachUpdateFunction(elmtId, this.items(), forEachItemGenFunction);
+                    }, ForEach);
+                    ForEach.pop();
+                    Flex.pop();
+                });
+            }
+            else {
+                this.ifElseBranchUpdateFunction(1, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Scroll.create();
+                        Scroll.scrollable(ScrollDirection.Horizontal);
+                        Scroll.scrollBar(BarState.Off);
+                        Scroll.width('100%');
+                    }, Scroll);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Row.create({ space: 12 });
+                        Row.padding({ left: 16, right: 16, bottom: 14 });
+                    }, Row);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        ForEach.create();
+                        const forEachItemGenFunction = _item => {
+                            const raw = _item;
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Column.create({ space: 0 });
+                                Column.borderRadius(12);
+                                Column.clip(true);
+                                Column.backgroundColor(Hive.Color.brandWhite);
+                                Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
+                                Column.onClick(() => {
+                                    SensorDataClient.discoverMoreTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['tag'] ?? '');
+                                });
+                            }, Column);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                // Fixed-height image area with tag chip
+                                Stack.create({ alignContent: Alignment.TopStart });
+                            }, Stack);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create('🏦');
+                                Text.fontSize(40);
+                                Text.width(200);
+                                Text.height(110);
+                                Text.textAlign(TextAlign.Center);
+                                Text.backgroundColor((raw as Record<string, string>)['imageColor'] ?? Hive.Color.n700);
+                                Text.borderRadius({ topLeft: 12, topRight: 12, bottomLeft: 0, bottomRight: 0 });
+                            }, Text);
+                            Text.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create((raw as Record<string, string>)['tag'] ?? '');
+                                Text.fontSize(9);
+                                Text.fontWeight(FontWeight.Bold);
+                                Text.fontColor(Hive.Color.brandWhite);
+                                Text.padding({ left: 8, right: 8, top: 4, bottom: 4 });
+                                Text.borderRadius(10);
+                                Text.backgroundColor((raw as Record<string, string>)['tagColor'] ?? '#DB0011');
+                                Text.margin({ left: 10, top: 10 });
+                            }, Text);
+                            Text.pop();
+                            // Fixed-height image area with tag chip
+                            Stack.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                // Fixed-height text area
+                                Column.create({ space: 4 });
+                                // Fixed-height text area
+                                Column.alignItems(HorizontalAlign.Start);
+                                // Fixed-height text area
+                                Column.width(200);
+                                // Fixed-height text area
+                                Column.height(72);
+                                // Fixed-height text area
+                                Column.padding({ left: 10, right: 10, top: 8, bottom: 8 });
+                                // Fixed-height text area
+                                Column.backgroundColor(Hive.Color.brandWhite);
+                                // Fixed-height text area
+                                Column.borderRadius({ topLeft: 0, topRight: 0, bottomLeft: 12, bottomRight: 12 });
+                            }, Column);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create((raw as Record<string, string>)['title'] ?? '');
+                                Text.fontSize(12);
+                                Text.fontWeight(FontWeight.Medium);
+                                Text.fontColor(Hive.Color.n900);
+                                Text.maxLines(2);
+                                Text.width(200);
+                            }, Text);
+                            Text.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create((raw as Record<string, string>)['description'] ?? (raw as Record<string, string>)['subtitle'] ?? '');
+                                Text.fontSize(10);
+                                Text.fontColor(Hive.Color.n400);
+                                Text.maxLines(2);
+                                Text.width(200);
+                            }, Text);
+                            Text.pop();
+                            // Fixed-height text area
+                            Column.pop();
+                            Column.pop();
+                        };
+                        this.forEachUpdateFunction(elmtId, this.items(), forEachItemGenFunction);
+                    }, ForEach);
+                    ForEach.pop();
+                    Row.pop();
+                    Scroll.pop();
+                });
+            }
+        }, If);
+        If.pop();
         Column.pop();
     }
     rerender() {

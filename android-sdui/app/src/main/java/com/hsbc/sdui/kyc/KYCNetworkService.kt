@@ -8,31 +8,51 @@ import retrofit2.http.*
 private const val BASE_URL = "http://10.0.2.2:4000/api/v1/"
 
 interface KYCApi {
+    @GET("config")
+    suspend fun fetchConfig(
+        @Header("x-platform")   platform: String,
+        @Header("x-locale")     locale: String,
+        @Header("x-a11y-flags") a11yFlags: String,
+        @Header("x-channel")    channel: String = "SDUI"
+    ): BFFConfig
+
     @POST("kyc/sessions/start")
     suspend fun startSession(
-        @Header("x-platform") platform: String,
+        @Header("x-platform")   platform: String,
+        @Header("x-locale")     locale: String,
+        @Header("x-a11y-flags") a11yFlags: String,
+        @Header("x-channel")    channel: String = "SDUI",
         @Body body: Map<String, String>
     ): StartSessionResponse
 
     @GET("kyc/sessions/{sessionId}/resume")
     suspend fun resume(
-        @Path("sessionId") sessionId: String,
-        @Header("x-platform") platform: String,
+        @Path("sessionId")      sessionId: String,
+        @Header("x-platform")   platform: String,
+        @Header("x-locale")     locale: String,
+        @Header("x-a11y-flags") a11yFlags: String,
+        @Header("x-channel")    channel: String = "SDUI",
         @Header("x-sdui-version") sduiVersion: String = "2.3"
     ): SDUIScreenPayload
 
     @GET("kyc/sessions/{sessionId}/steps/{stepId}")
     suspend fun getStep(
-        @Path("sessionId") sessionId: String,
-        @Path("stepId") stepId: String,
-        @Header("x-platform") platform: String,
+        @Path("sessionId")      sessionId: String,
+        @Path("stepId")         stepId: String,
+        @Header("x-platform")   platform: String,
+        @Header("x-locale")     locale: String,
+        @Header("x-a11y-flags") a11yFlags: String,
+        @Header("x-channel")    channel: String = "SDUI",
         @Header("x-sdui-version") sduiVersion: String = "2.3"
     ): SDUIScreenPayload
 
     @POST("kyc/sessions/{sessionId}/steps/{stepId}/submit")
     suspend fun submitStep(
-        @Path("sessionId") sessionId: String,
-        @Path("stepId") stepId: String,
+        @Path("sessionId")      sessionId: String,
+        @Path("stepId")         stepId: String,
+        @Header("x-platform")   platform: String,
+        @Header("x-locale")     locale: String,
+        @Header("x-a11y-flags") a11yFlags: String,
         @Body body: SubmitRequest
     ): SubmitResponse
 }

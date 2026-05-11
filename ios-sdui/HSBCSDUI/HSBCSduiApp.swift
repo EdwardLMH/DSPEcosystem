@@ -9,6 +9,11 @@ struct HSBCSduiApp: App {
             HSBCHomeView()
                 .environment(store)
                 .preferredColorScheme(.light)
+                .sduiEnvironment(
+                    locale: IOSLocaleContext.current,
+                    reduceMotion: UIAccessibility.isReduceMotionEnabled,
+                    highContrast: UIAccessibility.isDarkerSystemColorsEnabled
+                )
         }
     }
 }

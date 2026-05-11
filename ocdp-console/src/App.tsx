@@ -9,6 +9,9 @@ import { MarketAdminPanel } from './components/admin/MarketAdminPanel';
 import { BizLineAdminPanel } from './components/admin/BizLineAdminPanel';
 import { AdGroupAdminPanel } from './components/admin/AdGroupAdminPanel';
 import { ApprovalFlowAdminPanel } from './components/admin/ApprovalFlowAdminPanel';
+import { ValueStreamAdminPanel } from './components/admin/ValueStreamAdminPanel';
+import { RuleParamsAdminPanel } from './components/admin/RuleParamsAdminPanel';
+import { AISearchAdminPanel } from './components/admin/AISearchAdminPanel';
 import { AuditLogPanel } from './components/admin/AuditLogPanel';
 import { StatisticsPanel } from './components/analyse/StatisticsPanel';
 import { AEOPanel } from './components/analyse/AEOPanel';
@@ -42,11 +45,14 @@ function AppLayout() {
       case 'history':        return <OCDPHistoryPanel />;
       case 'stats':          return <StatisticsPanel />;
       case 'aeo':            return <AEOPanel />;
-      case 'admin-markets':  return <MarketAdminPanel />;
-      case 'admin-bizlines': return <BizLineAdminPanel />;
-      case 'admin-groups':   return <AdGroupAdminPanel />;
-      case 'admin-flows':    return <ApprovalFlowAdminPanel />;
-      case 'audit':          return <AuditLogPanel />;
+      case 'admin-markets':     return <MarketAdminPanel />;
+      case 'admin-bizlines':    return <BizLineAdminPanel />;
+      case 'admin-groups':      return <AdGroupAdminPanel />;
+      case 'admin-flows':       return <ApprovalFlowAdminPanel />;
+      case 'admin-value-streams': return <ValueStreamAdminPanel />;
+      case 'admin-rule-params': return <RuleParamsAdminPanel />;
+      case 'ai-search':         return <AISearchAdminPanel />;
+      case 'audit':             return <AuditLogPanel />;
       case 'wechat':         return <WeChatComposerPanel />;
       default:               return <PageLibraryPanel />;
     }
@@ -54,11 +60,14 @@ function AppLayout() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', fontFamily: 'var(--font-family)' }}>
+      {/* Skip navigation link for keyboard/screen reader users */}
+      <a href="#main-content" className="skip-link">Skip to main content</a>
+
       {/* Hide header when in page editor for maximum canvas space */}
       {!editorPageId && <OCDPHeader />}
       <OCDPDBSync />
 
-      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div id="main-content" style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {renderMain()}
       </div>
 

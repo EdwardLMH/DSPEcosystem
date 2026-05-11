@@ -1,14 +1,15 @@
 import React, { createContext, useContext, useReducer } from 'react';
 import type {
   AuditEntry, StaffUser, NavView, AdGroup, BizLine,
-  ContentAsset, UIComponent, ContentApprovalFlow,
+  ContentAsset, UIComponent, ContentApprovalFlow, PageTemplate,
 } from '../types/ucp';
 import {
   MOCK_AUDIT, MOCK_USERS, AD_GROUPS, BIZ_LINES,
   MOCK_CONTENT_ASSETS, MOCK_UI_COMPONENTS, CONTENT_APPROVAL_FLOWS,
-  MOCK_PAGES_REFERENCING_ASSETS,
+  MOCK_PAGES_REFERENCING_ASSETS, PAGE_TEMPLATES,
 } from './mockData';
 import { v4 } from '../utils/uuid';
+import { mockTranslate } from '../utils/i18n';
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -23,6 +24,9 @@ export interface UCPState {
 
   contentAssets:  ContentAsset[];
   uiComponents:   UIComponent[];
+  pageTemplates:  PageTemplate[];
+
+  editorTemplateId: string | null;
 
   audit:          AuditEntry[];
   toast: { id: string; message: string; type: 'success' | 'error' | 'info' } | null;
@@ -53,7 +57,25 @@ type Action =
   | { type: 'REJECT_ASSET';          assetId: string; comment: string }
   // UI component CRUD (status toggle)
   | { type: 'DEPRECATE_COMPONENT';   componentId: string }
-  | { type: 'RESTORE_COMPONENT';     componentId: string };
+  | { type: 'RESTORE_COMPONENT';     componentId: string }
+  // Page template CRUD
+  | { type: 'CREATE_TEMPLATE';       template: Omit<PageTemplate, 'templateId' | 'createdAt' | 'updatedAt' | 'usageCount'> }
+  | { type: 'UPDATE_TEMPLATE';       templateId: string; updates: Partial<PageTemplate> }
+  | { type: 'DELETE_TEMPLATE';       templateId: string }
+  | { type: 'OPEN_TEMPLATE_EDITOR';  templateId: string }
+  | { type: 'CLOSE_TEMPLATE_EDITOR' }
+  // Multi-language: assets
+  | { type: 'SET_ASSET_LOCALES';      assetId: string; locales: string[] }
+  | { type: 'SET_ASSET_TRANSLATION';  assetId: string; locale: string; field: string; value: string }
+  | { type: 'TRANSLATE_ASSET';        assetId: string; locale: string }
+  // Multi-language: UI components
+  | { type: 'SET_COMPONENT_LOCALES';     componentId: string; locales: string[] }
+  | { type: 'SET_COMPONENT_TRANSLATION'; componentId: string; locale: string; field: string; value: string }
+  | { type: 'TRANSLATE_COMPONENT';       componentId: string; locale: string }
+  // Multi-language: page templates
+  | { type: 'SET_TEMPLATE_LOCALES';     templateId: string; locales: string[] }
+  | { type: 'SET_TEMPLATE_TRANSLATION'; templateId: string; locale: string; field: string; value: string }
+  | { type: 'TRANSLATE_TEMPLATE';       templateId: string; locale: string };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -169,6 +191,139 @@ function reducer(state: UCPState, action: Action): UCPState {
         audit: [...state.audit, makeAudit(state.currentUser, 'COMPONENT_RESTORED', action.componentId, state.uiComponents.find(c => c.componentId === action.componentId)?.label ?? action.componentId)],
       };
 
+    case 'CREATE_TEMPLATE': {
+      const now = new Date().toISOString();
+      const newTpl: PageTemplate = { ...action.template, templateId: v4(), createdAt: now, updatedAt: now, usageCount: 0 };
+      return {
+        ...state,
+        pageTemplates: [...state.pageTemplates, newTpl],
+        editorTemplateId: newTpl.templateId,
+        navView: 'templates',
+        toast: { id: v4(), message: `Template "${newTpl.name}" created`, type: 'success' },
+      };
+    }
+
+    case 'UPDATE_TEMPLATE':
+      return {
+        ...state,
+        pageTemplates: state.pageTemplates.map(t =>
+          t.templateId === action.templateId ? { ...t, ...action.updates, updatedAt: new Date().toISOString() } : t
+        ),
+      };
+
+    case 'DELETE_TEMPLATE':
+      return {
+        ...state,
+        pageTemplates: state.pageTemplates.filter(t => t.templateId !== action.templateId),
+        editorTemplateId: state.editorTemplateId === action.templateId ? null : state.editorTemplateId,
+        toast: { id: v4(), message: 'Template deleted', type: 'info' },
+      };
+
+    case 'OPEN_TEMPLATE_EDITOR':
+      return { ...state, editorTemplateId: action.templateId };
+
+    case 'CLOSE_TEMPLATE_EDITOR':
+      return { ...state, editorTemplateId: null };
+
+    // ── Multi-language: assets ────────────────────────────────────────────────
+    case 'SET_ASSET_LOCALES': {
+      const asset = state.contentAssets.find(a => a.assetId === action.assetId);
+      if (!asset) return state;
+      const primary = (asset.supportedLocales ?? ['en'])[0];
+      let translations = { ...asset.translations };
+      const removed = (asset.supportedLocales ?? []).filter(l => l !== primary && !action.locales.includes(l));
+      for (const locale of removed) { const { [locale]: _, ...rest } = translations; translations = rest; }
+      return { ...state, contentAssets: state.contentAssets.map(a => a.assetId === action.assetId ? { ...a, supportedLocales: action.locales, translations } : a) };
+    }
+
+    case 'TRANSLATE_ASSET': {
+      const asset = state.contentAssets.find(a => a.assetId === action.assetId);
+      if (!asset) return state;
+      const existing = asset.translations?.[action.locale] ?? {};
+      const translated = {
+        name: existing.name || mockTranslate(asset.name, action.locale),
+        ...(asset.altText ? { altText: existing.altText || mockTranslate(asset.altText, action.locale) } : {}),
+      };
+      return { ...state, contentAssets: state.contentAssets.map(a => a.assetId !== action.assetId ? a :
+        { ...a, translations: { ...a.translations, [action.locale]: translated } }
+      ) };
+    }
+
+    case 'SET_ASSET_TRANSLATION':
+      return {
+        ...state,
+        contentAssets: state.contentAssets.map(a =>
+          a.assetId !== action.assetId ? a :
+          { ...a, translations: { ...a.translations, [action.locale]: { ...(a.translations[action.locale] ?? {}), [action.field]: action.value } } }
+        ),
+      };
+
+    // ── Multi-language: UI components ────────────────────────────────────────
+    case 'SET_COMPONENT_LOCALES': {
+      const comp = state.uiComponents.find(c => c.componentId === action.componentId);
+      if (!comp) return state;
+      const primary = (comp.supportedLocales ?? ['en'])[0];
+      let translations = { ...comp.translations };
+      const removed = (comp.supportedLocales ?? []).filter(l => l !== primary && !action.locales.includes(l));
+      for (const locale of removed) { const { [locale]: _, ...rest } = translations; translations = rest; }
+      return { ...state, uiComponents: state.uiComponents.map(c => c.componentId === action.componentId ? { ...c, supportedLocales: action.locales, translations } : c) };
+    }
+
+    case 'TRANSLATE_COMPONENT': {
+      const comp = state.uiComponents.find(c => c.componentId === action.componentId);
+      if (!comp) return state;
+      const existing = comp.translations?.[action.locale] ?? {};
+      const translated = {
+        label: existing.label || mockTranslate(comp.label, action.locale),
+        description: existing.description || mockTranslate(comp.description, action.locale),
+      };
+      return { ...state, uiComponents: state.uiComponents.map(c => c.componentId !== action.componentId ? c :
+        { ...c, translations: { ...c.translations, [action.locale]: translated } }
+      ) };
+    }
+
+    case 'SET_COMPONENT_TRANSLATION':
+      return {
+        ...state,
+        uiComponents: state.uiComponents.map(c =>
+          c.componentId !== action.componentId ? c :
+          { ...c, translations: { ...c.translations, [action.locale]: { ...(c.translations[action.locale] ?? {}), [action.field]: action.value } } }
+        ),
+      };
+
+    // ── Multi-language: page templates ───────────────────────────────────────
+    case 'SET_TEMPLATE_LOCALES': {
+      const tmpl = state.pageTemplates.find(t => t.templateId === action.templateId);
+      if (!tmpl) return state;
+      const primary = (tmpl.supportedLocales ?? ['en'])[0];
+      let translations = { ...tmpl.translations };
+      const removed = (tmpl.supportedLocales ?? []).filter(l => l !== primary && !action.locales.includes(l));
+      for (const locale of removed) { const { [locale]: _, ...rest } = translations; translations = rest; }
+      return { ...state, pageTemplates: state.pageTemplates.map(t => t.templateId === action.templateId ? { ...t, supportedLocales: action.locales, translations } : t) };
+    }
+
+    case 'TRANSLATE_TEMPLATE': {
+      const tmpl = state.pageTemplates.find(t => t.templateId === action.templateId);
+      if (!tmpl) return state;
+      const existing = tmpl.translations?.[action.locale] ?? {};
+      const translated = {
+        name: existing.name || mockTranslate(tmpl.name, action.locale),
+        description: existing.description || mockTranslate(tmpl.description, action.locale),
+      };
+      return { ...state, pageTemplates: state.pageTemplates.map(t => t.templateId !== action.templateId ? t :
+        { ...t, translations: { ...t.translations, [action.locale]: translated } }
+      ) };
+    }
+
+    case 'SET_TEMPLATE_TRANSLATION':
+      return {
+        ...state,
+        pageTemplates: state.pageTemplates.map(t =>
+          t.templateId !== action.templateId ? t :
+          { ...t, translations: { ...t.translations, [action.locale]: { ...(t.translations[action.locale] ?? {}), [action.field]: action.value } } }
+        ),
+      };
+
     default: return state;
   }
 }
@@ -188,6 +343,8 @@ export function UCPProvider({ children }: { children: React.ReactNode }) {
     pageRefs:      MOCK_PAGES_REFERENCING_ASSETS,
     contentAssets: MOCK_CONTENT_ASSETS,
     uiComponents:  MOCK_UI_COMPONENTS,
+    pageTemplates: PAGE_TEMPLATES,
+    editorTemplateId: null,
     audit:         MOCK_AUDIT,
     toast:         null,
   };

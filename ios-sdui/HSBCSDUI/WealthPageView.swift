@@ -1,4 +1,79 @@
 import SwiftUI
+import AVKit
+
+// MARK: - Inline video player (carousel, plays within the SwiftUI frame using AVPlayerLayer)
+// AVPlayerViewController expands to full-screen; using UIViewRepresentable + AVPlayerLayer
+// keeps playback strictly inside the .frame() given by the parent.
+
+private struct WHInlineVideoPlayer: UIViewRepresentable {
+    let url: URL
+    let onClose: () -> Void
+
+    func makeUIView(context: Context) -> WHPlayerView {
+        let view = WHPlayerView()
+        view.configure(url: url, onClose: onClose)
+        return view
+    }
+
+    func updateUIView(_ view: WHPlayerView, context: Context) {}
+}
+
+final class WHPlayerView: UIView {
+    private var player: AVPlayer?
+    private var playerLayer: AVPlayerLayer?
+    private var onClose: (() -> Void)?
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        playerLayer?.frame = bounds
+    }
+
+    func configure(url: URL, onClose: @escaping () -> Void) {
+        self.onClose = onClose
+        backgroundColor = .black
+
+        let player = AVPlayer(url: url)
+        self.player = player
+
+        let layer = AVPlayerLayer(player: player)
+        layer.videoGravity = .resizeAspect
+        layer.frame = bounds
+        self.layer.addSublayer(layer)
+        self.playerLayer = layer
+
+        player.play()
+
+        // Native playback controls via a zero-sized AVPlayerViewController child
+        // is not used here — we add a minimal close button ourselves.
+        let btn = UIButton(type: .system)
+        btn.setTitle("✕", for: .normal)
+        btn.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .bold)
+        btn.setTitleColor(.white, for: .normal)
+        btn.backgroundColor = UIColor.black.withAlphaComponent(0.45)
+        btn.layer.cornerRadius = 14
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        btn.addAction(UIAction { [weak self] _ in
+            self?.player?.pause()
+            self?.onClose?()
+        }, for: .touchUpInside)
+        addSubview(btn)
+        NSLayoutConstraint.activate([
+            btn.topAnchor.constraint(equalTo: topAnchor, constant: 8),
+            btn.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            btn.widthAnchor.constraint(equalToConstant: 28),
+            btn.heightAnchor.constraint(equalToConstant: 28),
+        ])
+
+        // Simple play/pause tap on the video surface
+        let tap = UITapGestureRecognizer(target: self, action: #selector(togglePlayPause))
+        addGestureRecognizer(tap)
+    }
+
+    @objc private func togglePlayPause() {
+        guard let player else { return }
+        player.timeControlStatus == .playing ? player.pause() : player.play()
+    }
+}
 
 // MARK: - SDUI payload models (Wealth Hub page)
 
@@ -721,11 +796,26 @@ private struct WHFeatureProduct: View {
 private struct StudioItem: Identifiable {
     let id: String; let episodeLabel: String; let liveBadge: String
     let title: String; let ctaLabel: String; let imageColor: String
+    let videoUrl: String
 }
 
 private struct WHWealthStudioCarousel: View {
     let props: [String: JSONValue]
     @State private var activeIdx = 0
+    @State private var playingVideoUrl: String? = nil
+
+    #if targetEnvironment(simulator)
+    private let mediaBase = "http://127.0.0.1:4000"
+    #else
+    private let mediaBase = "http://10.81.103.103:4000"
+    #endif
+
+    private func resolvedVideoURL(_ raw: String) -> URL? {
+        guard !raw.isEmpty else { return nil }
+        let fixed = raw.replacingOccurrences(of: "http://localhost:4000", with: mediaBase)
+                       .replacingOccurrences(of: "http://127.0.0.1:4000", with: mediaBase)
+        return URL(string: fixed)
+    }
 
     private func parseItems() -> [StudioItem] {
         props["items"]?.arrayValue.compactMap { v -> StudioItem? in
@@ -737,7 +827,8 @@ private struct WHWealthStudioCarousel: View {
                 liveBadge: o["liveBadge"]?.stringValue ?? "",
                 title: o["title"]?.stringValue ?? "",
                 ctaLabel: o["ctaLabel"]?.stringValue ?? "Watch now",
-                imageColor: o["imageColor"]?.stringValue ?? "#1A1A2E"
+                imageColor: o["imageColor"]?.stringValue ?? "#1A1A2E",
+                videoUrl: o["videoUrl"]?.stringValue ?? ""
             )
         } ?? []
     }
@@ -754,69 +845,79 @@ private struct WHWealthStudioCarousel: View {
                 Text("\(moreLabel) ›").font(.system(size: 11)).foregroundColor(Hive.Color.brandPrimary)
             }.padding(.horizontal, 14).padding(.top, 12).padding(.bottom, 8)
 
-            TabView(selection: $activeIdx) {
-                ForEach(Array(items.enumerated()), id: \.offset) { idx, item in
-                    VStack(alignment: .leading, spacing: 0) {
-                        // Fixed image area
-                        ZStack(alignment: .bottomLeading) {
-                            RoundedRectangle(cornerRadius: 0)
-                                .fill(Color(hex: item.imageColor))
-                                .frame(height: 100)
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(item.liveBadge)
-                                    .font(.system(size: 8, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 6).padding(.vertical, 2)
-                                    .background(Hive.Color.brandPrimary)
-                                    .cornerRadius(3)
-                                Text(item.episodeLabel)
-                                    .font(.system(size: 9))
-                                    .foregroundColor(Color.white.opacity(0.7))
-                                Text(item.title)
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .lineLimit(2)
-                            }
-                            .padding(8)
-                        }
-                        // Fixed text area (always 60 pt) so all cards align
-                        HStack(spacing: 5) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.white.opacity(0.2))
-                                    .frame(width: 18, height: 18)
-                                Image(systemName: "play.fill")
-                                    .font(.system(size: 7)).foregroundColor(.white)
-                            }
-                            Text(item.ctaLabel)
-                                .font(.system(size: 9))
-                                .foregroundColor(Color.white.opacity(0.9))
-                            Spacer()
-                        }
-                        .padding(.horizontal, 8).padding(.vertical, 8)
-                        .frame(height: 40)
-                        .background(Color(hex: item.imageColor))
-                    }
+            // Carousel area: video replaces the TabView in the same 160 pt frame
+            if let rawUrl = playingVideoUrl, let videoURL = resolvedVideoURL(rawUrl) {
+                WHInlineVideoPlayer(url: videoURL, onClose: { playingVideoUrl = nil })
+                    .frame(height: 160)
                     .cornerRadius(12)
-                    .shadow(color: .black.opacity(0.15), radius: 8, y: 2)
                     .padding(.horizontal, 14)
-                    .tag(idx)
-                    .onTapGesture {
-                        TealiumClient.wealthStudioTapped(title: item.title, instanceId: item.id)
+                Spacer().frame(height: 14)
+            } else {
+                TabView(selection: $activeIdx) {
+                    ForEach(Array(items.enumerated()), id: \.offset) { idx, item in
+                        VStack(alignment: .leading, spacing: 0) {
+                            // Fixed image area
+                            ZStack(alignment: .bottomLeading) {
+                                RoundedRectangle(cornerRadius: 0)
+                                    .fill(Color(hex: item.imageColor))
+                                    .frame(height: 100)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(item.liveBadge)
+                                        .font(.system(size: 8, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 6).padding(.vertical, 2)
+                                        .background(Hive.Color.brandPrimary)
+                                        .cornerRadius(3)
+                                    Text(item.episodeLabel)
+                                        .font(.system(size: 9))
+                                        .foregroundColor(Color.white.opacity(0.7))
+                                    Text(item.title)
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .lineLimit(2)
+                                }
+                                .padding(8)
+                            }
+                            // Fixed text area (always 60 pt) so all cards align
+                            HStack(spacing: 5) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.white.opacity(0.2))
+                                        .frame(width: 18, height: 18)
+                                    Image(systemName: "play.fill")
+                                        .font(.system(size: 7)).foregroundColor(.white)
+                                }
+                                Text(item.ctaLabel)
+                                    .font(.system(size: 9))
+                                    .foregroundColor(Color.white.opacity(0.9))
+                                Spacer()
+                            }
+                            .padding(.horizontal, 8).padding(.vertical, 8)
+                            .frame(height: 40)
+                            .background(Color(hex: item.imageColor))
+                        }
+                        .cornerRadius(12)
+                        .shadow(color: .black.opacity(0.15), radius: 8, y: 2)
+                        .padding(.horizontal, 14)
+                        .tag(idx)
+                        .onTapGesture {
+                            TealiumClient.wealthStudioTapped(title: item.title, instanceId: item.id)
+                            if !item.videoUrl.isEmpty { playingVideoUrl = item.videoUrl }
+                        }
                     }
                 }
-            }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .frame(height: 160)
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                .frame(height: 160)
 
-            // Pagination dots — active follows swipe
-            HStack(spacing: 4) {
-                ForEach(items.indices, id: \.self) { i in
-                    Capsule()
-                        .fill(i == activeIdx ? Hive.Color.n900 : Hive.Color.n200)
-                        .frame(width: i == activeIdx ? 16 : 6, height: 4)
-                }
-            }.padding(.vertical, 10)
+                // Pagination dots — active follows swipe
+                HStack(spacing: 4) {
+                    ForEach(items.indices, id: \.self) { i in
+                        Capsule()
+                            .fill(i == activeIdx ? Hive.Color.n900 : Hive.Color.n200)
+                            .frame(width: i == activeIdx ? 16 : 6, height: 4)
+                    }
+                }.padding(.vertical, 10)
+            }
         }
         .background(Hive.Color.n50)
         .onAppear {
