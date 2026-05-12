@@ -1361,7 +1361,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
     ...TMPL_I18N_DEFAULTS,
     templateId: 'tpl-segment-upgrade-campaign',
     name: 'Segment Upgrade Campaign',
-    description: 'WeChat H5 campaign page for HSBC segment upgrade journeys (e.g. Premier→Jade, Advance→Premier). Includes hero banner with dark background, benefits grid and apply CTA. Follows WeChat H5 common requirements: single-screen scroll, share card metadata, WeChat-native CTA styling.',
+    description: 'WeChat campaign page for HSBC segment upgrade journeys (e.g. Premier→Elite, Advance→Premier). Includes hero banner, benefits grid and apply CTA. OCDP can compose Mini Program-style WXML/WXSS artifacts with WeChat share metadata and native CTA styling.',
     icon: '🏆',
     channels: ['WEB_WECHAT'],
     bizLineIds: ['WEALTH', 'MARKETING'],

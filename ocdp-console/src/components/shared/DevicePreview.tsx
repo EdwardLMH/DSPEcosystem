@@ -32,7 +32,7 @@ const WEB_DEVICE: DeviceSpec = {
 };
 
 const WECHAT_DEVICES = [
-  { id: 'wechat_browser', label: 'WeChat In-App Browser' },
+  { id: 'wechat_browser', label: 'Mini Program Page' },
   { id: 'wechat_card',    label: 'Service Account Card'  },
 ];
 
@@ -1661,42 +1661,155 @@ function WebBrowserFrame({ slices, webSlug, variant = 'standard' }: { slices: Ca
   );
 }
 
-// ─── WeChat in-app browser ────────────────────────────────────────────────────
+// ─── WeChat Mini Program preview ──────────────────────────────────────────────
+
+function asString(value: unknown, fallback = '') {
+  return value == null || value === '' ? fallback : String(value);
+}
+
+function WeChatMiniProgramSlice({ type, props }: { type: string; props?: Record<string, unknown> }) {
+  const p = props ?? {};
+
+  if (type === 'CAMPAIGN_HERO') {
+    return (
+      <view style={{ display: 'block', background: asString(p.bgGradient, 'linear-gradient(160deg,#0D5C3A 0%,#1A1A2E 100%)'), padding: '26px 18px 22px', color: '#fff' }}>
+        {!!p.badge && <text style={{ display: 'inline-block', padding: '3px 8px', borderRadius: 3, background: asString(p.accentColor, '#C9A84C'), fontSize: 9, fontWeight: 700, marginBottom: 10 }}>{asString(p.badge)}</text>}
+        <text style={{ display: 'block', fontSize: 19, lineHeight: 1.22, fontWeight: 800, marginBottom: 8 }}>{asString(p.headline, 'Campaign Headline')}</text>
+        <text style={{ display: 'block', fontSize: 12, lineHeight: 1.55, color: 'rgba(255,255,255,0.78)' }}>{asString(p.subHeadline, 'Campaign sub-headline copy goes here')}</text>
+      </view>
+    );
+  }
+
+  if (type === 'PROMO_BANNER') {
+    return (
+      <view style={{ display: 'block', padding: '14px 16px', background: asString(p.backgroundColor, '#F7F7F7') }}>
+        {!!p.badgeText && <text style={{ display: 'inline-block', padding: '2px 7px', borderRadius: 3, background: '#07C160', color: '#fff', fontSize: 9, fontWeight: 700, marginBottom: 6 }}>{asString(p.badgeText)}</text>}
+        <text style={{ display: 'block', fontSize: 14, fontWeight: 800, color: '#111', marginBottom: 4 }}>{asString(p.title, 'Promotion')}</text>
+        {!!p.subtitle && <text style={{ display: 'block', fontSize: 11, lineHeight: 1.45, color: '#5F6368', marginBottom: 10 }}>{asString(p.subtitle)}</text>}
+        {!!p.ctaLabel && <button style={{ border: 0, borderRadius: 4, background: '#DB0011', color: '#fff', padding: '7px 12px', fontSize: 11, fontWeight: 700 }}>{asString(p.ctaLabel)}</button>}
+      </view>
+    );
+  }
+
+  if (type === 'CAMPAIGN_BENEFITS') {
+    const items = Array.isArray(p.items) ? p.items as { icon?: string; title?: string; description?: string }[] : [];
+    return (
+      <view style={{ display: 'block', padding: '16px', background: '#fff' }}>
+        {!!p.sectionTitle && <text style={{ display: 'block', fontSize: 14, fontWeight: 800, color: '#111', marginBottom: 12 }}>{asString(p.sectionTitle)}</text>}
+        <view style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          {(items.length ? items : [
+            { icon: '🌍', title: 'Global banking' },
+            { icon: '💼', title: 'Wealth planning' },
+            { icon: '✈️', title: 'Lifestyle privileges' },
+            { icon: '🛡️', title: 'Priority support' },
+          ]).map((item, i) => (
+            <view key={i} style={{ display: 'block', padding: '9px 8px', borderRadius: 6, background: '#F7F8FA', border: '1px solid #EEF0F3' }}>
+              <text style={{ display: 'block', fontSize: 17, marginBottom: 4 }}>{asString(item.icon, '•')}</text>
+              <text style={{ display: 'block', fontSize: 11, fontWeight: 800, color: '#111', lineHeight: 1.35 }}>{asString(item.title, 'Benefit')}</text>
+              {!!item.description && <text style={{ display: 'block', marginTop: 3, fontSize: 9, color: '#69717A', lineHeight: 1.35 }}>{asString(item.description)}</text>}
+            </view>
+          ))}
+        </view>
+      </view>
+    );
+  }
+
+  if (type === 'CONTACT_RM_CTA') {
+    return (
+      <view style={{ display: 'block', padding: '14px 16px', background: asString(p.backgroundColor, '#0D5C3A'), color: asString(p.textColor, '#fff'), textAlign: 'center' }}>
+        <button style={{ width: '100%', border: 0, borderRadius: 4, background: 'rgba(255,255,255,0.16)', color: 'inherit', padding: '9px 12px', fontSize: 13, fontWeight: 800 }}>{asString(p.label, 'Contact RM')}</button>
+        {!!p.subLabel && <text style={{ display: 'block', marginTop: 6, fontSize: 10, lineHeight: 1.4, color: 'rgba(255,255,255,0.76)' }}>{asString(p.subLabel)}</text>}
+      </view>
+    );
+  }
+
+  if (type === 'CAMPAIGN_CTA') {
+    return (
+      <view style={{ display: 'block', padding: '18px 16px 20px', background: '#fff', textAlign: 'center' }}>
+        {!!p.offerBadge && <text style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, background: '#E8F8EF', color: '#067A3E', fontSize: 10, fontWeight: 800, marginBottom: 10 }}>{asString(p.offerBadge)}</text>}
+        <button style={{ width: '100%', border: 0, borderRadius: 4, background: '#DB0011', color: '#fff', padding: '11px 14px', fontSize: 14, fontWeight: 800 }}>{asString(p.primaryLabel, 'Apply Now')}</button>
+        {!!p.subNote && <text style={{ display: 'block', marginTop: 8, fontSize: 10, lineHeight: 1.4, color: '#067A3E', fontWeight: 700 }}>{asString(p.subNote)}</text>}
+        {!!p.secondaryLabel && <text style={{ display: 'block', marginTop: 10, fontSize: 11, color: '#DB0011', fontWeight: 700 }}>{asString(p.secondaryLabel)}</text>}
+      </view>
+    );
+  }
+
+  return (
+    <view style={{ display: 'block', background: '#fff' }}>
+      <SliceRow type={type} props={p} />
+    </view>
+  );
+}
+
+function toWxmlName(type: string) {
+  return type.toLowerCase().replaceAll('_', '-');
+}
+
+function buildWeChatWxml(slices: CanvasSlice[]) {
+  const lines = ['<view class="page elite-upgrade-page">'];
+  slices.filter(s => s.visible).forEach(s => {
+    const name = toWxmlName(s.type);
+    lines.push(`  <${name} data-instance-id="${s.instanceId}" />`);
+  });
+  lines.push('  <button class="primary-upgrade-btn" bindtap="onUpgradeTap">立即升級</button>');
+  lines.push('</view>');
+  return lines.join('\n');
+}
+
+const MINI_PROGRAM_WXSS = `.page { min-height: 100vh; background: #f7f8fa; font-family: -apple-system, BlinkMacSystemFont, "PingFang HK", sans-serif; }
+.campaign-hero { padding: 52rpx 36rpx 44rpx; color: #fff; }
+.campaign-benefits { padding: 32rpx; background: #fff; }
+.primary-upgrade-btn { margin: 32rpx; border-radius: 8rpx; background: #db0011; color: #fff; font-weight: 700; }`;
+
+function WeChatArtifactPanel({ slices }: { slices: CanvasSlice[] }) {
+  const wxml = buildWeChatWxml(slices);
+  return (
+    <div style={{ width: 250, background: '#101418', borderRadius: 10, overflow: 'hidden', border: '1px solid #27313A', boxShadow: '0 14px 34px rgba(0,0,0,0.18)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', background: '#18212A', borderBottom: '1px solid #27313A' }}>
+        <span style={{ fontSize: 10, color: '#DDE7EF', fontWeight: 800 }}>Mini Program Artifact</span>
+        <span style={{ fontSize: 9, color: '#07C160', fontWeight: 800 }}>WXML / WXSS</span>
+      </div>
+      <div style={{ padding: 10, display: 'grid', gap: 8 }}>
+        <div>
+          <div style={{ fontSize: 9, color: '#8FA2B4', fontWeight: 800, marginBottom: 4 }}>page.wxml</div>
+          <pre style={{ margin: 0, maxHeight: 132, overflow: 'auto', whiteSpace: 'pre-wrap', fontSize: 8, lineHeight: 1.45, color: '#DDE7EF', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>{wxml}</pre>
+        </div>
+        <div>
+          <div style={{ fontSize: 9, color: '#8FA2B4', fontWeight: 800, marginBottom: 4 }}>page.wxss</div>
+          <pre style={{ margin: 0, maxHeight: 112, overflow: 'auto', whiteSpace: 'pre-wrap', fontSize: 8, lineHeight: 1.45, color: '#C8E6C9', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>{MINI_PROGRAM_WXSS}</pre>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function WeChatBrowserFrame({ slices, pageName }: { slices: CanvasSlice[]; pageName: string }) {
   const visibleSlices = slices.filter(s => s.visible);
   return (
-    <div style={{ width: 220, height: 420, background: '#fff', borderRadius: 12, overflow: 'hidden', boxShadow: '0 16px 48px rgba(0,0,0,0.25)', border: '1px solid #E5E7EB' }}>
-      {/* WeChat top bar */}
-      <div style={{ background: '#EDEDED', height: 36, display: 'flex', alignItems: 'center', padding: '0 10px', gap: 8 }}>
+    <div style={{ width: 232, height: 456, background: '#fff', borderRadius: 16, overflow: 'hidden', boxShadow: '0 16px 48px rgba(0,0,0,0.25)', border: '1px solid #E5E7EB' }}>
+      {/* WeChat Mini Program platform bar */}
+      <div style={{ background: '#F7F7F7', height: 42, display: 'flex', alignItems: 'center', padding: '0 10px', gap: 8, borderBottom: '1px solid #E5E7EB' }}>
         <span style={{ fontSize: 12, color: '#333' }}>‹</span>
         <span style={{ flex: 1, textAlign: 'center', fontSize: 11, fontWeight: 600, color: '#333', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pageName}</span>
-        <span style={{ fontSize: 12, color: '#333' }}>···</span>
-      </div>
-
-      {/* Address bar */}
-      <div style={{ background: '#F7F7F7', padding: '4px 10px', borderBottom: '1px solid #E5E7EB' }}>
-        <div style={{ background: '#fff', borderRadius: 4, padding: '3px 8px', fontSize: 9, color: '#9CA3AF', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: 4 }}>
-          <span style={{ color: '#07C160', fontSize: 9 }}>🔒</span>
-          www.hsbc.com.hk
+        <div style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '3px 6px', borderRadius: 12, border: '1px solid #D8D8D8', background: 'rgba(255,255,255,0.75)' }}>
+          <span style={{ fontSize: 11, color: '#333', lineHeight: 1 }}>···</span>
+          <span style={{ width: 1, height: 10, background: '#D8D8D8' }} />
+          <span style={{ width: 8, height: 8, borderRadius: '50%', border: '1.5px solid #333', display: 'inline-block' }} />
         </div>
       </div>
 
-      {/* Page content */}
-      <div style={{ flex: 1, overflowY: 'auto', height: 320 }}>
+      {/* WXML-rendered page content */}
+      <view style={{ display: 'block', overflowY: 'auto', height: 382, background: '#F7F8FA' }}>
         {visibleSlices.length === 0 ? (
-          <div style={{ textAlign: 'center', paddingTop: 40, color: '#9CA3AF', fontSize: 9 }}>No slices configured</div>
+          <view style={{ display: 'block', textAlign: 'center', paddingTop: 40, color: '#9CA3AF', fontSize: 9 }}>No slices configured</view>
         ) : (
-          visibleSlices.map(s => <SliceRow key={s.instanceId} type={s.type} props={s.props as Record<string, unknown>} />)
+          visibleSlices.map(s => <WeChatMiniProgramSlice key={s.instanceId} type={s.type} props={s.props as Record<string, unknown>} />)
         )}
-      </div>
+      </view>
 
-      {/* WeChat bottom bar */}
-      <div style={{ background: '#EDEDED', height: 28, display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '0 16px' }}>
-        <span style={{ fontSize: 14, color: '#333' }}>‹</span>
-        <span style={{ fontSize: 14, color: '#333' }}>›</span>
-        <span style={{ fontSize: 10, color: '#07C160', fontWeight: 700 }}>分享</span>
-        <span style={{ fontSize: 12, color: '#333' }}>···</span>
+      {/* Safe area */}
+      <div style={{ background: '#fff', height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', borderTop: '1px solid #EEF0F3' }}>
+        <span style={{ width: 74, height: 3, borderRadius: 2, background: '#D1D5DB' }} />
       </div>
     </div>
   );
@@ -1917,7 +2030,10 @@ export function DevicePreview({ channel, slices, pageName, description, webSlug 
         )}
 
         {previewMode === 'WEB_WECHAT' && selectedDeviceId === 'wechat_browser' && (
-          <WeChatBrowserFrame slices={slices} pageName={pageName} />
+          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <WeChatBrowserFrame slices={slices} pageName={pageName} />
+            <WeChatArtifactPanel slices={slices} />
+          </div>
         )}
 
         {previewMode === 'WEB_WECHAT' && selectedDeviceId === 'wechat_card' && (

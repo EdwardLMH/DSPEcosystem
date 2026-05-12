@@ -5,7 +5,7 @@ import type { Channel, BizLineId, NativeTarget, PageTemplate } from '../../types
 const CHANNELS: { value: Channel; label: string; icon: string; desc: string }[] = [
   { value: 'SDUI',         label: 'SDUI',         icon: '📱', desc: 'JSON-driven — rendered by mobile native & web clients' },
   { value: 'WEB_STANDARD', label: 'Web Standard', icon: '🌐', desc: 'HSBC.com web pages — OCDP renders HTML directly' },
-  { value: 'WEB_WECHAT',   label: 'WeChat H5',    icon: '💬', desc: 'WeChat in-app browser — OCDP renders H5 SPA' },
+  { value: 'WEB_WECHAT',   label: 'WeChat H5',    icon: '💬', desc: 'WeChat Mini Program-style page — OCDP composes WXML/WXSS artifacts' },
 ];
 
 const NATIVE_TARGETS: { value: NativeTarget; label: string; icon: string }[] = [
