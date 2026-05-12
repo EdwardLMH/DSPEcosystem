@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import React from 'react';
 import type { Channel, CanvasSlice } from '../../types/ocdp';
 
@@ -1549,53 +1549,70 @@ function PhoneFrame({ device, slices, segment }: { device: DeviceSpec; slices: C
 
 // ─── Web browser frame ────────────────────────────────────────────────────────
 
-function WebBrowserFrame({ slices, webSlug }: { slices: CanvasSlice[]; webSlug?: string }) {
+function WebBrowserFrame({ slices, webSlug, variant = 'standard' }: { slices: CanvasSlice[]; webSlug?: string; variant?: 'sdui' | 'standard' }) {
+  const isSdui = variant === 'sdui';
   const visibleSlices = slices.filter(s => s.visible);
+  const address = isSdui
+    ? `m.hsbc.com.hk${webSlug ?? '/wealth-hub'}`
+    : `www.hsbc.com.hk${webSlug ?? '/wealth-hub'}`;
+
   return (
     <div style={{
-      width: 580,
+      width: isSdui ? 240 : 580,
       background: '#fff',
-      borderRadius: 10,
-      border: '1px solid #D1D5DB',
-      boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
+      borderRadius: isSdui ? 24 : 10,
+      border: isSdui ? '8px solid #1F2937' : '1px solid #D1D5DB',
+      boxShadow: isSdui ? '0 18px 54px rgba(0,0,0,0.28)' : '0 12px 40px rgba(0,0,0,0.15)',
       overflow: 'hidden',
     }}>
       {/* Browser chrome */}
-      <div style={{ background: '#F3F4F6', padding: '8px 12px', borderBottom: '1px solid #E5E7EB' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ display: 'flex', gap: 5 }}>
-            <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#FC615D' }} />
-            <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#FDBC40' }} />
-            <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#34C749' }} />
+      <div style={{ background: isSdui ? '#F8FAFC' : '#F3F4F6', padding: isSdui ? '6px 8px 8px' : '8px 12px', borderBottom: '1px solid #E5E7EB' }}>
+        {isSdui && (
+          <div style={{ height: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px 4px', fontSize: 8, color: '#111827', fontWeight: 700 }}>
+            <span>9:41</span>
+            <span style={{ letterSpacing: 1 }}>5G ▰</span>
           </div>
-          <div style={{ flex: 1, background: '#fff', borderRadius: 6, padding: '4px 10px', fontSize: 11, color: '#6B7280', border: '1px solid #E5E7EB', fontFamily: 'monospace' }}>
-            🔒 www.hsbc.com.hk{webSlug ?? '/wealth-hub'}
+        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: isSdui ? 5 : 8 }}>
+          {!isSdui && (
+            <div style={{ display: 'flex', gap: 5 }}>
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#FC615D' }} />
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#FDBC40' }} />
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#34C749' }} />
+            </div>
+          )}
+          {isSdui && <span style={{ fontSize: 13, color: '#374151' }}>‹</span>}
+          <div style={{ flex: 1, background: '#fff', borderRadius: isSdui ? 14 : 6, padding: isSdui ? '5px 8px' : '4px 10px', fontSize: isSdui ? 8 : 11, color: '#6B7280', border: '1px solid #E5E7EB', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            🔒 {address}
           </div>
-          <span style={{ fontSize: 12 }}>⟳</span>
+          <span style={{ fontSize: isSdui ? 12 : 12 }}>{isSdui ? '···' : '⟳'}</span>
         </div>
-        <div style={{ display: 'flex', gap: 0, marginTop: 6 }}>
-          {['Home', 'Accounts', 'Wealth', 'Cards', 'More'].map(tab => (
-            <div key={tab} style={{ padding: '4px 12px', fontSize: 10, color: tab === 'Wealth' ? '#DB0011' : '#6B7280', fontWeight: tab === 'Wealth' ? 700 : 400, borderBottom: tab === 'Wealth' ? '2px solid #DB0011' : '2px solid transparent', cursor: 'pointer' }}>{tab}</div>
-          ))}
-        </div>
+        {!isSdui && (
+          <div style={{ display: 'flex', gap: 0, marginTop: 6 }}>
+            {['Home', 'Accounts', 'Wealth', 'Cards', 'More'].map(tab => (
+              <div key={tab} style={{ padding: '4px 12px', fontSize: 10, color: tab === 'Wealth' ? '#DB0011' : '#6B7280', fontWeight: tab === 'Wealth' ? 700 : 400, borderBottom: tab === 'Wealth' ? '2px solid #DB0011' : '2px solid transparent', cursor: 'pointer' }}>{tab}</div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Page content */}
-      <div style={{ background: '#fff', maxHeight: 480, overflowY: 'auto' }}>
-        {/* HSBC global web header */}
-        <div style={{ background: '#DB0011', height: 48, display: 'flex', alignItems: 'center', padding: '0 20px', gap: 20, flexShrink: 0 }}>
-          <span style={{ color: '#fff', fontSize: 14, fontWeight: 800, letterSpacing: '-0.02em' }}>HSBC</span>
-          {['Accounts', 'Wealth', 'Cards', 'Borrowing', 'Insurance'].map(item => (
-            <span key={item} style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11, cursor: 'pointer' }}>{item}</span>
-          ))}
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, alignItems: 'center' }}>
-            <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>🔔</span>
-            <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 12, padding: '3px 10px', fontSize: 11, color: '#fff', fontWeight: 600 }}>Premier</div>
+      <div style={{ background: '#fff', height: isSdui ? 360 : undefined, maxHeight: isSdui ? undefined : 480, overflowY: 'auto' }}>
+        {!isSdui && (
+          <div style={{ background: '#DB0011', height: 48, display: 'flex', alignItems: 'center', padding: '0 20px', gap: 20, flexShrink: 0 }}>
+            <span style={{ color: '#fff', fontSize: 14, fontWeight: 800, letterSpacing: '-0.02em' }}>HSBC</span>
+            {['Accounts', 'Wealth', 'Cards', 'Borrowing', 'Insurance'].map(item => (
+              <span key={item} style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11, cursor: 'pointer' }}>{item}</span>
+            ))}
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, alignItems: 'center' }}>
+              <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>🔔</span>
+              <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 12, padding: '3px 10px', fontSize: 11, color: '#fff', fontWeight: 600 }}>Premier</div>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Breadcrumb */}
-        {webSlug && (
+        {!isSdui && webSlug && (
           <div style={{ padding: '8px 20px', background: '#F9FAFB', borderBottom: '1px solid #F3F4F6' }}>
             <span style={{ fontSize: 10, color: '#9CA3AF' }}>Home</span>
             {webSlug.split('/').filter(Boolean).map((seg, i, arr) => (
@@ -1618,22 +1635,27 @@ function WebBrowserFrame({ slices, webSlug }: { slices: CanvasSlice[]; webSlug?:
           ))
         )}
 
-        {/* Web footer */}
-        <div style={{ background: '#1A1A1A', padding: '16px 20px', marginTop: 8 }}>
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 10 }}>
-            {['Privacy Notice', 'Cookie Policy', 'Terms of Use', 'Accessibility', 'Site Map'].map(item => (
-              <span key={item} style={{ fontSize: 9, color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}>{item}</span>
-            ))}
+        {!isSdui && (
+          <div style={{ background: '#1A1A1A', padding: '16px 20px', marginTop: 8 }}>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 10 }}>
+              {['Privacy Notice', 'Cookie Policy', 'Terms of Use', 'Accessibility', 'Site Map'].map(item => (
+                <span key={item} style={{ fontSize: 9, color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}>{item}</span>
+              ))}
+            </div>
+            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)', lineHeight: 1.5 }}>
+              © HSBC Holdings plc · Authorised and regulated by the HKMA · FSCS protected
+            </div>
           </div>
-          <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)', lineHeight: 1.5 }}>
-            © HSBC Holdings plc · Authorised and regulated by the HKMA · FSCS protected
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Browser status bar */}
-      <div style={{ background: '#F9FAFB', padding: '3px 12px', borderTop: '1px solid #E5E7EB' }}>
-        <span style={{ fontSize: 9, color: '#9CA3AF' }}>✓ Secure connection · HSBC Holdings plc</span>
+      <div style={{ background: isSdui ? '#fff' : '#F9FAFB', padding: isSdui ? '5px 12px 7px' : '3px 12px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'center' }}>
+        {isSdui ? (
+          <div style={{ width: 70, height: 3, borderRadius: 2, background: '#D1D5DB' }} />
+        ) : (
+          <span style={{ fontSize: 9, color: '#9CA3AF' }}>✓ Secure connection · HSBC Holdings plc</span>
+        )}
       </div>
     </div>
   );
@@ -1662,12 +1684,6 @@ function WeChatBrowserFrame({ slices, pageName }: { slices: CanvasSlice[]; pageN
 
       {/* Page content */}
       <div style={{ flex: 1, overflowY: 'auto', height: 320 }}>
-        {/* HSBC header - mobile web */}
-        <div style={{ background: '#DB0011', height: 36, display: 'flex', alignItems: 'center', padding: '0 10px' }}>
-          <span style={{ color: '#fff', fontSize: 10, fontWeight: 800 }}>HSBC</span>
-          <span style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.8)', fontSize: 8 }}>≡</span>
-        </div>
-
         {visibleSlices.length === 0 ? (
           <div style={{ textAlign: 'center', paddingTop: 40, color: '#9CA3AF', fontSize: 9 }}>No slices configured</div>
         ) : (
@@ -1752,8 +1768,23 @@ interface DevicePreviewProps {
   webSlug?: string;
 }
 
+type PreviewMode = 'MOBILE_SDUI' | 'WEB_SDUI' | 'WEB_STANDARD' | 'WEB_WECHAT';
+
+function previewModeForChannel(channel: Channel): PreviewMode {
+  if (channel === 'SDUI') return 'MOBILE_SDUI';
+  return channel;
+}
+
 export function DevicePreview({ channel, slices, pageName, description, webSlug }: DevicePreviewProps) {
-  const [simChannel, setSimChannel] = useState<Channel>(channel);
+  const availablePreviewModes = channel === 'SDUI'
+    ? [
+        { value: 'MOBILE_SDUI' as PreviewMode, label: 'Mobile SDUI', icon: '📱' },
+        { value: 'WEB_SDUI' as PreviewMode, label: 'Web-SDUI', icon: '🌐📱' },
+      ]
+    : channel === 'WEB_STANDARD'
+      ? [{ value: 'WEB_STANDARD' as PreviewMode, label: 'Web Standard', icon: '🌐' }]
+      : [{ value: 'WEB_WECHAT' as PreviewMode, label: 'WeChat H5', icon: '💬' }];
+  const [previewMode, setPreviewMode] = useState<PreviewMode>(() => previewModeForChannel(channel));
   const [selectedDeviceId, setSelectedDeviceId] = useState(() => {
     if (channel === 'SDUI') return SDUI_DEVICES[0].id;
     if (channel === 'WEB_STANDARD') return 'web';
@@ -1769,29 +1800,32 @@ export function DevicePreview({ channel, slices, pageName, description, webSlug 
     { value: 'mass',    label: 'Mass',    color: '#4B5563' },
   ];
 
+  useEffect(() => {
+    setPreviewMode(previewModeForChannel(channel));
+    if (channel === 'SDUI') setSelectedDeviceId(SDUI_DEVICES[0].id);
+    if (channel === 'WEB_STANDARD') setSelectedDeviceId('web');
+    if (channel === 'WEB_WECHAT') setSelectedDeviceId('wechat_browser');
+  }, [channel]);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div>
         <div style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Simulator Channel</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {([
-            { value: 'SDUI' as Channel, label: 'Mobile SDUI', icon: '📱' },
-            { value: 'WEB_STANDARD' as Channel, label: 'Web Standard', icon: '🌐' },
-            { value: 'WEB_WECHAT' as Channel, label: 'Web H5', icon: '💬' },
-          ]).map(opt => (
+          {availablePreviewModes.map(opt => (
             <button
               key={opt.value}
               onClick={() => {
-                setSimChannel(opt.value);
-                if (opt.value === 'SDUI') setSelectedDeviceId(SDUI_DEVICES[0].id);
-                if (opt.value === 'WEB_STANDARD') setSelectedDeviceId('web');
+                setPreviewMode(opt.value);
+                if (opt.value === 'MOBILE_SDUI') setSelectedDeviceId(SDUI_DEVICES[0].id);
+                if (opt.value === 'WEB_SDUI' || opt.value === 'WEB_STANDARD') setSelectedDeviceId('web');
                 if (opt.value === 'WEB_WECHAT') setSelectedDeviceId('wechat_browser');
               }}
               style={{
                 padding: '5px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                background: simChannel === opt.value ? '#1A1A1A' : '#F3F4F6',
-                color: simChannel === opt.value ? '#fff' : '#374151',
-                border: simChannel === opt.value ? '1px solid #1A1A1A' : '1px solid #E5E7EB',
+                background: previewMode === opt.value ? '#1A1A1A' : '#F3F4F6',
+                color: previewMode === opt.value ? '#fff' : '#374151',
+                border: previewMode === opt.value ? '1px solid #1A1A1A' : '1px solid #E5E7EB',
               }}
             >
               {opt.icon} {opt.label}
@@ -1801,7 +1835,7 @@ export function DevicePreview({ channel, slices, pageName, description, webSlug 
       </div>
 
       {/* Device picker */}
-      {simChannel === 'SDUI' && (
+      {previewMode === 'MOBILE_SDUI' && (
         <div>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Device</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -1829,7 +1863,7 @@ export function DevicePreview({ channel, slices, pageName, description, webSlug 
         </div>
       )}
 
-      {simChannel === 'WEB_WECHAT' && (
+      {previewMode === 'WEB_WECHAT' && (
         <div>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>View</div>
           <div style={{ display: 'flex', gap: 6 }}>
@@ -1848,7 +1882,7 @@ export function DevicePreview({ channel, slices, pageName, description, webSlug 
       )}
 
       {/* Segment picker — only shown when page has HOME_SEARCH_HEADER */}
-      {hasSearchHeader && simChannel === 'SDUI' && (
+      {hasSearchHeader && previewMode === 'MOBILE_SDUI' && (
         <div>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Segment Preview</div>
           <div style={{ display: 'flex', gap: 6 }}>
@@ -1869,20 +1903,24 @@ export function DevicePreview({ channel, slices, pageName, description, webSlug 
 
       {/* Render */}
       <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
-        {simChannel === 'SDUI' && (() => {
+        {previewMode === 'MOBILE_SDUI' && (() => {
           const dev = SDUI_DEVICES.find(d => d.id === selectedDeviceId) ?? SDUI_DEVICES[0];
           return <PhoneFrame device={dev} slices={slices} segment={previewSegment} />;
         })()}
 
-        {simChannel === 'WEB_STANDARD' && (
-          <WebBrowserFrame slices={slices} webSlug={webSlug} />
+        {previewMode === 'WEB_SDUI' && (
+          <WebBrowserFrame slices={slices} webSlug={webSlug} variant="sdui" />
         )}
 
-        {simChannel === 'WEB_WECHAT' && selectedDeviceId === 'wechat_browser' && (
+        {previewMode === 'WEB_STANDARD' && (
+          <WebBrowserFrame slices={slices} webSlug={webSlug} variant="standard" />
+        )}
+
+        {previewMode === 'WEB_WECHAT' && selectedDeviceId === 'wechat_browser' && (
           <WeChatBrowserFrame slices={slices} pageName={pageName} />
         )}
 
-        {simChannel === 'WEB_WECHAT' && selectedDeviceId === 'wechat_card' && (
+        {previewMode === 'WEB_WECHAT' && selectedDeviceId === 'wechat_card' && (
           <WeChatServiceAccountCard pageName={pageName} description={description} />
         )}
       </div>

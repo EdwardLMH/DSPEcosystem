@@ -341,23 +341,94 @@ export const PAGE_HOME_WEALTH: PageLayout = {
 };
 
 export const PAGE_JADE_CAMPAIGN: PageLayout = {
-  pageId: 'jade-upgrade-hk', name: 'Jade Upgrade Campaign (HK)',
+  pageId: 'jade-upgrade-hk', name: 'Elite Upgrade Campaign (HK)',
   pageType: 'CAMPAIGN', pageTemplateId: 'tpl-segment-upgrade-campaign',
-  description: 'Jade upgrade invitation page for Premier customers',
-  nativeTargets: ['ios', 'android', 'harmonynext'], locale: 'zh-TW', thumbnail: '🟡', tags: ['jade', 'wealth', 'campaign'],
+  description: 'Elite upgrade invitation page for Premier customers with curated wealth and lifestyle privileges',
+  nativeTargets: ['ios', 'android', 'harmonynext'], locale: 'zh-TW', thumbnail: '💎', tags: ['elite', 'wealth', 'campaign', 'wechat'],
   channel: 'WEB_WECHAT', scope: 'MARKET', marketId: 'HK',
   releaseMarketIds: ['HK'], bizLineId: 'WEALTH', groupId: 'HK-WEALTH-AD',
   authoringStatus: 'APPROVED',
   supportedLocales: ['zh-TW', 'en'],
   translations: {},
-  wechatPageUrl: 'https://wechat.hsbc.com.hk/pages/jade-upgrade',
-  wechatShareTitle: '您的HSBC Jade升級邀請', wechatShareDesc: '立即了解專屬優惠，限時申請',
+  wechatPageUrl: 'https://wechat.hsbc.com.hk/pages/elite-upgrade',
+  wechatShareTitle: '您的HSBC Elite升級邀請', wechatShareDesc: '尊享財富策劃、環球禮遇及限時升級優惠',
   campaignSchedule: {
     publishAt:   new Date(Date.now() + 1000 * 60 * 60 * 2).toISOString(),
     takedownAt:  new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString(),
   },
   slices: [
-    { instanceId: 'jade-hero', type: 'PROMO_BANNER', props: { title: 'HSBC Jade 升級邀請', subtitle: '專為Premier客戶而設的尊貴服務', ctaLabel: '立即申請', ctaDeepLink: 'hsbc://jade/apply', imageUrl: '', backgroundColor: '#1D1D1B' }, visible: true, locked: false },
+    {
+      instanceId: 'elite-hero',
+      type: 'CAMPAIGN_HERO',
+      props: {
+        headline: 'HSBC Elite 升級邀請',
+        subHeadline: '專為合資格Premier客戶而設，結合專屬財富策劃、環球銀行服務及生活禮遇。',
+        badge: 'WeChat限時邀請',
+        bgGradient: 'linear-gradient(160deg,#0D5C3A 0%,#1A1A2E 100%)',
+        accentColor: '#C9A84C',
+      },
+      visible: true, locked: false,
+    },
+    {
+      instanceId: 'elite-ad',
+      type: 'PROMO_BANNER',
+      props: {
+        title: '預約Elite升級諮詢',
+        subtitle: '即日起透過WeChat提交升級意向，可獲專人跟進資格及財富需要。',
+        ctaLabel: '立即升級',
+        ctaDeepLink: 'hsbc://elite/upgrade/apply',
+        imageUrl: 'https://placehold.co/900x500/0D5C3A/C9A84C?text=HSBC+Elite+Upgrade',
+        backgroundColor: '#0D5C3A',
+        badgeText: '限時禮遇',
+      },
+      visible: true, locked: false,
+    },
+    {
+      instanceId: 'elite-benefits',
+      type: 'CAMPAIGN_BENEFITS',
+      props: {
+        sectionTitle: 'Elite專屬禮遇',
+        items: [
+          { icon: '💎', title: '專屬財富團隊', description: '由資深Relationship Manager及財富顧問跟進您的投資及保障需要。' },
+          { icon: '🌍', title: '環球銀行支援', description: '跨境戶口、外匯及海外生活安排支援，配合家庭及事業規劃。' },
+          { icon: '📈', title: '投資方案優先資訊', description: '獲取市場觀點、基金焦點及多元資產配置建議。' },
+          { icon: '🎭', title: '生活及活動禮遇', description: '精選餐飲、旅遊及會員活動邀請，提升日常銀行體驗。' },
+        ],
+        benefits: [
+          { icon: '💎', title: '專屬財富團隊', desc: '由資深Relationship Manager及財富顧問跟進您的投資及保障需要。' },
+          { icon: '🌍', title: '環球銀行支援', desc: '跨境戶口、外匯及海外生活安排支援，配合家庭及事業規劃。' },
+          { icon: '📈', title: '投資方案優先資訊', desc: '獲取市場觀點、基金焦點及多元資產配置建議。' },
+          { icon: '🎭', title: '生活及活動禮遇', desc: '精選餐飲、旅遊及會員活動邀請，提升日常銀行體驗。' },
+        ],
+      },
+      visible: true, locked: false,
+    },
+    {
+      instanceId: 'elite-rm',
+      type: 'CONTACT_RM_CTA',
+      props: {
+        label: '聯絡客戶經理',
+        subLabel: '查詢Elite升級資格及專屬優惠',
+        deepLink: 'hsbc://rm/contact?campaign=elite-upgrade-hk',
+        backgroundColor: '#0D5C3A',
+        textColor: '#FFFFFF',
+        sticky: false,
+      },
+      visible: true, locked: false,
+    },
+    {
+      instanceId: 'elite-upgrade-cta',
+      type: 'CAMPAIGN_CTA',
+      props: {
+        primaryLabel: '立即升級',
+        primaryUrl: 'hsbc://elite/upgrade/apply',
+        subNote: '提交後將由HSBC專人跟進，優惠受條款及資格審批約束。',
+        secondaryLabel: '了解Elite服務',
+        secondaryUrl: 'hsbc://elite/upgrade/learn',
+        offerBadge: 'WeChat專屬升級通道',
+      },
+      visible: true, locked: false,
+    },
   ],
 };
 
@@ -893,7 +964,7 @@ export const MOCK_JOURNEY_PAGES_WEB: JourneyPage[] = [
 
 export const MOCK_WORKFLOW: WorkflowEntry[] = [
   { entryId: 'wf-001', pageId: 'home-wealth-hk',        pageName: 'Home Hub (HK)',                 status: 'LIVE',  authorId: 'j.chan@hsbc.com.hk', authorName: 'Janet Chan', comments: [], layout: PAGE_HOME_WEALTH,    version: 3 },
-  { entryId: 'wf-002', pageId: 'jade-upgrade-hk',       pageName: 'Jade Upgrade Campaign (HK)',    status: 'LIVE',  authorId: 'j.chan@hsbc.com.hk', authorName: 'Janet Chan', comments: [], layout: PAGE_JADE_CAMPAIGN,  version: 2 },
+  { entryId: 'wf-002', pageId: 'jade-upgrade-hk',       pageName: 'Elite Upgrade Campaign (HK)',   status: 'LIVE',  authorId: 'j.chan@hsbc.com.hk', authorName: 'Janet Chan', comments: [], layout: PAGE_JADE_CAMPAIGN,  version: 2 },
   { entryId: 'wf-003', pageId: 'visa-platinum-campaign', pageName: 'Visa Platinum Q3 Campaign',    status: 'DRAFT', authorId: 'j.chan@hsbc.com.hk', authorName: 'Janet Chan', comments: [], layout: PAGE_VISA_CAMPAIGN,  version: 1 },
   { entryId: 'wf-004', pageId: 'obkyc-journey',          pageName: 'OBKYC – Account Opening Journey', status: 'DRAFT', authorId: 'k.lee@hsbc.com.hk', authorName: 'Karen Lee', comments: [], layout: PAGE_OBKYC, version: 1 },
   { entryId: 'wf-005', pageId: 'fx-viewpoint-hk',        pageName: 'FX Viewpoint — EUR & GBP (HK)', status: 'LIVE', authorId: 'j.chan@hsbc.com.hk', authorName: 'Janet Chan', comments: [], layout: PAGE_FX_VIEWPOINT, version: 1 },
@@ -971,7 +1042,7 @@ export const MOCK_USAGE_STATS: PageUsageStat[] = [
     avgSessionSec: 187, avgPageDepth: 3.4, bounceRate: 0.18,
     conversionRate: 0.062, ctr: 0.21, errorRate: 0.004 },
 
-  // Jade Upgrade Campaign (HK) — SDUI campaign, targeted Premier→Jade upsell
+  // Elite Upgrade Campaign (HK) — WeChat H5 campaign, targeted Premier→Elite upsell
   { pageId: 'jade-upgrade-hk', targetId: 'HK',
     dau: 9340,  wau: 51200,  mau: 174600,
     newUsers: 12400, returningUsers: 162200,
@@ -1023,8 +1094,8 @@ export const MOCK_JOURNEY_STATS: JourneyUsageStat[] = [
 export const MOCK_AUDIT: AuditEntry[] = [
   { id: 'a-001', timestamp: new Date(Date.now() - 86400000 * 10).toISOString(), actorId: 'j.chan@hsbc.com.hk', actorRole: 'WEALTH-AUTHOR', action: 'PAGE_RELEASED',  pageId: 'home-wealth-hk',         pageName: 'Home Hub (HK)',                 details: 'Released to HK v3',                    marketId: 'HK', releaseTargetId: 'HK' },
   { id: 'a-002', timestamp: new Date(Date.now() - 86400000 * 5).toISOString(),  actorId: 'j.chan@hsbc.com.hk', actorRole: 'WEALTH-AUTHOR', action: 'PAGE_SUBMITTED', pageId: 'visa-platinum-campaign',  pageName: 'Visa Platinum Q3 Campaign',     details: 'Submitted for India (bank.in)',         marketId: 'GLOBAL', releaseTargetId: 'IN' },
-  { id: 'a-003', timestamp: new Date(Date.now() - 86400000 * 3).toISOString(),  actorId: 'j.chan@hsbc.com.hk', actorRole: 'WEALTH-AUTHOR', action: 'WECHAT_MSG_SENT', pageId: 'jade-upgrade-hk',        pageName: 'Jade Upgrade Campaign (HK)',    details: 'Template msg sent to 48,200 followers', marketId: 'HK' },
-  { id: 'a-004', timestamp: new Date(Date.now() - 86400000 * 1).toISOString(),  actorId: 'm.wong@hsbc.com.hk', actorRole: 'WEALTH-APPROVER', action: 'APPROVED',    pageId: 'jade-upgrade-hk',        pageName: 'Jade Upgrade Campaign (HK)',    details: 'Approved for HK production',            marketId: 'HK', releaseTargetId: 'HK' },
+  { id: 'a-003', timestamp: new Date(Date.now() - 86400000 * 3).toISOString(),  actorId: 'j.chan@hsbc.com.hk', actorRole: 'WEALTH-AUTHOR', action: 'WECHAT_MSG_SENT', pageId: 'jade-upgrade-hk',        pageName: 'Elite Upgrade Campaign (HK)',   details: 'Template msg sent to 48,200 followers', marketId: 'HK' },
+  { id: 'a-004', timestamp: new Date(Date.now() - 86400000 * 1).toISOString(),  actorId: 'm.wong@hsbc.com.hk', actorRole: 'WEALTH-APPROVER', action: 'APPROVED',    pageId: 'jade-upgrade-hk',        pageName: 'Elite Upgrade Campaign (HK)',   details: 'Approved for HK production',            marketId: 'HK', releaseTargetId: 'HK' },
   { id: 'a-005', timestamp: new Date(Date.now() - 86400000 * 1).toISOString(),  actorId: 'j.chan@hsbc.com.hk', actorRole: 'WEALTH-AUTHOR',   action: 'PAGE_RELEASED', pageId: 'fx-viewpoint-hk',         pageName: 'FX Viewpoint — EUR & GBP (HK)',  details: 'Released to HK v1 — SDUI channel',      marketId: 'HK', releaseTargetId: 'HK' },
 ];
 
