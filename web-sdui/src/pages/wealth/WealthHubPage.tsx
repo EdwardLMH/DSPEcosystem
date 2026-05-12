@@ -16,6 +16,8 @@ type LoadState = 'loading' | 'sdui' | 'fallback';
 
 const BFF_BASE = 'http://localhost:4000';
 
+type FeatureProductButton = { id: string; name: string; description?: string; url?: string };
+
 function useWealthSDUI() {
   const { bffHeaders } = useSDUIContext();
   const [loadState, setLoadState] = useState<LoadState>('loading');
@@ -106,6 +108,13 @@ const QUEST_BANNER_DATA = {
 const FEATURE_PRODUCT_DATA = {
   sectionTitle: 'Feature product',
   tabs: ['Top performers', 'Top dividend', 'Top selling', 'Instalment'],
+  activeButtonId: 'top-performers',
+  buttons: [
+    { id: 'top-performers', name: 'Top performers', description: 'Top 3 funds by 1Y return', url: '/api/v1/funds/feature-products?filter=top-performers&limit=3' },
+    { id: 'top-dividend', name: 'Top dividend', description: 'Income funds with higher dividend profile', url: '/api/v1/funds/feature-products?filter=top-dividend&limit=3' },
+    { id: 'top-selling', name: 'Top selling', description: 'Best selling funds by subscription volume', url: '/api/v1/funds/feature-products?filter=top-selling&limit=3' },
+    { id: 'installment', name: 'Installment', description: 'Funds suitable for installment investment plans', url: '/api/v1/funds/feature-products?filter=installment&limit=3' },
+  ],
   funds: [
     {
       id: 'fp-1',
@@ -137,6 +146,7 @@ const FEATURE_PRODUCT_DATA = {
   ],
   moreLabel: 'View Best selling fund list (10)',
   moreDeepLink: 'hsbc://funds/best-selling',
+  bestSellingUrl: '/api/v1/funds/feature-products?filter=best-selling&limit=10',
 };
 
 const WEALTH_STUDIO_DATA = {
@@ -571,11 +581,47 @@ function WHQuestBanner({ p }: { p?: Record<string, any> } = {}) {
 function WHFeatureProduct({ p }: { p?: Record<string, any> } = {}) {
   useImpressionOnce(() => tealium.sliceImpression('FEATURE_PRODUCT', 'slice-feature-product', 4));
   const sectionTitle = p?.sectionTitle ?? FEATURE_PRODUCT_DATA.sectionTitle;
-  const tabs         = p?.tabs         ?? FEATURE_PRODUCT_DATA.tabs;
-  const funds        = p?.funds        ?? FEATURE_PRODUCT_DATA.funds;
+  const buttons: FeatureProductButton[] = Array.isArray(p?.buttons) && p.buttons.length > 0
+    ? p.buttons
+    : (Array.isArray(p?.tabs) ? p.tabs : FEATURE_PRODUCT_DATA.tabs).map((tab: string) => ({ id: tab, name: tab }));
+  const defaultButtonId = String(p?.activeButtonId ?? p?.activeTab ?? buttons[0]?.id ?? FEATURE_PRODUCT_DATA.activeButtonId);
+  const fallbackFunds = p?.funds ?? FEATURE_PRODUCT_DATA.funds;
   const moreLabel    = p?.moreLabel    ?? FEATURE_PRODUCT_DATA.moreLabel;
   const moreDeepLink = p?.moreDeepLink ?? FEATURE_PRODUCT_DATA.moreDeepLink;
-  const [activeTab, setActiveTab] = useState(p?.activeTab ?? 'Top performers');
+  const bestSellingUrl = p?.bestSellingUrl ?? FEATURE_PRODUCT_DATA.bestSellingUrl;
+  const [activeButtonId, setActiveButtonId] = useState(defaultButtonId);
+  const [funds, setFunds] = useState(fallbackFunds);
+  const [isLoading, setIsLoading] = useState(false);
+  const activeButton = buttons.find(button => button.id === activeButtonId || button.name === activeButtonId) ?? buttons[0];
+
+  useEffect(() => {
+    setActiveButtonId(defaultButtonId);
+  }, [defaultButtonId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadFunds() {
+      if (!activeButton?.url) {
+        setFunds(fallbackFunds);
+        return;
+      }
+      setIsLoading(true);
+      try {
+        const url = activeButton.url.startsWith('http') ? activeButton.url : `${BFF_BASE}${activeButton.url}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const nextFunds = Array.isArray(data) ? data : data.funds;
+        if (!cancelled && Array.isArray(nextFunds)) setFunds(nextFunds.slice(0, 3));
+      } catch {
+        if (!cancelled) setFunds(fallbackFunds);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+    loadFunds();
+    return () => { cancelled = true; };
+  }, [activeButton?.url, fallbackFunds]);
 
   return (
     <div style={{ background: '#fff', marginTop: 8, padding: '14px 0' }}>
@@ -591,25 +637,33 @@ function WHFeatureProduct({ p }: { p?: Record<string, any> } = {}) {
         borderBottom: '1px solid #F3F4F6', paddingLeft: 16,
         scrollbarWidth: 'none',
       }}>
-        {tabs.map((tab: any) => (
+        {buttons.map((button: FeatureProductButton) => (
           <button
-            key={tab}
+            key={button.id || button.name}
+            title={button.description}
             style={{
-              flex: '0 0 auto', padding: '7px 14px', fontSize: 12,
-              fontWeight: activeTab === tab ? 700 : 400,
-              color: activeTab === tab ? '#DB0011' : '#6B7280',
-              background: 'none', border: 'none', cursor: 'pointer',
-              borderBottom: activeTab === tab ? '2px solid #DB0011' : '2px solid transparent',
+              flex: '0 0 auto', padding: '7px 16px', fontSize: 12,
+              fontWeight: activeButton?.id === button.id ? 700 : 400,
+              color: activeButton?.id === button.id ? '#111' : '#9CA3AF',
+              background: activeButton?.id === button.id ? '#fff' : 'transparent',
+              border: activeButton?.id === button.id ? '1px solid #E5E7EB' : '1px solid transparent',
+              borderRadius: 18,
+              boxShadow: activeButton?.id === button.id ? '0 1px 5px rgba(0,0,0,0.16)' : 'none',
+              cursor: 'pointer',
               whiteSpace: 'nowrap',
             }}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => {
+              setActiveButtonId(button.id || button.name);
+              tealium.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product', button.name, button.url ?? '');
+            }}
           >
-            {tab}
+            {button.name}
           </button>
         ))}
       </div>
       {/* Fund list */}
       <div style={{ padding: '0 16px' }}>
+        {isLoading && <div style={{ padding: '10px 0', fontSize: 11, color: '#9CA3AF' }}>Loading funds...</div>}
         {funds.map((fund: any, i: number) => (
           <div key={fund.id}>
             <div
@@ -669,7 +723,7 @@ function WHFeatureProduct({ p }: { p?: Record<string, any> } = {}) {
           }}
           onClick={() => tealium.sliceTapped(
             'FEATURE_PRODUCT', 'slice-feature-product',
-            moreLabel, moreDeepLink,
+            moreLabel, bestSellingUrl || moreDeepLink,
           )}
         >
           {moreLabel} ›

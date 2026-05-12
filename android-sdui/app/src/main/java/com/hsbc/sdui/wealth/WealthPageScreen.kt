@@ -48,6 +48,41 @@ private val QA_ICON_MAP = mapOf(
     "all"      to "⊞",
 )
 
+private data class FeatureProductButton(
+    val id: String,
+    val name: String,
+    val description: String = "",
+    val url: String = ""
+)
+
+private fun featureProductButtonsFrom(props: Map<String, Any?>): List<FeatureProductButton> {
+    val buttons = (props["buttons"] as? List<*>)?.filterIsInstance<Map<String, Any?>>()?.mapNotNull { raw ->
+        val id = raw["id"] as? String ?: return@mapNotNull null
+        FeatureProductButton(
+            id = id,
+            name = raw["name"] as? String ?: id,
+            description = raw["description"] as? String ?: "",
+            url = raw["url"] as? String ?: ""
+        )
+    }.orEmpty()
+    if (buttons.isNotEmpty()) return buttons
+    return (props["tabs"] as? List<*>)?.filterIsInstance<String>()?.map { FeatureProductButton(it, it) }.orEmpty()
+}
+
+private val DEFAULT_FEATURE_PRODUCT_PROPS: Map<String, Any?> = mapOf(
+    "sectionTitle" to "Feature product",
+    "activeButtonId" to "top-performers",
+    "buttons" to listOf(
+        mapOf("id" to "top-performers", "name" to "Top performers", "description" to "Top 3 funds by 1Y return", "url" to "/api/v1/funds/feature-products?filter=top-performers&limit=3"),
+        mapOf("id" to "top-dividend", "name" to "Top dividend", "description" to "Income funds with higher dividend profile", "url" to "/api/v1/funds/feature-products?filter=top-dividend&limit=3"),
+        mapOf("id" to "top-selling", "name" to "Top selling", "description" to "Best selling funds by subscription volume", "url" to "/api/v1/funds/feature-products?filter=top-selling&limit=3"),
+        mapOf("id" to "installment", "name" to "Installment", "description" to "Funds suitable for installment investment plans", "url" to "/api/v1/funds/feature-products?filter=installment&limit=3"),
+    ),
+    "moreLabel" to "View Best selling fund list (10)",
+    "moreDeepLink" to "hsbc://funds/best-selling",
+    "bestSellingUrl" to "/api/v1/funds/feature-products?filter=best-selling&limit=10"
+)
+
 // ─── Load state ───────────────────────────────────────────────────────────────
 
 private sealed class WealthLoadState {
@@ -382,12 +417,12 @@ private fun SDUIQuestBanner(props: Map<String, Any?>) {
 @Composable
 private fun SDUIFeatureProduct(props: Map<String, Any?>) {
     val sectionTitle = props["sectionTitle"] as? String ?: "Feature product"
-    val tabs         = (props["tabs"] as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+    val buttons      = featureProductButtonsFrom(props)
     val funds        = (props["funds"] as? List<*>)?.filterIsInstance<Map<String, Any?>>() ?: emptyList()
     val moreLabel    = props["moreLabel"] as? String ?: "View fund list"
-    val moreLink     = props["moreDeepLink"] as? String ?: "hsbc://funds/best-selling"
+    val moreLink     = props["bestSellingUrl"] as? String ?: props["moreDeepLink"] as? String ?: "hsbc://funds/best-selling"
 
-    var activeTab by remember { mutableStateOf(props["activeTab"] as? String ?: tabs.firstOrNull() ?: "") }
+    var activeButtonId by remember { mutableStateOf(props["activeButtonId"] as? String ?: props["activeTab"] as? String ?: buttons.firstOrNull()?.id ?: "") }
 
     Column(modifier = Modifier.fillMaxWidth().background(White).padding(vertical = 12.dp)) {
         // Header
@@ -414,19 +449,23 @@ private fun SDUIFeatureProduct(props: Map<String, Any?>) {
                 .padding(horizontal = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            tabs.forEach { tab ->
-                val isActive = tab == activeTab
+            buttons.forEach { button ->
+                val isActive = button.id == activeButtonId || button.name == activeButtonId
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))
-                        .background(if (isActive) HsbcRed else N100)
-                        .clickable { activeTab = tab }
+                        .background(if (isActive) White else Color.Transparent)
+                        .border(1.dp, if (isActive) N100 else Color.Transparent, RoundedCornerShape(16.dp))
+                        .clickable {
+                            activeButtonId = button.id
+                            TealiumClient.sliceTapped("FEATURE_PRODUCT", "slice-feature-product", button.name, button.url)
+                        }
                         .padding(horizontal = 14.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        text = tab,
+                        text = button.name,
                         fontSize = 12.sp,
-                        color = if (isActive) White else N700,
+                        color = if (isActive) N900 else N400,
                         fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal
                     )
                 }
@@ -1093,7 +1132,7 @@ private fun WHFeatureProduct() {
         val tags: List<String>
     )
 
-    val tabs = listOf("Top performers", "Top dividend", "Top selling", "Instalment")
+    val buttons = featureProductButtonsFrom(DEFAULT_FEATURE_PRODUCT_PROPS)
     val funds = listOf(
         FundItem(
             "fp-1",
@@ -1114,7 +1153,7 @@ private fun WHFeatureProduct() {
 
     LaunchedEffect(Unit) { TealiumClient.sliceImpression("FEATURE_PRODUCT", "slice-feature-product", 4) }
 
-    var activeTab by remember { mutableStateOf("Top performers") }
+    var activeButtonId by remember { mutableStateOf("top-performers") }
 
     Column(modifier = Modifier.fillMaxWidth().background(White).padding(vertical = 12.dp)) {
         Row(
@@ -1141,18 +1180,25 @@ private fun WHFeatureProduct() {
                 .padding(horizontal = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            tabs.forEach { tab ->
-                val isActive = tab == activeTab
+            buttons.forEach { button ->
+                val isActive = button.id == activeButtonId
                 Box(
                     modifier = Modifier.clip(RoundedCornerShape(16.dp))
-                        .background(if (isActive) HsbcRed else N100)
-                        .clickable { activeTab = tab }
+                        .background(if (isActive) White else Color.Transparent)
+                        .border(1.dp, if (isActive) N100 else Color.Transparent, RoundedCornerShape(16.dp))
+                        .clickable {
+                            activeButtonId = button.id
+                            TealiumClient.sliceTapped(
+                                "FEATURE_PRODUCT", "slice-feature-product",
+                                button.name, button.url
+                            )
+                        }
                         .padding(horizontal = 14.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        text = tab,
+                        text = button.name,
                         fontSize = 12.sp,
-                        color = if (isActive) White else N700,
+                        color = if (isActive) N900 else N400,
                         fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal
                     )
                 }
@@ -1209,7 +1255,7 @@ private fun WHFeatureProduct() {
             modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).clickable {
                 TealiumClient.sliceTapped(
                     "FEATURE_PRODUCT", "slice-feature-product",
-                    "View Best selling fund list (10)", "hsbc://funds/best-selling"
+                    "View Best selling fund list (10)", "/api/v1/funds/feature-products?filter=best-selling&limit=10"
                 )
             }
         )

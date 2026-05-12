@@ -19,6 +19,7 @@ import { SDUIStaticDistribution } from '../network/SDUIStaticDistribution'
 interface QuickItem  { icon: string; label: string; deepLink: string }
 interface FundItem   { id: string; name: string; code: string; return1Y: string
                        tags: string[]; deepLink: string }
+interface FeatureProductButton { id: string; name: string; description: string; url: string }
 interface EpisodeItem { id: string; title: string; duration: string
                         thumbnail: string; deepLink: string }
 interface GuideItem  { id: string; title: string; category: string
@@ -69,6 +70,15 @@ const STATIC_FUNDS: FundItem[] = [
     tags: ['Multi-Asset'],
     deepLink: 'hsbc://funds/HKMAG' },
 ]
+
+const FEATURE_PRODUCT_BUTTONS: FeatureProductButton[] = [
+  { id: 'top-performers', name: 'Top performers', description: 'Top 3 funds by 1Y return', url: '/api/v1/funds/feature-products?filter=top-performers&limit=3' },
+  { id: 'top-dividend', name: 'Top dividend', description: 'Income funds with higher dividend profile', url: '/api/v1/funds/feature-products?filter=top-dividend&limit=3' },
+  { id: 'top-selling', name: 'Top selling', description: 'Best selling funds by subscription volume', url: '/api/v1/funds/feature-products?filter=top-selling&limit=3' },
+  { id: 'installment', name: 'Installment', description: 'Funds suitable for installment investment plans', url: '/api/v1/funds/feature-products?filter=installment&limit=3' },
+]
+const FEATURE_PRODUCT_BEST_SELLING_URL = '/api/v1/funds/feature-products?filter=best-selling&limit=10'
+const FEATURE_PRODUCT_MORE_LABEL = 'View Best selling fund list (10)'
 
 const STATIC_EPISODES: EpisodeItem[] = [
   { id: 'e1', title: 'Market Outlook Q2 2026',
@@ -585,12 +595,32 @@ struct SDUIFeatureProduct {
   @State activeTab: number = 0
 
   private sectionTitle(): string { return this.props['sectionTitle'] as string ?? 'Feature product' }
-  private tabs(): string[] {
-    const raw: Array<string> = this.props['tabs'] as Array<string>
-    if (raw && raw.length > 0) { return raw }
-    return ['All', 'Equity', 'Bond', 'Multi-Asset']
+  private buttons(): FeatureProductButton[] {
+    const raw: Array<ESObject> = this.props['buttons'] as Array<ESObject>
+    if (raw && raw.length > 0) {
+      return raw.map((item: ESObject): FeatureProductButton => {
+        const r = item as Record<string, string>
+        return {
+          id: r['id'] ?? r['name'] ?? '',
+          name: r['name'] ?? r['id'] ?? '',
+          description: r['description'] ?? '',
+          url: r['url'] ?? ''
+        }
+      })
+    }
+    const tabs: Array<string> = this.props['tabs'] as Array<string>
+    if (tabs && tabs.length > 0) {
+      return tabs.map((tab: string): FeatureProductButton => ({ id: tab, name: tab, description: '', url: '' }))
+    }
+    return FEATURE_PRODUCT_BUTTONS
   }
   private funds(): ESObject[] { return this.props['funds'] as ESObject[] ?? [] as ESObject[] }
+  private moreLabel(): string { return this.props['moreLabel'] as string ?? FEATURE_PRODUCT_MORE_LABEL }
+  private bestSellingUrl(): string {
+    return this.props['bestSellingUrl'] as string ??
+      this.props['moreDeepLink'] as string ??
+      FEATURE_PRODUCT_BEST_SELLING_URL
+  }
 
   private fundTags(fund: ESObject): Array<string> {
     const tags: Array<string> = (fund as Record<string, ESObject>)['tags'] as Array<string>
@@ -604,7 +634,6 @@ struct SDUIFeatureProduct {
         Text(this.sectionTitle())
           .fontSize(16).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
         Blank().layoutWeight(1)
-        Text('More ›').fontSize(12).fontColor('#DB0011')
       }
       .width('100%')
       .padding({ left: 16, right: 16, top: 14, bottom: 8 })
@@ -612,15 +641,19 @@ struct SDUIFeatureProduct {
       // Sub-tabs
       Scroll() {
         Row({ space: 8 }) {
-          ForEach(this.tabs(), (tab: string, idx: number) => {
-            Text(tab)
+          ForEach(this.buttons(), (button: FeatureProductButton, idx: number) => {
+            Text(button.name)
               .fontSize(12)
               .fontWeight(this.activeTab === idx ? FontWeight.Bold : FontWeight.Normal)
-              .fontColor(this.activeTab === idx ? Hive.Color.brandWhite : Hive.Color.n700)
+              .fontColor(this.activeTab === idx ? Hive.Color.n900 : Hive.Color.n400)
               .padding({ left: 14, right: 14, top: 6, bottom: 6 })
               .borderRadius(16)
-              .backgroundColor(this.activeTab === idx ? '#DB0011' : Hive.Color.n100)
-              .onClick(() => { this.activeTab = idx })
+              .border({ width: this.activeTab === idx ? 1 : 0, color: this.activeTab === idx ? Hive.Color.n200 : '#00000000' })
+              .backgroundColor(this.activeTab === idx ? Hive.Color.brandWhite : '#00000000')
+              .onClick(() => {
+                this.activeTab = idx
+                SensorDataClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product', button.name, button.url)
+              })
           })
         }
         .padding({ left: 16, right: 16, bottom: 8 })
@@ -670,6 +703,15 @@ struct SDUIFeatureProduct {
           }
         })
       }
+
+      Text(`${this.moreLabel()} ›`)
+        .fontSize(13)
+        .fontColor(Hive.Color.n700)
+        .padding({ left: 16, right: 16, top: 10, bottom: 10 })
+        .onClick(() => {
+          SensorDataClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product',
+            this.moreLabel(), this.bestSellingUrl())
+        })
     }
     .width('100%').backgroundColor(Hive.Color.brandWhite)
     .margin({ top: 8 })
@@ -1412,7 +1454,6 @@ struct WHQuestBanner {
 @Component
 struct WHFeatureProduct {
   @State activeTab: number = 0
-  private fundTabs: string[] = ['All', 'Equity', 'Bond', 'Multi-Asset']
 
   aboutToAppear() {
     SensorDataClient.sliceImpression('FEATURE_PRODUCT', 'slice-feature-product', 4)
@@ -1424,22 +1465,25 @@ struct WHFeatureProduct {
         Text('Feature product')
           .fontSize(16).fontWeight(FontWeight.Bold).fontColor(Hive.Color.n900)
         Blank().layoutWeight(1)
-        Text('More ›').fontSize(12).fontColor('#DB0011')
       }
       .width('100%')
       .padding({ left: 16, right: 16, top: 14, bottom: 8 })
 
       Scroll() {
         Row({ space: 8 }) {
-          ForEach(this.fundTabs, (tab: string, idx: number) => {
-            Text(tab)
+          ForEach(FEATURE_PRODUCT_BUTTONS, (button: FeatureProductButton, idx: number) => {
+            Text(button.name)
               .fontSize(12)
               .fontWeight(this.activeTab === idx ? FontWeight.Bold : FontWeight.Normal)
-              .fontColor(this.activeTab === idx ? Hive.Color.brandWhite : Hive.Color.n700)
+              .fontColor(this.activeTab === idx ? Hive.Color.n900 : Hive.Color.n400)
               .padding({ left: 14, right: 14, top: 6, bottom: 6 })
               .borderRadius(16)
-              .backgroundColor(this.activeTab === idx ? '#DB0011' : Hive.Color.n100)
-              .onClick(() => { this.activeTab = idx })
+              .border({ width: this.activeTab === idx ? 1 : 0, color: this.activeTab === idx ? Hive.Color.n200 : '#00000000' })
+              .backgroundColor(this.activeTab === idx ? Hive.Color.brandWhite : '#00000000')
+              .onClick(() => {
+                this.activeTab = idx
+                SensorDataClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product', button.name, button.url)
+              })
           })
         }
         .padding({ left: 16, right: 16, bottom: 8 })
@@ -1479,6 +1523,15 @@ struct WHFeatureProduct {
           }
         })
       }
+
+      Text(`${FEATURE_PRODUCT_MORE_LABEL} ›`)
+        .fontSize(13)
+        .fontColor(Hive.Color.n700)
+        .padding({ left: 16, right: 16, top: 10, bottom: 10 })
+        .onClick(() => {
+          SensorDataClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product',
+            FEATURE_PRODUCT_MORE_LABEL, FEATURE_PRODUCT_BEST_SELLING_URL)
+        })
     }
     .width('100%').backgroundColor(Hive.Color.brandWhite)
     .margin({ top: 8 })

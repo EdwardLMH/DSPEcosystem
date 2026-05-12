@@ -841,6 +841,8 @@ ucpPages.set('home-wealth-hk', {
   pageId: 'home-wealth-hk',
   name: 'Home Hub (HK)',
   platform: 'all',
+  nativeTargets: ['ios', 'android', 'harmonynext', 'web'],
+  webSlug: '/wealth',
   locale: 'zh-HK',
   status: 'LIVE',
   version: 3,
@@ -923,6 +925,13 @@ ucpPages.set('home-wealth-hk', {
         sectionTitle: 'Feature product',
         tabs: ['Top performers', 'Top dividend', 'Top selling', 'Instalment'],
         activeTab: 'Top performers',
+        activeButtonId: 'top-performers',
+        buttons: [
+          { id: 'top-performers', name: 'Top performers', description: 'Top 3 funds by 1Y return', url: '/api/v1/funds/feature-products?filter=top-performers&limit=3' },
+          { id: 'top-dividend', name: 'Top dividend', description: 'Income funds with higher dividend profile', url: '/api/v1/funds/feature-products?filter=top-dividend&limit=3' },
+          { id: 'top-selling', name: 'Top selling', description: 'Best selling funds by subscription volume', url: '/api/v1/funds/feature-products?filter=top-selling&limit=3' },
+          { id: 'installment', name: 'Installment', description: 'Funds suitable for installment investment plans', url: '/api/v1/funds/feature-products?filter=installment&limit=3' },
+        ],
         funds: [
           {
             id: 'fp-1',
@@ -954,6 +963,7 @@ ucpPages.set('home-wealth-hk', {
         ],
         moreLabel: 'View Best selling fund list (10)',
         moreDeepLink: 'hsbc://funds/best-selling',
+        bestSellingUrl: '/api/v1/funds/feature-products?filter=best-selling&limit=10',
       },
     },
     {
@@ -1597,7 +1607,7 @@ app.get('/api/v1/ucp/components', requireInternalAuth, (req, res) => {
     { componentId: 'comp-AI_SEARCH_BAR',          sliceType: 'AI_SEARCH_BAR',          label: 'AI Search Bar',                  icon: '🔍',    category: 'navigation', description: 'HSBC red semantic search bar with QR scan, chatbot and message entry',               configurable: ['placeholder','enableSemanticSearch','enableQRScan','enableChatbot','enableMessageInbox','searchApiEndpoint'],     minHeight: 44,  singleton: true,  version: '1.0.0', maintainedBy: 'HIVE Platform Team',         status: 'ACTIVE' },
     { componentId: 'comp-CARD_ACTIVATION_BANNER', sliceType: 'CARD_ACTIVATION_BANNER', label: 'Card Activation Banner',         icon: '🔔',    category: 'promotion',  description: 'Notification prompting the customer to activate their card',                           configurable: ['message','deepLink'],                                                                                            minHeight: 44,  singleton: false, version: '1.0.0', maintainedBy: 'HIVE Platform Team',         status: 'ACTIVE' },
     { componentId: 'comp-QUEST_BANNER',           sliceType: 'QUEST_BANNER',           label: 'Quest / Getting Started Banner', icon: '🎯',    category: 'promotion',  description: 'Getting-started quest progress card with HSBC hexagon icon',                          configurable: ['title','description','ctaLabel','ctaDeepLink','totalQuests'],                                                     minHeight: 80,  singleton: false, version: '1.0.0', maintainedBy: 'Wealth Product Team',        status: 'ACTIVE' },
-    { componentId: 'comp-FEATURE_PRODUCT',        sliceType: 'FEATURE_PRODUCT',        label: 'Feature Product (Fund List)',    icon: '📊',    category: 'wealth',     description: 'Tabbed fund list showing 1Y returns',                                                  configurable: ['sectionTitle','tabs','activeTab','funds','moreLabel','moreDeepLink'],                                             minHeight: 200, singleton: false, version: '1.0.0', maintainedBy: 'Wealth Product Team',        status: 'ACTIVE' },
+    { componentId: 'comp-FEATURE_PRODUCT',        sliceType: 'FEATURE_PRODUCT',        label: 'Feature Product (Fund List)',    icon: '📊',    category: 'wealth',     description: 'Pill-button fund list showing 1Y returns with configurable filter URLs',                 configurable: ['sectionTitle','buttons','activeButtonId','funds','moreLabel','moreDeepLink','bestSellingUrl'],                    minHeight: 200, singleton: false, version: '1.0.0', maintainedBy: 'Wealth Product Team',        status: 'ACTIVE' },
     { componentId: 'comp-WEALTH_STUDIO_CAROUSEL', sliceType: 'WEALTH_STUDIO_CAROUSEL', label: 'Wealth Studio Carousel',         icon: '🎬',    category: 'wealth',     description: 'Premier Elite Wealth Studio horizontal video episode carousel',                        configurable: ['sectionTitle','items','moreLabel','moreDeepLink'],                                                               minHeight: 160, singleton: false, version: '1.0.0', maintainedBy: 'Premier & Jade Team',        status: 'ACTIVE' },
     { componentId: 'comp-GUIDES_INSIGHTS_CAROUSEL',        sliceType: 'GUIDES_INSIGHTS_CAROUSEL',        label: 'Guides & Insights',              icon: '📰',    category: 'insight',    description: 'Article card carousel — investment guides and market insights',                        configurable: ['sectionTitle','items','moreLabel','moreDeepLink'],                                                               minHeight: 160, singleton: false, version: '1.0.0', maintainedBy: 'Wealth Content Team',        status: 'ACTIVE' },
     { componentId: 'comp-FX_WATCHLIST',           sliceType: 'FX_WATCHLIST',           label: 'FX Watchlist',                   icon: '💱',    category: 'wealth',     description: 'Currency pair watchlist with Gold Forex Club tier badge and live rates',              configurable: ['sectionTitle','tierBadge','tierDescription','pairs','moreLabel','moreDeepLink'],                                   minHeight: 200, singleton: false, version: '1.0.0', maintainedBy: 'Wealth Product Team',        status: 'ACTIVE' },
@@ -1626,6 +1636,43 @@ app.get('/api/v1/ucp/components', requireInternalAuth, (req, res) => {
 
   res.json({ components: comps, total: comps.length });
 });
+
+const FEATURE_PRODUCT_FUNDS = {
+  'top-performers': [
+    { id: 'fp-1', name: 'AB SICAV I - LOW VOLATILITY EQUITY PORTFOLIO CLASS AD S...', code: 'U43120', returnLabel: '1Y return', returnValue: '+54.79%', returnPositive: true, tags: [] },
+    { id: 'fp-2', name: 'HANG SENG INDEX FUND CLASS A (HKD)', code: 'U42272', returnLabel: '1Y return', returnValue: '+18.10%', returnPositive: true, tags: ['ESG'] },
+    { id: 'fp-3', name: 'ALLIANZ INCOME AND GROWTH CLASS AM DIS (HKD MONTHLY...', code: 'U40032', returnLabel: '1Y return', returnValue: '+11.45%', returnPositive: true, tags: ['New fund'] },
+  ],
+  'top-dividend': [
+    { id: 'fd-1', name: 'HSBC GLOBAL INVESTMENT FUNDS - ASIA HIGH INCOME BOND', code: 'U62118', returnLabel: '1Y return', returnValue: '+9.62%', returnPositive: true, tags: ['Income'] },
+    { id: 'fd-2', name: 'JPMORGAN ASIA EQUITY DIVIDEND FUND', code: 'U50821', returnLabel: '1Y return', returnValue: '+8.40%', returnPositive: true, tags: ['Dividend'] },
+    { id: 'fd-3', name: 'BLACKROCK GLOBAL FUNDS - GLOBAL MULTI-ASSET INCOME', code: 'U33790', returnLabel: '1Y return', returnValue: '+6.88%', returnPositive: true, tags: [] },
+  ],
+  'top-selling': [
+    { id: 'fs-1', name: 'HSBC GLOBAL INVESTMENT FUNDS - GLOBAL EQUITY CLIMATE CHANGE', code: 'U71888', returnLabel: '1Y return', returnValue: '+14.28%', returnPositive: true, tags: ['ESG'] },
+    { id: 'fs-2', name: 'ALLIANZ INCOME AND GROWTH CLASS AM DIS', code: 'U40032', returnLabel: '1Y return', returnValue: '+11.45%', returnPositive: true, tags: ['Best seller'] },
+    { id: 'fs-3', name: 'FIDELITY FUNDS - GLOBAL TECHNOLOGY FUND', code: 'U21976', returnLabel: '1Y return', returnValue: '+10.31%', returnPositive: true, tags: [] },
+  ],
+  installment: [
+    { id: 'fi-1', name: 'HSBC MANAGED PORTFOLIOS - WORLD SELECTION 3', code: 'U11903', returnLabel: '1Y return', returnValue: '+7.12%', returnPositive: true, tags: ['Monthly'] },
+    { id: 'fi-2', name: 'SCHRODER INTERNATIONAL SELECTION FUND GLOBAL DIVERSIFIED GROWTH', code: 'U77620', returnLabel: '1Y return', returnValue: '+5.84%', returnPositive: true, tags: [] },
+    { id: 'fi-3', name: 'INVESCO GLOBAL CONSUMER TRENDS FUND', code: 'U66109', returnLabel: '1Y return', returnValue: '+4.93%', returnPositive: true, tags: ['Installment'] },
+  ],
+  'best-selling': [
+    { id: 'bs-1', name: 'ALLIANZ INCOME AND GROWTH CLASS AM DIS', code: 'U40032', returnLabel: '1Y return', returnValue: '+11.45%', returnPositive: true, tags: ['Best seller'] },
+    { id: 'bs-2', name: 'HSBC GLOBAL INVESTMENT FUNDS - GLOBAL EQUITY CLIMATE CHANGE', code: 'U71888', returnLabel: '1Y return', returnValue: '+14.28%', returnPositive: true, tags: ['ESG'] },
+    { id: 'bs-3', name: 'HANG SENG INDEX FUND CLASS A (HKD)', code: 'U42272', returnLabel: '1Y return', returnValue: '+18.10%', returnPositive: true, tags: ['ESG'] },
+    { id: 'bs-4', name: 'FIDELITY FUNDS - GLOBAL TECHNOLOGY FUND', code: 'U21976', returnLabel: '1Y return', returnValue: '+10.31%', returnPositive: true, tags: [] },
+  ],
+};
+
+app.get('/api/v1/funds/feature-products', (req, res) => {
+  const filter = String(req.query.filter || 'top-performers');
+  const limit = Math.max(1, Number(req.query.limit || 3));
+  const funds = FEATURE_PRODUCT_FUNDS[filter] || FEATURE_PRODUCT_FUNDS['top-performers'];
+  res.json({ filter, funds: funds.slice(0, limit) });
+});
+
 // Zone 1 public endpoint — returns published layout as SDUI JSON
 app.get('/api/v1/screen/home-wealth-hk', (req, res) => {
   const page    = ucpPages.get('home-wealth-hk');

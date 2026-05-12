@@ -107,9 +107,10 @@ export const WECHAT_TEMPLATES: WeChatMessageTemplate[] = [
 export const PAGE_HOME_WEALTH: PageLayout = {
   pageId: 'home-wealth-hk', name: 'Home Hub (HK)',
   pageType: 'WEALTH_HUB', description: 'Main wealth hub home page for HK market',
-  nativeTargets: ['ios', 'android', 'harmonynext'], locale: 'zh-TW', thumbnail: '💰', tags: ['wealth', 'home', 'hk'],
+  nativeTargets: ['ios', 'android', 'harmonynext', 'web'], locale: 'zh-TW', thumbnail: '💰', tags: ['wealth', 'home', 'hk'],
   channel: 'SDUI', scope: 'MARKET', marketId: 'HK',
   releaseMarketIds: ['HK'], bizLineId: 'WEALTH', groupId: 'HK-WEALTH-AD',
+  webSlug: '/wealth',
   authoringStatus: 'APPROVED',
   supportedLocales: ['zh-TW', 'en'],
   translations: {},
@@ -178,6 +179,13 @@ export const PAGE_HOME_WEALTH: PageLayout = {
         sectionTitle: 'Feature product',
         tabs: ['Top performers', 'Top dividend', 'Top selling', 'Instalment'],
         activeTab: 'Top performers',
+        activeButtonId: 'top-performers',
+        buttons: [
+          { id: 'top-performers', name: 'Top performers', description: 'Top 3 funds by 1Y return', url: '/api/v1/funds/feature-products?filter=top-performers&limit=3' },
+          { id: 'top-dividend', name: 'Top dividend', description: 'Income funds with higher dividend profile', url: '/api/v1/funds/feature-products?filter=top-dividend&limit=3' },
+          { id: 'top-selling', name: 'Top selling', description: 'Best selling funds by subscription volume', url: '/api/v1/funds/feature-products?filter=top-selling&limit=3' },
+          { id: 'installment', name: 'Installment', description: 'Funds suitable for installment investment plans', url: '/api/v1/funds/feature-products?filter=installment&limit=3' },
+        ],
         funds: [
           {
             id: 'fp-1',
@@ -209,6 +217,7 @@ export const PAGE_HOME_WEALTH: PageLayout = {
         ],
         moreLabel: 'View Best selling fund list (10)',
         moreDeepLink: 'hsbc://funds/best-selling',
+        bestSellingUrl: '/api/v1/funds/feature-products?filter=best-selling&limit=10',
       },
     },
     {

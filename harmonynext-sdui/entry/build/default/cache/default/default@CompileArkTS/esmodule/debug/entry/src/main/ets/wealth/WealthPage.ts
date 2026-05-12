@@ -11,7 +11,6 @@ interface WHWealthStudioCarousel_Params {
 }
 interface WHFeatureProduct_Params {
     activeTab?: number;
-    fundTabs?: string[];
 }
 interface WHQuestBanner_Params {
 }
@@ -86,6 +85,12 @@ interface FundItem {
     tags: string[];
     deepLink: string;
 }
+interface FeatureProductButton {
+    id: string;
+    name: string;
+    description: string;
+    url: string;
+}
 interface EpisodeItem {
     id: string;
     title: string;
@@ -151,6 +156,14 @@ const STATIC_FUNDS: FundItem[] = [
         tags: ['Multi-Asset'],
         deepLink: 'hsbc://funds/HKMAG' },
 ];
+const FEATURE_PRODUCT_BUTTONS: FeatureProductButton[] = [
+    { id: 'top-performers', name: 'Top performers', description: 'Top 3 funds by 1Y return', url: '/api/v1/funds/feature-products?filter=top-performers&limit=3' },
+    { id: 'top-dividend', name: 'Top dividend', description: 'Income funds with higher dividend profile', url: '/api/v1/funds/feature-products?filter=top-dividend&limit=3' },
+    { id: 'top-selling', name: 'Top selling', description: 'Best selling funds by subscription volume', url: '/api/v1/funds/feature-products?filter=top-selling&limit=3' },
+    { id: 'installment', name: 'Installment', description: 'Funds suitable for installment investment plans', url: '/api/v1/funds/feature-products?filter=installment&limit=3' },
+];
+const FEATURE_PRODUCT_BEST_SELLING_URL = '/api/v1/funds/feature-products?filter=best-selling&limit=10';
+const FEATURE_PRODUCT_MORE_LABEL = 'View Best selling fund list (10)';
 const STATIC_EPISODES: EpisodeItem[] = [
     { id: 'e1', title: 'Market Outlook Q2 2026',
         duration: '18 min', thumbnail: '📹',
@@ -254,7 +267,7 @@ class SDUISliceView extends ViewPU {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
                                 let componentCall = new SDUIHomeSearchHeader(this, { props: this.slice.props,
-                                    onSearchTap: () => { this.onSearchTap(); } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 142, col: 7 });
+                                    onSearchTap: () => { this.onSearchTap(); } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 152, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -276,7 +289,7 @@ class SDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIComboQuickAccess(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 145, col: 7 });
+                                let componentCall = new SDUIComboQuickAccess(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 155, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -299,7 +312,7 @@ class SDUISliceView extends ViewPU {
                             if (isInitialRender) {
                                 let componentCall = new 
                                 // Self-pick items have already been merged by WealthPageView before render
-                                SDUIComboQuickAccess(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 148, col: 7 });
+                                SDUIComboQuickAccess(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 158, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -320,7 +333,7 @@ class SDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUICardActivationBanner(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 150, col: 7 });
+                                let componentCall = new SDUICardActivationBanner(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 160, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -341,7 +354,7 @@ class SDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIQuestBanner(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 152, col: 7 });
+                                let componentCall = new SDUIQuestBanner(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 162, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -362,7 +375,7 @@ class SDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIFeatureProduct(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 154, col: 7 });
+                                let componentCall = new SDUIFeatureProduct(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 164, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -383,7 +396,7 @@ class SDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIWealthStudioCarousel(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 156, col: 7 });
+                                let componentCall = new SDUIWealthStudioCarousel(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 166, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -404,7 +417,7 @@ class SDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIGuidesInsights(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 158, col: 7 });
+                                let componentCall = new SDUIGuidesInsights(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 168, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -425,7 +438,7 @@ class SDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIFXWatchlist(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 160, col: 7 });
+                                let componentCall = new SDUIFXWatchlist(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 170, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -446,7 +459,7 @@ class SDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIDiscoverMore(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 162, col: 7 });
+                                let componentCall = new SDUIDiscoverMore(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 172, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -639,7 +652,7 @@ export class WealthPageView extends ViewPU {
                             if (isInitialRender) {
                                 let componentCall = new 
                                 // Minimal loading state — show header so page doesn't flash blank
-                                WHHomeSearchHeader(this, { onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 263, col: 13 });
+                                WHHomeSearchHeader(this, { onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 273, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -678,7 +691,7 @@ export class WealthPageView extends ViewPU {
                             {
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     if (isInitialRender) {
-                                        let componentCall = new SDUISliceView(this, { slice: slice, onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 272, col: 15 });
+                                        let componentCall = new SDUISliceView(this, { slice: slice, onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 282, col: 15 });
                                         ViewPU.create(componentCall);
                                         let paramsLambda = () => {
                                             return {
@@ -707,7 +720,7 @@ export class WealthPageView extends ViewPU {
                             if (isInitialRender) {
                                 let componentCall = new 
                                 // ── Static fallback: BFF not live yet (LOAD_IDLE or LOAD_ERROR) ─
-                                WHHomeSearchHeader(this, { onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 276, col: 13 });
+                                WHHomeSearchHeader(this, { onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 286, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -724,7 +737,7 @@ export class WealthPageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHComboQuickAccess(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 277, col: 13 });
+                                let componentCall = new WHComboQuickAccess(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 287, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -739,7 +752,7 @@ export class WealthPageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHCardActivationBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 278, col: 13 });
+                                let componentCall = new WHCardActivationBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 288, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -754,7 +767,7 @@ export class WealthPageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHQuestBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 279, col: 13 });
+                                let componentCall = new WHQuestBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 289, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -769,7 +782,7 @@ export class WealthPageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHFeatureProduct(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 280, col: 13 });
+                                let componentCall = new WHFeatureProduct(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 290, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -784,7 +797,7 @@ export class WealthPageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHWealthStudioCarousel(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 281, col: 13 });
+                                let componentCall = new WHWealthStudioCarousel(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 291, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -799,7 +812,7 @@ export class WealthPageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHGuidesInsights(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 282, col: 13 });
+                                let componentCall = new WHGuidesInsights(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 292, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -814,7 +827,7 @@ export class WealthPageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHFXWatchlist(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 283, col: 13 });
+                                let componentCall = new WHFXWatchlist(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 293, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -829,7 +842,7 @@ export class WealthPageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHDiscoverMore(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 284, col: 13 });
+                                let componentCall = new WHDiscoverMore(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 294, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -866,7 +879,7 @@ export class WealthPageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new AISearchPage(this, { onDismiss: () => { this.searchOpen = false; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 291, col: 9 });
+                                let componentCall = new AISearchPage(this, { onDismiss: () => { this.searchOpen = false; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/wealth/WealthPage.ets", line: 301, col: 9 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -1513,14 +1526,32 @@ class SDUIFeatureProduct extends ViewPU {
         this.__activeTab.set(newValue);
     }
     private sectionTitle(): string { return this.props['sectionTitle'] as string ?? 'Feature product'; }
-    private tabs(): string[] {
-        const raw: Array<string> = this.props['tabs'] as Array<string>;
+    private buttons(): FeatureProductButton[] {
+        const raw: Array<any> = this.props['buttons'] as Array<any>;
         if (raw && raw.length > 0) {
-            return raw;
+            return raw.map((item: any): FeatureProductButton => {
+                const r = item as Record<string, string>;
+                return {
+                    id: r['id'] ?? r['name'] ?? '',
+                    name: r['name'] ?? r['id'] ?? '',
+                    description: r['description'] ?? '',
+                    url: r['url'] ?? ''
+                };
+            });
         }
-        return ['All', 'Equity', 'Bond', 'Multi-Asset'];
+        const tabs: Array<string> = this.props['tabs'] as Array<string>;
+        if (tabs && tabs.length > 0) {
+            return tabs.map((tab: string): FeatureProductButton => ({ id: tab, name: tab, description: '', url: '' }));
+        }
+        return FEATURE_PRODUCT_BUTTONS;
     }
     private funds(): any[] { return this.props['funds'] as any[] ?? [] as any[]; }
+    private moreLabel(): string { return this.props['moreLabel'] as string ?? FEATURE_PRODUCT_MORE_LABEL; }
+    private bestSellingUrl(): string {
+        return this.props['bestSellingUrl'] as string ??
+            this.props['moreDeepLink'] as string ??
+            FEATURE_PRODUCT_BEST_SELLING_URL;
+    }
     private fundTags(fund: any): Array<string> {
         const tags: Array<string> = (fund as Record<string, any>)['tags'] as Array<string>;
         return tags ?? [];
@@ -1552,12 +1583,6 @@ class SDUIFeatureProduct extends ViewPU {
             Blank.layoutWeight(1);
         }, Blank);
         Blank.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('More ›');
-            Text.fontSize(12);
-            Text.fontColor('#DB0011');
-        }, Text);
-        Text.pop();
         // Section header
         Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1577,20 +1602,24 @@ class SDUIFeatureProduct extends ViewPU {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             ForEach.create();
             const forEachItemGenFunction = (_item, idx: number) => {
-                const tab = _item;
+                const button = _item;
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create(tab);
+                    Text.create(button.name);
                     Text.fontSize(12);
                     Text.fontWeight(this.activeTab === idx ? FontWeight.Bold : FontWeight.Normal);
-                    Text.fontColor(this.activeTab === idx ? Hive.Color.brandWhite : Hive.Color.n700);
+                    Text.fontColor(this.activeTab === idx ? Hive.Color.n900 : Hive.Color.n400);
                     Text.padding({ left: 14, right: 14, top: 6, bottom: 6 });
                     Text.borderRadius(16);
-                    Text.backgroundColor(this.activeTab === idx ? '#DB0011' : Hive.Color.n100);
-                    Text.onClick(() => { this.activeTab = idx; });
+                    Text.border({ width: this.activeTab === idx ? 1 : 0, color: this.activeTab === idx ? Hive.Color.n200 : '#00000000' });
+                    Text.backgroundColor(this.activeTab === idx ? Hive.Color.brandWhite : '#00000000');
+                    Text.onClick(() => {
+                        this.activeTab = idx;
+                        SensorDataClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product', button.name, button.url);
+                    });
                 }, Text);
                 Text.pop();
             };
-            this.forEachUpdateFunction(elmtId, this.tabs(), forEachItemGenFunction, undefined, true, false);
+            this.forEachUpdateFunction(elmtId, this.buttons(), forEachItemGenFunction, undefined, true, false);
         }, ForEach);
         ForEach.pop();
         Row.pop();
@@ -1697,6 +1726,16 @@ class SDUIFeatureProduct extends ViewPU {
         ForEach.pop();
         // Fund rows
         Column.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(`${this.moreLabel()} ›`);
+            Text.fontSize(13);
+            Text.fontColor(Hive.Color.n700);
+            Text.padding({ left: 16, right: 16, top: 10, bottom: 10 });
+            Text.onClick(() => {
+                SensorDataClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product', this.moreLabel(), this.bestSellingUrl());
+            });
+        }, Text);
+        Text.pop();
         Column.pop();
     }
     rerender() {
@@ -3280,16 +3319,12 @@ class WHFeatureProduct extends ViewPU {
             this.paramsGenerator_ = paramsLambda;
         }
         this.__activeTab = new ObservedPropertySimplePU(0, this, "activeTab");
-        this.fundTabs = ['All', 'Equity', 'Bond', 'Multi-Asset'];
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
     setInitiallyProvidedValue(params: WHFeatureProduct_Params) {
         if (params.activeTab !== undefined) {
             this.activeTab = params.activeTab;
-        }
-        if (params.fundTabs !== undefined) {
-            this.fundTabs = params.fundTabs;
         }
     }
     updateStateVars(params: WHFeatureProduct_Params) {
@@ -3309,7 +3344,6 @@ class WHFeatureProduct extends ViewPU {
     set activeTab(newValue: number) {
         this.__activeTab.set(newValue);
     }
-    private fundTabs: string[];
     aboutToAppear() {
         SensorDataClient.sliceImpression('FEATURE_PRODUCT', 'slice-feature-product', 4);
     }
@@ -3337,12 +3371,6 @@ class WHFeatureProduct extends ViewPU {
             Blank.layoutWeight(1);
         }, Blank);
         Blank.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('More ›');
-            Text.fontSize(12);
-            Text.fontColor('#DB0011');
-        }, Text);
-        Text.pop();
         Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Scroll.create();
@@ -3357,20 +3385,24 @@ class WHFeatureProduct extends ViewPU {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             ForEach.create();
             const forEachItemGenFunction = (_item, idx: number) => {
-                const tab = _item;
+                const button = _item;
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create(tab);
+                    Text.create(button.name);
                     Text.fontSize(12);
                     Text.fontWeight(this.activeTab === idx ? FontWeight.Bold : FontWeight.Normal);
-                    Text.fontColor(this.activeTab === idx ? Hive.Color.brandWhite : Hive.Color.n700);
+                    Text.fontColor(this.activeTab === idx ? Hive.Color.n900 : Hive.Color.n400);
                     Text.padding({ left: 14, right: 14, top: 6, bottom: 6 });
                     Text.borderRadius(16);
-                    Text.backgroundColor(this.activeTab === idx ? '#DB0011' : Hive.Color.n100);
-                    Text.onClick(() => { this.activeTab = idx; });
+                    Text.border({ width: this.activeTab === idx ? 1 : 0, color: this.activeTab === idx ? Hive.Color.n200 : '#00000000' });
+                    Text.backgroundColor(this.activeTab === idx ? Hive.Color.brandWhite : '#00000000');
+                    Text.onClick(() => {
+                        this.activeTab = idx;
+                        SensorDataClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product', button.name, button.url);
+                    });
                 }, Text);
                 Text.pop();
             };
-            this.forEachUpdateFunction(elmtId, this.fundTabs, forEachItemGenFunction, undefined, true, false);
+            this.forEachUpdateFunction(elmtId, FEATURE_PRODUCT_BUTTONS, forEachItemGenFunction, undefined, true, false);
         }, ForEach);
         ForEach.pop();
         Row.pop();
@@ -3470,6 +3502,16 @@ class WHFeatureProduct extends ViewPU {
         }, ForEach);
         ForEach.pop();
         Column.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(`${FEATURE_PRODUCT_MORE_LABEL} ›`);
+            Text.fontSize(13);
+            Text.fontColor(Hive.Color.n700);
+            Text.padding({ left: 16, right: 16, top: 10, bottom: 10 });
+            Text.onClick(() => {
+                SensorDataClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product', FEATURE_PRODUCT_MORE_LABEL, FEATURE_PRODUCT_BEST_SELLING_URL);
+            });
+        }, Text);
+        Text.pop();
         Column.pop();
     }
     rerender() {

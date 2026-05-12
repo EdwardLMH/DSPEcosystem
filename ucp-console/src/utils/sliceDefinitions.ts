@@ -51,8 +51,8 @@ export const SLICE_DEFINITIONS: Partial<Record<SliceType, SliceDefinition>> = {
   },
   FEATURE_PRODUCT: {
     type: 'FEATURE_PRODUCT', label: 'Feature Product (Fund List)', category: 'wealth', icon: '📊',
-    description: 'Tabbed fund list showing 1Y returns — Top performers / Top dividend…',
-    configurable: ['sectionTitle', 'tabs', 'activeTab', 'funds', 'moreLabel', 'moreDeepLink'], minHeight: 200,
+    description: 'Pill-button fund list showing 1Y returns with configurable filter URLs',
+    configurable: ['sectionTitle', 'buttons', 'activeButtonId', 'funds', 'moreLabel', 'moreDeepLink', 'bestSellingUrl'], minHeight: 200,
   },
   WEALTH_STUDIO_CAROUSEL: {
     type: 'WEALTH_STUDIO_CAROUSEL', label: 'Wealth Studio Carousel', category: 'wealth', icon: '🎬',

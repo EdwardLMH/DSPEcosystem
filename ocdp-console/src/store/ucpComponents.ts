@@ -93,9 +93,9 @@ export const PALETTE_COMPONENTS: PaletteComponent[] = [
     label: 'Feature Product (Fund List)',
     icon: '📊',
     category: 'wealth',
-    description: 'Tabbed fund list showing 1Y returns — Top performers / Top dividend / Top selling / Instalment',
+    description: 'Pill-button fund list showing 1Y returns with configurable filter URLs',
     minHeight: 200,
-    configurable: ['sectionTitle', 'tabs', 'activeTab', 'funds', 'moreLabel', 'moreDeepLink'],
+    configurable: ['sectionTitle', 'buttons', 'activeButtonId', 'funds', 'moreLabel', 'moreDeepLink', 'bestSellingUrl'],
   },
   {
     sliceType: 'WEALTH_STUDIO_CAROUSEL',

@@ -1197,20 +1197,23 @@ function SliceRow({ type, props, segment }: { type: string; props?: Record<strin
 
   if (type === 'FEATURE_PRODUCT') {
     const funds = Array.isArray(p.funds) ? p.funds as { id: string; name: string; code: string; returnLabel: string; returnValue: string; returnPositive: boolean; tags: string[] }[] : [];
-    const tabs = Array.isArray(p.tabs) ? p.tabs as string[] : [];
+    const buttons: { id: string; name: string; description?: string; url?: string }[] = Array.isArray(p.buttons) && p.buttons.length > 0
+      ? p.buttons as { id: string; name: string; description?: string; url?: string }[]
+      : (Array.isArray(p.tabs) ? (p.tabs as string[]).map(tab => ({ id: tab, name: tab })) : []);
+    const activeButtonId = String(p.activeButtonId ?? p.activeTab ?? buttons[0]?.id ?? '');
     return (
       <div style={{ background: '#fff', padding: '10px 0', flexShrink: 0 }}>
         <div style={{ padding: '0 12px', fontWeight: 700, fontSize: 11, color: '#111', marginBottom: 8 }}>{String(p.sectionTitle ?? 'Feature product')}</div>
         <div style={{ padding: '0 10px', display: 'flex', gap: 6, marginBottom: 8, overflowX: 'auto' as const }}>
-          {tabs.map((tab, i) => (
-            <div key={i} style={{
-              padding: '4px 10px', borderRadius: 16, fontSize: 8, fontWeight: tab === String(p.activeTab) ? 700 : 400, whiteSpace: 'nowrap' as const,
-              background: tab === String(p.activeTab) ? '#fff' : 'transparent',
-              color: tab === String(p.activeTab) ? '#111' : '#9CA3AF',
-              border: tab === String(p.activeTab) ? '1px solid #E5E7EB' : '1px solid transparent',
-              boxShadow: tab === String(p.activeTab) ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+          {buttons.map((button, i) => (
+            <div key={button.id || i} title={button.description} style={{
+              padding: '4px 10px', borderRadius: 16, fontSize: 8, fontWeight: button.id === activeButtonId || button.name === activeButtonId ? 700 : 400, whiteSpace: 'nowrap' as const,
+              background: button.id === activeButtonId || button.name === activeButtonId ? '#fff' : 'transparent',
+              color: button.id === activeButtonId || button.name === activeButtonId ? '#111' : '#9CA3AF',
+              border: button.id === activeButtonId || button.name === activeButtonId ? '1px solid #E5E7EB' : '1px solid transparent',
+              boxShadow: button.id === activeButtonId || button.name === activeButtonId ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
             }}>
-              {tab}
+              {button.name}
             </div>
           ))}
         </div>
@@ -1750,6 +1753,7 @@ interface DevicePreviewProps {
 }
 
 export function DevicePreview({ channel, slices, pageName, description, webSlug }: DevicePreviewProps) {
+  const [simChannel, setSimChannel] = useState<Channel>(channel);
   const [selectedDeviceId, setSelectedDeviceId] = useState(() => {
     if (channel === 'SDUI') return SDUI_DEVICES[0].id;
     if (channel === 'WEB_STANDARD') return 'web';
@@ -1767,8 +1771,37 @@ export function DevicePreview({ channel, slices, pageName, description, webSlug 
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Simulator Channel</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {([
+            { value: 'SDUI' as Channel, label: 'Mobile SDUI', icon: '📱' },
+            { value: 'WEB_STANDARD' as Channel, label: 'Web Standard', icon: '🌐' },
+            { value: 'WEB_WECHAT' as Channel, label: 'Web H5', icon: '💬' },
+          ]).map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => {
+                setSimChannel(opt.value);
+                if (opt.value === 'SDUI') setSelectedDeviceId(SDUI_DEVICES[0].id);
+                if (opt.value === 'WEB_STANDARD') setSelectedDeviceId('web');
+                if (opt.value === 'WEB_WECHAT') setSelectedDeviceId('wechat_browser');
+              }}
+              style={{
+                padding: '5px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                background: simChannel === opt.value ? '#1A1A1A' : '#F3F4F6',
+                color: simChannel === opt.value ? '#fff' : '#374151',
+                border: simChannel === opt.value ? '1px solid #1A1A1A' : '1px solid #E5E7EB',
+              }}
+            >
+              {opt.icon} {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Device picker */}
-      {channel === 'SDUI' && (
+      {simChannel === 'SDUI' && (
         <div>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Device</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -1796,7 +1829,7 @@ export function DevicePreview({ channel, slices, pageName, description, webSlug 
         </div>
       )}
 
-      {channel === 'WEB_WECHAT' && (
+      {simChannel === 'WEB_WECHAT' && (
         <div>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>View</div>
           <div style={{ display: 'flex', gap: 6 }}>
@@ -1815,7 +1848,7 @@ export function DevicePreview({ channel, slices, pageName, description, webSlug 
       )}
 
       {/* Segment picker — only shown when page has HOME_SEARCH_HEADER */}
-      {hasSearchHeader && channel === 'SDUI' && (
+      {hasSearchHeader && simChannel === 'SDUI' && (
         <div>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Segment Preview</div>
           <div style={{ display: 'flex', gap: 6 }}>
@@ -1836,20 +1869,20 @@ export function DevicePreview({ channel, slices, pageName, description, webSlug 
 
       {/* Render */}
       <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
-        {channel === 'SDUI' && (() => {
+        {simChannel === 'SDUI' && (() => {
           const dev = SDUI_DEVICES.find(d => d.id === selectedDeviceId) ?? SDUI_DEVICES[0];
           return <PhoneFrame device={dev} slices={slices} segment={previewSegment} />;
         })()}
 
-        {channel === 'WEB_STANDARD' && (
+        {simChannel === 'WEB_STANDARD' && (
           <WebBrowserFrame slices={slices} webSlug={webSlug} />
         )}
 
-        {channel === 'WEB_WECHAT' && selectedDeviceId === 'wechat_browser' && (
+        {simChannel === 'WEB_WECHAT' && selectedDeviceId === 'wechat_browser' && (
           <WeChatBrowserFrame slices={slices} pageName={pageName} />
         )}
 
-        {channel === 'WEB_WECHAT' && selectedDeviceId === 'wechat_card' && (
+        {simChannel === 'WEB_WECHAT' && selectedDeviceId === 'wechat_card' && (
           <WeChatServiceAccountCard pageName={pageName} description={description} />
         )}
       </div>

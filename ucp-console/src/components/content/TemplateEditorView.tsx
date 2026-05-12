@@ -42,7 +42,21 @@ function defaultPropsFor(t: string): Record<string, unknown> {
     WEALTH_SELECTION: { sectionTitle: 'Wealth Products', products: [], moreDeepLink: '' },
     FEATURED_RANKINGS: { sectionTitle: 'Top Funds', items: [], moreDeepLink: '' },
     FX_WATCHLIST: { sectionTitle: 'FX Watchlist', tierBadge: 'Gold Forex Club', tierDescription: '15% Spread discount applied.', pairs: [], moreLabel: 'View more', moreDeepLink: 'hsbc://fx' },
-    FEATURE_PRODUCT: { sectionTitle: 'Feature product', activeTab: 'Top performers', moreLabel: 'View list', moreDeepLink: 'hsbc://funds', funds: [], tabs: [] },
+    FEATURE_PRODUCT: {
+      sectionTitle: 'Feature product',
+      activeButtonId: 'top-performers',
+      buttons: [
+        { id: 'top-performers', name: 'Top performers', description: 'Top 3 funds by 1Y return', url: '/api/v1/funds/feature-products?filter=top-performers&limit=3' },
+        { id: 'top-dividend', name: 'Top dividend', description: 'Income funds with higher dividend profile', url: '/api/v1/funds/feature-products?filter=top-dividend&limit=3' },
+        { id: 'top-selling', name: 'Top selling', description: 'Best selling funds by subscription volume', url: '/api/v1/funds/feature-products?filter=top-selling&limit=3' },
+        { id: 'installment', name: 'Installment', description: 'Funds suitable for installment investment plans', url: '/api/v1/funds/feature-products?filter=installment&limit=3' },
+      ],
+      moreLabel: 'View Best selling fund list (10)',
+      moreDeepLink: 'hsbc://funds/best-selling',
+      bestSellingUrl: '/api/v1/funds/feature-products?filter=best-selling&limit=10',
+      funds: [],
+      tabs: [],
+    },
     WEALTH_STUDIO_CAROUSEL: { sectionTitle: 'Premier Elite Wealth Studio', items: [], moreLabel: 'View all', moreDeepLink: 'hsbc://wealth-studio' },
     GUIDES_INSIGHTS_CAROUSEL: { sectionTitle: 'Guides and insights', items: [], moreLabel: 'View all', moreDeepLink: 'hsbc://guides' },
     DISCOVER_MORE_CAROUSEL: { sectionTitle: 'Discover more', items: [] },
@@ -88,7 +102,7 @@ const PROP_FIELDS: Record<string, PF[]> = {
   WEALTH_SELECTION: [{ key: 'sectionTitle', label: 'Section Title', type: 'text', placeholder: 'Wealth Products' }, { key: 'moreDeepLink', label: 'More Deep Link', type: 'url', placeholder: 'hsbc://...' }],
   FEATURED_RANKINGS: [{ key: 'sectionTitle', label: 'Section Title', type: 'text', placeholder: 'Top Funds' }, { key: 'moreDeepLink', label: 'More Deep Link', type: 'url', placeholder: 'hsbc://...' }],
   FX_WATCHLIST: [{ key: 'sectionTitle', label: 'Section Title', type: 'text', placeholder: 'FX Watchlist' }, { key: 'tierBadge', label: 'Tier Badge', type: 'text', placeholder: 'Gold Forex Club' }, { key: 'tierDescription', label: 'Tier Description', type: 'textarea', placeholder: '15% Spread discount.' }, { key: 'moreLabel', label: 'More Label', type: 'text', placeholder: 'View more' }, { key: 'moreDeepLink', label: 'More Deep Link', type: 'url', placeholder: 'hsbc://fx' }],
-  FEATURE_PRODUCT: [{ key: 'sectionTitle', label: 'Section Title', type: 'text', placeholder: 'Feature product' }, { key: 'moreLabel', label: 'More Label', type: 'text', placeholder: 'View list' }, { key: 'moreDeepLink', label: 'More Deep Link', type: 'url', placeholder: 'hsbc://funds' }],
+  FEATURE_PRODUCT: [{ key: 'sectionTitle', label: 'Section Title', type: 'text', placeholder: 'Feature product' }, { key: 'activeButtonId', label: 'Default Button ID', type: 'text', placeholder: 'top-performers' }, { key: 'moreLabel', label: 'More Label', type: 'text', placeholder: 'View Best selling fund list (10)' }, { key: 'moreDeepLink', label: 'More Deep Link', type: 'url', placeholder: 'hsbc://funds/best-selling' }, { key: 'bestSellingUrl', label: 'Best Selling Data URL', type: 'url', placeholder: '/api/v1/funds/feature-products?filter=best-selling&limit=10' }],
   WEALTH_STUDIO_CAROUSEL: [{ key: 'sectionTitle', label: 'Section Title', type: 'text', placeholder: 'Wealth Studio' }, { key: 'moreLabel', label: 'More Label', type: 'text', placeholder: 'View all' }, { key: 'moreDeepLink', label: 'More Deep Link', type: 'url', placeholder: 'hsbc://wealth-studio' }],
   GUIDES_INSIGHTS_CAROUSEL: [{ key: 'sectionTitle', label: 'Section Title', type: 'text', placeholder: 'Guides and insights' }, { key: 'moreLabel', label: 'More Label', type: 'text', placeholder: 'View all' }, { key: 'moreDeepLink', label: 'More Deep Link', type: 'url', placeholder: 'hsbc://guides' }],
   DISCOVER_MORE_CAROUSEL: [{ key: 'sectionTitle', label: 'Section Title', type: 'text', placeholder: 'Discover more' }],
@@ -133,6 +147,35 @@ function PropInput({ field, value, onChange }: { field: PF; value: unknown; onCh
     );
   }
   return <input type="text" value={String(value ?? '')} onChange={e => onChange(e.target.value)} placeholder={field.placeholder} style={inp} />;
+}
+
+type FeatureProductButton = { id: string; name: string; description: string; url: string };
+
+function FeatureProductButtonsEditor({ buttons, onChange }: { buttons: FeatureProductButton[]; onChange: (buttons: FeatureProductButton[]) => void }) {
+  const input: React.CSSProperties = { width: '100%', padding: '5px 8px', border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 11, fontFamily: 'var(--font-family)', boxSizing: 'border-box' };
+  const update = (idx: number, patch: Partial<FeatureProductButton>) => onChange(buttons.map((button, i) => i === idx ? { ...button, ...patch } : button));
+  const remove = (idx: number) => onChange(buttons.filter((_, i) => i !== idx));
+  const add = () => onChange([...buttons, { id: `button-${buttons.length + 1}`, name: 'New button', description: '', url: '/api/v1/funds/feature-products?filter=new&limit=3' }]);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {buttons.map((button, idx) => (
+        <div key={`${button.id}-${idx}`} style={{ padding: 8, border: '1px solid #E5E7EB', borderRadius: 7, background: '#F9FAFB' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#111' }}>Pill button {idx + 1}</div>
+            <button onClick={() => remove(idx)} style={{ border: 'none', background: 'transparent', color: '#DC2626', fontSize: 11, cursor: 'pointer' }}>Delete</button>
+          </div>
+          <div style={{ display: 'grid', gap: 6 }}>
+            <input value={button.id} onChange={e => update(idx, { id: e.target.value })} placeholder="id" style={input} />
+            <input value={button.name} onChange={e => update(idx, { name: e.target.value })} placeholder="Name" style={input} />
+            <textarea value={button.description} onChange={e => update(idx, { description: e.target.value })} placeholder="Description" rows={2} style={{ ...input, resize: 'vertical' }} />
+            <input value={button.url} onChange={e => update(idx, { url: e.target.value })} placeholder="Filter URL" style={input} />
+          </div>
+        </div>
+      ))}
+      <button onClick={add} style={{ padding: '7px 10px', border: '1px dashed #D1D5DB', borderRadius: 7, background: '#fff', color: '#374151', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>+ Add pill button</button>
+    </div>
+  );
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -554,6 +597,15 @@ function TemplateEditorInner({ template }: { template: PageTemplate }) {
                       </div>
                     ))}
                   </div>
+                  {selectedSlice.type === 'FEATURE_PRODUCT' && (
+                    <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 6 }}>Pill Buttons</div>
+                      <FeatureProductButtonsEditor
+                        buttons={Array.isArray((selectedSlice.props as Record<string, unknown>).buttons) ? (selectedSlice.props as Record<string, unknown>).buttons as FeatureProductButton[] : []}
+                        onChange={buttons => { if (selectedIdx !== null) updateProp(selectedIdx, 'buttons', buttons); }}
+                      />
+                    </div>
+                  )}
                   {/* Locked toggle */}
                   <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
                     <div style={{ fontSize: 11, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Locked</div>

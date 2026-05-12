@@ -321,8 +321,8 @@ export function SliceBlockPreview({ slice }: { slice: PageTemplateStarterSlice }
     <div style={{ padding: '8px 12px', background: '#fff' }}>
       <div style={{ fontWeight: 700, fontSize: 11, marginBottom: 6 }}>{s(p.sectionTitle, 'Feature product')}</div>
       <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
-        {['Top performers', 'Top dividend'].map((tab, i) => (
-          <div key={i} style={{ fontSize: 9, padding: '3px 8px', borderRadius: 12, background: i === 0 ? '#DB0011' : '#F3F4F6', color: i === 0 ? '#fff' : '#6B7280', fontWeight: 600 }}>{tab}</div>
+        {(Array.isArray(p.buttons) && p.buttons.length > 0 ? p.buttons : ['Top performers', 'Top dividend'].map(name => ({ name }))).slice(0, 3).map((button: any, i: number) => (
+          <div key={button.id ?? button.name ?? i} style={{ fontSize: 9, padding: '3px 8px', borderRadius: 12, background: i === 0 ? '#fff' : 'transparent', color: i === 0 ? '#111' : '#9CA3AF', fontWeight: i === 0 ? 700 : 500, border: i === 0 ? '1px solid #E5E7EB' : '1px solid transparent', boxShadow: i === 0 ? '0 1px 3px rgba(0,0,0,0.12)' : 'none' }}>{button.name}</div>
         ))}
       </div>
       {[{ n: 'Tech Growth ETF', r: '+18.2%' }, { n: 'HK Blue Chip', r: '+7.4%' }].map((it, i) => (

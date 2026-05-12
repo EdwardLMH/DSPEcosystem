@@ -1170,21 +1170,24 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
 
     case 'FEATURE_PRODUCT': {
       const funds = Array.isArray(p.funds) ? p.funds as { id: string; name: string; code: string; returnLabel: string; returnValue: string; returnPositive: boolean; tags: string[] }[] : [];
-      const tabs  = Array.isArray(p.tabs) ? p.tabs as string[] : [];
+      const buttons = Array.isArray(p.buttons) && p.buttons.length > 0
+        ? p.buttons as FeatureProductButton[]
+        : (Array.isArray(p.tabs) ? (p.tabs as string[]).map(tab => ({ id: tab, name: tab, description: '', url: '' })) : []);
+      const activeButtonId = String(p.activeButtonId ?? p.activeTab ?? buttons[0]?.id ?? '');
       return (
         <div style={{ ...base, background: '#fff', padding: '10px 0' }}>
           <div style={{ padding: '0 12px', fontWeight: 700, fontSize: 12, color: '#111', marginBottom: 8 }}>{String(p.sectionTitle ?? 'Feature product')}</div>
           <div style={{ padding: '0 10px', display: 'flex', gap: 6, marginBottom: 8, overflowX: 'hidden' }}>
-            {tabs.map((tab, i) => (
-              <div key={i} style={{
+            {buttons.map((button, i) => (
+              <div key={button.id || i} title={button.description} style={{
                 padding: '3px 9px', borderRadius: 14, fontSize: 9,
-                fontWeight: tab === String(p.activeTab) ? 700 : 400,
-                background: tab === String(p.activeTab) ? '#fff' : 'transparent',
-                color: tab === String(p.activeTab) ? '#111' : '#9CA3AF',
-                border: tab === String(p.activeTab) ? '1px solid #E5E7EB' : '1px solid transparent',
-                boxShadow: tab === String(p.activeTab) ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                fontWeight: button.id === activeButtonId || button.name === activeButtonId ? 700 : 400,
+                background: button.id === activeButtonId || button.name === activeButtonId ? '#fff' : 'transparent',
+                color: button.id === activeButtonId || button.name === activeButtonId ? '#111' : '#9CA3AF',
+                border: button.id === activeButtonId || button.name === activeButtonId ? '1px solid #E5E7EB' : '1px solid transparent',
+                boxShadow: button.id === activeButtonId || button.name === activeButtonId ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                 whiteSpace: 'nowrap' as const,
-              }}>{tab}</div>
+              }}>{button.name}</div>
             ))}
           </div>
           {funds.map((fund, i) => (
@@ -1809,6 +1812,7 @@ interface PropField {
 }
 
 type ListKey = 'items' | 'rows' | 'bulletPoints' | 'products' | 'deals';
+type FeatureProductButton = { id: string; name: string; description: string; url: string };
 
 const SLICE_PROP_FIELDS: Partial<Record<string, PropField[]>> = {
   HEADER_NAV: [
@@ -1874,14 +1878,10 @@ const SLICE_PROP_FIELDS: Partial<Record<string, PropField[]>> = {
   ],
   FEATURE_PRODUCT: [
     { key: 'sectionTitle',  label: 'Section Title',   type: 'text', placeholder: 'Feature product' },
-    { key: 'activeTab',     label: 'Active Tab',      type: 'select', options: [
-      { value: 'Top performers', label: 'Top performers' },
-      { value: 'Top dividend',   label: 'Top dividend' },
-      { value: 'Top selling',    label: 'Top selling' },
-      { value: 'Instalment',     label: 'Instalment' },
-    ]},
+    { key: 'activeButtonId', label: 'Default Button ID', type: 'text', placeholder: 'top-performers' },
     { key: 'moreLabel',     label: 'More Link Label', type: 'text', placeholder: 'View Best selling fund list (10)' },
     { key: 'moreDeepLink',  label: 'More Deep Link',  type: 'url',  placeholder: 'hsbc://funds/best-selling' },
+    { key: 'bestSellingUrl', label: 'Best Selling Data URL', type: 'url', placeholder: '/api/v1/funds/feature-products?filter=best-selling&limit=10' },
   ],
   WEALTH_STUDIO_CAROUSEL: [
     { key: 'sectionTitle', label: 'Section Title',   type: 'text',   placeholder: 'Premier Elite Wealth Studio' },
@@ -2204,6 +2204,40 @@ function BulletPointsEditor({ points, onChange }: {
         onClick={add}
         style={{ padding: '5px 10px', border: '1px dashed #D1D5DB', borderRadius: 6, background: '#F9FAFB', color: '#6B7280', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}
       >+ Add bullet</button>
+    </div>
+  );
+}
+
+function FeatureProductButtonsEditor({ buttons, onChange }: {
+  buttons: FeatureProductButton[];
+  onChange: (buttons: FeatureProductButton[]) => void;
+}) {
+  const input: React.CSSProperties = {
+    width: '100%', boxSizing: 'border-box', padding: '5px 8px', borderRadius: 5,
+    border: '1px solid #D1D5DB', background: '#fff', color: '#111', fontSize: 12,
+    outline: 'none', fontFamily: 'var(--font-family)',
+  };
+  const update = (idx: number, patch: Partial<FeatureProductButton>) => onChange(buttons.map((button, i) => i === idx ? { ...button, ...patch } : button));
+  const remove = (idx: number) => onChange(buttons.filter((_, i) => i !== idx));
+  const add = () => onChange([...buttons, { id: `button-${buttons.length + 1}`, name: 'New button', description: '', url: '/api/v1/funds/feature-products?filter=new&limit=3' }]);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {buttons.map((button, idx) => (
+        <div key={`${button.id}-${idx}`} style={{ padding: 8, border: '1px solid #E5E7EB', borderRadius: 7, background: '#F9FAFB' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#111' }}>Pill button {idx + 1}</div>
+            <button onClick={() => remove(idx)} style={{ border: 'none', background: 'transparent', color: '#DC2626', fontSize: 11, cursor: 'pointer' }}>Delete</button>
+          </div>
+          <div style={{ display: 'grid', gap: 6 }}>
+            <input value={button.id} onChange={e => update(idx, { id: e.target.value })} placeholder="id" style={input} />
+            <input value={button.name} onChange={e => update(idx, { name: e.target.value })} placeholder="Name" style={input} />
+            <textarea value={button.description} onChange={e => update(idx, { description: e.target.value })} placeholder="Description" rows={2} style={{ ...input, resize: 'vertical' }} />
+            <input value={button.url} onChange={e => update(idx, { url: e.target.value })} placeholder="Filter URL" style={input} />
+          </div>
+        </div>
+      ))}
+      <button onClick={add} style={{ padding: '7px 10px', border: '1px dashed #D1D5DB', borderRadius: 7, background: '#fff', color: '#374151', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>+ Add pill button</button>
     </div>
   );
 }
@@ -3013,6 +3047,20 @@ function SlicePropEditor({ slice, readOnly, onPropChange, onDeselect, activeLoca
               <FunctionGridEditor
                 rows={(props.rows as GridRow[]) ?? []}
                 onChange={rows => onPropChange('rows', rows)}
+              />
+            )}
+          </div>
+        )}
+
+        {slice.type === 'FEATURE_PRODUCT' && (
+          <div style={fieldRow}>
+            <div style={sectionHead}>Pill Buttons</div>
+            {readOnly ? (
+              <div style={{ fontSize: 11, color: '#6B7280' }}>{((props.buttons as FeatureProductButton[]) ?? []).length} button(s)</div>
+            ) : (
+              <FeatureProductButtonsEditor
+                buttons={Array.isArray(props.buttons) ? props.buttons as FeatureProductButton[] : []}
+                onChange={buttons => onPropChange('buttons', buttons)}
               />
             )}
           </div>
@@ -4065,12 +4113,20 @@ export function PageEditorView() {
       sectionTitle: 'Feature product',
       tabs: ['Top performers', 'Top dividend', 'Top selling', 'Instalment'],
       activeTab: 'Top performers',
+      activeButtonId: 'top-performers',
+      buttons: [
+        { id: 'top-performers', name: 'Top performers', description: 'Top 3 funds by 1Y return', url: '/api/v1/funds/feature-products?filter=top-performers&limit=3' },
+        { id: 'top-dividend', name: 'Top dividend', description: 'Income funds with higher dividend profile', url: '/api/v1/funds/feature-products?filter=top-dividend&limit=3' },
+        { id: 'top-selling', name: 'Top selling', description: 'Best selling funds by subscription volume', url: '/api/v1/funds/feature-products?filter=top-selling&limit=3' },
+        { id: 'installment', name: 'Installment', description: 'Funds suitable for installment investment plans', url: '/api/v1/funds/feature-products?filter=installment&limit=3' },
+      ],
       funds: [
         { id: 'fp-1', name: 'AB SICAV I - LOW VOLATILITY EQUITY PORTFOLIO CLASS AD S...', code: 'U43120', returnLabel: '1Y return', returnValue: '+54.79%', returnPositive: true, tags: [] },
         { id: 'fp-2', name: 'HANG SENG INDEX FUND CLASS A (HKD)', code: 'U42272', returnLabel: '1Y return', returnValue: '+18.10%', returnPositive: true, tags: ['ESG'] },
       ],
       moreLabel: 'View Best selling fund list (10)',
       moreDeepLink: 'hsbc://funds/best-selling',
+      bestSellingUrl: '/api/v1/funds/feature-products?filter=best-selling&limit=10',
     });
     if (comp.sliceType === 'WEALTH_STUDIO_CAROUSEL') Object.assign(defaultProps, {
       sectionTitle: 'Premier Elite Wealth Studio',

@@ -324,6 +324,13 @@ private let defaultFeatureProductProps: [String: JSONValue] = [
     "sectionTitle": .string("Feature product"),
     "tabs":         .array([.string("Top performers"), .string("Top dividend"), .string("Top selling"), .string("Instalment")]),
     "activeTab":    .string("Top performers"),
+    "activeButtonId": .string("top-performers"),
+    "buttons": .array([
+        .object(["id": .string("top-performers"), "name": .string("Top performers"), "description": .string("Top 3 funds by 1Y return"), "url": .string("/api/v1/funds/feature-products?filter=top-performers&limit=3")]),
+        .object(["id": .string("top-dividend"), "name": .string("Top dividend"), "description": .string("Income funds with higher dividend profile"), "url": .string("/api/v1/funds/feature-products?filter=top-dividend&limit=3")]),
+        .object(["id": .string("top-selling"), "name": .string("Top selling"), "description": .string("Best selling funds by subscription volume"), "url": .string("/api/v1/funds/feature-products?filter=top-selling&limit=3")]),
+        .object(["id": .string("installment"), "name": .string("Installment"), "description": .string("Funds suitable for installment investment plans"), "url": .string("/api/v1/funds/feature-products?filter=installment&limit=3")]),
+    ]),
     "funds": .array([
         .object(["id": .string("fp-1"), "name": .string("AB SICAV I - LOW VOLATILITY EQUITY PORTFOLIO CLASS AD S..."),
                  "code": .string("U43120"), "returnLabel": .string("1Y return"), "returnValue": .string("+54.79%"),
@@ -337,6 +344,7 @@ private let defaultFeatureProductProps: [String: JSONValue] = [
     ]),
     "moreLabel":    .string("View Best selling fund list (10)"),
     "moreDeepLink": .string("hsbc://funds/best-selling"),
+    "bestSellingUrl": .string("/api/v1/funds/feature-products?filter=best-selling&limit=10"),
 ]
 
 private let defaultWealthStudioProps: [String: JSONValue] = [
@@ -671,9 +679,13 @@ private struct FundItem: Identifiable {
     let returnPositive: Bool; let tags: [String]
 }
 
+private struct FeatureProductButton: Identifiable {
+    let id: String; let name: String; let description: String; let url: String
+}
+
 private struct WHFeatureProduct: View {
     let props: [String: JSONValue]
-    @State private var selectedTab: String = ""
+    @State private var selectedButtonId: String = ""
 
     private func parseFunds() -> [FundItem] {
         props["funds"]?.arrayValue.compactMap { v -> FundItem? in
@@ -691,11 +703,30 @@ private struct WHFeatureProduct: View {
         } ?? []
     }
 
+    private func parseButtons() -> [FeatureProductButton] {
+        let parsed = props["buttons"]?.arrayValue.compactMap { v -> FeatureProductButton? in
+            let o = v.objectValue
+            guard let id = o["id"]?.stringValue, !id.isEmpty else { return nil }
+            return FeatureProductButton(
+                id: id,
+                name: o["name"]?.stringValue ?? id,
+                description: o["description"]?.stringValue ?? "",
+                url: o["url"]?.stringValue ?? ""
+            )
+        } ?? []
+        if !parsed.isEmpty { return parsed }
+        return (props["tabs"]?.arrayValue.map { $0.stringValue } ?? []).map {
+            FeatureProductButton(id: $0, name: $0, description: "", url: "")
+        }
+    }
+
     var body: some View {
-        let tabs  = props["tabs"]?.arrayValue.map { $0.stringValue } ?? []
+        let buttons = parseButtons()
         let funds = parseFunds()
-        let activeTab = selectedTab.isEmpty ? (props["activeTab"]?.stringValue ?? tabs.first ?? "") : selectedTab
+        let defaultButtonId = props["activeButtonId"]?.stringValue ?? props["activeTab"]?.stringValue ?? buttons.first?.id ?? ""
+        let activeButtonId = selectedButtonId.isEmpty ? defaultButtonId : selectedButtonId
         let moreLabel = props["moreLabel"]?.stringValue ?? "View more"
+        let moreLink = props["bestSellingUrl"]?.stringValue ?? props["moreDeepLink"]?.stringValue ?? ""
 
         VStack(alignment: .leading, spacing: 0) {
             // Section title
@@ -708,19 +739,24 @@ private struct WHFeatureProduct: View {
             // Tab strip
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
-                    ForEach(tabs, id: \.self) { tab in
-                        Text(tab)
-                            .font(.system(size: 11, weight: tab == activeTab ? .bold : .regular))
+                    ForEach(buttons) { button in
+                        let isActive = button.id == activeButtonId || button.name == activeButtonId
+                        Text(button.name)
+                            .font(.system(size: 11, weight: isActive ? .bold : .regular))
                             .padding(.horizontal, 12).padding(.vertical, 5)
-                            .background(tab == activeTab ? Hive.Color.brandWhite : Color.clear)
-                            .foregroundColor(tab == activeTab ? Hive.Color.n900 : Hive.Color.n400)
+                            .background(isActive ? Hive.Color.brandWhite : Color.clear)
+                            .foregroundColor(isActive ? Hive.Color.n900 : Hive.Color.n400)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 14)
-                                    .stroke(tab == activeTab ? Hive.Color.n200 : Color.clear, lineWidth: 1)
+                                    .stroke(isActive ? Hive.Color.n200 : Color.clear, lineWidth: 1)
                             )
                             .cornerRadius(14)
-                            .shadow(color: tab == activeTab ? .black.opacity(0.06) : .clear, radius: 3, y: 1)
-                            .onTapGesture { selectedTab = tab }
+                            .shadow(color: isActive ? .black.opacity(0.06) : .clear, radius: 3, y: 1)
+                            .onTapGesture {
+                                selectedButtonId = button.id
+                                TealiumClient.sliceTapped(sliceType: "FEATURE_PRODUCT",
+                                    instanceId: "slice-feature-product", ctaLabel: button.name, deepLink: button.url)
+                            }
                     }
                 }
                 .padding(.horizontal, 12)
@@ -777,14 +813,14 @@ private struct WHFeatureProduct: View {
                 }
                 .padding(.horizontal, 14).padding(.vertical, 10)
                 .onTapGesture {
-                    TealiumClient.track(event: "feature_product_more_tap", category: "Wealth",
-                        action: "feature_product_more_tapped", screen: "wealth_hub_hk", journey: "wealth_hub")
+                    TealiumClient.sliceTapped(sliceType: "FEATURE_PRODUCT",
+                        instanceId: "slice-feature-product", ctaLabel: moreLabel, deepLink: moreLink)
                 }
             }
         }
         .background(Hive.Color.brandWhite)
         .onAppear {
-            if selectedTab.isEmpty { selectedTab = props["activeTab"]?.stringValue ?? "" }
+            if selectedButtonId.isEmpty { selectedButtonId = props["activeButtonId"]?.stringValue ?? props["activeTab"]?.stringValue ?? "" }
             TealiumClient.sliceImpression(sliceType: "FEATURE_PRODUCT",
                 instanceId: "slice-feature-product", position: 4)
         }
