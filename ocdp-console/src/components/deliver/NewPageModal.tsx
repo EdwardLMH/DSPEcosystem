@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useOCDP } from '../../store/OCDPStore';
-import type { Channel, BizLineId, NativeTarget, PageTemplate } from '../../types/ocdp';
+import type { Channel, BizLineId, NativeTarget, PageLayout, PageTemplate } from '../../types/ocdp';
 
 const CHANNELS: { value: Channel; label: string; icon: string; desc: string }[] = [
   { value: 'SDUI',         label: 'SDUI',         icon: '📱', desc: 'JSON-driven — rendered by mobile native & web clients' },
@@ -116,11 +116,18 @@ export function NewPageModal() {
 
   function handleCreate() {
     const groupId = state.currentUser.groupId;
+    const starterSlices: PageLayout['slices'] = (selectedTemplate?.starterSlices ?? []).map((slice, index) => ({
+      instanceId: `starter-${slice.type.toLowerCase()}-${index + 1}`,
+      type: slice.type as PageLayout['slices'][number]['type'],
+      props: slice.props,
+      visible: true,
+      locked: !!slice.locked,
+    }));
     dispatch({
       type: 'CREATE_PAGE',
       page: {
         name: name.trim(),
-        pageType: 'CUSTOM',
+        pageType: selectedTemplate?.templateId === 'tpl-announcement-overlay' ? 'ANNOUNCEMENT' : 'CUSTOM',
         pageTemplateId: templateId || undefined,
         description: description.trim() || selectedTemplate?.description || undefined,
         nativeTargets: channel === 'SDUI' ? nativeTargets : [],
@@ -133,8 +140,9 @@ export function NewPageModal() {
         scope,
         marketId,
         releaseMarketIds: releaseIds.length ? releaseIds : [marketId],
-        thumbnail: channel === 'SDUI' ? '📱' : channel === 'WEB_WECHAT' ? '💬' : '🌐',
+        thumbnail: selectedTemplate?.icon ?? (channel === 'SDUI' ? '📱' : channel === 'WEB_WECHAT' ? '💬' : '🌐'),
         tags: [],
+        slices: starterSlices,
         ...(channel === 'WEB_STANDARD' ? { webSlug, webMetaTitle: webTitle, webMetaDescription: webDesc, isPublic } : {}),
         ...(channel === 'SDUI' && nativeTargets.includes('web') ? { isPublic } : {}),
         ...(channel === 'WEB_WECHAT'   ? { wechatPageUrl: wcPageUrl, wechatShareTitle: wcShareTitle } : {}),

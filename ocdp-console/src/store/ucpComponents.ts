@@ -215,6 +215,44 @@ export const PALETTE_COMPONENTS: PaletteComponent[] = [
     minHeight: 200,
     configurable: ['sectionTitle', 'items'],
   },
+  // ── Announcement components ────────────────────────────────────────────────
+  {
+    sliceType: 'ANNOUNCEMENT_OVERLAY',
+    label: 'Announcement Overlay',
+    icon: '📣',
+    category: 'notice',
+    description: 'Full-screen dimmed announcement shell with configurable card style for maintenance, special notices, forced update and seasonal greetings',
+    singleton: true,
+    minHeight: 620,
+    configurable: ['scenario', 'styleVariant', 'contentRef', 'visual', 'title', 'body', 'hotlines', 'dontShowAgain', 'actions', 'expiry', 'priority', 'blockInteraction'],
+  },
+  {
+    sliceType: 'ANNOUNCEMENT_VISUAL',
+    label: 'Announcement Visual',
+    icon: '🖼️',
+    category: 'notice',
+    description: 'Top illustration or seasonal artwork block for announcement cards',
+    minHeight: 160,
+    configurable: ['assetId', 'imageUrl', 'altText', 'placement', 'backgroundColor', 'safeAreaTop'],
+  },
+  {
+    sliceType: 'ANNOUNCEMENT_BODY',
+    label: 'Announcement Body',
+    icon: '📝',
+    category: 'notice',
+    description: 'Structured announcement copy with title, paragraphs, bullet lines, hotline links and optional opt-out checkbox',
+    minHeight: 220,
+    configurable: ['headline', 'paragraphs', 'bulletItems', 'hotlines', 'dontShowAgainLabel', 'legalEntityText'],
+  },
+  {
+    sliceType: 'ANNOUNCEMENT_ACTIONS',
+    label: 'Announcement Actions',
+    icon: '➡️',
+    category: 'notice',
+    description: 'Action row for close, HSBC Website, call hotline and forced app update flows',
+    minHeight: 72,
+    configurable: ['primaryAction', 'secondaryAction', 'tertiaryAction', 'layout', 'forcePrimary'],
+  },
   // ── Campaign components ─────────────────────────────────────────────────────
   {
     sliceType: 'CAMPAIGN_HERO',
@@ -357,6 +395,7 @@ export const PALETTE_COMPONENTS: PaletteComponent[] = [
 export const PALETTE_CATEGORIES = [
   { id: 'navigation', label: 'Navigation', icon: '🔝' },
   { id: 'promotion',  label: 'Promotions', icon: '🎪' },
+  { id: 'notice',     label: 'Announcements', icon: '📣' },
   { id: 'function',   label: 'Functions',  icon: '⚡' },
   { id: 'wealth',     label: 'Wealth',     icon: '💰' },
   { id: 'lifestyle',  label: 'Lifestyle',  icon: '🛍️' },

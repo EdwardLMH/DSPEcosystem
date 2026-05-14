@@ -43,6 +43,10 @@ export type SliceType =
   | 'DEPOSIT_RATE_TABLE'
   | 'DEPOSIT_OPEN_CTA'
   | 'DEPOSIT_FAQ'
+  | 'ANNOUNCEMENT_OVERLAY'
+  | 'ANNOUNCEMENT_VISUAL'
+  | 'ANNOUNCEMENT_BODY'
+  | 'ANNOUNCEMENT_ACTIONS'
   | 'CAMPAIGN_HERO'
   | 'CAMPAIGN_BENEFITS'
   | 'CAMPAIGN_CTA'
@@ -68,7 +72,7 @@ export type SliceType =
   | 'SEO_FAQ'
   | 'SEO_STRUCTURED_DATA';
 
-export type SliceCategory = 'navigation' | 'promotion' | 'function' | 'wealth' | 'lifestyle' | 'layout' | 'insight' | 'grid';
+export type SliceCategory = 'navigation' | 'promotion' | 'function' | 'wealth' | 'lifestyle' | 'layout' | 'insight' | 'grid' | 'notice' | string;
 
 export interface SliceDefinition {
   type: SliceType;
@@ -94,7 +98,7 @@ export interface CanvasSlice {
 
 // ─── Page Layout ──────────────────────────────────────────────────────────────
 
-export type PageType = 'WEALTH_HUB' | 'KYC_JOURNEY' | 'PRODUCT' | 'CAMPAIGN' | 'MARKET_INSIGHT' | 'CUSTOM';
+export type PageType = 'WEALTH_HUB' | 'KYC_JOURNEY' | 'PRODUCT' | 'CAMPAIGN' | 'MARKET_INSIGHT' | 'ANNOUNCEMENT' | 'CUSTOM';
 
 export type AuthoringStatus = 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED';
 

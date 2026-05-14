@@ -21,6 +21,7 @@
 		AA12000000000000000001BF /* FXViewpointView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA12000000000000000001F5 /* FXViewpointView.swift */; };
 		AA13000000000000000001BF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA13000000000000000001F5 /* Assets.xcassets */; };
 		AA14000000000000000001BF /* DepositCampaignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA14000000000000000001F5 /* DepositCampaignView.swift */; };
+		AA17000000000000000001BF /* AnnouncementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA17000000000000000001F5 /* AnnouncementView.swift */; };
 		AA16000000000000000001BF /* SDUIEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA16000000000000000001F5 /* SDUIEnvironment.swift */; };
 /* End PBXBuildFile section */
 
@@ -39,6 +40,7 @@
 		AA12000000000000000001F5 /* FXViewpointView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXViewpointView.swift; sourceTree = "<group>"; };
 		AA13000000000000000001F5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA14000000000000000001F5 /* DepositCampaignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepositCampaignView.swift; sourceTree = "<group>"; };
+		AA17000000000000000001F5 /* AnnouncementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnouncementView.swift; sourceTree = "<group>"; };
 		AA16000000000000000001F5 /* SDUIEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDUIEnvironment.swift; sourceTree = "<group>"; };
 		AA15000000000000000001F5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		OO000000000000000000OOOO /* HSBCSDUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HSBCSDUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -81,6 +83,7 @@
 				GRP0000000000000000WLTH /* Wealth */,
 				GRP0000000000000000FXVP /* FXViewpoint */,
 				GRP0000000000000000DEPO /* Deposit */,
+				GRP0000000000000000ANNO /* Announcement */,
 				GRP0000000000000000DSGN /* DesignSystem */,
 				GRP0000000000000000STOR /* Store */,
 				GRP0000000000000000NETW /* Network */,
@@ -174,6 +177,14 @@
 				AA14000000000000000001F5 /* DepositCampaignView.swift */,
 			);
 			path = Deposit;
+			sourceTree = "<group>";
+		};
+		GRP0000000000000000ANNO /* Announcement */ = {
+			isa = PBXGroup;
+			children = (
+				AA17000000000000000001F5 /* AnnouncementView.swift */,
+			);
+			path = Announcement;
 			sourceTree = "<group>";
 		};
 		GRP0000000000000KYCSCR /* Screens */ = {
@@ -272,6 +283,7 @@
 				AA11000000000000000001BF /* AISearchView.swift in Sources */,
 				AA12000000000000000001BF /* FXViewpointView.swift in Sources */,
 				AA14000000000000000001BF /* DepositCampaignView.swift in Sources */,
+				AA17000000000000000001BF /* AnnouncementView.swift in Sources */,
 				AA16000000000000000001BF /* SDUIEnvironment.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

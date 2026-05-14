@@ -10,6 +10,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.hsbc.sdui.announcement.AnnouncementKind
+import com.hsbc.sdui.announcement.AnnouncementScreen
 import com.hsbc.sdui.deposit.DepositCampaignScreen
 import com.hsbc.sdui.fxviewpoint.FXViewpointScreen
 import com.hsbc.sdui.kyc.KYCRootScreen
@@ -68,6 +70,28 @@ fun HSBCTestApp() {
                     )
                 )
                 NavigationBarItem(
+                    selected = currentScreen == "announcement",
+                    onClick = { currentScreen = "announcement" },
+                    icon = { Text("📣") },
+                    label = { Text("Announce") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = HsbcRed,
+                        selectedTextColor = HsbcRed,
+                        indicatorColor = Color(0xFFFFEEF0)
+                    )
+                )
+                NavigationBarItem(
+                    selected = currentScreen == "forceUpdate",
+                    onClick = { currentScreen = "forceUpdate" },
+                    icon = { Text("⬆️") },
+                    label = { Text("Update") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = HsbcRed,
+                        selectedTextColor = HsbcRed,
+                        indicatorColor = Color(0xFFFFEEF0)
+                    )
+                )
+                NavigationBarItem(
                     selected = currentScreen == "kyc",
                     onClick = { currentScreen = "kyc" },
                     icon = { Text("🪪") },
@@ -86,6 +110,8 @@ fun HSBCTestApp() {
                 "wealth"  -> WealthPageScreen()
                 "fx"      -> FXViewpointScreen(onBack = { currentScreen = "wealth" })
                 "deposit" -> DepositCampaignScreen(onBack = { currentScreen = "wealth" })
+                "announcement" -> AnnouncementScreen(kind = AnnouncementKind.Special, onBack = { currentScreen = "wealth" })
+                "forceUpdate" -> AnnouncementScreen(kind = AnnouncementKind.ForceUpdate, onBack = { currentScreen = "wealth" })
                 "kyc"     -> KYCRootScreen()
             }
         }

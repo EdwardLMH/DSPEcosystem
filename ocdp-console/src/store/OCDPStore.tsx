@@ -100,11 +100,12 @@ type Action =
   | { type: 'CLOSE_DETAIL' }
   | { type: 'OPEN_JOURNEY';       journeyId: string }
   // Page CRUD
-  | { type: 'CREATE_PAGE'; page: Omit<PageLayout, 'pageId' | 'authoringStatus' | 'slices'> }
+  | { type: 'CREATE_PAGE'; page: Omit<PageLayout, 'pageId' | 'authoringStatus'> }
   | { type: 'EDIT_PAGE';   pageId: string; updates: Partial<Omit<PageLayout, 'pageId' | 'authoringStatus'>> }
   | { type: 'DELETE_PAGE';        pageId: string }
   | { type: 'ADD_SLICE';          pageId: string; slice: Omit<CanvasSlice, 'instanceId'> }
   | { type: 'REMOVE_SLICE';       pageId: string; instanceId: string }
+  | { type: 'SET_PAGE_SCHEDULE'; pageId: string; schedule: CampaignSchedule | undefined }
   | { type: 'SET_CAMPAIGN_SCHEDULE'; pageId: string; schedule: CampaignSchedule | undefined }
   // Journey CRUD
   | { type: 'CREATE_JOURNEY'; journey: Omit<Journey, 'journeyId' | 'status' | 'steps'> }
@@ -220,7 +221,7 @@ function reducer(state: OCDPState, action: Action): OCDPState {
         ...action.page,
         pageId: v4(),
         authoringStatus: 'DRAFT',
-        slices: [],
+        slices: action.page.slices ?? [],
         supportedLocales: action.page.supportedLocales?.length ? action.page.supportedLocales : [action.page.locale],
         translations: action.page.translations ?? {},
       };
@@ -287,16 +288,18 @@ function reducer(state: OCDPState, action: Action): OCDPState {
         ),
       };
 
+    case 'SET_PAGE_SCHEDULE':
     case 'SET_CAMPAIGN_SCHEDULE': {
       const page = state.pages.find(p => p.pageId === action.pageId);
       if (!page) return state;
+      const scheduleLabel = page.pageType === 'ANNOUNCEMENT' ? 'ANNOUNCEMENT_SCHEDULE_SET' : 'CAMPAIGN_SCHEDULE_SET';
       return {
         ...state,
         pages: state.pages.map(p =>
           p.pageId === action.pageId ? { ...p, campaignSchedule: action.schedule } : p
         ),
-        audit: [...state.audit, makeAudit(state.currentUser, 'CAMPAIGN_SCHEDULE_SET', action.pageId, page.name,
-          action.schedule ? `Publish: ${action.schedule.publishAt} / Takedown: ${action.schedule.takedownAt}` : 'Schedule cleared')],
+        audit: [...state.audit, makeAudit(state.currentUser, scheduleLabel, action.pageId, page.name,
+          action.schedule ? `Publish: ${action.schedule.publishAt} / Takedown: ${action.schedule.takedownAt} / Timezone: ${action.schedule.timezone ?? 'market default'}` : 'Schedule cleared')],
       };
     }
 
@@ -528,13 +531,13 @@ function reducer(state: OCDPState, action: Action): OCDPState {
     case 'APPROVE_PAGE': {
       const page = state.pages.find(p => p.pageId === action.pageId);
       if (!page) return state;
-      const isCampaign = page.pageType === 'CAMPAIGN';
+      const isSchedulable = page.pageType === 'CAMPAIGN' || page.pageType === 'ANNOUNCEMENT';
       const pages = state.pages.map(p => p.pageId === action.pageId ? { ...p, authoringStatus: 'APPROVED' as AuthoringStatus } : p);
       const workflow = state.workflow.map(w => w.pageId === action.pageId ? { ...w, status: 'APPROVED' as const, reviewedAt: new Date().toISOString(), reviewerId: state.currentUser.id, reviewerName: state.currentUser.name } : w);
       return {
         ...state, pages, workflow,
         audit: [...state.audit, makeAudit(state.currentUser, 'APPROVED', action.pageId, page.name, action.comment)],
-        toast: { id: v4(), message: isCampaign ? 'Campaign approved — set publish timer before releasing' : 'Approved — ready to publish', type: 'success' },
+        toast: { id: v4(), message: isSchedulable ? `${page.pageType === 'ANNOUNCEMENT' ? 'Announcement' : 'Campaign'} approved — set timer before releasing` : 'Approved — ready to publish', type: 'success' },
       };
     }
 

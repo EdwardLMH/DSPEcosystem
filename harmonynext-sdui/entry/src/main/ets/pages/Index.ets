@@ -6,6 +6,7 @@ import { KYCRootView } from '../kyc/KYCShellViews'
 import { WealthPageView } from '../wealth/WealthPage'
 import { FXViewpointView } from '../fxviewpoint/FXViewpointPage'
 import { DepositCampaignView } from '../deposit/DepositCampaignPage'
+import { ANNOUNCEMENT_FORCE_UPDATE, ANNOUNCEMENT_SPECIAL, AnnouncementPage } from '../announcement/AnnouncementPage'
 import { Hive } from '../common/HiveTokens'
 
 @Entry
@@ -29,8 +30,16 @@ struct Index {
       }.tabBar(this.tabBarItem('🏦', 'Deposit', 2))
 
       TabContent() {
+        AnnouncementPage({ kind: ANNOUNCEMENT_SPECIAL, onBack: () => { this.controller.changeIndex(0) } })
+      }.tabBar(this.tabBarItem('📣', 'Announce', 3))
+
+      TabContent() {
+        AnnouncementPage({ kind: ANNOUNCEMENT_FORCE_UPDATE, onBack: () => { this.controller.changeIndex(0) } })
+      }.tabBar(this.tabBarItem('⬆️', 'Update', 4))
+
+      TabContent() {
         KYCRootView()
-      }.tabBar(this.tabBarItem('🪪', 'OBKYC', 3))
+      }.tabBar(this.tabBarItem('🪪', 'OBKYC', 5))
     }
     .width('100%').height('100%')
     .barBackgroundColor(Hive.Color.brandWhite)

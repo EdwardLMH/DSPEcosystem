@@ -149,3 +149,22 @@ export async function fetchDepositCampaignScreen(): Promise<WealthScreenPayload>
     }
     throw new Error(`fetchDepositCampaignScreen: unexpected response type`);
 }
+// ─── Announcement Overlay SDUI delivery ───────────────────────────────────────
+// Fetches native-only announcement pages authored in OCDP and served by mock-bff.
+export async function fetchAnnouncementScreen(screenId: string): Promise<WealthScreenPayload> {
+    const client = http.createHttp();
+    const resp = await client.request(BASE_URL + '/screen/' + screenId, {
+        method: http.RequestMethod.GET,
+        header: { 'Accept': 'application/json', 'x-platform': 'harmonynext' },
+        connectTimeout: 8000,
+        readTimeout: 8000
+    });
+    client.destroy();
+    if (resp.responseCode !== 200) {
+        throw new Error(`fetchAnnouncementScreen: HTTP ${resp.responseCode}`);
+    }
+    if (typeof resp.result === 'string') {
+        return JSON.parse(resp.result) as WealthScreenPayload;
+    }
+    throw new Error(`fetchAnnouncementScreen: unexpected response type`);
+}

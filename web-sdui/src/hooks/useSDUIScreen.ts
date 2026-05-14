@@ -50,7 +50,7 @@ export function useSDUIScreen(
 
       // Resolve self-pick items from the SELF_PICK_ENTRY_POINTS slice if present
       const selfPickSlice = data.layout?.children?.find(
-        (n: { componentType?: string }) => n.componentType === 'SELF_PICK_ENTRY_POINTS'
+        n => 'componentType' in n && n.componentType === 'SELF_PICK_ENTRY_POINTS'
       );
       if (selfPickSlice) {
         const remoteDefaults = (selfPickSlice.props?.items as Record<string, string>[]) ?? [];

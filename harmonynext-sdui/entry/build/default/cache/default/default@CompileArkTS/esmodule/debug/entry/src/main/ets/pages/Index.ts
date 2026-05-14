@@ -9,6 +9,7 @@ import { KYCRootView } from "@normalized:N&&&entry/src/main/ets/kyc/KYCShellView
 import { WealthPageView } from "@normalized:N&&&entry/src/main/ets/wealth/WealthPage&";
 import { FXViewpointView } from "@normalized:N&&&entry/src/main/ets/fxviewpoint/FXViewpointPage&";
 import { DepositCampaignView } from "@normalized:N&&&entry/src/main/ets/deposit/DepositCampaignPage&";
+import { ANNOUNCEMENT_FORCE_UPDATE, ANNOUNCEMENT_SPECIAL, AnnouncementPage } from "@normalized:N&&&entry/src/main/ets/announcement/AnnouncementPage&";
 import { Hive } from "@normalized:N&&&entry/src/main/ets/common/HiveTokens&";
 class Index extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
@@ -60,7 +61,7 @@ class Index extends ViewPU {
                 {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         if (isInitialRender) {
-                            let componentCall = new WealthPageView(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 20, col: 9 });
+                            let componentCall = new WealthPageView(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 21, col: 9 });
                             ViewPU.create(componentCall);
                             let paramsLambda = () => {
                                 return {};
@@ -83,7 +84,7 @@ class Index extends ViewPU {
                 {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         if (isInitialRender) {
-                            let componentCall = new FXViewpointView(this, { onBack: () => { this.controller.changeIndex(0); } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 24, col: 9 });
+                            let componentCall = new FXViewpointView(this, { onBack: () => { this.controller.changeIndex(0); } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 25, col: 9 });
                             ViewPU.create(componentCall);
                             let paramsLambda = () => {
                                 return {
@@ -108,7 +109,7 @@ class Index extends ViewPU {
                 {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         if (isInitialRender) {
-                            let componentCall = new DepositCampaignView(this, { onBack: () => { this.controller.changeIndex(0); } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 28, col: 9 });
+                            let componentCall = new DepositCampaignView(this, { onBack: () => { this.controller.changeIndex(0); } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 29, col: 9 });
                             ViewPU.create(componentCall);
                             let paramsLambda = () => {
                                 return {
@@ -133,7 +134,59 @@ class Index extends ViewPU {
                 {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         if (isInitialRender) {
-                            let componentCall = new KYCRootView(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 32, col: 9 });
+                            let componentCall = new AnnouncementPage(this, { kind: ANNOUNCEMENT_SPECIAL, onBack: () => { this.controller.changeIndex(0); } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 33, col: 9 });
+                            ViewPU.create(componentCall);
+                            let paramsLambda = () => {
+                                return {
+                                    kind: ANNOUNCEMENT_SPECIAL,
+                                    onBack: () => { this.controller.changeIndex(0); }
+                                };
+                            };
+                            componentCall.paramsGenerator_ = paramsLambda;
+                        }
+                        else {
+                            this.updateStateVarsOfChildByElmtId(elmtId, {});
+                        }
+                    }, { name: "AnnouncementPage" });
+                }
+            });
+            TabContent.tabBar({ builder: () => {
+                    this.tabBarItem.call(this, '📣', 'Announce', 3);
+                } });
+        }, TabContent);
+        TabContent.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            TabContent.create(() => {
+                {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        if (isInitialRender) {
+                            let componentCall = new AnnouncementPage(this, { kind: ANNOUNCEMENT_FORCE_UPDATE, onBack: () => { this.controller.changeIndex(0); } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 37, col: 9 });
+                            ViewPU.create(componentCall);
+                            let paramsLambda = () => {
+                                return {
+                                    kind: ANNOUNCEMENT_FORCE_UPDATE,
+                                    onBack: () => { this.controller.changeIndex(0); }
+                                };
+                            };
+                            componentCall.paramsGenerator_ = paramsLambda;
+                        }
+                        else {
+                            this.updateStateVarsOfChildByElmtId(elmtId, {});
+                        }
+                    }, { name: "AnnouncementPage" });
+                }
+            });
+            TabContent.tabBar({ builder: () => {
+                    this.tabBarItem.call(this, '⬆️', 'Update', 4);
+                } });
+        }, TabContent);
+        TabContent.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            TabContent.create(() => {
+                {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        if (isInitialRender) {
+                            let componentCall = new KYCRootView(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 41, col: 9 });
                             ViewPU.create(componentCall);
                             let paramsLambda = () => {
                                 return {};
@@ -147,7 +200,7 @@ class Index extends ViewPU {
                 }
             });
             TabContent.tabBar({ builder: () => {
-                    this.tabBarItem.call(this, '🪪', 'OBKYC', 3);
+                    this.tabBarItem.call(this, '🪪', 'OBKYC', 5);
                 } });
         }, TabContent);
         TabContent.pop();

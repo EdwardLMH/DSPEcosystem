@@ -137,28 +137,87 @@ function CountdownDigit({ value, label }: { value: number; label: string }) {
   );
 }
 
-function CampaignTimerPanel({ page }: { page: PageLayout }) {
-  const { dispatch } = useOCDP();
+function getTimezoneOffsetMs(date: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).formatToParts(date);
+  const map = Object.fromEntries(parts.filter(p => p.type !== 'literal').map(p => [p.type, p.value]));
+  const zonedUtc = Date.UTC(Number(map.year), Number(map.month) - 1, Number(map.day), Number(map.hour), Number(map.minute), Number(map.second));
+  return zonedUtc - date.getTime();
+}
+
+function zonedInputToUtc(value: string, timeZone: string) {
+  const [datePart, timePart] = value.split('T');
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hour, minute] = timePart.split(':').map(Number);
+  let utc = Date.UTC(year, month - 1, day, hour, minute);
+  utc = Date.UTC(year, month - 1, day, hour, minute) - getTimezoneOffsetMs(new Date(utc), timeZone);
+  utc = Date.UTC(year, month - 1, day, hour, minute) - getTimezoneOffsetMs(new Date(utc), timeZone);
+  return new Date(utc).toISOString();
+}
+
+function utcToZonedInput(iso: string | undefined, timeZone: string) {
+  if (!iso) return '';
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).formatToParts(new Date(iso));
+  const map = Object.fromEntries(parts.filter(p => p.type !== 'literal').map(p => [p.type, p.value]));
+  return `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}`;
+}
+
+function formatInTimezone(iso: string, timeZone: string) {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone,
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+    timeZoneName: 'short',
+  }).format(new Date(iso));
+}
+
+function ScheduleTimerPanel({ page }: { page: PageLayout }) {
+  const { state, dispatch } = useOCDP();
+  const market = state.markets.find(m => m.marketId === page.marketId);
+  const timeZone = page.campaignSchedule?.timezone ?? market?.timezone ?? 'UTC';
+  const timezoneLabel = market?.tzLabel ? `${market.tzLabel} (${timeZone})` : timeZone;
+  const pageLabel = page.pageType === 'ANNOUNCEMENT' ? 'Announcement' : 'Campaign';
   const sched = page.campaignSchedule;
   const publishCountdown  = useCountdown(sched?.publishAt);
   const takedownCountdown = useCountdown(sched?.takedownAt);
 
-  const [publishAt,  setPublishAt]  = useState(sched?.publishAt  ? sched.publishAt.slice(0, 16)  : '');
-  const [takedownAt, setTakedownAt] = useState(sched?.takedownAt ? sched.takedownAt.slice(0, 16) : '');
+  const [publishAt,  setPublishAt]  = useState(utcToZonedInput(sched?.publishAt, timeZone));
+  const [takedownAt, setTakedownAt] = useState(utcToZonedInput(sched?.takedownAt, timeZone));
   const [editing, setEditing] = useState(!sched);
 
   function saveSchedule() {
     if (!publishAt || !takedownAt) return;
     const schedule: CampaignSchedule = {
-      publishAt:  new Date(publishAt).toISOString(),
-      takedownAt: new Date(takedownAt).toISOString(),
+      publishAt:  zonedInputToUtc(publishAt, timeZone),
+      takedownAt: zonedInputToUtc(takedownAt, timeZone),
+      timezone: timeZone,
     };
-    dispatch({ type: 'SET_CAMPAIGN_SCHEDULE', pageId: page.pageId, schedule });
+    dispatch({ type: 'SET_PAGE_SCHEDULE', pageId: page.pageId, schedule });
     setEditing(false);
   }
 
   function clearSchedule() {
-    dispatch({ type: 'SET_CAMPAIGN_SCHEDULE', pageId: page.pageId, schedule: undefined });
+    dispatch({ type: 'SET_PAGE_SCHEDULE', pageId: page.pageId, schedule: undefined });
     setPublishAt(''); setTakedownAt('');
     setEditing(true);
   }
@@ -180,12 +239,13 @@ function CampaignTimerPanel({ page }: { page: PageLayout }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
       <div style={{ padding: '12px 16px', background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 10 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#C2410C', marginBottom: 2 }}>⏱ Campaign Schedule</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#C2410C', marginBottom: 2 }}>⏱ {pageLabel} Schedule</div>
         <div style={{ fontSize: 11, color: '#9A3412' }}>
           {isApproved
-            ? 'This campaign is approved. Set a publish time — when the timer expires the page auto-releases to production.'
-            : 'Campaign pages require approval before scheduling. Submit for review first.'}
+            ? `Set a publish window or clear the timer to make this ${pageLabel.toLowerCase()} effective immediately after release.`
+            : `${pageLabel} pages require approval before scheduling. Submit for review first.`}
         </div>
+        <div style={{ fontSize: 10, color: '#C2410C', marginTop: 6, fontWeight: 700 }}>Market timezone: {timezoneLabel}</div>
       </div>
 
       {sched && !editing ? (
@@ -197,7 +257,7 @@ function CampaignTimerPanel({ page }: { page: PageLayout }) {
             </div>
             {publishCountdown?.expired ? (
               <div style={{ padding: '10px 14px', background: '#D1FAE5', borderRadius: 8, fontSize: 13, fontWeight: 700, color: '#059669' }}>
-                Campaign went live — auto-published to {page.releaseMarketIds?.join(', ')}
+                {pageLabel} went live - auto-published to {page.releaseMarketIds?.join(', ')}
               </div>
             ) : (
               <div style={{ display: 'flex', gap: 8, justifyContent: 'center', padding: '12px 0' }}>
@@ -214,8 +274,9 @@ function CampaignTimerPanel({ page }: { page: PageLayout }) {
 
           {/* Schedule summary */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <InfoRow label="Publish at"   value={new Date(sched.publishAt).toLocaleString()} />
-            <InfoRow label="Takedown at"  value={new Date(sched.takedownAt).toLocaleString()} />
+            <InfoRow label="Publish at"   value={formatInTimezone(sched.publishAt, timeZone)} />
+            <InfoRow label="Takedown at"  value={formatInTimezone(sched.takedownAt, timeZone)} />
+            <InfoRow label="Timezone"     value={timezoneLabel} />
             {!publishCountdown?.expired && (
               <InfoRow label="Takedown in" value={
                 takedownCountdown
@@ -229,11 +290,11 @@ function CampaignTimerPanel({ page }: { page: PageLayout }) {
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => setEditing(true)}
                 style={{ flex: 1, padding: '8px', fontSize: 12, fontWeight: 600, background: '#EFF6FF', color: '#2563EB', border: '1px solid #BFDBFE', borderRadius: 8, cursor: 'pointer' }}>
-                Edit Schedule
+                Edit Timer
               </button>
               <button onClick={clearSchedule}
                 style={{ flex: 1, padding: '8px', fontSize: 12, fontWeight: 600, background: 'rgba(220,38,38,0.05)', color: '#DC2626', border: '1px solid rgba(220,38,38,0.2)', borderRadius: 8, cursor: 'pointer' }}>
-                Clear Schedule
+                Enable Immediately
               </button>
             </div>
           )}
@@ -242,18 +303,18 @@ function CampaignTimerPanel({ page }: { page: PageLayout }) {
         /* Schedule editor */
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 5 }}>Publish Date & Time</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 5 }}>Start Date & Time</label>
             <input type="datetime-local" value={publishAt} onChange={e => setPublishAt(e.target.value)}
               style={{ width: '100%', padding: '8px 10px', border: '1px solid #D1D5DB', borderRadius: 8, fontSize: 13, fontFamily: 'var(--font-family)', boxSizing: 'border-box' }} />
           </div>
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 5 }}>Takedown Date & Time</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 5 }}>End Date & Time</label>
             <input type="datetime-local" value={takedownAt} onChange={e => setTakedownAt(e.target.value)}
               style={{ width: '100%', padding: '8px 10px', border: '1px solid #D1D5DB', borderRadius: 8, fontSize: 13, fontFamily: 'var(--font-family)', boxSizing: 'border-box' }} />
           </div>
           <button onClick={saveSchedule} disabled={!publishAt || !takedownAt || !isApproved}
             style={actionBtn('#D97706', !publishAt || !takedownAt || !isApproved)}>
-            ⏱ Set Campaign Timer
+            ⏱ Set {pageLabel} Timer
           </button>
           {sched && (
             <button onClick={() => setEditing(false)}
@@ -264,6 +325,7 @@ function CampaignTimerPanel({ page }: { page: PageLayout }) {
           {!isApproved && (
             <div style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center' }}>Requires APPROVED status to set timer</div>
           )}
+          <div style={{ fontSize: 10, color: '#6B7280', textAlign: 'center' }}>Dates are interpreted in {timezoneLabel}.</div>
         </div>
       )}
     </div>
@@ -466,6 +528,9 @@ function PageDetailDrawer({ page }: { page: PageLayout }) {
 
   const status      = page.authoringStatus;
   const isCampaign  = page.pageType === 'CAMPAIGN';
+  const isAnnouncement = page.pageType === 'ANNOUNCEMENT';
+  const isSchedulable = isCampaign || isAnnouncement;
+  const scheduleLabel = isAnnouncement ? 'Announcement' : 'Campaign';
   const isApprover  = currentUser.role.endsWith('-APPROVER') || isAdmin(currentUser.role);
   const isAuthor    = currentUser.role.endsWith('-AUTHOR')   || isAdmin(currentUser.role);
   const liveTargets = marketStatus.filter(ms => ms.pageId === page.pageId && ms.productionStatus === 'LIVE');
@@ -473,7 +538,10 @@ function PageDetailDrawer({ page }: { page: PageLayout }) {
   const isLive      = liveTargets.length > 0;
   const isWebStd    = page.channel === 'WEB_STANDARD';
   const isSDUI      = page.channel === 'SDUI';
-  const hasCampaignTimer = isCampaign && !!page.campaignSchedule;
+  const hasScheduleTimer = isSchedulable && !!page.campaignSchedule;
+  const scheduleMarket = state.markets.find(m => m.marketId === page.marketId);
+  const scheduleTimezone = page.campaignSchedule?.timezone ?? scheduleMarket?.timezone ?? 'UTC';
+  const scheduleTimezoneLabel = scheduleMarket?.tzLabel ? `${scheduleMarket.tzLabel} (${scheduleTimezone})` : scheduleTimezone;
 
   // AEO score for this page (if exists) — applies to any page that goes through AEO assessment
   const existingAEOScore = shouldShowAEOAssessment(page) ? state.aeoScores.find(s => s.pageId === page.pageId) : null;
@@ -512,7 +580,7 @@ function PageDetailDrawer({ page }: { page: PageLayout }) {
     { key: 'overview',  label: 'Overview'  },
     { key: 'edit',      label: 'Edit'      },
     { key: 'approval',  label: 'Approval'  },
-    ...(isCampaign ? [{ key: 'campaign' as const, label: '⏱ Timer' }] : []),
+    ...(isSchedulable ? [{ key: 'campaign' as const, label: '⏱ Timer' }] : []),
     { key: 'preview',   label: 'Preview'   },
   ];
 
@@ -530,6 +598,7 @@ function PageDetailDrawer({ page }: { page: PageLayout }) {
               <StatusBadge  status={status} />
               <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 4, background: '#F3F4F6', color: '#6B7280' }}>{page.bizLineId}</span>
               {isCampaign && <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: '#FFF7ED', color: '#C2410C', border: '1px solid #FED7AA' }}>CAMPAIGN</span>}
+              {isAnnouncement && <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: '#FFF7ED', color: '#C2410C', border: '1px solid #FED7AA' }}>ANNOUNCEMENT</span>}
               {(isWebStd || (isSDUI && page.nativeTargets.includes('web'))) && (
                 <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4,
                   background: page.isPublic === true ? '#D1FAE5' : '#F3F4F6',
@@ -592,12 +661,13 @@ function PageDetailDrawer({ page }: { page: PageLayout }) {
             {page.wechatPageUrl      && <InfoRow label="WeChat URL"   value={page.wechatPageUrl} mono />}
             {page.wechatShareTitle   && <InfoRow label="Share Title"  value={page.wechatShareTitle} />}
 
-            {/* Campaign schedule summary */}
-            {isCampaign && page.campaignSchedule && (
+            {/* Schedule summary */}
+            {isSchedulable && page.campaignSchedule && (
               <div style={{ padding: '10px 14px', background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 8 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#C2410C', marginBottom: 4 }}>⏱ Campaign Schedule</div>
-                <div style={{ fontSize: 12, color: '#92400E' }}>Publish: {new Date(page.campaignSchedule.publishAt).toLocaleString()}</div>
-                <div style={{ fontSize: 12, color: '#92400E' }}>Takedown: {new Date(page.campaignSchedule.takedownAt).toLocaleString()}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#C2410C', marginBottom: 4 }}>⏱ {scheduleLabel} Schedule</div>
+                <div style={{ fontSize: 12, color: '#92400E' }}>Start: {formatInTimezone(page.campaignSchedule.publishAt, scheduleTimezone)}</div>
+                <div style={{ fontSize: 12, color: '#92400E' }}>End: {formatInTimezone(page.campaignSchedule.takedownAt, scheduleTimezone)}</div>
+                <div style={{ fontSize: 11, color: '#C2410C', marginTop: 4 }}>Timezone: {scheduleTimezoneLabel}</div>
               </div>
             )}
 
@@ -767,7 +837,7 @@ function PageDetailDrawer({ page }: { page: PageLayout }) {
                 <>
                   <button onClick={() => dispatch({ type: 'APPROVE_PAGE', pageId: page.pageId, targetId: pageTargets[0] ?? '', comment })}
                     style={actionBtn('#059669')}>
-                    ✓ Approve {isCampaign ? '(then set timer)' : ''}
+                    ✓ Approve {isSchedulable ? '(then set timer)' : ''}
                   </button>
                   <button onClick={() => dispatch({ type: 'REJECT_PAGE', pageId: page.pageId, targetId: pageTargets[0] ?? '', comment })}
                     style={actionBtn('#DC2626')}>
@@ -777,7 +847,7 @@ function PageDetailDrawer({ page }: { page: PageLayout }) {
               )}
 
               {/* Publish to market (APPROVED, non-campaign) — available to approver and author */}
-              {status === 'APPROVED' && (isApprover || isAuthor) && !isCampaign && (
+              {status === 'APPROVED' && (isApprover || isAuthor) && !isSchedulable && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Publish to market</div>
                   {pageTargets.map(tid => (
@@ -790,11 +860,11 @@ function PageDetailDrawer({ page }: { page: PageLayout }) {
                 </div>
               )}
 
-              {/* Campaign approved → timer hint + direct publish */}
-              {status === 'APPROVED' && isCampaign && !hasCampaignTimer && (
+              {/* Schedulable page approved → timer hint + direct publish */}
+              {status === 'APPROVED' && isSchedulable && !hasScheduleTimer && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div style={{ padding: '10px 14px', background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 8, fontSize: 12, color: '#92400E', fontWeight: 600 }}>
-                    ⏱ Campaign approved — go to the Timer tab to schedule the auto-release or press Publish to Live
+                    ⏱ {scheduleLabel} approved - go to the Timer tab to schedule the effective window, or press Publish to Live for immediate enablement.
                   </div>
                   {pageTargets.map(tid => (
                     <button key={tid}
@@ -806,11 +876,11 @@ function PageDetailDrawer({ page }: { page: PageLayout }) {
                 </div>
               )}
 
-              {/* Approver: Cancel timer & publish immediately (campaign with active timer) */}
-              {status === 'APPROVED' && isCampaign && hasCampaignTimer && isApprover && (
+              {/* Approver: Cancel timer & publish immediately (schedulable page with active timer) */}
+              {status === 'APPROVED' && isSchedulable && hasScheduleTimer && isApprover && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div style={{ padding: '10px 14px', background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 8, fontSize: 12, color: '#92400E' }}>
-                    ⏱ Timer active — scheduled for {new Date(page.campaignSchedule!.publishAt).toLocaleString()}
+                    ⏱ Timer active - scheduled for {formatInTimezone(page.campaignSchedule!.publishAt, scheduleTimezone)}
                   </div>
                   <button onClick={() => { if (window.confirm('Cancel the timer and publish immediately?')) dispatch({ type: 'CANCEL_TIMER_AND_PUBLISH', pageId: page.pageId }); }}
                     style={actionBtn('#1D4ED8')}>
@@ -838,19 +908,19 @@ function PageDetailDrawer({ page }: { page: PageLayout }) {
               )}
 
               {/* Approver: Cancel timer & publish for LIVE pages with timer still active */}
-              {isLive && hasCampaignTimer && isApprover && (
+              {isLive && hasScheduleTimer && isApprover && (
                 <div style={{ padding: '10px 14px', background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 8 }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: '#C2410C', marginBottom: 4 }}>⏱ Takedown Scheduled</div>
-                  <div style={{ fontSize: 11, color: '#92400E' }}>Takedown: {new Date(page.campaignSchedule!.takedownAt).toLocaleString()}</div>
+                  <div style={{ fontSize: 11, color: '#92400E' }}>End: {formatInTimezone(page.campaignSchedule!.takedownAt, scheduleTimezone)}</div>
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {/* ── Campaign Timer ── */}
-        {activeTab === 'campaign' && isCampaign && (
-          <CampaignTimerPanel page={page} />
+        {/* ── Timer ── */}
+        {activeTab === 'campaign' && isSchedulable && (
+          <ScheduleTimerPanel page={page} />
         )}
 
         {/* ── Preview ── */}
@@ -962,7 +1032,7 @@ export function PageLibraryPanel() {
               {filtered.map(page => {
                 const liveTargets = getLiveTargets(page.pageId);
                 const isActive    = page.pageId === detailPageId;
-                const hasSched    = page.pageType === 'CAMPAIGN' && !!page.campaignSchedule;
+                const hasSched    = (page.pageType === 'CAMPAIGN' || page.pageType === 'ANNOUNCEMENT') && !!page.campaignSchedule;
                 return (
                   <div key={page.pageId}
                     onClick={() => dispatch({ type: 'OPEN_PAGE', pageId: page.pageId })}

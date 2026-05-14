@@ -1628,6 +1628,10 @@ app.get('/api/v1/ucp/components', requireInternalAuth, (req, res) => {
     { componentId: 'comp-DEPOSIT_RATE_TABLE',     sliceType: 'DEPOSIT_RATE_TABLE',     label: 'Deposit Rate Table',             icon: '🏦',    category: 'wealth',     description: 'Time deposit interest rate table — term and rate columns only',                        configurable: ['sectionTitle','asAtDate','rates','footnote'],                                                                     minHeight: 220, singleton: false, version: '1.0.0', maintainedBy: 'Wealth Product Team',        status: 'ACTIVE' },
     { componentId: 'comp-DEPOSIT_OPEN_CTA',       sliceType: 'DEPOSIT_OPEN_CTA',       label: 'Button CTA',                     icon: '🏧',    category: 'wealth',     description: 'Full-width "Open a Deposit" CTA button for deposit campaigns',                        configurable: ['label','deepLink','backgroundColor','textColor'],                                                                 minHeight: 56,  singleton: false, version: '1.0.0', maintainedBy: 'Wealth Product Team',        status: 'ACTIVE' },
     { componentId: 'comp-DEPOSIT_FAQ',            sliceType: 'DEPOSIT_FAQ',            label: 'General FAQ',                    icon: '❓',    category: 'wealth',     description: 'Collapsible FAQ accordion for deposit products',                                        configurable: ['sectionTitle','items'],                                                                                          minHeight: 200, singleton: false, version: '1.0.0', maintainedBy: 'Wealth Product Team',        status: 'ACTIVE' },
+    { componentId: 'comp-ANNOUNCEMENT_OVERLAY',   sliceType: 'ANNOUNCEMENT_OVERLAY',   label: 'Announcement Overlay',           icon: '📣',    category: 'notice',     description: 'Full-screen dimmed announcement shell for maintenance, special announcement, forced update and seasonal greeting scenarios', configurable: ['scenario','styleVariant','contentRef','visual','title','body','hotlines','dontShowAgain','actions','expiry','priority','blockInteraction'], minHeight: 620, singleton: true,  version: '1.0.0', maintainedBy: 'Mobile Experience Platform Team', status: 'ACTIVE' },
+    { componentId: 'comp-ANNOUNCEMENT_VISUAL',    sliceType: 'ANNOUNCEMENT_VISUAL',    label: 'Announcement Visual',            icon: '🖼️',   category: 'notice',     description: 'Illustration, brand logo or seasonal artwork block for announcement cards',             configurable: ['assetId','imageUrl','altText','placement','backgroundColor','safeAreaTop'],                                      minHeight: 160, singleton: false, version: '1.0.0', maintainedBy: 'Brand Design Systems Team',   status: 'ACTIVE' },
+    { componentId: 'comp-ANNOUNCEMENT_BODY',      sliceType: 'ANNOUNCEMENT_BODY',      label: 'Announcement Body',              icon: '📝',    category: 'notice',     description: 'Structured title, message paragraphs, bullet lines, hotline links and opt-out checkbox text', configurable: ['headline','paragraphs','bulletItems','hotlines','dontShowAgainLabel','legalEntityText'], minHeight: 220, singleton: false, version: '1.0.0', maintainedBy: 'Content Engineering',          status: 'ACTIVE' },
+    { componentId: 'comp-ANNOUNCEMENT_ACTIONS',   sliceType: 'ANNOUNCEMENT_ACTIONS',   label: 'Announcement Actions',           icon: '➡️',    category: 'notice',     description: 'Primary, secondary and tertiary actions for close, HSBC Website, hotline and app update flows', configurable: ['primaryAction','secondaryAction','tertiaryAction','layout','forcePrimary'], minHeight: 72, singleton: false, version: '1.0.0', maintainedBy: 'Mobile Experience Platform Team', status: 'ACTIVE' },
   ];
 
   let comps = UCP_COMPONENTS;
@@ -1696,6 +1700,119 @@ app.get('/api/v1/screen/home-wealth-hk', (req, res) => {
     },
     layout: { type: 'SCROLL', children: page.slices.map(s => resolveSliceMediaUrls(req, JSON.parse(JSON.stringify(s)))) },
   });
+});
+
+const ANNOUNCEMENT_SPECIAL_PROPS = {
+  scenario: 'SPECIAL_ANNOUNCEMENT',
+  styleVariant: 'ENVELOPE_CARD',
+  contentRef: { source: 'UCP', id: 'ucp-ann-special-taipo-fire-001' },
+  visual: {
+    assetId: 'asset-ann-envelope',
+    imageUrl: 'https://placehold.co/360x190/FFFFFF/DB0011?text=HSBC+Envelope',
+    altText: 'HSBC special announcement envelope illustration',
+    placement: 'envelope-top',
+  },
+  title: 'Special announcement',
+  body: [
+    "Your well-being is our priority. We're committed to supporting our customers affected by the Tai Po fire incident.",
+    'If you need urgent assistance, please contact the following dedicated hotlines:',
+  ],
+  hotlines: [
+    { label: 'HSBC Banking Services / HSBC Life Insurance', phone: '(852) 2233 3066' },
+    { label: 'HSBC General Insurance (operated by AXA)', phone: '(852) 2894 4078' },
+  ],
+  dontShowAgain: { enabled: true, label: "Don't show this message again" },
+  actions: [
+    { id: 'close', label: 'Close', type: 'dismiss', style: 'primary', tone: 'dark' },
+    { id: 'website', label: 'HSBC Website', type: 'openUrl', style: 'secondary', url: 'https://www.hsbc.com.hk/' },
+  ],
+  expiry: '2026-06-30T23:59:59+08:00',
+  priority: 95,
+  blockInteraction: true,
+  legalEntityText: 'The Hongkong and Shanghai Banking Corporation Limited',
+};
+
+const ANNOUNCEMENT_FORCE_UPDATE_PROPS = {
+  scenario: 'JOURNEY_FORCE_UPDATE',
+  styleVariant: 'INLINE_FORCE_UPDATE',
+  contentRef: { source: 'UCP', id: 'ucp-ann-force-update-elaisee-001' },
+  visual: {
+    assetId: 'asset-ann-elaisee',
+    imageUrl: 'https://placehold.co/360x180/DB0011/FFFFFF?text=eLaisee',
+    altText: 'eLaisee feature artwork',
+    placement: 'modal-top',
+  },
+  title: 'Get ready for eLaisee',
+  body: [
+    'Enjoy Chinese New Year by sending eLaisee money with customised messages, 24 hours a day, in an eco-friendlier way.',
+    'Make sure your app is up to date to use the new feature.',
+  ],
+  hotlines: [],
+  dontShowAgain: { enabled: false, label: '' },
+  actions: [
+    { id: 'update-now', label: 'Update now', type: 'appUpdate', style: 'primary', url: 'app-store://hsbc-mobile' },
+  ],
+  minAppVersion: { ios: '6.18.0', android: '6.18.0', harmonynext: '6.18.0' },
+  journeyIds: ['elaisee'],
+  expiry: '2026-02-28T23:59:59+08:00',
+  priority: 100,
+  blockInteraction: true,
+  legalEntityText: '',
+};
+
+function announcementPayload(req, pageId, screen, props) {
+  const locale = resolveLocale(req);
+  const a11y = resolveA11yFlags(req);
+  const channel = resolveChannel(req);
+  return {
+    schemaVersion: '3.0',
+    pageId,
+    screen,
+    ttl: 300,
+    metadata: {
+      pageId,
+      locale,
+      textDir: resolveTextDir(locale),
+      platform: req.headers['x-platform'] || 'all',
+      channel,
+      version: 1,
+      publishedAt: '2026-05-15T01:00:00.000Z',
+      generatedAt: new Date().toISOString(),
+      marketTimeZone: 'Asia/Hong_Kong',
+      nativeTargets: ['ios', 'android', 'harmonynext'],
+      a11y,
+    },
+    layout: {
+      type: 'OVERLAY',
+      children: [
+        {
+          instanceId: 'ann-overlay',
+          type: 'ANNOUNCEMENT_OVERLAY',
+          visible: true,
+          locked: false,
+          props,
+        },
+      ],
+    },
+  };
+}
+
+app.get('/api/v1/screen/announcement-overlay-hk', (req, res) => {
+  res.json(announcementPayload(
+    req,
+    'announcement-overlay-hk',
+    'announcement_overlay_hk',
+    ANNOUNCEMENT_SPECIAL_PROPS,
+  ));
+});
+
+app.get('/api/v1/screen/announcement-force-update-hk', (req, res) => {
+  res.json(announcementPayload(
+    req,
+    'announcement-force-update-hk',
+    'announcement_force_update_hk',
+    ANNOUNCEMENT_FORCE_UPDATE_PROPS,
+  ));
 });
 
 // ─── GET /api/v1/screen/fx-viewpoint-hk  — Market Insight SDUI delivery ──────
@@ -2473,6 +2590,18 @@ app.post('/api/v1/search/config/:configId/rebuild', async (req, res) => {
       keywords: 'deposit,time deposit,fixed,interest,promotion,campaign,savings',
       category: 'Campaign',
     },
+    'announcement-overlay-hk': {
+      title: 'Announcement Overlay HK',
+      description: 'Hong Kong special announcement overlay with hotline and dismiss actions',
+      keywords: 'announcement,notice,overlay,hotline,Tai Po,HK',
+      category: 'Announcement',
+    },
+    'announcement-force-update-hk': {
+      title: 'Journey Force Update HK',
+      description: 'Journey-level force update announcement for native app features',
+      keywords: 'announcement,force update,app update,journey,eLaisee,HK',
+      category: 'Announcement',
+    },
   };
 
   for (const src of contentSources) {
@@ -2568,6 +2697,8 @@ server.listen(PORT, '::', { ipv6Only: false }, () => {
   console.log('  ║    GET  /api/v1/screen/home-wealth-hk              ║');
   console.log('  ║    GET  /api/v1/screen/fx-viewpoint-hk             ║');
   console.log('  ║    GET  /api/v1/screen/deposit-campaign-hk         ║');
+  console.log('  ║    GET  /api/v1/screen/announcement-overlay-hk     ║');
+  console.log('  ║    GET  /api/v1/screen/announcement-force-update-hk║');
   console.log('  ║                                                    ║');
   console.log('  ║  Request headers consumed by all endpoints:        ║');
   console.log('  ║    x-locale      — BCP-47 locale override          ║');

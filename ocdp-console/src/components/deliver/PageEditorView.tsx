@@ -6,6 +6,47 @@ import { FALLBACK_CONTENT_ASSETS } from '../../store/ucpAssets';
 import { LanguageSelector } from './LanguageSelector';
 import { getLocaleDir, getSliceProps, TRANSLATABLE_PROP_KEYS } from '../../utils/i18n';
 
+function getTimezoneOffsetMs(date: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).formatToParts(date);
+  const map = Object.fromEntries(parts.filter(p => p.type !== 'literal').map(p => [p.type, p.value]));
+  const zonedUtc = Date.UTC(Number(map.year), Number(map.month) - 1, Number(map.day), Number(map.hour), Number(map.minute), Number(map.second));
+  return zonedUtc - date.getTime();
+}
+
+function zonedInputToUtc(value: string, timeZone: string) {
+  const [datePart, timePart] = value.split('T');
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hour, minute] = timePart.split(':').map(Number);
+  let utc = Date.UTC(year, month - 1, day, hour, minute);
+  utc = Date.UTC(year, month - 1, day, hour, minute) - getTimezoneOffsetMs(new Date(utc), timeZone);
+  utc = Date.UTC(year, month - 1, day, hour, minute) - getTimezoneOffsetMs(new Date(utc), timeZone);
+  return new Date(utc).toISOString();
+}
+
+function utcToZonedInput(iso: string | undefined, timeZone: string) {
+  if (!iso) return '';
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).formatToParts(new Date(iso));
+  const map = Object.fromEntries(parts.filter(p => p.type !== 'literal').map(p => [p.type, p.value]));
+  return `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}`;
+}
+
 // ─── Slice renderer (preview in canvas) ──────────────────────────────────────
 
 // Shared KYC canvas style helpers
@@ -670,6 +711,183 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
           )}
         </div>
       );
+    case 'ANNOUNCEMENT_OVERLAY': {
+      const title = String(p.title ?? 'Special announcement');
+      const body = Array.isArray(p.body) ? p.body as string[] : [];
+      const hotlines = Array.isArray(p.hotlines) ? p.hotlines as { label: string; phone: string }[] : [];
+      const actions = Array.isArray(p.actions) ? p.actions as { id: string; label: string; style?: string; tone?: string }[] : [];
+      const dontShow = p.dontShowAgain as { enabled?: boolean; label?: string } | undefined;
+      const legal = String(p.legalEntityText ?? 'The Hongkong and Shanghai Banking Corporation Limited');
+      const styleVariant = String(p.styleVariant ?? 'ENVELOPE_CARD');
+      const closeIcon = !p.blockInteraction ? (
+        <div
+          aria-label="Close announcement overlay"
+          style={{
+            position: 'absolute', top: 12, right: 12, zIndex: 3,
+            width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.92)',
+            border: '1px solid rgba(17,24,39,0.18)', color: '#111827',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 18, fontWeight: 700, lineHeight: 1, boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+          }}
+        >
+          ×
+        </div>
+      ) : null;
+      const buttonGrid = (buttonActions = actions) => (
+        <div style={{ display: 'grid', gridTemplateColumns: buttonActions.length > 1 ? '1fr 1fr' : '1fr', gap: 10 }}>
+          {buttonActions.map(action => (
+            <div key={action.id} style={{
+              padding: '12px 8px', textAlign: 'center', fontSize: 13, fontWeight: 700,
+              background: action.style === 'primary' ? (action.tone === 'dark' ? '#111' : '#DB0011') : '#fff',
+              color: action.style === 'primary' ? '#fff' : '#111',
+              border: action.style === 'primary' ? '1px solid transparent' : '1px solid #9CA3AF',
+            }}>
+              {action.label}
+            </div>
+          ))}
+        </div>
+      );
+
+      if (styleVariant === 'NOTICE_CARD') {
+        return (
+          <div style={{ ...base, minHeight: 560, background: '#6B6B6B', border: 'none', borderRadius: 0, position: 'relative', padding: '36px 14px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            {closeIcon}
+            <div style={{ position: 'absolute', top: 34, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+              <div style={{ width: 86, height: 42, background: '#DB0011', clipPath: 'polygon(0 50%, 22% 0, 78% 0, 100% 50%, 78% 100%, 22% 100%)', position: 'relative' }}>
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(45deg, transparent 0 24%, #fff 24% 50%, transparent 50% 100%)', opacity: 0.9 }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(-45deg, transparent 0 24%, #fff 24% 50%, transparent 50% 100%)', opacity: 0.9 }} />
+              </div>
+            </div>
+            <div style={{ marginTop: 116, background: '#fff', boxShadow: '0 8px 22px rgba(0,0,0,0.18)', padding: '48px 14px 14px', position: 'relative' }}>
+              <div style={{ position: 'absolute', top: -74, left: '50%', transform: 'translateX(-50%)', width: 150, height: 96, borderRadius: '50%', background: '#D9F2FB', border: '2px solid #111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: 82, height: 54, background: '#9ED7E8', transform: 'skewY(-20deg)', border: '2px solid #111', position: 'relative' }}>
+                  <div style={{ position: 'absolute', left: 24, top: -18, width: 28, height: 32, background: '#FACC15', border: '2px solid #111', transform: 'rotate(8deg)' }} />
+                  <div style={{ position: 'absolute', left: 0, top: 28, width: 24, height: 24, background: '#F97316', clipPath: 'polygon(50% 0, 100% 100%, 0 100%)', border: '2px solid #111' }} />
+                </div>
+              </div>
+              <h3 style={{ fontSize: 19, margin: '0 0 14px', color: '#2D2D2D', lineHeight: 1.25 }}>{title}</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+                {body.map((paragraph, idx) => <p key={idx} style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: '#374151' }}>{paragraph}</p>)}
+              </div>
+              {dontShow?.enabled && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '12px 0 14px' }}>
+                  <span style={{ width: 22, height: 22, border: '2px solid #D1D5DB', display: 'inline-block', boxSizing: 'border-box' }} />
+                  <span style={{ fontSize: 12, color: '#374151' }}>{dontShow.label ?? "Don't show this message again"}</span>
+                </div>
+              )}
+              {buttonGrid()}
+            </div>
+            <div style={{ marginTop: 'auto', paddingTop: 16, color: '#2D2D2D', fontSize: 10 }}>{legal}</div>
+          </div>
+        );
+      }
+
+      if (styleVariant === 'INLINE_FORCE_UPDATE') {
+        return (
+          <div style={{ ...base, minHeight: 560, background: '#6B6B6B', border: 'none', borderRadius: 0, position: 'relative', overflow: 'hidden' }}>
+            {closeIcon}
+            <div style={{ position: 'absolute', inset: 0, opacity: 0.48, background: 'linear-gradient(145deg,#1F2937,#111827)' }}>
+              <div style={{ height: 72, padding: '22px 18px 0', color: '#fff', display: 'flex', gap: 18, alignItems: 'center', fontSize: 13, fontWeight: 700 }}>
+                <span>⌂</span><span>Pay</span><span>Cards</span><span>Wealth</span><span>Insur</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-around', padding: '38px 18px 0' }}>
+                {[0, 1, 2, 3].map(i => <div key={i} style={{ width: 54, height: 54, borderRadius: '50%', background: '#fff', opacity: 0.85 }} />)}
+              </div>
+              <div style={{ margin: '190px 18px 0', height: 78, background: '#fff', opacity: 0.6 }} />
+              <div style={{ margin: '16px 18px 0', height: 54, border: '1px dashed #111', opacity: 0.45 }} />
+            </div>
+            <div style={{ position: 'relative', zIndex: 1, minHeight: 560, display: 'flex', alignItems: 'center', padding: '0 14px' }}>
+              <div style={{ background: '#fff', width: '100%', boxShadow: '0 8px 24px rgba(0,0,0,0.22)', padding: '48px 16px 16px', position: 'relative' }}>
+                <div style={{ position: 'absolute', top: -34, left: '50%', transform: 'translateX(-50%)', width: 124, height: 64, background: '#DB0011', clipPath: 'polygon(0 25%, 18% 0, 82% 0, 100% 25%, 78% 100%, 22% 100%)', boxShadow: '0 3px 10px rgba(0,0,0,0.18)' }} />
+                <h3 style={{ fontSize: 20, margin: '0 0 12px', color: '#2D2D2D', lineHeight: 1.2 }}>{title}</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+                  {body.map((paragraph, idx) => <p key={idx} style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: '#374151' }}>{paragraph}</p>)}
+                </div>
+                {buttonGrid(actions.length ? actions : [{ id: 'update-now', label: 'Update now', style: 'primary' }])}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      if (styleVariant === 'FESTIVE_CARD') {
+        const primary = actions.length ? actions : [{ id: 'close', label: 'Close', style: 'primary' }];
+        return (
+          <div style={{ ...base, minHeight: 560, background: '#6B6B6B', border: 'none', borderRadius: 0, position: 'relative', overflow: 'hidden', padding: '42px 14px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            {closeIcon}
+            <div style={{ position: 'absolute', top: 34, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+              <div style={{ width: 86, height: 42, background: '#DB0011', clipPath: 'polygon(0 50%, 22% 0, 78% 0, 100% 50%, 78% 100%, 22% 100%)', position: 'relative' }}>
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(45deg, transparent 0 24%, #fff 24% 50%, transparent 50% 100%)', opacity: 0.9 }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(-45deg, transparent 0 24%, #fff 24% 50%, transparent 50% 100%)', opacity: 0.9 }} />
+              </div>
+            </div>
+            <div style={{ marginTop: 54, background: '#7F1117', minHeight: 378, padding: 22, color: '#fff', position: 'relative', overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.22)' }}>
+              <div style={{ position: 'absolute', right: 18, top: 28, width: 40, height: 40, borderRadius: '50%', background: '#F59E0B', boxShadow: '0 0 0 8px rgba(255,255,255,0.08)' }} />
+              <div style={{ position: 'absolute', right: 64, top: 76, width: 36, height: 36, borderRadius: '50%', background: '#F9FAFB' }} />
+              <div style={{ margin: '28px 0 18px 14px', width: 170, height: 200, position: 'relative' }}>
+                <div style={{ position: 'absolute', left: 68, top: 0, color: '#FACC15', fontSize: 40 }}>★</div>
+                <div style={{ position: 'absolute', left: 20, top: 44, width: 150, height: 132, background: '#22A455', clipPath: 'polygon(50% 0, 0 100%, 100% 100%)' }} />
+                <div style={{ position: 'absolute', left: 42, top: 86, width: 112, height: 3, background: '#fff', transform: 'rotate(-16deg)' }} />
+                <div style={{ position: 'absolute', left: 28, top: 124, width: 134, height: 3, background: '#fff', transform: 'rotate(-16deg)' }} />
+                {[76, 118, 146].map((top, idx) => <div key={idx} style={{ position: 'absolute', left: 72 + idx * 30, top, width: 18, height: 18, borderRadius: '50%', background: '#DB0011' }} />)}
+                <div style={{ position: 'absolute', left: 86, top: 176, width: 24, height: 38, background: '#8B5E34' }} />
+              </div>
+              <h3 style={{ fontSize: 27, lineHeight: 1.12, margin: '10px 0 16px', color: '#fff' }}>{title}</h3>
+              {body.slice(0, 1).map((paragraph, idx) => <p key={idx} style={{ margin: '0 0 14px', fontSize: 12, lineHeight: 1.45, color: '#FDECEC' }}>{paragraph}</p>)}
+              <div style={{ width: 76, padding: '12px 8px', textAlign: 'center', fontSize: 13, fontWeight: 700, background: '#DB0011', color: '#fff' }}>{primary[0].label}</div>
+            </div>
+            <div style={{ marginTop: 'auto', paddingTop: 16, color: '#2D2D2D', fontSize: 10 }}>{legal}</div>
+          </div>
+        );
+      }
+
+      return (
+        <div style={{ ...base, minHeight: 560, background: '#6B6B6B', border: 'none', borderRadius: 0, position: 'relative', padding: '34px 14px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          {closeIcon}
+          <div style={{ position: 'absolute', top: 22, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+            <div style={{ width: 86, height: 42, background: '#DB0011', clipPath: 'polygon(0 50%, 22% 0, 78% 0, 100% 50%, 78% 100%, 22% 100%)', position: 'relative' }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(45deg, transparent 0 24%, #fff 24% 50%, transparent 50% 100%)', opacity: 0.9 }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(-45deg, transparent 0 24%, #fff 24% 50%, transparent 50% 100%)', opacity: 0.9 }} />
+            </div>
+          </div>
+
+          <div style={{ marginTop: 68, background: '#fff', boxShadow: '0 8px 22px rgba(0,0,0,0.18)', position: 'relative', padding: '42px 18px 14px' }}>
+            {styleVariant === 'ENVELOPE_CARD' && (
+              <div style={{ position: 'absolute', top: -28, left: '50%', transform: 'translateX(-50%)', width: 116, height: 58, background: '#fff', clipPath: 'polygon(0 100%, 22% 0, 78% 0, 100% 100%)' }} />
+            )}
+            <div style={{ position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 10, alignItems: 'flex-end' }}>
+              <span style={{ width: 8, height: 24, background: '#1F2937', display: 'block' }} />
+              <span style={{ width: 8, height: 34, background: '#111827', display: 'block' }} />
+            </div>
+
+            <h3 style={{ fontSize: 20, margin: '0 0 14px', color: '#2D2D2D', lineHeight: 1.2 }}>{title}</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+              {body.map((paragraph, idx) => (
+                <p key={idx} style={{ margin: 0, fontSize: 13, lineHeight: 1.45, color: '#374151' }}>{paragraph}</p>
+              ))}
+            </div>
+            {hotlines.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 12 }}>
+                {hotlines.map((hotline, idx) => (
+                  <div key={idx} style={{ fontSize: 12, lineHeight: 1.35, color: '#1F2937' }}>
+                    <span style={{ color: '#6B7280', marginRight: 4 }}>·</span>
+                    <strong>{hotline.label}</strong>: <span style={{ textDecoration: 'underline' }}>{hotline.phone}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {dontShow?.enabled && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '8px 0 14px' }}>
+                <span style={{ width: 22, height: 22, border: '2px solid #D1D5DB', display: 'inline-block', boxSizing: 'border-box' }} />
+                <span style={{ fontSize: 12, color: '#374151' }}>{dontShow.label ?? "Don't show this message again"}</span>
+              </div>
+            )}
+            {buttonGrid()}
+          </div>
+          <div style={{ marginTop: 'auto', paddingTop: 16, color: '#2D2D2D', fontSize: 10 }}>{legal}</div>
+        </div>
+      );
+    }
     case 'VIDEO_PLAYER':
       return (
         <div style={{ ...base, background: '#0A1628', overflow: 'hidden' }}>
@@ -1621,7 +1839,7 @@ function MetaPanel({
   page, isJourneyPage, readOnly,
   onSave, onChangeName, onChangeDesc,
   onToggleNativeTarget, onTogglePublic,
-  campaignSchedule, onScheduleChange,
+  campaignSchedule, onScheduleChange, timezone, timezoneLabel,
 }: {
   page: PageLayout; isJourneyPage: boolean; readOnly?: boolean;
   onSave: () => void;
@@ -1631,23 +1849,27 @@ function MetaPanel({
   onTogglePublic: (v: boolean) => void;
   campaignSchedule?: CampaignSchedule;
   onScheduleChange: (s: CampaignSchedule | undefined) => void;
+  timezone: string;
+  timezoneLabel: string;
 }) {
   const [tab, setTab] = useState<'meta' | 'campaign'>('meta');
   const isCampaign = page.pageType === 'CAMPAIGN';
+  const isAnnouncement = page.pageType === 'ANNOUNCEMENT';
+  const isSchedulable = isCampaign || isAnnouncement;
   const inp: React.CSSProperties = { width: '100%', padding: '6px 10px', border: '1px solid #D1D5DB', borderRadius: 7, fontSize: 12, fontFamily: 'var(--font-family)', outline: 'none', boxSizing: 'border-box' };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Tabs */}
       <div style={{ display: 'flex', borderBottom: '1px solid #E5E7EB', flexShrink: 0 }}>
-        {(['meta', ...(isCampaign ? ['campaign'] : [])] as const).map(t => (
+        {(['meta', ...(isSchedulable ? ['campaign'] : [])] as const).map(t => (
           <button key={t} onClick={() => setTab(t as typeof tab)} style={{
             padding: '8px 14px', fontSize: 11, fontWeight: tab === t ? 700 : 500,
             color: tab === t ? '#DB0011' : '#6B7280', background: 'none', border: 'none',
             borderBottom: tab === t ? '2px solid #DB0011' : '2px solid transparent',
             cursor: 'pointer', textTransform: 'capitalize',
           }}>
-            {t === 'meta' ? 'Page Info' : 'Campaign Timer'}
+            {t === 'meta' ? 'Page Info' : `${isAnnouncement ? 'Announcement' : 'Campaign'} Timer`}
           </button>
         ))}
       </div>
@@ -1780,8 +2002,14 @@ function MetaPanel({
           </div>
         )}
 
-        {tab === 'campaign' && isCampaign && (
-          <CampaignTimerMeta schedule={campaignSchedule} onChange={onScheduleChange} />
+        {tab === 'campaign' && isSchedulable && (
+          <CampaignTimerMeta
+            schedule={campaignSchedule}
+            onChange={onScheduleChange}
+            timezone={timezone}
+            timezoneLabel={timezoneLabel}
+            label={isAnnouncement ? 'announcement' : 'campaign'}
+          />
         )}
       </div>
 
@@ -1813,6 +2041,108 @@ interface PropField {
 
 type ListKey = 'items' | 'rows' | 'bulletPoints' | 'products' | 'deals';
 type FeatureProductButton = { id: string; name: string; description: string; url: string };
+type AnnouncementHotline = { label: string; phone: string };
+type AnnouncementAction = { id: string; label: string; type: string; style: string; tone?: string; url?: string };
+type AnnouncementPresetKey = 'maintenance' | 'special' | 'forceUpdate' | 'christmas';
+
+const ANNOUNCEMENT_PRESETS: Record<AnnouncementPresetKey, { label: string; props: Record<string, unknown> }> = {
+  maintenance: {
+    label: 'Maintenance notice',
+    props: {
+      scenario: 'MAINTENANCE_NOTICE',
+      styleVariant: 'NOTICE_CARD',
+      contentRef: { source: 'UCP', id: 'ucp-ann-maintenance-001' },
+      visual: { assetId: 'asset-ann-maintenance', imageUrl: 'https://placehold.co/360x220/E5E7EB/111827?text=Maintenance', altText: 'Maintenance notice illustration', placement: 'top-floating' },
+      title: 'Our maintenance schedule',
+      body: [
+        'To improve our service, we will provide service updates and maintenance to our banking services this Sunday during 1:00am - 3:00am HKT.',
+        'During this period, selected banking services may be unavailable. We apologise for any inconvenience.',
+      ],
+      hotlines: [],
+      dontShowAgain: { enabled: true, label: "Don't show this message again" },
+      actions: [
+        { id: 'close', label: 'Close', type: 'dismiss', style: 'primary' },
+        { id: 'website', label: 'HSBC Website', type: 'openUrl', style: 'secondary', url: 'https://www.hsbc.com.hk/' },
+      ],
+      expiry: '2026-05-17T03:00:00+08:00',
+      priority: 80,
+      blockInteraction: true,
+      legalEntityText: 'The Hongkong and Shanghai Banking Corporation Limited',
+    },
+  },
+  special: {
+    label: 'Special announcement',
+    props: {
+      scenario: 'SPECIAL_ANNOUNCEMENT',
+      styleVariant: 'ENVELOPE_CARD',
+      contentRef: { source: 'UCP', id: 'ucp-ann-special-taipo-fire-001' },
+      visual: { assetId: 'asset-ann-envelope', imageUrl: 'https://placehold.co/360x190/FFFFFF/DB0011?text=HSBC+Envelope', altText: 'HSBC special announcement envelope illustration', placement: 'envelope-top' },
+      title: 'Special announcement',
+      body: [
+        "Your well-being is our priority. We're committed to supporting our customers affected by the Tai Po fire incident.",
+        'If you need urgent assistance, please contact the following dedicated hotlines:',
+      ],
+      hotlines: [
+        { label: 'HSBC Banking Services / HSBC Life Insurance', phone: '(852) 2233 3066' },
+        { label: 'HSBC General Insurance (operated by AXA)', phone: '(852) 2894 4078' },
+      ],
+      dontShowAgain: { enabled: true, label: "Don't show this message again" },
+      actions: [
+        { id: 'close', label: 'Close', type: 'dismiss', style: 'primary', tone: 'dark' },
+        { id: 'website', label: 'HSBC Website', type: 'openUrl', style: 'secondary', url: 'https://www.hsbc.com.hk/' },
+      ],
+      expiry: '2026-06-30T23:59:59+08:00',
+      priority: 95,
+      blockInteraction: true,
+      legalEntityText: 'The Hongkong and Shanghai Banking Corporation Limited',
+    },
+  },
+  forceUpdate: {
+    label: 'Journey force update',
+    props: {
+      scenario: 'JOURNEY_FORCE_UPDATE',
+      styleVariant: 'INLINE_FORCE_UPDATE',
+      contentRef: { source: 'UCP', id: 'ucp-ann-force-update-elaisee-001' },
+      visual: { assetId: 'asset-ann-elaisee', imageUrl: 'https://placehold.co/360x180/DB0011/FFFFFF?text=eLaisee', altText: 'eLaisee feature artwork', placement: 'modal-top' },
+      title: 'Get ready for eLaisee',
+      body: [
+        'Enjoy Chinese New Year by sending eLaisee money with customised messages, 24 hours a day, in an eco-friendlier way.',
+        'Make sure your app is up to date to use the new feature.',
+      ],
+      hotlines: [],
+      dontShowAgain: { enabled: false, label: '' },
+      actions: [
+        { id: 'update-now', label: 'Update now', type: 'appUpdate', style: 'primary', url: 'app-store://hsbc-mobile' },
+      ],
+      minAppVersion: { ios: '6.18.0', android: '6.18.0', harmonynext: '6.18.0' },
+      journeyIds: ['elaisee'],
+      expiry: '2026-02-28T23:59:59+08:00',
+      priority: 100,
+      blockInteraction: true,
+      legalEntityText: '',
+    },
+  },
+  christmas: {
+    label: 'Seasonal greeting',
+    props: {
+      scenario: 'SEASONAL_GREETING',
+      styleVariant: 'FESTIVE_CARD',
+      contentRef: { source: 'UCP', id: 'ucp-ann-christmas-001' },
+      visual: { assetId: 'asset-ann-christmas', imageUrl: 'https://placehold.co/360x360/7F1117/FFFFFF?text=Merry+Christmas', altText: 'Christmas greeting artwork', placement: 'full-card' },
+      title: 'Merry Christmas',
+      body: ['Wishing you and your loved ones a joyful festive season.'],
+      hotlines: [],
+      dontShowAgain: { enabled: false, label: '' },
+      actions: [
+        { id: 'close', label: 'Close', type: 'dismiss', style: 'primary' },
+      ],
+      expiry: '2026-12-26T23:59:59+08:00',
+      priority: 30,
+      blockInteraction: false,
+      legalEntityText: 'The Hongkong and Shanghai Banking Corporation Limited',
+    },
+  },
+};
 
 const SLICE_PROP_FIELDS: Partial<Record<string, PropField[]>> = {
   HEADER_NAV: [
@@ -2039,6 +2369,44 @@ const SLICE_PROP_FIELDS: Partial<Record<string, PropField[]>> = {
   DEPOSIT_FAQ: [
     { key: 'sectionTitle', label: 'Section Title', type: 'text', placeholder: 'Frequently Asked Questions' },
   ],
+  ANNOUNCEMENT_OVERLAY: [
+    { key: 'scenario', label: 'Scenario', type: 'select', options: [
+      { value: 'MAINTENANCE_NOTICE', label: 'Maintenance notice' },
+      { value: 'SPECIAL_ANNOUNCEMENT', label: 'Special announcement' },
+      { value: 'JOURNEY_FORCE_UPDATE', label: 'Journey force update' },
+      { value: 'SEASONAL_GREETING', label: 'Seasonal greeting' },
+    ]},
+    { key: 'styleVariant', label: 'Style Variant', type: 'select', options: [
+      { value: 'NOTICE_CARD', label: 'Notice card' },
+      { value: 'ENVELOPE_CARD', label: 'Envelope card' },
+      { value: 'INLINE_FORCE_UPDATE', label: 'Inline force update' },
+      { value: 'FESTIVE_CARD', label: 'Festive card' },
+    ]},
+    { key: 'title', label: 'Title', type: 'text', placeholder: 'Special announcement' },
+    { key: 'priority', label: 'Priority', type: 'number', placeholder: '95' },
+    { key: 'expiry', label: 'Expiry', type: 'text', placeholder: '2026-06-30T23:59:59+08:00' },
+    { key: 'blockInteraction', label: 'Block App Interaction', type: 'boolean' },
+    { key: 'legalEntityText', label: 'Legal Entity Text', type: 'text', placeholder: 'The Hongkong and Shanghai Banking Corporation Limited' },
+  ],
+  ANNOUNCEMENT_VISUAL: [
+    { key: 'assetId', label: 'Asset ID', type: 'text', placeholder: 'asset-ann-envelope' },
+    { key: 'imageUrl', label: 'Image URL', type: 'url', placeholder: 'https://...' },
+    { key: 'altText', label: 'Alt Text', type: 'text', placeholder: 'Announcement illustration' },
+    { key: 'placement', label: 'Placement', type: 'text', placeholder: 'envelope-top' },
+    { key: 'backgroundColor', label: 'Background Colour', type: 'color' },
+  ],
+  ANNOUNCEMENT_BODY: [
+    { key: 'headline', label: 'Headline', type: 'text', placeholder: 'Special announcement' },
+    { key: 'dontShowAgainLabel', label: 'Opt-out Label', type: 'text', placeholder: "Don't show this message again" },
+    { key: 'legalEntityText', label: 'Legal Entity Text', type: 'text' },
+  ],
+  ANNOUNCEMENT_ACTIONS: [
+    { key: 'layout', label: 'Layout', type: 'select', options: [
+      { value: 'horizontal', label: 'Horizontal' },
+      { value: 'vertical', label: 'Vertical' },
+    ]},
+    { key: 'forcePrimary', label: 'Force Primary Action', type: 'boolean' },
+  ],
   CAMPAIGN_HERO: [
     { key: 'headline',    label: 'Headline',      type: 'text',  placeholder: 'HSBC Visa Platinum Credit Card' },
     { key: 'subHeadline', label: 'Sub-headline',  type: 'text',  placeholder: 'Your World, No Limits' },
@@ -2071,6 +2439,10 @@ const SLICE_LABELS: Partial<Record<string, string>> = {
   DEPOSIT_RATE_TABLE: 'Deposit Rate Table',
   DEPOSIT_OPEN_CTA: 'Button CTA',
   DEPOSIT_FAQ: 'General FAQ',
+  ANNOUNCEMENT_OVERLAY: 'Announcement Overlay',
+  ANNOUNCEMENT_VISUAL: 'Announcement Visual',
+  ANNOUNCEMENT_BODY: 'Announcement Body',
+  ANNOUNCEMENT_ACTIONS: 'Announcement Actions',
   CAMPAIGN_HERO: 'Campaign Hero Banner',
   CAMPAIGN_BENEFITS: 'Benefits Grid',
   CAMPAIGN_CTA: 'Apply / CTA Block',
@@ -2204,6 +2576,102 @@ function BulletPointsEditor({ points, onChange }: {
         onClick={add}
         style={{ padding: '5px 10px', border: '1px dashed #D1D5DB', borderRadius: 6, background: '#F9FAFB', color: '#6B7280', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}
       >+ Add bullet</button>
+    </div>
+  );
+}
+
+function StringListEditor({ items, onChange, addLabel, placeholder }: {
+  items: string[];
+  onChange: (items: string[]) => void;
+  addLabel: string;
+  placeholder: string;
+}) {
+  function update(i: number, value: string) { onChange(items.map((item, idx) => idx === i ? value : item)); }
+  function remove(i: number) { onChange(items.filter((_, idx) => idx !== i)); }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {items.map((item, idx) => (
+        <div key={idx} style={{ display: 'flex', gap: 4, alignItems: 'flex-start' }}>
+          <textarea
+            value={item}
+            onChange={e => update(idx, e.target.value)}
+            placeholder={placeholder}
+            rows={2}
+            style={{ flex: 1, padding: '4px 7px', border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, fontFamily: 'var(--font-family)', resize: 'vertical', outline: 'none' }}
+          />
+          <button onClick={() => remove(idx)} style={{ padding: '3px 6px', border: '1px solid #FECACA', borderRadius: 4, background: '#FEF2F2', color: '#DC2626', cursor: 'pointer', fontSize: 11, flexShrink: 0 }}>✕</button>
+        </div>
+      ))}
+      <button onClick={() => onChange([...items, ''])} style={{ padding: '5px 10px', border: '1px dashed #D1D5DB', borderRadius: 6, background: '#F9FAFB', color: '#6B7280', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+        + {addLabel}
+      </button>
+    </div>
+  );
+}
+
+function AnnouncementHotlineEditor({ hotlines, onChange }: {
+  hotlines: AnnouncementHotline[];
+  onChange: (hotlines: AnnouncementHotline[]) => void;
+}) {
+  const input: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '4px 7px', border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, fontFamily: 'var(--font-family)', outline: 'none' };
+  const update = (idx: number, patch: Partial<AnnouncementHotline>) => onChange(hotlines.map((item, i) => i === idx ? { ...item, ...patch } : item));
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {hotlines.map((hotline, idx) => (
+        <div key={idx} style={{ padding: 8, border: '1px solid #E5E7EB', borderRadius: 7, background: '#F9FAFB' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#111' }}>Hotline {idx + 1}</div>
+            <button onClick={() => onChange(hotlines.filter((_, i) => i !== idx))} style={{ border: 'none', background: 'transparent', color: '#DC2626', fontSize: 11, cursor: 'pointer' }}>Delete</button>
+          </div>
+          <div style={{ display: 'grid', gap: 6 }}>
+            <input value={hotline.label} onChange={e => update(idx, { label: e.target.value })} placeholder="Hotline label" style={input} />
+            <input value={hotline.phone} onChange={e => update(idx, { phone: e.target.value })} placeholder="(852) 2233 3066" style={input} />
+          </div>
+        </div>
+      ))}
+      <button onClick={() => onChange([...hotlines, { label: 'New hotline', phone: '' }])} style={{ padding: '5px 10px', border: '1px dashed #D1D5DB', borderRadius: 6, background: '#F9FAFB', color: '#6B7280', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+        + Add hotline
+      </button>
+    </div>
+  );
+}
+
+function AnnouncementActionEditor({ actions, onChange }: {
+  actions: AnnouncementAction[];
+  onChange: (actions: AnnouncementAction[]) => void;
+}) {
+  const input: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '4px 7px', border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, fontFamily: 'var(--font-family)', outline: 'none' };
+  const update = (idx: number, patch: Partial<AnnouncementAction>) => onChange(actions.map((item, i) => i === idx ? { ...item, ...patch } : item));
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {actions.map((action, idx) => (
+        <div key={idx} style={{ padding: 8, border: '1px solid #E5E7EB', borderRadius: 7, background: '#F9FAFB' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#111' }}>Action {idx + 1}</div>
+            <button onClick={() => onChange(actions.filter((_, i) => i !== idx))} style={{ border: 'none', background: 'transparent', color: '#DC2626', fontSize: 11, cursor: 'pointer' }}>Delete</button>
+          </div>
+          <div style={{ display: 'grid', gap: 6 }}>
+            <input value={action.id} onChange={e => update(idx, { id: e.target.value })} placeholder="id" style={input} />
+            <input value={action.label} onChange={e => update(idx, { label: e.target.value })} placeholder="Label" style={input} />
+            <select value={action.type} onChange={e => update(idx, { type: e.target.value })} style={input}>
+              <option value="dismiss">Dismiss</option>
+              <option value="openUrl">Open URL</option>
+              <option value="callPhone">Call phone</option>
+              <option value="appUpdate">App update</option>
+              <option value="deepLink">Deep link</option>
+            </select>
+            <select value={action.style} onChange={e => update(idx, { style: e.target.value })} style={input}>
+              <option value="primary">Primary</option>
+              <option value="secondary">Secondary</option>
+              <option value="tertiary">Tertiary</option>
+            </select>
+            <input value={action.url ?? ''} onChange={e => update(idx, { url: e.target.value })} placeholder="URL / deep link" style={input} />
+          </div>
+        </div>
+      ))}
+      <button onClick={() => onChange([...actions, { id: `action-${actions.length + 1}`, label: 'New action', type: 'dismiss', style: 'secondary' }])} style={{ padding: '5px 10px', border: '1px dashed #D1D5DB', borderRadius: 6, background: '#F9FAFB', color: '#6B7280', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+        + Add action
+      </button>
     </div>
   );
 }
@@ -2958,10 +3426,11 @@ function ComboQuickAccessEditor({
   );
 }
 
-function SlicePropEditor({ slice, readOnly, onPropChange, onDeselect, activeLocale, primaryLocale, draggingAsset }: {
+function SlicePropEditor({ slice, readOnly, onPropChange, onPropsPatch, onDeselect, activeLocale, primaryLocale, draggingAsset }: {
   slice: CanvasSlice;
   readOnly: boolean;
   onPropChange: (key: string, value: unknown) => void;
+  onPropsPatch?: (patch: Record<string, unknown>) => void;
   onDeselect: () => void;
   activeLocale?: string;
   primaryLocale?: string;
@@ -3124,6 +3593,73 @@ function SlicePropEditor({ slice, readOnly, onPropChange, onDeselect, activeLoca
           </div>
         )}
 
+        {slice.type === 'ANNOUNCEMENT_OVERLAY' && (
+          <>
+            {!readOnly && (
+              <div style={fieldRow}>
+                <div style={sectionHead}>Style Presets</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                  {(Object.keys(ANNOUNCEMENT_PRESETS) as AnnouncementPresetKey[]).map(key => {
+                    const preset = ANNOUNCEMENT_PRESETS[key];
+                    const active = props.styleVariant === preset.props.styleVariant;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => {
+                          if (onPropsPatch) onPropsPatch(preset.props);
+                          else Object.entries(preset.props).forEach(([propKey, value]) => onPropChange(propKey, value));
+                        }}
+                        style={{
+                          padding: '7px 8px', borderRadius: 7, border: active ? '2px solid #DB0011' : '1px solid #E5E7EB',
+                          background: active ? 'rgba(219,0,17,0.04)' : '#fff', color: active ? '#DB0011' : '#374151',
+                          fontSize: 10, fontWeight: 700, cursor: 'pointer', textAlign: 'left',
+                        }}
+                      >
+                        {preset.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            <div style={fieldRow}>
+              <div style={sectionHead}>Body Paragraphs</div>
+              {readOnly ? (
+                <div style={{ fontSize: 11, color: '#6B7280' }}>{((props.body as string[]) ?? []).length} paragraph(s)</div>
+              ) : (
+                <StringListEditor
+                  items={(props.body as string[]) ?? []}
+                  onChange={items => onPropChange('body', items)}
+                  addLabel="Add paragraph"
+                  placeholder="Announcement paragraph"
+                />
+              )}
+            </div>
+            <div style={fieldRow}>
+              <div style={sectionHead}>Hotlines</div>
+              {readOnly ? (
+                <div style={{ fontSize: 11, color: '#6B7280' }}>{((props.hotlines as AnnouncementHotline[]) ?? []).length} hotline(s)</div>
+              ) : (
+                <AnnouncementHotlineEditor
+                  hotlines={(props.hotlines as AnnouncementHotline[]) ?? []}
+                  onChange={hotlines => onPropChange('hotlines', hotlines)}
+                />
+              )}
+            </div>
+            <div style={fieldRow}>
+              <div style={sectionHead}>Actions</div>
+              {readOnly ? (
+                <div style={{ fontSize: 11, color: '#6B7280' }}>{((props.actions as AnnouncementAction[]) ?? []).length} action(s)</div>
+              ) : (
+                <AnnouncementActionEditor
+                  actions={(props.actions as AnnouncementAction[]) ?? []}
+                  onChange={actions => onPropChange('actions', actions)}
+                />
+              )}
+            </div>
+          </>
+        )}
+
         {slice.type === 'WEALTH_STUDIO_CAROUSEL' && (
           <div style={fieldRow}>
             <div style={sectionHead}>Episodes</div>
@@ -3194,7 +3730,7 @@ function SlicePropEditor({ slice, readOnly, onPropChange, onDeselect, activeLoca
           );
         })()}
 
-        {fields.length === 0 && !['FUNCTION_GRID','QUICK_ACCESS','QUICK_ACCESS_GRID','COMBO_QUICK_ACCESS','MARKET_BRIEFING_TEXT','DEPOSIT_RATE_TABLE','DEPOSIT_FAQ','CAMPAIGN_BENEFITS','CONTENT_TAB_BAR','FEATURE_PRODUCT','WEALTH_STUDIO_CAROUSEL','GUIDES_INSIGHTS_CAROUSEL','FX_WATCHLIST','DISCOVER_MORE_CAROUSEL'].includes(slice.type) && (
+        {fields.length === 0 && !['FUNCTION_GRID','QUICK_ACCESS','QUICK_ACCESS_GRID','COMBO_QUICK_ACCESS','MARKET_BRIEFING_TEXT','DEPOSIT_RATE_TABLE','DEPOSIT_FAQ','ANNOUNCEMENT_OVERLAY','CAMPAIGN_BENEFITS','CONTENT_TAB_BAR','FEATURE_PRODUCT','WEALTH_STUDIO_CAROUSEL','GUIDES_INSIGHTS_CAROUSEL','FX_WATCHLIST','DISCOVER_MORE_CAROUSEL'].includes(slice.type) && (
           <div style={{ textAlign: 'center', color: '#9CA3AF', fontSize: 11, padding: 20 }}>
             No editable properties for this component type.
           </div>
@@ -3219,46 +3755,56 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function CampaignTimerMeta({ schedule, onChange }: { schedule?: CampaignSchedule; onChange: (s: CampaignSchedule | undefined) => void }) {
-  const [pub, setPub]   = useState(schedule?.publishAt  ? new Date(schedule.publishAt).toISOString().slice(0, 16)  : '');
-  const [take, setTake] = useState(schedule?.takedownAt ? new Date(schedule.takedownAt).toISOString().slice(0, 16) : '');
+function CampaignTimerMeta({
+  schedule, onChange, timezone, timezoneLabel, label,
+}: {
+  schedule?: CampaignSchedule;
+  onChange: (s: CampaignSchedule | undefined) => void;
+  timezone: string;
+  timezoneLabel: string;
+  label: string;
+}) {
+  const [pub, setPub]   = useState(utcToZonedInput(schedule?.publishAt, timezone));
+  const [take, setTake] = useState(utcToZonedInput(schedule?.takedownAt, timezone));
   const inp: React.CSSProperties = { width: '100%', padding: '6px 10px', border: '1px solid #D1D5DB', borderRadius: 7, fontSize: 12, fontFamily: 'var(--font-family)', outline: 'none', boxSizing: 'border-box' };
 
   useEffect(() => {
-    const newPub  = schedule?.publishAt  ? new Date(schedule.publishAt).toISOString().slice(0, 16)  : '';
-    const newTake = schedule?.takedownAt ? new Date(schedule.takedownAt).toISOString().slice(0, 16) : '';
+    const activeTz = schedule?.timezone ?? timezone;
+    const newPub  = utcToZonedInput(schedule?.publishAt, activeTz);
+    const newTake = utcToZonedInput(schedule?.takedownAt, activeTz);
     setPub(p  => p !== newPub  ? newPub  : p);
     setTake(t => t !== newTake ? newTake : t);
-  }, [schedule?.publishAt, schedule?.takedownAt]);
+  }, [schedule?.publishAt, schedule?.takedownAt, schedule?.timezone, timezone]);
 
   function handlePublishChange(v: string) {
     setPub(v);
     if (v && take) {
-      onChange({ publishAt: new Date(v).toISOString(), takedownAt: new Date(take).toISOString() });
+      onChange({ publishAt: zonedInputToUtc(v, timezone), takedownAt: zonedInputToUtc(take, timezone), timezone });
     }
   }
 
   function handleTakedownChange(v: string) {
     setTake(v);
     if (pub && v) {
-      onChange({ publishAt: new Date(pub).toISOString(), takedownAt: new Date(v).toISOString() });
+      onChange({ publishAt: zonedInputToUtc(pub, timezone), takedownAt: zonedInputToUtc(v, timezone), timezone });
     }
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={{ padding: 12, background: '#FFF7F7', borderRadius: 8, fontSize: 11, color: '#9B1C1C', lineHeight: 1.5 }}>
-        ⏱ Set publish and takedown times. The page auto-releases to production when the publish timer expires (after approval).
+        ⏱ Enable this {label} immediately after release, or set a start and end time for its effective window.
+        <div style={{ marginTop: 5, fontWeight: 700 }}>Market timezone: {timezoneLabel}</div>
       </div>
-      <Field label="Publish At">
+      <Field label="Start At">
         <input type="datetime-local" value={pub} onChange={e => handlePublishChange(e.target.value)} style={inp} />
       </Field>
-      <Field label="Takedown At">
+      <Field label="End At">
         <input type="datetime-local" value={take} onChange={e => handleTakedownChange(e.target.value)} style={inp} />
       </Field>
       {pub && take && (
         <button onClick={() => { setPub(''); setTake(''); onChange(undefined); }} style={{ padding: '6px', background: '#fff', border: '1px solid #E5E7EB', borderRadius: 6, fontSize: 11, color: '#DC2626', cursor: 'pointer', fontWeight: 600 }}>
-          Clear Schedule
+          Enable Immediately
         </button>
       )}
     </div>
@@ -4204,6 +4750,33 @@ export function PageEditorView() {
         { id: 'faq-4', question: 'Why is the interest rate higher for time deposits than regular savings accounts?', answer: 'Banks can offer better rates because they know you\'ll keep your money in the account for a fixed period. This lets them use the funds for longer-term investments, so they share more of the profit with you as interest.' },
       ],
     });
+    if (comp.sliceType === 'ANNOUNCEMENT_OVERLAY') Object.assign(defaultProps, ANNOUNCEMENT_PRESETS.special.props);
+    if (comp.sliceType === 'ANNOUNCEMENT_VISUAL') Object.assign(defaultProps, {
+      assetId: 'asset-ann-envelope',
+      imageUrl: 'https://placehold.co/360x190/FFFFFF/DB0011?text=HSBC+Envelope',
+      altText: 'HSBC special announcement envelope illustration',
+      placement: 'envelope-top',
+      backgroundColor: '#FFFFFF',
+    });
+    if (comp.sliceType === 'ANNOUNCEMENT_BODY') Object.assign(defaultProps, {
+      headline: 'Special announcement',
+      paragraphs: [
+        "Your well-being is our priority. We're committed to supporting our customers affected by the Tai Po fire incident.",
+        'If you need urgent assistance, please contact the following dedicated hotlines:',
+      ],
+      hotlines: [
+        { label: 'HSBC Banking Services / HSBC Life Insurance', phone: '(852) 2233 3066' },
+        { label: 'HSBC General Insurance (operated by AXA)', phone: '(852) 2894 4078' },
+      ],
+      dontShowAgainLabel: "Don't show this message again",
+      legalEntityText: 'The Hongkong and Shanghai Banking Corporation Limited',
+    });
+    if (comp.sliceType === 'ANNOUNCEMENT_ACTIONS') Object.assign(defaultProps, {
+      layout: 'horizontal',
+      forcePrimary: false,
+      primaryAction: { id: 'close', label: 'Close', type: 'dismiss', style: 'primary', tone: 'dark' },
+      secondaryAction: { id: 'website', label: 'HSBC Website', type: 'openUrl', style: 'secondary', url: 'https://www.hsbc.com.hk/' },
+    });
     if (comp.sliceType === 'CAMPAIGN_HERO') Object.assign(defaultProps, {
       headline: 'HSBC Visa Platinum Credit Card',
       subHeadline: 'Your World, No Limits — 0% Foreign Transaction Fee',
@@ -4329,6 +4902,17 @@ export function PageEditorView() {
     }
   }
 
+  function updateSliceProps(instanceId: string, patch: Record<string, unknown>) {
+    const updated = slices.map(s =>
+      s.instanceId !== instanceId ? s : { ...s, props: { ...s.props, ...patch } }
+    );
+    if (isJourneyPage) {
+      dispatch({ type: 'REORDER_JOURNEY_PAGE_SLICES', pageId, slices: updated });
+    } else {
+      dispatch({ type: 'EDIT_PAGE', pageId, updates: { slices: updated } });
+    }
+  }
+
   function saveChanges(name: string, description: string) {
     if (isJourneyPage) {
       dispatch({ type: 'EDIT_JOURNEY_PAGE', pageId, updates: { name, description } });
@@ -4348,7 +4932,7 @@ export function PageEditorView() {
 
   function handleScheduleChange(schedule: CampaignSchedule | undefined) {
     if (!isJourneyPage) {
-      dispatch({ type: 'SET_CAMPAIGN_SCHEDULE', pageId, schedule });
+      dispatch({ type: 'SET_PAGE_SCHEDULE', pageId, schedule });
     }
   }
 
@@ -4511,20 +5095,23 @@ export function PageEditorView() {
                     <button onClick={ucpSidebar.refetchComponents} style={{ padding: '4px 10px', background: '#DC2626', color: '#fff', border: 'none', borderRadius: 4, fontSize: 10, cursor: 'pointer', fontWeight: 600 }}>Retry</button>
                   </div>
                 )}
-                {/* Merge: UCP components when loaded, fallback to local palette while loading */}
+                {/* Merge UCP registry with local palette definitions so newly scaffolded
+                    components are visible even when the UCP proxy serves stale data. */}
                 {(() => {
-                  const source: PaletteComponent[] = ucpSidebar.components.length > 0
-                    ? ucpSidebar.components.map(c => ({
-                        sliceType: c.sliceType as PaletteComponent['sliceType'],
-                        label: c.label,
-                        icon: c.icon,
-                        category: c.category,
-                        description: c.description,
-                        singleton: c.singleton,
-                        minHeight: c.minHeight,
-                        configurable: c.configurable,
-                      }))
-                    : PALETTE_COMPONENTS;
+                  const ucpComponents: PaletteComponent[] = ucpSidebar.components.map(c => ({
+                    sliceType: c.sliceType as PaletteComponent['sliceType'],
+                    label: c.label,
+                    icon: c.icon,
+                    category: c.category,
+                    description: c.description,
+                    singleton: c.singleton,
+                    minHeight: c.minHeight,
+                    configurable: c.configurable,
+                  }));
+                  const merged = new Map<string, PaletteComponent>();
+                  PALETTE_COMPONENTS.forEach(c => merged.set(c.sliceType, c));
+                  ucpComponents.forEach(c => merged.set(c.sliceType, { ...merged.get(c.sliceType), ...c }));
+                  const source = Array.from(merged.values());
                   const filtered = source.filter(c => {
                     const catMatch = paletteCat === 'all' || c.category === paletteCat;
                     const searchMatch = !paletteSearch || c.label.toLowerCase().includes(paletteSearch.toLowerCase()) || c.category.toLowerCase().includes(paletteSearch.toLowerCase());
@@ -4546,7 +5133,7 @@ export function PageEditorView() {
               </div>
               <div style={{ padding: '8px 10px', borderTop: '1px solid var(--border-light)', fontSize: 10, color: '#9CA3AF', textAlign: 'center', flexShrink: 0 }}>
                 {ucpSidebar.components.length > 0
-                  ? `From UCP · ${ucpSidebar.components.length} component${ucpSidebar.components.length !== 1 ? 's' : ''}`
+                  ? `From UCP + local · ${ucpSidebar.components.length} UCP component${ucpSidebar.components.length !== 1 ? 's' : ''}`
                   : 'Drag onto canvas to add'}
               </div>
             </>
@@ -4756,6 +5343,7 @@ export function PageEditorView() {
                   })()}
                   readOnly={editorReadOnly}
                   onPropChange={(key, value) => updateSliceProp(selectedSliceId, key, value)}
+                  onPropsPatch={patch => updateSliceProps(selectedSliceId, patch)}
                   onDeselect={() => setSelectedSliceId(null)}
                   activeLocale={activeEditorLocale}
                   primaryLocale={page.locale}
@@ -4804,9 +5392,12 @@ function MetaPanelWrapper({
   onScheduleChange: (s: CampaignSchedule | undefined) => void;
   onToggleNativeTarget: (t: 'ios' | 'android' | 'harmonynext' | 'web') => void;
 }) {
-  const { dispatch } = useOCDP();
+  const { state, dispatch } = useOCDP();
   const [name, setName] = useState(page.name);
   const [desc, setDesc] = useState(page.description ?? '');
+  const market = state.markets.find(m => m.marketId === page.marketId);
+  const timezone = page.campaignSchedule?.timezone ?? market?.timezone ?? 'UTC';
+  const timezoneLabel = market?.tzLabel ? `${market.tzLabel} (${timezone})` : timezone;
 
   // Keep local state in sync if page changes (e.g. switching pages)
   const lastPageId = useRef(page.pageId);
@@ -4828,6 +5419,8 @@ function MetaPanelWrapper({
       onTogglePublic={(v) => dispatch({ type: 'EDIT_PAGE', pageId: page.pageId, updates: { isPublic: v } })}
       campaignSchedule={page.campaignSchedule}
       onScheduleChange={onScheduleChange}
+      timezone={timezone}
+      timezoneLabel={timezoneLabel}
     />
   );
 }

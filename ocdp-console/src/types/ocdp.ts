@@ -118,6 +118,10 @@ export type SliceType =
   | 'DEPOSIT_RATE_TABLE'      // Time deposit interest rate table (rates only, no CTA)
   | 'DEPOSIT_OPEN_CTA'        // Full-width "Open a Deposit" CTA button for deposit campaigns
   | 'DEPOSIT_FAQ'             // Collapsible FAQ accordion for deposit products
+  | 'ANNOUNCEMENT_OVERLAY'    // Full-screen dimmed overlay for maintenance, notices, forced update and seasonal greetings
+  | 'ANNOUNCEMENT_VISUAL'     // Illustration / brand visual block used by announcement pages
+  | 'ANNOUNCEMENT_BODY'       // Structured announcement title, copy, hotline and preference text
+  | 'ANNOUNCEMENT_ACTIONS'    // Primary / secondary action row for close, website, hotline or app update
   | 'CAMPAIGN_HERO'           // Full-width hero banner with headline + sub-copy (campaign pages)
   | 'CAMPAIGN_BENEFITS'       // Icon + text benefit grid (campaign pages)
   | 'CAMPAIGN_CTA'            // Primary CTA button block (campaign pages)
@@ -238,11 +242,12 @@ export interface CanvasSlice {
   visibilityRule?: VisibilityRule;
 }
 
-export type PageType = 'WEALTH_HUB' | 'KYC_JOURNEY' | 'PRODUCT' | 'CAMPAIGN' | 'MARKET_INSIGHT' | 'CUSTOM';
+export type PageType = 'WEALTH_HUB' | 'KYC_JOURNEY' | 'PRODUCT' | 'CAMPAIGN' | 'MARKET_INSIGHT' | 'ANNOUNCEMENT' | 'CUSTOM';
 
 export interface CampaignSchedule {
   publishAt: string;
   takedownAt: string;
+  timezone?: string;
   timerStopped?: boolean;
   stoppedAt?: string;
 }

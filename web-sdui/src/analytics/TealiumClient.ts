@@ -51,8 +51,9 @@ class TealiumWebClient {
   private readonly profile  = 'hkretail'
 
   track(payload: Partial<TealiumPayload> & { tealium_event: string }): void {
+    const { tealium_event, platform, locale, ...extraPayload } = payload;
     const full: TealiumPayload = {
-      tealium_event:  payload.tealium_event,
+      tealium_event,
       event_category: payload.event_category  ?? 'SDUI',
       event_action:   payload.event_action    ?? '',
       event_label:    payload.event_label     ?? '',
@@ -66,9 +67,9 @@ class TealiumWebClient {
       experiment_id:  payload.experiment_id   ?? '',
       user_id_hash:   payload.user_id_hash    ?? '',
       segment_id:     payload.segment_id      ?? '',
-      platform:       'web',
-      locale:         'zh-HK',
-      ...payload,
+      platform:       platform ?? 'web',
+      locale:         locale ?? 'zh-HK',
+      ...extraPayload,
     }
 
     // Forward to Tealium iQ tag container if available

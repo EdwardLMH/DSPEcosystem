@@ -667,7 +667,168 @@ export const PAGE_DEPOSIT_CAMPAIGN: PageLayout = {
   ],
 };
 
-export const ALL_PAGES: PageLayout[] = [PAGE_HOME_WEALTH, PAGE_JADE_CAMPAIGN, PAGE_VISA_CAMPAIGN, PAGE_OBKYC, PAGE_FX_VIEWPOINT, PAGE_DEPOSIT_CAMPAIGN];
+const ANNOUNCEMENT_SPECIAL_PROPS = {
+  scenario: 'SPECIAL_ANNOUNCEMENT',
+  styleVariant: 'ENVELOPE_CARD',
+  contentRef: { source: 'UCP', id: 'ucp-ann-special-taipo-fire-001' },
+  visual: {
+    assetId: 'asset-ann-envelope',
+    imageUrl: 'https://placehold.co/360x190/FFFFFF/DB0011?text=HSBC+Envelope',
+    altText: 'HSBC special announcement envelope illustration',
+    placement: 'envelope-top',
+  },
+  title: 'Special announcement',
+  body: [
+    "Your well-being is our priority. We're committed to supporting our customers affected by the Tai Po fire incident.",
+    'If you need urgent assistance, please contact the following dedicated hotlines:',
+  ],
+  hotlines: [
+    { label: 'HSBC Banking Services / HSBC Life Insurance', phone: '(852) 2233 3066' },
+    { label: 'HSBC General Insurance (operated by AXA)', phone: '(852) 2894 4078' },
+  ],
+  dontShowAgain: { enabled: true, label: "Don't show this message again" },
+  actions: [
+    { id: 'close', label: 'Close', type: 'dismiss', style: 'primary', tone: 'dark' },
+    { id: 'website', label: 'HSBC Website', type: 'openUrl', style: 'secondary', url: 'https://www.hsbc.com.hk/' },
+  ],
+  expiry: '2026-06-30T23:59:59+08:00',
+  priority: 95,
+  blockInteraction: true,
+  legalEntityText: 'The Hongkong and Shanghai Banking Corporation Limited',
+};
+
+const ANNOUNCEMENT_MAINTENANCE_PROPS = {
+  scenario: 'MAINTENANCE_NOTICE',
+  styleVariant: 'NOTICE_CARD',
+  contentRef: { source: 'UCP', id: 'ucp-ann-maintenance-001' },
+  visual: {
+    assetId: 'asset-ann-maintenance',
+    imageUrl: 'https://placehold.co/360x220/E5E7EB/111827?text=Maintenance',
+    altText: 'Maintenance notice illustration',
+    placement: 'top-floating',
+  },
+  title: 'Our maintenance schedule',
+  body: [
+    'To improve our service, we will provide service updates and maintenance to our banking services this Sunday during 1:00am - 3:00am HKT.',
+    'During this period, selected banking services may be unavailable. We apologise for any inconvenience.',
+  ],
+  hotlines: [],
+  dontShowAgain: { enabled: true, label: "Don't show this message again" },
+  actions: [
+    { id: 'close', label: 'Close', type: 'dismiss', style: 'primary' },
+    { id: 'website', label: 'HSBC Website', type: 'openUrl', style: 'secondary', url: 'https://www.hsbc.com.hk/' },
+  ],
+  expiry: '2026-05-17T03:00:00+08:00',
+  priority: 80,
+  blockInteraction: true,
+  legalEntityText: 'The Hongkong and Shanghai Banking Corporation Limited',
+};
+
+const ANNOUNCEMENT_FORCE_UPDATE_PROPS = {
+  scenario: 'JOURNEY_FORCE_UPDATE',
+  styleVariant: 'INLINE_FORCE_UPDATE',
+  contentRef: { source: 'UCP', id: 'ucp-ann-force-update-elaisee-001' },
+  visual: {
+    assetId: 'asset-ann-elaisee',
+    imageUrl: 'https://placehold.co/360x180/DB0011/FFFFFF?text=eLaisee',
+    altText: 'eLaisee feature artwork',
+    placement: 'modal-top',
+  },
+  title: 'Get ready for eLaisee',
+  body: [
+    'Enjoy Chinese New Year by sending eLaisee money with customised messages, 24 hours a day, in an eco-friendlier way.',
+    'Make sure your app is up to date to use the new feature.',
+  ],
+  hotlines: [],
+  dontShowAgain: { enabled: false, label: '' },
+  actions: [
+    { id: 'update-now', label: 'Update now', type: 'appUpdate', style: 'primary', url: 'app-store://hsbc-mobile' },
+  ],
+  minAppVersion: { ios: '6.18.0', android: '6.18.0', harmonynext: '6.18.0' },
+  journeyIds: ['elaisee'],
+  expiry: '2026-02-28T23:59:59+08:00',
+  priority: 100,
+  blockInteraction: true,
+  legalEntityText: '',
+};
+
+const ANNOUNCEMENT_CHRISTMAS_PROPS = {
+  scenario: 'SEASONAL_GREETING',
+  styleVariant: 'FESTIVE_CARD',
+  contentRef: { source: 'UCP', id: 'ucp-ann-christmas-001' },
+  visual: {
+    assetId: 'asset-ann-christmas',
+    imageUrl: 'https://placehold.co/360x360/7F1117/FFFFFF?text=Merry+Christmas',
+    altText: 'Christmas greeting artwork',
+    placement: 'full-card',
+  },
+  title: 'Merry Christmas',
+  body: ['Wishing you and your loved ones a joyful festive season.'],
+  hotlines: [],
+  dontShowAgain: { enabled: false, label: '' },
+  actions: [
+    { id: 'close', label: 'Close', type: 'dismiss', style: 'primary' },
+  ],
+  expiry: '2026-12-26T23:59:59+08:00',
+  priority: 30,
+  blockInteraction: false,
+  legalEntityText: 'The Hongkong and Shanghai Banking Corporation Limited',
+};
+
+function announcementPage(pageId: string, name: string, description: string, props: Record<string, unknown>, tags: string[]): PageLayout {
+  const expiry = typeof props.expiry === 'string' ? props.expiry : undefined;
+  return {
+    pageId, name,
+    pageType: 'ANNOUNCEMENT', pageTemplateId: 'tpl-announcement-overlay',
+    description,
+    nativeTargets: ['ios', 'android', 'harmonynext'], locale: 'en', thumbnail: '📣', tags,
+    channel: 'SDUI', scope: 'MARKET', marketId: 'HK',
+    releaseMarketIds: ['HK'], bizLineId: 'MARKETING', groupId: 'HK-MARKETING-AD',
+    authoringStatus: 'DRAFT',
+    campaignSchedule: expiry ? { publishAt: '2026-05-15T01:00:00.000Z', takedownAt: expiry, timezone: 'Asia/Hong_Kong' } : undefined,
+    supportedLocales: ['en', 'zh-TW', 'zh-CN'],
+    translations: {},
+    slices: [{ instanceId: 'ann-overlay', type: 'ANNOUNCEMENT_OVERLAY', visible: true, locked: false, props }],
+  };
+}
+
+export const PAGE_ANNOUNCEMENT_OVERLAY: PageLayout = {
+  pageId: 'announcement-overlay-hk', name: 'Announcement Overlay (HK)',
+  pageType: 'ANNOUNCEMENT', pageTemplateId: 'tpl-announcement-overlay',
+  description: 'Special Announcement overlay sample matching the envelope-style announcement in specialannoucement.jpg.',
+  nativeTargets: ['ios', 'android', 'harmonynext'], locale: 'en', thumbnail: '📣', tags: ['announcement', 'special-announcement', 'hotline', 'incident-notice'],
+  channel: 'SDUI', scope: 'MARKET', marketId: 'HK',
+  releaseMarketIds: ['HK'], bizLineId: 'MARKETING', groupId: 'HK-MARKETING-AD',
+  authoringStatus: 'DRAFT',
+  campaignSchedule: { publishAt: '2026-05-15T01:00:00.000Z', takedownAt: '2026-06-30T15:59:59.000Z', timezone: 'Asia/Hong_Kong' },
+  supportedLocales: ['en', 'zh-TW', 'zh-CN'],
+  translations: {},
+  slices: [
+    {
+      instanceId: 'ann-overlay', type: 'ANNOUNCEMENT_OVERLAY', visible: true, locked: false,
+      props: ANNOUNCEMENT_SPECIAL_PROPS,
+    },
+  ],
+};
+
+export const PAGE_ANNOUNCEMENT_FORCE_UPDATE = announcementPage(
+  'announcement-force-update-hk',
+  'Journey Force Update (HK)',
+  'Journey-level forced app update sample matching the third specialannoucement.jpg style.',
+  ANNOUNCEMENT_FORCE_UPDATE_PROPS,
+  ['announcement', 'force-update', 'journey'],
+);
+
+export const ALL_PAGES: PageLayout[] = [
+  PAGE_HOME_WEALTH,
+  PAGE_JADE_CAMPAIGN,
+  PAGE_VISA_CAMPAIGN,
+  PAGE_OBKYC,
+  PAGE_FX_VIEWPOINT,
+  PAGE_DEPOSIT_CAMPAIGN,
+  PAGE_ANNOUNCEMENT_OVERLAY,
+  PAGE_ANNOUNCEMENT_FORCE_UPDATE,
+];
 
 // ─── SDUI Journeys ────────────────────────────────────────────────────────────
 
@@ -1191,6 +1352,56 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
       {
         type: 'CAMPAIGN_CTA',
         props: { primaryLabel: 'Apply Now', primaryUrl: 'hsbc://upgrade/apply', subNote: 'No annual fee in the first year', secondaryLabel: 'Learn More', secondaryUrl: 'hsbc://upgrade/learn' },
+        locked: false,
+      },
+    ],
+  },
+  {
+    templateId: 'tpl-announcement-overlay',
+    name: 'Announcement Overlay',
+    description: 'Reusable app overlay for Maintenance notice, Special Announcement, Journey-level forced app update and Seasonal Greetings. Authors select a style variant and bind reusable UCP announcement content, artwork and actions.',
+    icon: '📣',
+    channels: ['SDUI'],
+    bizLineIds: ['WEB_ENABLER', 'MARKETING'],
+    category: 'generic',
+    seoRequired: false,
+    aeoRequired: false,
+    status: 'ACTIVE',
+    createdAt: '2026-05-14T00:00:00Z',
+    updatedAt: '2026-05-14T00:00:00Z',
+    maintainedBy: 'Mobile Experience Platform Team',
+    usageCount: 1,
+    starterSlices: [
+      {
+        type: 'ANNOUNCEMENT_OVERLAY',
+        props: {
+          scenario: 'SPECIAL_ANNOUNCEMENT',
+          styleVariant: 'ENVELOPE_CARD',
+          contentRef: { source: 'UCP', id: 'ucp-ann-special-taipo-fire-001' },
+          visual: {
+            assetId: 'asset-ann-envelope',
+            imageUrl: 'https://placehold.co/360x190/FFFFFF/DB0011?text=HSBC+Envelope',
+            altText: 'HSBC special announcement envelope illustration',
+            placement: 'envelope-top',
+          },
+          title: 'Special announcement',
+          body: [
+            "Your well-being is our priority. We're committed to supporting our customers affected by the Tai Po fire incident.",
+            'If you need urgent assistance, please contact the following dedicated hotlines:',
+          ],
+          hotlines: [
+            { label: 'HSBC Banking Services / HSBC Life Insurance', phone: '(852) 2233 3066' },
+            { label: 'HSBC General Insurance (operated by AXA)', phone: '(852) 2894 4078' },
+          ],
+          dontShowAgain: { enabled: true, label: "Don't show this message again" },
+          actions: [
+            { id: 'close', label: 'Close', type: 'dismiss', style: 'primary', tone: 'dark' },
+            { id: 'website', label: 'HSBC Website', type: 'openUrl', style: 'secondary', url: 'https://www.hsbc.com.hk/' },
+          ],
+          priority: 95,
+          blockInteraction: true,
+          legalEntityText: 'The Hongkong and Shanghai Banking Corporation Limited',
+        },
         locked: false,
       },
     ],

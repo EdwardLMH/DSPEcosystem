@@ -13,6 +13,8 @@
 
 1. [Executive Summary](#1-executive-summary)
 2. [System Context Diagram](#2-system-context-diagram)
+   - [Omni-Channel Delivery Model](#2b-omni-channel-delivery-model)
+   - [Announcement Overlay Page Model](#2c-announcement-overlay-page-model)
 3. [Three-Layer Architecture](#3-three-layer-architecture)
 4. [Component Responsibilities](#4-component-responsibilities)
 5. [Integration Points](#5-integration-points)
@@ -249,6 +251,148 @@ OCDP Console                                  DAP
 
 ---
 
+## 2c. Announcement Overlay Page Model
+
+OCDP defines one reusable **Announcement Overlay** SDUI page template for urgent and time-sensitive in-app messages. The template supports the four visual styles shown in `specialannoucement.jpg` through a single shell component plus selectable UCP content and artwork.
+
+This page is not a normal destination page. It is an overlay experience that the BFF can inject above an existing screen or at a journey entry point based on priority, validity window, customer segment, app version and scenario rules.
+
+### Supported Scenarios
+
+| Scenario | OCDP trigger | Customer experience | Required action model |
+|----------|--------------|---------------------|-----------------------|
+| Maintenance notice | App launch, home refresh or affected service entry | Dimmed full-screen overlay with notice card, maintenance illustration, optional "Don't show again" checkbox, Close and HSBC Website buttons | Dismissible unless configured as service-blocking |
+| Special Announcement | App launch, targeted segment or market incident rule | Branded envelope-style card with announcement copy, hotline list and optional direct-call links | Close plus optional website / call hotline actions |
+| Journey-level force update | Customer taps a specific journey entry point and the journey requires a minimum app version | Inline modal above the journey/home context explaining the feature requires an app update | Primary `Update now` action is mandatory; dismiss can be disabled |
+| Seasonal Greetings | Scheduled campaign window such as Christmas, Chinese New Year or Eid | Festive visual card with minimal copy and close action | Dismissible; typically low priority and frequency-capped |
+
+### OCDP Page Template
+
+| Field | Value |
+|-------|-------|
+| Template ID | `tpl-announcement-overlay` |
+| Page type | `ANNOUNCEMENT` |
+| Channel | `SDUI` |
+| Native targets | `ios`, `android`, `harmonynext`, `web` |
+| Biz lines | `WEB_ENABLER`, `MARKETING` |
+| Starter slice | `ANNOUNCEMENT_OVERLAY` |
+| Timer | Same pattern as Campaign pages: immediate after release or scheduled `startAt` / `endAt` effective window |
+| Timezone | Resolved from the selected market timezone, for example HK uses `Asia/Hong_Kong` / HKT |
+| Authoring owner | Mobile Experience Platform Team |
+| Approval | Standard Maker-Checker; urgent incidents may use the HK dual-approval flow when configured |
+
+The OCDP page editor exposes the template in **New Page → Generic → Announcement Overlay**. The page author chooses a scenario and style variant, binds UCP content and assets from the left sidebar, then either enables the announcement immediately after approval/release or sets a market-local start and end time.
+
+### UCP Component Registry
+
+| UCP component | Slice type | Purpose | Key configurable fields |
+|---------------|------------|---------|-------------------------|
+| Announcement Overlay | `ANNOUNCEMENT_OVERLAY` | Complete modal shell and scenario controller | `scenario`, `styleVariant`, `contentRef`, `visual`, `title`, `body`, `hotlines`, `dontShowAgain`, `actions`, `expiry`, `priority`, `blockInteraction` |
+| Announcement Visual | `ANNOUNCEMENT_VISUAL` | Illustration / brand visual block for the top or background of the card | `assetId`, `imageUrl`, `altText`, `placement`, `backgroundColor`, `safeAreaTop` |
+| Announcement Body | `ANNOUNCEMENT_BODY` | Structured content block reusable across overlays | `headline`, `paragraphs`, `bulletItems`, `hotlines`, `dontShowAgainLabel`, `legalEntityText` |
+| Announcement Actions | `ANNOUNCEMENT_ACTIONS` | Button row for dismiss, website, hotline and app-update flows | `primaryAction`, `secondaryAction`, `tertiaryAction`, `layout`, `forcePrimary` |
+
+### Style Variants
+
+| Style variant | Used by | Visual rules | Default actions |
+|---------------|---------|--------------|-----------------|
+| `NOTICE_CARD` | Maintenance notice | HSBC logo at top, neutral grey scrim, white card, floating maintenance illustration, checkbox above actions | Close, HSBC Website |
+| `ENVELOPE_CARD` | Special Announcement | HSBC logo/envelope illustration, announcement icon above title, hotline lines rendered as tappable phone links | Close, HSBC Website, Call hotline |
+| `INLINE_FORCE_UPDATE` | Journey-level force update | Existing journey/home screen remains visible behind the scrim; compact modal uses campaign artwork and one dominant red CTA | Update now |
+| `FESTIVE_CARD` | Seasonal Greetings | Large seasonal artwork with brand-safe festive colours, reduced text density, card can use custom background image | Close |
+
+### UCP Content Types
+
+UCP stores the reusable content as structured entries so page authors can select content rather than retype copy in OCDP:
+
+```json
+{
+  "contentId": "ucp-ann-maintenance-001",
+  "contentType": "AnnouncementContent",
+  "scenario": "MAINTENANCE_NOTICE",
+  "styleVariant": "NOTICE_CARD",
+  "market": "HK",
+  "supportedLocales": ["en", "zh-TW", "zh-CN"],
+  "fields": {
+    "title": "Our maintenance schedule",
+    "paragraphs": [
+      "To improve our service, selected banking services will be unavailable during scheduled maintenance.",
+      "We apologise for any inconvenience."
+    ],
+    "hotlines": [],
+    "dontShowAgainLabel": "Don't show this message again",
+    "legalEntityText": "The Hongkong and Shanghai Banking Corporation Limited"
+  },
+  "assets": {
+    "primaryVisualAssetId": "asset-ann-maintenance"
+  },
+  "actions": [
+    { "id": "close", "label": "Close", "type": "dismiss", "style": "primary" },
+    { "id": "website", "label": "HSBC Website", "type": "openUrl", "url": "https://www.hsbc.com.hk/" }
+  ],
+  "schedule": {
+    "mode": "scheduled",
+    "timezone": "Asia/Hong_Kong",
+    "startAt": "2026-05-16T00:00:00+08:00",
+    "endAt": "2026-05-17T03:00:00+08:00"
+  }
+}
+```
+
+For a Journey-level force update, the content entry also carries:
+
+```json
+{
+  "scenario": "JOURNEY_FORCE_UPDATE",
+  "styleVariant": "INLINE_FORCE_UPDATE",
+  "minAppVersion": {
+    "ios": "6.18.0",
+    "android": "6.18.0",
+    "harmonynext": "6.18.0"
+  },
+  "journeyIds": ["elaisee"],
+  "actions": [
+    { "id": "update-now", "label": "Update now", "type": "appUpdate", "style": "primary" }
+  ],
+  "blockInteraction": true
+}
+```
+
+### Runtime Resolution
+
+```
+Customer opens app or taps journey entry
+   │
+   ▼
+BFF evaluates Announcement Overlay rules
+   ├── immediate mode or active market-time schedule?
+   ├── market / locale / segment eligible?
+   ├── journeyId matched? app version below minimum?
+   ├── dismissed / don't-show-again state?
+   └── highest priority announcement selected
+   │
+   ▼
+BFF composes SDUI page:
+  ANNOUNCEMENT_OVERLAY + resolved UCP content + UCP/AEM asset URLs
+   │
+   ▼
+Client renderer shows overlay above current screen
+   ├── dismiss → records preference and fires analytics
+   ├── callPhone → native phone dialer with approved hotline number
+   ├── openUrl/deepLink → HSBC web or journey route
+   └── appUpdate → platform app store / AppGallery update URL
+```
+
+### Governance and Analytics
+
+- Maker-Checker approval applies to both the UCP content entry and the OCDP announcement page.
+- Hotline numbers and outbound URLs must be allow-listed before publish.
+- `blockInteraction=true` is restricted to operational incidents and force-update rules.
+- Dismissed state is keyed by `contentId + version + userId_hash`; expiry resets the display rule.
+- Analytics events: `announcement_impression`, `announcement_dismiss`, `announcement_action_click`, `announcement_suppressed`, `announcement_force_update_required`.
+
+---
+
 ## 3. Three-Layer Architecture
 
 ```
@@ -286,8 +430,8 @@ OCDP Console                                  DAP
 │  │  UCP Console (Content Platform)  │   │  HSBC AEM (Adobe Experience Mgr) │    │
 │  │                                  │   │                                  │    │
 │  │  • Content Asset Library         │   │  • Enterprise CMS for HSBC.com   │    │
-│  │  • Component Registry (14 slice  │   │  • Peer content provider to UCP  │    │
-│  │    types)                        │   │  • OCDP left sidebar browses AEM │    │
+│  │  • Component Registry (SDUI      │   │  • Peer content provider to UCP  │    │
+│  │    slices incl. announcements)   │   │  • OCDP left sidebar browses AEM │    │
 │  │  • Content approval workflow     │   │    fragments, images & pages     │    │
 │  │  • BizLine admin                 │   │  • AEM Content Delivery API      │    │
 │  │  • Multi-locale i18n authoring   │   │    (REST/GraphQL) called by OCDP │    │
@@ -340,11 +484,11 @@ OCDP Console                                  DAP
 | Component | Layer | Responsibility | Owner |
 |-----------|-------|---------------|-------|
 | OCDP Console | Platform | Staff-facing CMS for authoring, reviewing, and publishing SDUI pages; page editor with a **left-hand content sidebar** that browses and selects content from both UCP and HSBC AEM as peer providers; journey builder, Maker-Checker approval queue, AEO/stats panels; **AI Search Admin** panel for configuring per-app semantic search corpora (content sources: OCDP pages + AEM URLs; corpus rebuild API); multi-locale (i18n) authoring with locale-aware slice props; WCAG 2.1 AA compliant UI | Content Engineering |
-| UCP Console | Platform | Content asset library, component registry (14 slice types), approval workflow, biz-line admin; multi-locale authoring support; WCAG 2.1 AA compliant UI | Content Engineering |
+| UCP Console | Platform | Content asset library, component registry including announcement overlay components, approval workflow, biz-line admin; multi-locale authoring support; WCAG 2.1 AA compliant UI | Content Engineering |
 | HSBC AEM | Platform | Adobe Experience Manager — enterprise CMS for HSBC.com. Acts as a **peer content provider** to UCP: the OCDP page-editor left sidebar queries both UCP and AEM so authors can drag AEM fragments, images, and pages directly into slices. AEM Content Delivery API (REST/GraphQL) is called by OCDP at authoring time; assets are served to end-users via HSBC's existing AEM CDN, independent of the UCP/BFF pipeline | Digital Channels |
 | mock-BFF | Platform | Node.js local dev simulator of bff-java + OCDP/UCP/AEM APIs; all state in-memory; port 4000 | Platform Engineering |
 | Java BFF | Platform | SDUI JSON composition, KYC orchestration, personalisation, A/B routing, Redis cache, RBAC, immutable audit log, event forwarding | Platform Engineering |
-| SDUI Composition Engine | Platform | Resolves screen template, fills slots, injects props, negotiates client schema version | Platform Engineering |
+| SDUI Composition Engine | Platform | Resolves screen template, fills slots, injects props, negotiates client schema version; can inject high-priority `ANNOUNCEMENT_OVERLAY` above app or journey screens | Platform Engineering |
 | KYC Orchestrator | Platform | KYC step plan stored in Redis (72h TTL), branching logic (SHOW/HIDE), answer persistence, audit logging | Platform Engineering |
 | Personalisation Engine | Platform | Segments user, selects eligible content per segment, calls ML recommender | Data & Personalisation |
 | A/B Test Allocator | Platform | Sticky user-to-variant allocation via Optimizely; injects variantId into SDUI response | Growth Engineering |

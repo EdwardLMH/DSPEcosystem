@@ -23,7 +23,7 @@ struct HSBCSduiApp: App {
 struct HSBCHomeView: View {
     @State private var journey: Journey? = nil
 
-    enum Journey { case kyc, wealth, fxViewpoint, deposit }
+    enum Journey { case kyc, wealth, fxViewpoint, deposit, announcement, forceUpdate }
 
     var body: some View {
         Group {
@@ -33,6 +33,8 @@ struct HSBCHomeView: View {
                 case .wealth:      WealthPageView()
                 case .fxViewpoint: FXViewpointView(onBack: { journey = nil })
                 case .deposit:     DepositCampaignView(onBack: { journey = nil })
+                case .announcement: AnnouncementView(kind: .special, onBack: { journey = nil })
+                case .forceUpdate: AnnouncementView(kind: .forceUpdate, onBack: { journey = nil })
                 }
             } else {
                 JourneySelectorView(onSelect: { journey = $0 })
@@ -92,6 +94,26 @@ private struct JourneySelectorView: View {
                                 tags: ["SDUI", "Deposit", "en-CN"],
                                 accentColor: Color(hex: "#C41E3A"),
                                 action: { onSelect(.deposit) }
+                            )
+
+                            JourneyCard(
+                                icon: "📣",
+                                badge: "Announcement HK",
+                                title: "Announcement Overlay (HK)",
+                                description: "Native SDUI announcement overlay: envelope-style special announcement, hotline content, Don't show again option and action buttons from BFF.",
+                                tags: ["SDUI", "Announcement", "iOS"],
+                                accentColor: Hive.Color.brandPrimary,
+                                action: { onSelect(.announcement) }
+                            )
+
+                            JourneyCard(
+                                icon: "⬆️",
+                                badge: "Force Update HK",
+                                title: "Journey Force Update (HK)",
+                                description: "Native SDUI journey-level force update overlay for eLaisee, blocking interaction until the customer updates the app.",
+                                tags: ["SDUI", "Force Update", "Native Only"],
+                                accentColor: Color(hex: "#7F1D1D"),
+                                action: { onSelect(.forceUpdate) }
                             )
 
                             JourneyCard(
@@ -248,4 +270,3 @@ private struct HSBCLogoRow: View {
         }
     }
 }
-

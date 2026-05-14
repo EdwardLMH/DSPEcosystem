@@ -148,7 +148,16 @@ export interface ScreenMetadata {
 
 export interface ScreenPayload {
   metadata: ScreenMetadata;
-  root: LayoutNode;
+  root?: LayoutNode;
+  layout?: {
+    children?: Array<ComponentNode | (Record<string, unknown> & {
+      instanceId?: string;
+      componentType?: string;
+      type?: string;
+      props?: Record<string, unknown>;
+      visible?: boolean;
+    })>;
+  };
   globalAnalytics?: AnalyticsConfig;
   theme?: Record<string, string>;
 }

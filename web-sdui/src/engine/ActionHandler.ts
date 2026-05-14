@@ -12,40 +12,41 @@ export class ActionHandler {
   handle(action: ActionDefinition): void {
     switch (action.type) {
       case 'NAVIGATE':
-        this.navigate(action.destination!, action.params);
+        this.navigate(action.route, action.params);
         break;
 
       case 'DEEP_LINK':
-        window.open(action.destination, '_blank', 'noopener,noreferrer');
+        window.open(action.url, action.target ?? '_blank', 'noopener,noreferrer');
         break;
 
       case 'API_CALL':
-        fetch(action.destination!, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(action.payload ?? {}),
+        fetch(action.endpoint, {
+          method: action.method ?? 'POST',
+          headers: { 'Content-Type': 'application/json', ...(action.headers ?? {}) },
+          body: action.body ? JSON.stringify(action.body) : undefined,
         }).catch(err => console.error('[SDUI] API_CALL failed', err));
         break;
 
       case 'MODAL':
-        this.showModal(action.payload);
+        this.showModal(action.modalNode ?? action.modalId);
         break;
 
       case 'TRACK':
         // Pure analytics event — no navigation
         import('../analytics/AnalyticsClient').then(({ analyticsClient }) => {
-          analyticsClient.fire(action.destination!, action.params ?? {});
+          analyticsClient.fire(action.eventName, action.properties ?? {});
         });
         break;
 
       case 'SHARE':
         if (navigator.share) {
-          navigator.share({ url: action.destination, title: action.params?.title });
+          navigator.share({ url: action.url, title: action.title, text: action.text });
         }
         break;
 
       default:
-        console.warn(`[SDUI] Unknown action type: "${action.type}"`);
+        action satisfies never;
+        console.warn('[SDUI] Unknown action type');
     }
   }
 }
