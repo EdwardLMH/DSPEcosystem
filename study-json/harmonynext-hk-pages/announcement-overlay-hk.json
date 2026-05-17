@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "3.0",
+  "pageId": "announcement-overlay-hk",
+  "screen": "announcement_overlay_hk",
+  "ttl": 300,
+  "metadata": {
+    "pageId": "announcement-overlay-hk",
+    "locale": "en",
+    "textDir": "ltr",
+    "platform": "all",
+    "channel": "SDUI",
+    "version": 1,
+    "publishedAt": "2026-05-15T01:00:00.000Z",
+    "generatedAt": "2026-05-17T12:34:42.894Z",
+    "marketTimeZone": "Asia/Hong_Kong",
+    "nativeTargets": [
+      "ios",
+      "android",
+      "harmonynext"
+    ],
+    "a11y": {
+      "reduceMotion": false,
+      "highContrast": false,
+      "largeText": false,
+      "voiceOver": false,
+      "talkBack": false,
+      "screenReader": false
+    }
+  },
+  "layout": {
+    "type": "OVERLAY",
+    "children": [
+      {
+        "instanceId": "ann-overlay",
+        "type": "ANNOUNCEMENT_OVERLAY",
+        "visible": true,
+        "locked": false,
+        "props": {
+          "scenario": "SPECIAL_ANNOUNCEMENT",
+          "styleVariant": "ENVELOPE_CARD",
+          "contentRef": {
+            "source": "UCP",
+            "id": "ucp-ann-special-taipo-fire-001"
+          },
+          "visual": {
+            "assetId": "asset-ann-envelope",
+            "imageUrl": "http://localhost:4000/media/announcement-envelope.jpg",
+            "altText": "HSBC special announcement envelope illustration",
+            "placement": "envelope-top"
+          },
+          "title": "Special announcement",
+          "body": [
+            "Your well-being is our priority. We're committed to supporting our customers affected by the Tai Po fire incident.",
+            "If you need urgent assistance, please contact the following dedicated hotlines:"
+          ],
+          "hotlines": [
+            {
+              "label": "HSBC Banking Services / HSBC Life Insurance",
+              "phone": "(852) 2233 3066"
+            },
+            {
+              "label": "HSBC General Insurance (operated by AXA)",
+              "phone": "(852) 2894 4078"
+            }
+          ],
+          "dontShowAgain": {
+            "enabled": true,
+            "label": "Don't show this message again"
+          },
+          "actions": [
+            {
+              "id": "close",
+              "label": "Close",
+              "type": "dismiss",
+              "style": "primary",
+              "tone": "dark"
+            },
+            {
+              "id": "website",
+              "label": "HSBC Website",
+              "type": "openUrl",
+              "style": "secondary",
+              "url": "https://www.hsbc.com.hk/"
+            }
+          ],
+          "expiry": "2026-06-30T23:59:59+08:00",
+          "priority": 95,
+          "blockInteraction": true,
+          "legalEntityText": "The Hongkong and Shanghai Banking Corporation Limited"
+        }
+      }
+    ]
+  }
+}

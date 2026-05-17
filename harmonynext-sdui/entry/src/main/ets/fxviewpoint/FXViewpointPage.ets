@@ -6,7 +6,7 @@
 
 import { Hive } from '../common/HiveTokens'
 import { SensorDataClient } from '../network/SensorDataClient'
-import { fetchFXViewpointScreen, WealthSlice } from '../network/KYCNetworkService'
+import { fetchFXViewpointScreen, ScreenSlice } from '../network/KYCNetworkService'
 
 // ─── Load-state enum ──────────────────────────────────────────────────────────
 // ArkTS forbids string-union @State — plain number constants are used instead.
@@ -19,7 +19,7 @@ const LOAD_ERROR   = 3
 
 @Component
 struct FXSDUISliceView {
-  slice: WealthSlice = { instanceId: '', type: '', props: {}, visible: true }
+  slice: ScreenSlice = { instanceId: '', type: '', props: {}, visible: true }
   onBack: () => void = () => {}
 
   build() {
@@ -54,7 +54,7 @@ struct FXSDUISliceView {
 @Component
 export struct FXViewpointView {
   @State loadState: number   = LOAD_IDLE
-  @State sdui: WealthSlice[] = []
+  @State sdui: ScreenSlice[] = []
   onBack: () => void = () => {}
 
   aboutToAppear() {
@@ -67,16 +67,16 @@ export struct FXViewpointView {
     this.loadState = LOAD_LOADING
     try {
       const payload = await fetchFXViewpointScreen()
-      this.sdui = payload.layout.children.filter((s: WealthSlice) => s.visible !== false)
+      this.sdui = payload.layout.children.filter((s: ScreenSlice) => s.visible !== false)
       this.loadState = LOAD_DONE
     } catch (_e) {
       this.loadState = LOAD_ERROR
     }
   }
 
-  private stickySlice(): WealthSlice | undefined {
+  private stickySlice(): ScreenSlice | undefined {
     return this.sdui.find(
-      (s: WealthSlice) => s.type === 'CONTACT_RM_CTA' && (s.props['sticky'] as boolean) === true
+      (s: ScreenSlice) => s.type === 'CONTACT_RM_CTA' && (s.props['sticky'] as boolean) === true
     )
   }
 
@@ -94,8 +94,8 @@ export struct FXViewpointView {
           } else if (this.loadState === LOAD_DONE && this.sdui.length > 0) {
             // SDUI path — render body slices (skip sticky CTA; rendered below)
             ForEach(
-              this.sdui.filter((s: WealthSlice) => s.type !== 'CONTACT_RM_CTA'),
-              (slice: WealthSlice) => {
+              this.sdui.filter((s: ScreenSlice) => s.type !== 'CONTACT_RM_CTA'),
+              (slice: ScreenSlice) => {
                 FXSDUISliceView({ slice: slice, onBack: this.onBack })
               }
             )
@@ -175,7 +175,7 @@ struct FXVideoPlayer {
   private videoUrl(): string {
     const raw = this.props['videoUrl'] as string ?? ''
     return raw.replace('http://localhost:4000', 'http://10.0.2.2:4000')
-      || 'http://10.0.2.2:4000/media/fx-viewpoint.mov'
+      || 'http://10.0.2.2:4000/media/fx-viewpoint.mp4'
   }
 
   build() {

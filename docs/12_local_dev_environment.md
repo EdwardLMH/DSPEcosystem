@@ -80,7 +80,7 @@ This means the OCDP Console can reference UCP content assets and component defin
 | GET | `/api/v1/kyc/sessions/:sessionId/resume` | Resume to current incomplete step; auto-creates session on refresh |
 | GET | `/api/v1/kyc/sessions/:sessionId/steps/:stepId` | Fetch specific step SDUI JSON |
 | POST | `/api/v1/kyc/sessions/:sessionId/steps/:stepId/submit` | Submit answers, validate required fields, advance session |
-| GET | `/api/v1/screen/home-wealth-hk` | Deliver Home Wealth Hub SDUI JSON (only if page status is LIVE) |
+| GET | `/api/v1/screen/home-hub-hk` | Deliver Home Hub (HK) SDUI JSON (only if page status is LIVE). `home-hub-hk` is the stable technical page ID/API path. |
 | GET | `/api/v1/screen/fx-viewpoint-hk` | Deliver FX Viewpoint market insight SDUI JSON (schemaVersion 3.0) |
 | POST | `/api/v1/search` | Cosine-similarity semantic search over 30-item corpus (TF-IDF, bilingual) |
 | GET | `/api/v1/search/corpus` | Return full embedding corpus for client-side caching; accepts optional `?appId=` |
@@ -129,7 +129,7 @@ The mock-BFF starts with pre-seeded in-memory data:
 | Data | Description |
 |------|-------------|
 | KYC step plan | Platform-split plan with web compound steps and mobile-native steps across CIP, biometric, CDD, open banking, and declaration categories; branching logic on nationality |
-| `home-wealth-hk` page | 9 slices: `HOME_SEARCH_HEADER`, `COMBO_QUICK_ACCESS`, `CARD_ACTIVATION_BANNER`, `QUEST_BANNER`, `FEATURE_PRODUCT`, `WEALTH_STUDIO_CAROUSEL`, `GUIDES_INSIGHTS_CAROUSEL`, `FX_WATCHLIST`, `DISCOVER_MORE_CAROUSEL` |
+| `home-hub-hk` page | 9 slices: `HOME_SEARCH_HEADER`, `COMBO_QUICK_ACCESS`, `CARD_ACTIVATION_BANNER`, `QUEST_BANNER`, `FEATURE_PRODUCT`, `WEALTH_STUDIO_CAROUSEL`, `GUIDES_INSIGHTS_CAROUSEL`, `FX_WATCHLIST`, `DISCOVER_MORE_CAROUSEL` |
 | `fx-viewpoint-hk` page | 3 slices: VIDEO_PLAYER, MARKET_BRIEFING_TEXT, CONTACT_RM_CTA (schema v3.0) |
 | Content assets | 8 assets (videos, images, documents) with UCP asset IDs |
 | Component registry | 14 slice type definitions with configurable props, versions, maintainer info |

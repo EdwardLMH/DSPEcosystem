@@ -61,7 +61,7 @@ interface SAProperties {
   segment_id:      string
   locale:          string
 
-  // Wealth Hub specific
+  // Home Hub specific
   slice_type?:    string
   position?:      number
   deep_link?:     string
@@ -184,11 +184,15 @@ class _SensorDataClient {
     }).finally(() => client.destroy())
   }
 
-  // ── Wealth Hub event helpers ─────────────────────────────────────────────────
+  // ── Home Hub (HK) event helpers ──────────────────────────────────────────────
+
+  homeHubViewed(): void {
+    this.track('$pageview', 'Wealth', 'screen_viewed', 'home_hub_hk',
+      'home_hub_hk', 'home_hub')
+  }
 
   wealthHubViewed(): void {
-    this.track('$pageview', 'Wealth', 'screen_viewed', 'wealth_hub_hk',
-      'wealth_hub_hk', 'wealth_hub')
+    this.homeHubViewed()
   }
 
   sliceImpression(sliceType: string, instanceId: string,
@@ -199,7 +203,7 @@ class _SensorDataClient {
     extra['slice_type'] = sliceType as ESObject
     extra['position']   = position  as ESObject
     this.track('slice_impression', 'Wealth', 'slice_viewed', sliceType,
-      'wealth_hub_hk', 'wealth_hub', '', '', instanceId, contentId, '', '',
+      'home_hub_hk', 'home_hub', '', '', instanceId, contentId, '', '',
       '', '', extra)
   }
 
@@ -210,7 +214,7 @@ class _SensorDataClient {
     extra['deep_link']  = deepLink  as ESObject
     extra['cta_label']  = ctaLabel  as ESObject
     this.track('slice_tap', 'Wealth', 'cta_tapped', ctaLabel,
-      'wealth_hub_hk', 'wealth_hub', '', '', instanceId, contentId, '', '',
+      'home_hub_hk', 'home_hub', '', '', instanceId, contentId, '', '',
       '', '', extra)
   }
 
@@ -218,7 +222,7 @@ class _SensorDataClient {
     const extra: Record<string, ESObject> = {}
     extra['promo_title'] = title as ESObject
     this.track('promo_impression', 'Wealth', 'promo_viewed', title,
-      'wealth_hub_hk', 'wealth_hub', '', '', instanceId, contentId, '', '',
+      'home_hub_hk', 'home_hub', '', '', instanceId, contentId, '', '',
       '', '', extra)
   }
 
@@ -226,7 +230,7 @@ class _SensorDataClient {
     const extra: Record<string, ESObject> = {}
     extra['promo_title'] = title as ESObject
     this.track('promo_tap', 'Wealth', 'promo_tapped', title,
-      'wealth_hub_hk', 'wealth_hub', '', '', instanceId, contentId, '', '',
+      'home_hub_hk', 'home_hub', '', '', instanceId, contentId, '', '',
       '', '', extra)
   }
 
@@ -234,7 +238,7 @@ class _SensorDataClient {
     const extra: Record<string, ESObject> = {}
     extra['product_name'] = name as ESObject
     this.track('product_tap', 'Wealth', 'product_tapped', name,
-      'wealth_hub_hk', 'wealth_hub', '', '', id, '', '', '',
+      'home_hub_hk', 'home_hub', '', '', id, '', '', '',
       '', '', extra)
   }
 
@@ -242,7 +246,7 @@ class _SensorDataClient {
     const extra: Record<string, ESObject> = {}
     extra['deep_link'] = deepLink as ESObject
     this.track('quick_access_tap', 'Wealth', 'quick_access_tapped', label,
-      'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '',
+      'home_hub_hk', 'home_hub', '', '', '', '', '', '',
       '', '', extra)
   }
 
@@ -251,7 +255,7 @@ class _SensorDataClient {
     extra['ranking_title'] = title as ESObject
     extra['ranking_badge'] = badge as ESObject
     this.track('ranking_tap', 'Wealth', 'ranking_tapped', title,
-      'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '',
+      'home_hub_hk', 'home_hub', '', '', '', '', '', '',
       '', '', extra)
   }
 
@@ -260,7 +264,7 @@ class _SensorDataClient {
     extra['brand_name'] = brand as ESObject
     extra['deal_tag']   = tag   as ESObject
     this.track('deal_tap', 'Wealth', 'deal_tapped', brand,
-      'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '',
+      'home_hub_hk', 'home_hub', '', '', '', '', '', '',
       '', '', extra)
   }
 
@@ -268,23 +272,23 @@ class _SensorDataClient {
     const extra: Record<string, ESObject> = {}
     extra['promo_title'] = title as ESObject
     this.track('ad_dismissed', 'Wealth', 'ad_banner_dismissed', title,
-      'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '',
+      'home_hub_hk', 'home_hub', '', '', '', '', '', '',
       '', '', extra)
   }
 
   aiAssistantTapped(): void {
     this.track('ai_assistant_tap', 'Wealth', 'ai_assistant_tapped', '',
-      'wealth_hub_hk', 'wealth_hub')
+      'home_hub_hk', 'home_hub')
   }
 
-  // ── Home Hub HK event helpers ────────────────────────────────────────────────
+  // ── Home Hub (HK) carousel event helpers ─────────────────────────────────────
 
   wealthStudioTapped(title: string, instanceId: string): void {
     const extra: Record<string, ESObject> = {}
     extra['episode_title'] = title      as ESObject
     extra['instance_id']   = instanceId as ESObject
     this.track('wealth_studio_tap', 'Wealth', 'wealth_studio_tapped', title,
-      'wealth_hub_hk', 'wealth_hub', '', '', instanceId, '', '', '',
+      'home_hub_hk', 'home_hub', '', '', instanceId, '', '', '',
       '', '', extra)
   }
 
@@ -293,7 +297,7 @@ class _SensorDataClient {
     extra['guide_title'] = title      as ESObject
     extra['instance_id'] = instanceId as ESObject
     this.track('guides_tap', 'Wealth', 'guides_tapped', title,
-      'wealth_hub_hk', 'wealth_hub', '', '', instanceId, '', '', '',
+      'home_hub_hk', 'home_hub', '', '', instanceId, '', '', '',
       '', '', extra)
   }
 
@@ -302,7 +306,7 @@ class _SensorDataClient {
     extra['campaign_title'] = title as ESObject
     extra['campaign_tag']   = tag   as ESObject
     this.track('discover_more_tap', 'Wealth', 'discover_more_tapped', title,
-      'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '',
+      'home_hub_hk', 'home_hub', '', '', '', '', '', '',
       '', '', extra)
   }
 

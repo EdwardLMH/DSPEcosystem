@@ -8,7 +8,7 @@
 
 ## 1. Overview
 
-The Digital Analytics Platform (DAP) is the intelligence layer of the HSBC Digital Sales Promotion Platform. Its purpose is to aggregate all measurable signals about content and journey performance — behavioural click/conversion data, app store reviews, customer survey responses, and LLM citation monitoring — into a single unified **Content Performance Score (CPS)** per piece of content. This score is then fed back into the CMS editor workflow as actionable recommendations, closing the optimisation loop.
+The Digital Analytics Platform (DAP) is the intelligence layer of the HSBC Digital Sales Promotion Ecosystem. Its purpose is to aggregate all measurable signals about content and journey performance — behavioural click/conversion data, app store reviews, customer survey responses, and LLM citation monitoring — into a single unified **Content Performance Score (CPS)** per piece of content. This score is then fed back into the CMS editor workflow as actionable recommendations, closing the optimisation loop.
 
 DAP operates a **dual-stack architecture** to satisfy data residency requirements: GCP BigQuery + Looker for overseas markets (HK, UK, SG, US), and SensorData (神策数据) for mainland China. A unified aggregation layer bridges both stacks for cross-region reporting.
 

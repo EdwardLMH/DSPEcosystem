@@ -1,12 +1,12 @@
 // DepositCampaignPage.ets
 // HarmonyNext ArkTS — New Fund Deposit Campaign (CN) page
-// Loads slice layout from the BFF (GET /api/v1/screen/deposit-campaign-hk).
+// Loads slice layout from the BFF (GET /api/v1/screen/deposit-campaign-cn).
 // The page is always LIVE in mock-bff so it never falls back to the static layout
 // unless the BFF is unreachable.
 
 import { Hive } from '../common/HiveTokens'
 import { SensorDataClient } from '../network/SensorDataClient'
-import { fetchDepositCampaignScreen, WealthSlice } from '../network/KYCNetworkService'
+import { fetchDepositCampaignScreen, ScreenSlice } from '../network/KYCNetworkService'
 
 // ─── Load-state enum ──────────────────────────────────────────────────────────
 // ArkTS forbids string-union @State — plain number constants are used instead.
@@ -19,7 +19,7 @@ const LOAD_ERROR   = 3
 
 @Component
 struct DepositSDUISliceView {
-  slice: WealthSlice = { instanceId: '', type: '', props: {}, visible: true }
+  slice: ScreenSlice = { instanceId: '', type: '', props: {}, visible: true }
   onBack: () => void = () => {}
 
   build() {
@@ -57,12 +57,12 @@ struct DepositSDUISliceView {
 @Component
 export struct DepositCampaignView {
   @State loadState: number   = LOAD_IDLE
-  @State sdui: WealthSlice[] = []
+  @State sdui: ScreenSlice[] = []
   onBack: () => void = () => {}
 
   aboutToAppear() {
     SensorDataClient.track('deposit_campaign_viewed', 'Deposit', 'page_viewed', '',
-      'deposit_campaign_hk', 'deposit_campaign')
+      'deposit_campaign_cn', 'deposit_campaign')
     this.loadFromBFF()
   }
 
@@ -70,7 +70,7 @@ export struct DepositCampaignView {
     this.loadState = LOAD_LOADING
     try {
       const payload = await fetchDepositCampaignScreen()
-      this.sdui = payload.layout.children.filter((s: WealthSlice) => s.visible !== false)
+      this.sdui = payload.layout.children.filter((s: ScreenSlice) => s.visible !== false)
       this.loadState = LOAD_DONE
     } catch (_e) {
       this.loadState = LOAD_ERROR
@@ -92,7 +92,7 @@ export struct DepositCampaignView {
           Column({ space: 0 }) {
             ForEach(
               this.sdui,
-              (slice: WealthSlice) => {
+              (slice: ScreenSlice) => {
                 DepositSDUISliceView({ slice: slice, onBack: this.onBack })
               }
             )
@@ -135,7 +135,7 @@ struct DepositHeaderBar {
           Text('‹').fontSize(22).fontColor(Hive.Color.n800)
             .onClick(() => {
               SensorDataClient.track('back_tap', 'Deposit', 'back_tapped', '',
-                'deposit_campaign_hk', 'deposit_campaign')
+                'deposit_campaign_cn', 'deposit_campaign')
               this.onBack()
             })
         }
@@ -279,7 +279,7 @@ struct DepositRateTable {
     .width('100%').backgroundColor(Hive.Color.brandWhite)
     .onAppear(() => {
       SensorDataClient.track('slice_impression', 'Deposit', 'DEPOSIT_RATE_TABLE', 'dep-rate-table',
-        'deposit_campaign_hk', 'deposit_campaign')
+        'deposit_campaign_cn', 'deposit_campaign')
     })
   }
 }
@@ -303,11 +303,11 @@ struct DepositOpenCTA {
       .margin({ left: 16, right: 16, top: 12, bottom: 12 })
       .onClick(() => {
         SensorDataClient.track('deposit_cta_tap', 'Deposit', 'open_deposit_tapped', this.deepLink(),
-          'deposit_campaign_hk', 'deposit_campaign')
+          'deposit_campaign_cn', 'deposit_campaign')
       })
       .onAppear(() => {
         SensorDataClient.track('slice_impression', 'Deposit', 'DEPOSIT_OPEN_CTA', 'dep-open-cta',
-          'deposit_campaign_hk', 'deposit_campaign')
+          'deposit_campaign_cn', 'deposit_campaign')
       })
   }
 }
@@ -367,7 +367,7 @@ struct DepositFAQSection {
     .width('100%').backgroundColor(Hive.Color.brandWhite)
     .onAppear(() => {
       SensorDataClient.track('slice_impression', 'Deposit', 'DEPOSIT_FAQ', 'dep-faq',
-        'deposit_campaign_hk', 'deposit_campaign')
+        'deposit_campaign_cn', 'deposit_campaign')
     })
   }
 }
@@ -461,7 +461,7 @@ struct DepositHardcodedCTA {
       .onClick(() => {
         SensorDataClient.track('deposit_cta_tap', 'Deposit', 'open_deposit_tapped',
           'hsbc://deposit/open?currency=CNY&campaign=new-fund',
-          'deposit_campaign_hk', 'deposit_campaign')
+          'deposit_campaign_cn', 'deposit_campaign')
       })
   }
 }

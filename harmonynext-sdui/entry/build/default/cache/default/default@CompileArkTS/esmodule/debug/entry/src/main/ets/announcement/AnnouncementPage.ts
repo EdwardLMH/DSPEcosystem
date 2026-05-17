@@ -11,13 +11,13 @@ interface AnnouncementPage_Params {
     kind?: number;
     onBack?: () => void;
     loadState?: number;
-    slice?: WealthSlice;
+    slice?: ScreenSlice;
     dontShowAgain?: boolean;
 }
 import { Hive } from "@normalized:N&&&entry/src/main/ets/common/HiveTokens&";
 import { SensorDataClient } from "@normalized:N&&&entry/src/main/ets/network/SensorDataClient&";
 import { fetchAnnouncementScreen } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
-import type { WealthSlice } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
+import type { ScreenSlice } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
 const LOAD_LOADING = 1;
 const LOAD_DONE = 2;
 const LOAD_ERROR = 3;
@@ -82,11 +82,11 @@ export class AnnouncementPage extends ViewPU {
     set loadState(newValue: number) {
         this.__loadState.set(newValue);
     }
-    private __slice: ObservedPropertyObjectPU<WealthSlice>;
+    private __slice: ObservedPropertyObjectPU<ScreenSlice>;
     get slice() {
         return this.__slice.get();
     }
-    set slice(newValue: WealthSlice) {
+    set slice(newValue: ScreenSlice) {
         this.__slice.set(newValue);
     }
     private __dontShowAgain: ObservedPropertySimplePU<boolean>;
@@ -120,7 +120,7 @@ export class AnnouncementPage extends ViewPU {
         this.loadState = LOAD_LOADING;
         try {
             const payload = await fetchAnnouncementScreen(this.screenId());
-            const slices = payload.layout.children.filter((s: WealthSlice) => {
+            const slices = payload.layout.children.filter((s: ScreenSlice) => {
                 return s.visible !== false && s.type === 'ANNOUNCEMENT_OVERLAY';
             });
             if (slices.length > 0) {

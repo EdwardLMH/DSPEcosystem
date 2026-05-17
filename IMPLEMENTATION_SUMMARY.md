@@ -13,7 +13,7 @@ This document summarises the current implemented state of the HSBC Digital Sales
 
 ## 1. Home Hub (HK) — 9-Slice SDUI Layout
 
-The canonical "Home Hub (HK)" page (`screen: home-wealth-hk`) is defined in the OCDP console (`ocdp-console/src/store/mockData.ts`) and implemented identically across all four SDUI platforms. All platforms support both a **live SDUI path** (served from the BFF JSON) and a **static fallback** (hardcoded component defaults for offline / pre-publish use).
+The canonical "Home Hub (HK)" page (`pageId: home-hub-hk`) is defined in the OCDP console (`ocdp-console/src/store/mockData.ts`) and implemented identically across all four SDUI platforms. The technical page ID and API path remain `home-hub-hk` for compatibility, while the human-facing page name is consistently "Home Hub (HK)". All platforms support both a **live SDUI path** (served from the BFF JSON) and a **static fallback** (hardcoded component defaults for offline / pre-publish use).
 
 ### Slice Order & Types
 
@@ -33,10 +33,10 @@ The canonical "Home Hub (HK)" page (`screen: home-wealth-hk`) is defined in the 
 
 | Platform | File | SDUI Path | Static Fallback |
 |----------|------|-----------|-----------------|
-| iOS (SwiftUI) | `ios-sdui/HSBCSDUI/WealthPageView.swift` | `WealthSDUIViewModel` async fetch → `SDUISliceView` dispatcher | 9 `WH*` default components |
-| Android (Compose) | `android-sdui/…/wealth/WealthPageScreen.kt` | `WealthLoadState.Done` → `SDUISliceView` dispatcher | 9 `WH*` composables |
-| HarmonyOS NEXT (ArkTS) | `harmonynext-sdui/…/wealth/WealthPage.ets` | `LOAD_DONE` → `SDUISliceView.renderSlice()` if/else chain | 9 `SDUI*` components |
-| Web (React/TS) | `web-sdui/src/pages/wealth/WealthHubPage.tsx` | Fetch → `renderSlice()` switch | 9 inline React components |
+| iOS (SwiftUI) | `ios-sdui/HSBCSDUI/HomePageView.swift` | `HomeSDUIViewModel` async fetch → `SDUISliceView` dispatcher | 9 `WH*` default components |
+| Android (Compose) | `android-sdui/…/home/HomePageScreen.kt` | `HomeLoadState.Done` → `SDUISliceView` dispatcher | 9 `WH*` composables |
+| HarmonyOS NEXT (ArkTS) | `harmonynext-sdui/…/home/HomePage.ets` | `LOAD_DONE` → `SDUISliceView.renderSlice()` if/else chain | 9 `SDUI*` components |
+| Web (React/TS) | `web-sdui/src/pages/home/HomePage.tsx` | Fetch → `renderSlice()` switch | 9 inline React components |
 
 ---
 
@@ -93,7 +93,7 @@ SDUI and WeChat channel pages bypass the assessment (no SEO relevance).
 
 ## 4. Bug Fixes Applied
 
-### iOS — Wealth Studio Carousel: video opened as a separate panel (WealthPageView.swift)
+### iOS — Wealth Studio Carousel: video opened as a separate panel (HomePageView.swift)
 
 | Symptom | Root Cause | Fix |
 |---------|-----------|-----|
@@ -119,19 +119,19 @@ VStack {
 |---------|-----------|-----|
 | Video expanded full-screen on tap | `UIViewControllerRepresentable` + `AVPlayerViewController` always expands to fill the window (Apple framework design) | Replaced with `UIViewRepresentable` + custom `UIView` subclass (`WHPlayerView` / `FXPlayerView`) using `AVPlayerLayer` added as a `CALayer` sublayer. Player is now confined to the parent `.frame()`. |
 
-### HarmonyOS NEXT — FX Watchlist blank data (WealthPage.ets)
+### HarmonyOS NEXT — FX Watchlist blank data (HomePage.ets)
 
 | Symptom | Root Cause | Fix |
 |---------|-----------|-----|
 | `SDUIFXWatchlist` showed no FX pair data | Component read `base`, `quote`, `rate`, `change` but BFF sends `pair`, `sellRate`, `buyRate`, `sellLabel`, `buyLabel` | Rewrote all field accessors to match BFF schema. Logic extracted into private helper methods (`pairLabel`, `pairSellRate`, `pairBuyRate`, `pairId`) |
 
-### HarmonyOS NEXT — ArkTS Compiler Error 10905209 (WealthPage.ets)
+### HarmonyOS NEXT — ArkTS Compiler Error 10905209 (HomePage.ets)
 
 | Error | Root Cause | Fix |
 |-------|-----------|-----|
 | `10905209` "Only UI component syntax can be written here" | `const r = raw as Record<string, string>` inside a `ForEach` builder lambda | Moved all record-cast logic into private methods called from the builder body. No `const`/`let` remains inside any builder block |
 
-### HarmonyOS NEXT — ArkTS Type Errors (WealthPage.ets)
+### HarmonyOS NEXT — ArkTS Type Errors (HomePage.ets)
 
 | Error | Root Cause | Fix |
 |-------|-----------|-----|
@@ -139,11 +139,11 @@ VStack {
 | `arkts-no-any-unknown` (line 496) | Same pattern in `SDUIFeatureProduct.tabs()` | Same fix applied |
 | `arkts-no-any-unknown` (line 546) | `const tagsRaw = ... as ESObject[]` inside `Row{}` builder | Extracted to `fundTags(fund: ESObject): Array<string>` helper method |
 
-### Android — Conflicting Declarations (WealthPageScreen.kt)
+### Android — Conflicting Declarations (HomePageScreen.kt)
 
 | Error | Root Cause | Fix |
 |-------|-----------|-----|
-| `Conflicting declarations: val HsbcRed`, `White`, `N50`, `N100`, `N400`, `N500`, `N700`, `N900` | `WealthPageScreen.kt` declared `private val` colour tokens at package level; `WealthTokens.kt` in the same package already declared identical `internal val` tokens | Removed the duplicate 10-line colour block from `WealthPageScreen.kt`; all colour references now resolve from `WealthTokens.kt` |
+| `Conflicting declarations: val HsbcRed`, `White`, `N50`, `N100`, `N400`, `N500`, `N700`, `N900` | `HomePageScreen.kt` declared `private val` colour tokens at package level; `WealthTokens.kt` in the same package already declared identical `internal val` tokens | Removed the duplicate 10-line colour block from `HomePageScreen.kt`; all colour references now resolve from `WealthTokens.kt` |
 
 ---
 

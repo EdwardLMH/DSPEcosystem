@@ -18,7 +18,7 @@ const STATUS_META: Record<string, { bg: string; color: string; label: string }> 
   LIVE:             { bg: '#DBEAFE', color: '#1D4ED8', label: 'Live' },
 };
 
-const PAGE_TYPES = ['WEALTH_HUB', 'KYC_JOURNEY', 'PRODUCT', 'CAMPAIGN', 'CUSTOM'] as const;
+const PAGE_TYPES = ['HOME_HUB', 'WEALTH_HUB', 'KYC_JOURNEY', 'PRODUCT', 'CAMPAIGN', 'CUSTOM'] as const;
 const PAGE_ICONS = ['📄', '🔐', '💰', '📊', '🎯', '📞', '🪪', '🏠', '✅', '⭐', '🌐', '🤳', '💳', '🏦'];
 
 function StatusBadge({ status }: { status: string }) {

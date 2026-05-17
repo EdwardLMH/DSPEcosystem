@@ -15,7 +15,7 @@ import com.hsbc.sdui.announcement.AnnouncementScreen
 import com.hsbc.sdui.deposit.DepositCampaignScreen
 import com.hsbc.sdui.fxviewpoint.FXViewpointScreen
 import com.hsbc.sdui.kyc.KYCRootScreen
-import com.hsbc.sdui.wealth.WealthPageScreen
+import com.hsbc.sdui.home.HomePageScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,15 +30,15 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun HSBCTestApp() {
-    var currentScreen by remember { mutableStateOf("wealth") }
+    var currentScreen by remember { mutableStateOf("home") }
     val HsbcRed = Color(0xFFC41230)
 
     Scaffold(
         bottomBar = {
             NavigationBar(containerColor = Color.White) {
                 NavigationBarItem(
-                    selected = currentScreen == "wealth",
-                    onClick = { currentScreen = "wealth" },
+                    selected = currentScreen == "home",
+                    onClick = { currentScreen = "home" },
                     icon = { Text("🏦") },
                     label = { Text("Home Hub") },
                     colors = NavigationBarItemDefaults.colors(
@@ -107,11 +107,11 @@ fun HSBCTestApp() {
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
             when (currentScreen) {
-                "wealth"  -> WealthPageScreen()
-                "fx"      -> FXViewpointScreen(onBack = { currentScreen = "wealth" })
-                "deposit" -> DepositCampaignScreen(onBack = { currentScreen = "wealth" })
-                "announcement" -> AnnouncementScreen(kind = AnnouncementKind.Special, onBack = { currentScreen = "wealth" })
-                "forceUpdate" -> AnnouncementScreen(kind = AnnouncementKind.ForceUpdate, onBack = { currentScreen = "wealth" })
+                "home"  -> HomePageScreen()
+                "fx"      -> FXViewpointScreen(onBack = { currentScreen = "home" })
+                "deposit" -> DepositCampaignScreen(onBack = { currentScreen = "home" })
+                "announcement" -> AnnouncementScreen(kind = AnnouncementKind.Special, onBack = { currentScreen = "home" })
+                "forceUpdate" -> AnnouncementScreen(kind = AnnouncementKind.ForceUpdate, onBack = { currentScreen = "home" })
                 "kyc"     -> KYCRootScreen()
             }
         }

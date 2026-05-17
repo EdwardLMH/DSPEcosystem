@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>New Fund Deposit Campaign (CN) - OCDP Static Preview</title>
+  <meta name="description" content="Static HTML study preview for the OCDP New Fund Deposit Campaign (CN) page." />
+  <style>
+    :root {
+      color-scheme: light;
+      --hsbc-red: #c41230;
+      --hsbc-dark-red: #a10f29;
+      --text: #1a1a1a;
+      --muted: #666;
+      --soft: #f8f8f8;
+      --line: #e6e6e6;
+      --warning-bg: #fff7ed;
+      --warning-text: #92400e;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #eceff3;
+      color: var(--text);
+    }
+
+    .ocdp-shell {
+      min-height: 100vh;
+      display: grid;
+      place-items: start center;
+      padding: 32px 16px;
+    }
+
+    .phone {
+      width: min(430px, 100%);
+      min-height: 820px;
+      background: var(--soft);
+      border: 1px solid #d6d9de;
+      box-shadow: 0 18px 60px rgba(15, 23, 42, 0.18);
+      overflow: hidden;
+    }
+
+    .ocdp-meta {
+      background: #111827;
+      color: #f9fafb;
+      padding: 10px 14px;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .ocdp-meta strong {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .back {
+      border: 0;
+      background: transparent;
+      color: #0a0a0a;
+      font-size: 28px;
+      line-height: 1;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+    }
+
+    .header-title {
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .hero {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+      background: #173b67;
+    }
+
+    .callout {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 16px;
+      background: var(--warning-bg);
+    }
+
+    .badge {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(146, 64, 14, 0.12);
+      color: var(--warning-text);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .callout-title {
+      color: var(--warning-text);
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .callout-copy {
+      color: rgba(146, 64, 14, 0.82);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .rate-table {
+      background: #fff;
+    }
+
+    .rate-table-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--soft);
+    }
+
+    .section-title {
+      color: #333;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .as-at {
+      color: #888;
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    .rate-columns,
+    .rate-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+      padding: 9px 16px;
+    }
+
+    .rate-columns {
+      background: #f5f6f8;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .rate-row {
+      min-height: 46px;
+      border-top: 1px solid #f0f0f0;
+      font-size: 13px;
+    }
+
+    .rate-row:nth-child(even) {
+      background: #fff;
+    }
+
+    .rate-row:nth-child(odd) {
+      background: #fafafa;
+    }
+
+    .rate-value {
+      color: var(--hsbc-red);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .footnote {
+      padding: 10px 16px;
+      background: var(--soft);
+      color: #888;
+      font-size: 10px;
+      line-height: 1.45;
+    }
+
+    .cta-wrap {
+      padding: 12px 16px;
+      background: var(--soft);
+    }
+
+    .cta {
+      width: 100%;
+      min-height: 54px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--hsbc-red);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .cta:active {
+      background: var(--hsbc-dark-red);
+    }
+
+    .spacer {
+      height: 16px;
+    }
+
+    .faq {
+      background: #fff;
+    }
+
+    .faq-title {
+      padding: 12px 16px;
+      background: var(--soft);
+      color: #333;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    details {
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    details:last-child {
+      border-bottom: 0;
+    }
+
+    summary {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::after {
+      content: "∨";
+      margin-left: auto;
+      color: #888;
+      font-size: 13px;
+    }
+
+    details[open] summary::after {
+      content: "∧";
+    }
+
+    .answer {
+      padding: 0 16px 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 520px) {
+      .ocdp-shell {
+        padding: 0;
+      }
+
+      .phone {
+        width: 100%;
+        min-height: 100vh;
+        border: 0;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="ocdp-shell">
+    <article class="phone" aria-label="New Fund Deposit Campaign CN static preview">
+      <div class="ocdp-meta">
+        <strong>OCDP static preview</strong>
+        Page: New Fund Deposit Campaign (CN) · Page ID: deposit-campaign-cn · Market: CN · Channel: SDUI
+      </div>
+
+      <header class="header">
+        <button class="back" type="button" aria-label="Back" onclick="history.back()">‹</button>
+        <div class="header-title">Renminbi Savings Offers</div>
+      </header>
+
+      <img
+        class="hero"
+        src="../../mock-bff/public/media/deposit-campaign-banner.jpg"
+        alt="Father and child looking out over mountains and lake for the Renminbi Savings new fund deposit campaign"
+      />
+
+      <section class="callout" aria-labelledby="campaign-rate-title">
+        <span class="badge">New Funds Only</span>
+        <div id="campaign-rate-title" class="callout-title">Up to 1.15% p.a. Annual Equivalent Rate</div>
+        <div class="callout-copy">
+          3-Month New Fund CNY Transferable CD, exclusively for new deposits.
+          Don't miss this limited-time rate. Start earning more today.
+        </div>
+      </section>
+
+      <section class="rate-table" aria-labelledby="rate-table-title">
+        <div class="rate-table-head">
+          <div id="rate-table-title" class="section-title">Time Deposit Rate:</div>
+          <div class="as-at">As at 5/22/2025</div>
+        </div>
+        <div class="rate-columns" aria-hidden="true">
+          <span>Term</span>
+          <span>Interest Rate (p.a.)</span>
+        </div>
+        <div class="rate-row">
+          <span>3 Month Time Deposit</span>
+          <span class="rate-value">0.65%</span>
+        </div>
+        <div class="rate-row">
+          <span>6 Month Time Deposit</span>
+          <span class="rate-value">0.85%</span>
+        </div>
+        <div class="rate-row">
+          <span>12 Month Time Deposit</span>
+          <span class="rate-value">0.95%</span>
+        </div>
+        <div class="rate-row">
+          <span>24 Month Time Deposit</span>
+          <span class="rate-value">1.05%</span>
+        </div>
+        <div class="rate-row">
+          <span>36 Month Time Deposit</span>
+          <span class="rate-value">1.25%</span>
+        </div>
+        <div class="rate-row">
+          <span>60 Month Time Deposit</span>
+          <span class="rate-value">1.30%</span>
+        </div>
+        <div class="footnote">
+          Time deposit minimum balance for Personal Banking customers: RMB50.
+          New Fund refers to funds not previously held with HSBC.
+        </div>
+      </section>
+
+      <div class="cta-wrap">
+        <button
+          class="cta"
+          type="button"
+          onclick="window.location.href='hsbc://deposit/open?currency=CNY&amp;campaign=new-fund'"
+        >
+          Open a Deposit
+        </button>
+      </div>
+
+      <div class="spacer" aria-hidden="true"></div>
+
+      <section class="faq" aria-labelledby="faq-title">
+        <div id="faq-title" class="faq-title">Frequently Asked Questions</div>
+
+        <details>
+          <summary>Can I withdraw my time deposit before it matures?</summary>
+          <div class="answer">
+            Yes, you can. But you'll earn less or no interest, and may have to pay an early withdrawal fee.
+            For foreign currency deposits, visit a bank branch.
+          </div>
+        </details>
+
+        <details>
+          <summary>What happens if I don't withdraw my money after maturity?</summary>
+          <div class="answer">
+            If you don't take out your money when it matures, most banks will automatically renew your deposit
+            for the same term at the current interest rate. You can also choose to withdraw it or change the term
+            before maturity.
+          </div>
+        </details>
+
+        <details>
+          <summary>How long can I keep a time deposit?</summary>
+          <div class="answer">
+            Banks usually offer terms like 3 months, 6 months, 1 year, 2 years, 3 years, 5 years, or even 10 years.
+            Longer terms usually have higher interest rates. The most popular choices are 6-month or 12-month plans.
+          </div>
+        </details>
+
+        <details>
+          <summary>Why is the interest rate higher for time deposits than regular savings accounts?</summary>
+          <div class="answer">
+            Banks can offer better rates because they know you'll keep your money in the account for a fixed period.
+            This lets them use the funds for longer-term investments, so they share more of the profit with you as interest.
+          </div>
+        </details>
+      </section>
+    </article>
+  </main>
+</body>
+</html>

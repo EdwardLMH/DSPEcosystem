@@ -1,4 +1,4 @@
-# HSBC Digital Sales Promotion Platform (DSP Ecosystem)
+# HSBC Digital Sales Promotion Ecosystem (DSP Ecosystem)
 
 **Publish in seconds, not sprints. Personalise at scale. Optimise with intelligence.**
 
@@ -12,7 +12,7 @@ This repository contains runnable prototypes and reference implementations for t
 
 The current repository state is summarised in [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md). Key implemented surfaces include:
 
-- **Home Hub (HK)**: `home-wealth-hk`, a 9-slice SDUI page implemented across Web, iOS, Android, and HarmonyOS NEXT.
+- **Home Hub (HK)**: `home-hub-hk`, a 9-slice SDUI page implemented across Web, iOS, Android, and HarmonyOS NEXT. The display name is "Home Hub (HK)"; `home-hub-hk` remains the stable technical page ID and API path.
 - **FX Viewpoint**: `fx-viewpoint-hk`, a market insight SDUI page with inline video and RM contact CTA.
 - **OBKYC journey**: KYC orchestration and SDUI step rendering across web and native clients.
 - **OCDP Console**: page authoring, journey builder, maker-checker workflow, AEO assessment, AI Search admin, WeChat composer, usage statistics, audit panels.
@@ -104,7 +104,7 @@ The current repository state is summarised in [IMPLEMENTATION_SUMMARY.md](IMPLEM
 
 ## Implemented Home Hub Slice Contract
 
-The canonical `home-wealth-hk` page uses this 9-slice order:
+The canonical Home Hub (HK) page (`pageId: home-hub-hk`) uses this 9-slice order:
 
 | # | Slice type | Purpose |
 |---|------------|---------|

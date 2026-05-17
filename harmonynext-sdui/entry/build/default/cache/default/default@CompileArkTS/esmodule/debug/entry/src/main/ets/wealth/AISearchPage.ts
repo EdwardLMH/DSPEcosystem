@@ -154,7 +154,7 @@ export class AISearchPage extends ViewPU {
     }
     private debounceTimer: number;
     aboutToAppear() {
-        SensorDataClient.track('ai_search_opened', 'Search', 'search_screen_viewed', '', 'ai_search', 'wealth_hub');
+        SensorDataClient.track('ai_search_opened', 'Search', 'search_screen_viewed', '', 'ai_search', 'home_hub');
     }
     // ── Debounced search trigger ─────────────────────────────────────────────────
     private onQueryChange(value: string) {
@@ -175,7 +175,7 @@ export class AISearchPage extends ViewPU {
     private performSearch(q: string) {
         this.isLoading = true;
         this.errorMsg = '';
-        SensorDataClient.track('ai_search_query', 'Search', 'search_submitted', q, 'ai_search', 'wealth_hub');
+        SensorDataClient.track('ai_search_query', 'Search', 'search_submitted', q, 'ai_search', 'home_hub');
         const reqBody = JSON.stringify({ query: q, limit: 10 });
         const httpReq = http.createHttp();
         httpReq.request(`${BFF_BASE}/api/v1/search`, {
@@ -232,7 +232,7 @@ export class AISearchPage extends ViewPU {
     }
     // ── Deep-link navigation ─────────────────────────────────────────────────────
     private onResultTap(result: SearchResultItem) {
-        SensorDataClient.track('ai_search_result_tapped', 'Search', 'result_selected', result.title, 'ai_search', 'wealth_hub');
+        SensorDataClient.track('ai_search_result_tapped', 'Search', 'result_selected', result.title, 'ai_search', 'home_hub');
         // Dismiss search overlay first, then simulate deep-link navigation.
         // In production this would invoke Want/startAbility with the hsbc:// URI.
         this.onDismiss();
@@ -358,7 +358,7 @@ export class AISearchPage extends ViewPU {
             Text.fontSize(14);
             Text.fontColor(Hive.Color.brandPrimary);
             Text.onClick(() => {
-                SensorDataClient.track('ai_search_cancelled', 'Search', 'search_cancelled', '', 'ai_search', 'wealth_hub');
+                SensorDataClient.track('ai_search_cancelled', 'Search', 'search_cancelled', '', 'ai_search', 'home_hub');
                 this.onDismiss();
             });
         }, Text);

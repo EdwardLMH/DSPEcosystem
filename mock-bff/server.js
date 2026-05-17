@@ -26,13 +26,23 @@
 const express = require('express');
 const cors    = require('cors');
 const { v4: uuidv4 } = require('uuid');
+const path = require('path');
 
 const app  = express();
 const PORT = 4000;
+const MEDIA_DIR = path.join(__dirname, 'public/media');
 
 app.use(cors());
 app.use(express.json());
-app.use('/media', express.static(require('path').join(__dirname, 'public/media')));
+app.get('/media/:name(Wealth1|Wealth2|fx-viewpoint).mp4', (req, res) => {
+  res.type('video/mp4');
+  res.sendFile(path.join(MEDIA_DIR, `${req.params.name}.mov`));
+});
+app.get('/media/:name(fx-viewpoint-thumbnail|announcement-envelope|announcement-elaisee).jpg', (req, res) => {
+  res.type('image/jpeg');
+  res.sendFile(path.join(MEDIA_DIR, 'deposit-campaign-banner.jpg'));
+});
+app.use('/media', express.static(MEDIA_DIR));
 
 // ─── Media URL helper ─────────────────────────────────────────────────────────
 // Returns an absolute media URL derived from the *incoming* request host.
@@ -64,6 +74,13 @@ function resolveSliceMediaUrls(req, slice) {
           item[field] = mediaUrl(req, item[field]);
         }
       });
+    });
+  }
+  if (slice.props.visual && typeof slice.props.visual === 'object') {
+    MEDIA_FIELDS.forEach(field => {
+      if (slice.props.visual[field] && slice.props.visual[field].startsWith('/media/')) {
+        slice.props.visual[field] = mediaUrl(req, slice.props.visual[field]);
+      }
     });
   }
   return slice;
@@ -837,12 +854,13 @@ const ucpWorkflow = new Map(); // entryId → WorkflowEntry
 const ucpAudit    = [];        // append-only audit log
 
 // Seed the Home Hub (HK) page — LIVE with full canonical slice layout
-ucpPages.set('home-wealth-hk', {
-  pageId: 'home-wealth-hk',
+ucpPages.set('home-hub-hk', {
+  pageId: 'home-hub-hk',
   name: 'Home Hub (HK)',
+  pageType: 'HOME_HUB',
   platform: 'all',
   nativeTargets: ['ios', 'android', 'harmonynext', 'web'],
-  webSlug: '/wealth',
+  webSlug: '/home',
   locale: 'zh-HK',
   status: 'LIVE',
   version: 3,
@@ -983,7 +1001,7 @@ ucpPages.set('home-wealth-hk', {
             title: 'Navigating Markets in 2026',
             ctaLabel: 'Register for live stream',
             imageColor: '#1A1A2E',
-            videoUrl: '/media/Wealth1.mov',
+            videoUrl: '/media/Wealth1.mp4',
           },
           {
             id: 'ws-2',
@@ -991,7 +1009,7 @@ ucpPages.set('home-wealth-hk', {
             title: 'Gold & Alternative Assets',
             ctaLabel: 'Watch now',
             imageColor: '#0F2040',
-            videoUrl: '/media/Wealth2.mov',
+            videoUrl: '/media/Wealth2.mp4',
           },
         ],
       },
@@ -1116,8 +1134,8 @@ ucpPages.set('fx-viewpoint-hk', {
       props: {
         ucpAssetId: 'asset-008',
         title: 'FX Viewpoint — EUR & GBP Market Insights (May 2026)',
-        thumbnailUrl: 'https://placehold.co/1280x720/003366/ffffff?text=FX+Viewpoint+EUR+%26+GBP',
-        videoUrl: '/media/fx-viewpoint.mov',
+        thumbnailUrl: '/media/fx-viewpoint-thumbnail.jpg',
+        videoUrl: '/media/fx-viewpoint.mp4',
         presenterName: 'Jackie Wong',
         presenterTitle: 'FX Strategist, HSBC Global Research',
         autoplay: false,
@@ -1149,8 +1167,8 @@ ucpPages.set('fx-viewpoint-hk', {
 });
 
 // Seed the Deposit Campaign page (LIVE)
-ucpPages.set('deposit-campaign-hk', {
-  pageId: 'deposit-campaign-hk',
+ucpPages.set('deposit-campaign-cn', {
+  pageId: 'deposit-campaign-cn',
   name: 'New Fund Deposit Campaign (CN)',
   platform: 'all',
   locale: 'en-CN',
@@ -1473,8 +1491,8 @@ app.get('/api/v1/ucp/content-assets', requireInternalAuth, (req, res) => {
       assetType: 'VIDEO',
       mimeType: 'video/mp4',
       sizeBytes: 52428800,
-      url: mediaUrl(req, '/media/fx-viewpoint.mov'),
-      thumbnailUrl: 'https://placehold.co/1280x720/003366/ffffff?text=FX+Viewpoint+EUR+%26+GBP',
+      url: mediaUrl(req, '/media/fx-viewpoint.mp4'),
+      thumbnailUrl: mediaUrl(req, '/media/fx-viewpoint-thumbnail.jpg'),
       altText: 'HSBC FX Viewpoint: EUR and GBP — ECB on hold and BoE cut rates. Presented by Jackie Wong.',
       tags: ['fx', 'viewpoint', 'eur', 'gbp', 'market-insight', 'wealth'],
       marketId: 'HK', bizLineId: 'WEALTH',
@@ -1677,9 +1695,8 @@ app.get('/api/v1/funds/feature-products', (req, res) => {
   res.json({ filter, funds: funds.slice(0, limit) });
 });
 
-// Zone 1 public endpoint — returns published layout as SDUI JSON
-app.get('/api/v1/screen/home-wealth-hk', (req, res) => {
-  const page    = ucpPages.get('home-wealth-hk');
+function sendHomeHubPage(req, res) {
+  const page    = ucpPages.get('home-hub-hk');
   const locale  = resolveLocale(req);
   const a11y    = resolveA11yFlags(req);
   const channel = resolveChannel(req);
@@ -1689,10 +1706,11 @@ app.get('/api/v1/screen/home-wealth-hk', (req, res) => {
   res.json({
     schemaVersion: '3.0',
     pageId: page.pageId,
-    screen: 'home_wealth_hub',
+    pageType: page.pageType,
+    screen: 'home_hub_hk',
     ttl: 300,
     metadata: {
-      pageId: page.pageId, locale, textDir: resolveTextDir(locale),
+      pageId: page.pageId, pageType: page.pageType, locale, textDir: resolveTextDir(locale),
       platform: page.platform, channel,
       version: page.version, publishedAt: page.publishedAt,
       generatedAt: new Date().toISOString(),
@@ -1700,6 +1718,11 @@ app.get('/api/v1/screen/home-wealth-hk', (req, res) => {
     },
     layout: { type: 'SCROLL', children: page.slices.map(s => resolveSliceMediaUrls(req, JSON.parse(JSON.stringify(s)))) },
   });
+}
+
+// Zone 1 public endpoint — returns published layout as SDUI JSON.
+app.get('/api/v1/screen/home-hub-hk', (req, res) => {
+  sendHomeHubPage(req, res);
 });
 
 const ANNOUNCEMENT_SPECIAL_PROPS = {
@@ -1708,7 +1731,7 @@ const ANNOUNCEMENT_SPECIAL_PROPS = {
   contentRef: { source: 'UCP', id: 'ucp-ann-special-taipo-fire-001' },
   visual: {
     assetId: 'asset-ann-envelope',
-    imageUrl: 'https://placehold.co/360x190/FFFFFF/DB0011?text=HSBC+Envelope',
+    imageUrl: '/media/announcement-envelope.jpg',
     altText: 'HSBC special announcement envelope illustration',
     placement: 'envelope-top',
   },
@@ -1738,7 +1761,7 @@ const ANNOUNCEMENT_FORCE_UPDATE_PROPS = {
   contentRef: { source: 'UCP', id: 'ucp-ann-force-update-elaisee-001' },
   visual: {
     assetId: 'asset-ann-elaisee',
-    imageUrl: 'https://placehold.co/360x180/DB0011/FFFFFF?text=eLaisee',
+    imageUrl: '/media/announcement-elaisee.jpg',
     altText: 'eLaisee feature artwork',
     placement: 'modal-top',
   },
@@ -1764,6 +1787,13 @@ function announcementPayload(req, pageId, screen, props) {
   const locale = resolveLocale(req);
   const a11y = resolveA11yFlags(req);
   const channel = resolveChannel(req);
+  const overlaySlice = resolveSliceMediaUrls(req, {
+    instanceId: 'ann-overlay',
+    type: 'ANNOUNCEMENT_OVERLAY',
+    visible: true,
+    locked: false,
+    props: JSON.parse(JSON.stringify(props)),
+  });
   return {
     schemaVersion: '3.0',
     pageId,
@@ -1784,15 +1814,7 @@ function announcementPayload(req, pageId, screen, props) {
     },
     layout: {
       type: 'OVERLAY',
-      children: [
-        {
-          instanceId: 'ann-overlay',
-          type: 'ANNOUNCEMENT_OVERLAY',
-          visible: true,
-          locked: false,
-          props,
-        },
-      ],
+      children: [overlaySlice],
     },
   };
 }
@@ -1863,8 +1885,8 @@ app.get('/api/v1/screen/fx-viewpoint-hk', (req, res) => {
           props: {
             ucpAssetId: 'asset-008',
             title: 'FX Viewpoint — EUR & GBP Market Insights (May 2026)',
-            thumbnailUrl: 'https://placehold.co/1280x720/003366/ffffff?text=FX+Viewpoint+EUR+%26+GBP',
-            videoUrl: mediaUrl(req, '/media/fx-viewpoint.mov'),
+            thumbnailUrl: mediaUrl(req, '/media/fx-viewpoint-thumbnail.jpg'),
+            videoUrl: mediaUrl(req, '/media/fx-viewpoint.mp4'),
             presenterName: 'Jackie Wong',
             presenterTitle: 'FX Strategist, HSBC Global Research',
             autoplay: false,
@@ -1908,22 +1930,22 @@ app.get('/api/v1/screen/fx-viewpoint-hk', (req, res) => {
   });
 });
 
-// ─── GET /api/v1/screen/deposit-campaign-hk  — Deposit Campaign SDUI delivery ─
+// ─── GET /api/v1/screen/deposit-campaign-cn  — Deposit Campaign SDUI delivery ─
 // Zone 1 public endpoint — delivers the New Fund Deposit Campaign (CN) page as SDUI JSON.
 // Contains HEADER_NAV, PROMO_BANNER (deposit-campaign-banner.jpg), PROMO_BANNER (CD rate callout),
 // DEPOSIT_RATE_TABLE (rates only), DEPOSIT_OPEN_CTA, SPACER and DEPOSIT_FAQ.
-app.get('/api/v1/screen/deposit-campaign-hk', (req, res) => {
+app.get('/api/v1/screen/deposit-campaign-cn', (req, res) => {
   const publishedAt = new Date(Date.now() - 86400000).toISOString();
   const locale  = resolveLocale(req);
   const a11y    = resolveA11yFlags(req);
   const channel = resolveChannel(req);
   res.json({
     schemaVersion: '3.0',
-    pageId: 'deposit-campaign-hk',
+    pageId: 'deposit-campaign-cn',
     screen: 'deposit_campaign',
     ttl: 300,
     metadata: {
-      pageId: 'deposit-campaign-hk',
+      pageId: 'deposit-campaign-cn',
       locale,
       textDir: resolveTextDir(locale),
       platform: req.headers['x-platform'] || 'all',
@@ -2168,7 +2190,7 @@ app.get('/api/v1/ucp/preview/:pageIdOrEntryId', (req, res) => {
 
 // ─── Embedding corpus ─────────────────────────────────────────────────────────
 // Each entry represents one searchable item: a mobile function entry-point OR
-// a product / offer that is displayed on the Wealth Hub HK page.
+// a product / offer that is displayed on the Home Hub (HK) page.
 // Fields:
 //   id          — stable unique key
 //   type        — 'function' | 'product' | 'ranking' | 'deal' | 'campaign'
@@ -2572,10 +2594,10 @@ app.post('/api/v1/search/config/:configId/rebuild', async (req, res) => {
   // ── 2. Content sources ────────────────────────────────────────────────────
   // Mock SDUI screens available as content sources
   const MOCK_SCREEN_CONTENT = {
-    'home-wealth-hk': {
-      title: 'Wealth Hub HK',
-      description: 'HSBC Hong Kong Wealth Hub — investments, funds, structured products, rankings, morning treasure daily savings, bond funds, guaranteed returns',
-      keywords: 'wealth,investment,fund,bond,guaranteed,HK,Hong Kong,理財',
+    'home-hub-hk': {
+      title: 'Home Hub (HK)',
+      description: 'HSBC Hong Kong Home Hub — investments, funds, structured products, rankings, morning treasure daily savings, bond funds, guaranteed returns',
+      keywords: 'home,hub,wealth,investment,fund,bond,guaranteed,HK,Hong Kong,理財',
       category: 'Product Page',
     },
     'fx-viewpoint-hk': {
@@ -2584,9 +2606,9 @@ app.post('/api/v1/search/config/:configId/rebuild', async (req, res) => {
       keywords: 'FX,foreign exchange,forex,currency,rate,HKD,USD,EUR',
       category: 'Market Insight',
     },
-    'deposit-campaign-hk': {
-      title: 'Deposit Campaign HK',
-      description: 'Hong Kong deposit promotion — time deposit, high interest savings, fixed deposit campaign',
+    'deposit-campaign-cn': {
+      title: 'Deposit Campaign CN',
+      description: 'China deposit promotion — time deposit, high interest savings, fixed deposit campaign',
       keywords: 'deposit,time deposit,fixed,interest,promotion,campaign,savings',
       category: 'Campaign',
     },
@@ -2694,9 +2716,9 @@ server.listen(PORT, '::', { ipv6Only: false }, () => {
   console.log('  ║                                                    ║');
   console.log('  ║  SDUI Delivery (Zone 1 — mobile clients):          ║');
   console.log('  ║    GET  /api/v1/config                             ║');
-  console.log('  ║    GET  /api/v1/screen/home-wealth-hk              ║');
+  console.log('  ║    GET  /api/v1/screen/home-hub-hk                 ║');
   console.log('  ║    GET  /api/v1/screen/fx-viewpoint-hk             ║');
-  console.log('  ║    GET  /api/v1/screen/deposit-campaign-hk         ║');
+  console.log('  ║    GET  /api/v1/screen/deposit-campaign-cn         ║');
   console.log('  ║    GET  /api/v1/screen/announcement-overlay-hk     ║');
   console.log('  ║    GET  /api/v1/screen/announcement-force-update-hk║');
   console.log('  ║                                                    ║');

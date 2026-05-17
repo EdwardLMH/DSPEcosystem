@@ -2076,7 +2076,7 @@ const ANNOUNCEMENT_PRESETS: Record<AnnouncementPresetKey, { label: string; props
       scenario: 'SPECIAL_ANNOUNCEMENT',
       styleVariant: 'ENVELOPE_CARD',
       contentRef: { source: 'UCP', id: 'ucp-ann-special-taipo-fire-001' },
-      visual: { assetId: 'asset-ann-envelope', imageUrl: 'https://placehold.co/360x190/FFFFFF/DB0011?text=HSBC+Envelope', altText: 'HSBC special announcement envelope illustration', placement: 'envelope-top' },
+      visual: { assetId: 'asset-ann-envelope', imageUrl: 'http://localhost:4000/media/announcement-envelope.jpg', altText: 'HSBC special announcement envelope illustration', placement: 'envelope-top' },
       title: 'Special announcement',
       body: [
         "Your well-being is our priority. We're committed to supporting our customers affected by the Tai Po fire incident.",
@@ -2103,7 +2103,7 @@ const ANNOUNCEMENT_PRESETS: Record<AnnouncementPresetKey, { label: string; props
       scenario: 'JOURNEY_FORCE_UPDATE',
       styleVariant: 'INLINE_FORCE_UPDATE',
       contentRef: { source: 'UCP', id: 'ucp-ann-force-update-elaisee-001' },
-      visual: { assetId: 'asset-ann-elaisee', imageUrl: 'https://placehold.co/360x180/DB0011/FFFFFF?text=eLaisee', altText: 'eLaisee feature artwork', placement: 'modal-top' },
+      visual: { assetId: 'asset-ann-elaisee', imageUrl: 'http://localhost:4000/media/announcement-elaisee.jpg', altText: 'eLaisee feature artwork', placement: 'modal-top' },
       title: 'Get ready for eLaisee',
       body: [
         'Enjoy Chinese New Year by sending eLaisee money with customised messages, 24 hours a day, in an eco-friendlier way.',
@@ -2334,7 +2334,7 @@ const SLICE_PROP_FIELDS: Partial<Record<string, PropField[]>> = {
   ],
   VIDEO_PLAYER: [
     { key: 'ucpAssetId',     label: 'UCP Asset ID',      type: 'text',    placeholder: 'asset-008' },
-    { key: 'videoUrl',       label: 'Video URL',         type: 'url',     placeholder: 'http://localhost:3001/media/fx-viewpoint.mov' },
+    { key: 'videoUrl',       label: 'Video URL',         type: 'url',     placeholder: 'http://localhost:4000/media/fx-viewpoint.mp4' },
     { key: 'thumbnailUrl',   label: 'Thumbnail URL',     type: 'url',     placeholder: 'https://placehold.co/1280x720/...' },
     { key: 'title',          label: 'Title',             type: 'text',    placeholder: 'FX Viewpoint — EUR & GBP' },
     { key: 'presenterName',  label: 'Presenter Name',    type: 'text',    placeholder: 'Jackie Wong' },
@@ -2991,7 +2991,7 @@ function WealthStudioItemsEditor({
           <div style={{ marginBottom: 4 }}>
             <div style={{ fontSize: 10, fontWeight: 600, color: '#374151', marginBottom: 2 }}>Video URL</div>
             <input value={item.videoUrl ?? ''} onChange={e => update(i, 'videoUrl', e.target.value)}
-              style={{ ...inp }} placeholder="http://localhost:3001/media/Wealth1.mov" />
+              style={{ ...inp }} placeholder="http://localhost:4000/media/Wealth1.mp4" />
           </div>
 
           <div style={{ marginBottom: 4 }}>
@@ -4753,7 +4753,7 @@ export function PageEditorView() {
     if (comp.sliceType === 'ANNOUNCEMENT_OVERLAY') Object.assign(defaultProps, ANNOUNCEMENT_PRESETS.special.props);
     if (comp.sliceType === 'ANNOUNCEMENT_VISUAL') Object.assign(defaultProps, {
       assetId: 'asset-ann-envelope',
-      imageUrl: 'https://placehold.co/360x190/FFFFFF/DB0011?text=HSBC+Envelope',
+      imageUrl: 'http://localhost:4000/media/announcement-envelope.jpg',
       altText: 'HSBC special announcement envelope illustration',
       placement: 'envelope-top',
       backgroundColor: '#FFFFFF',

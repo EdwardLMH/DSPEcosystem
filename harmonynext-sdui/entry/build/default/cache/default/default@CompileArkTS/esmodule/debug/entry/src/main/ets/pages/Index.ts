@@ -6,7 +6,7 @@ interface Index_Params {
     controller?: TabsController;
 }
 import { KYCRootView } from "@normalized:N&&&entry/src/main/ets/kyc/KYCShellViews&";
-import { WealthPageView } from "@normalized:N&&&entry/src/main/ets/wealth/WealthPage&";
+import { HomePageView } from "@normalized:N&&&entry/src/main/ets/home/HomePage&";
 import { FXViewpointView } from "@normalized:N&&&entry/src/main/ets/fxviewpoint/FXViewpointPage&";
 import { DepositCampaignView } from "@normalized:N&&&entry/src/main/ets/deposit/DepositCampaignPage&";
 import { ANNOUNCEMENT_FORCE_UPDATE, ANNOUNCEMENT_SPECIAL, AnnouncementPage } from "@normalized:N&&&entry/src/main/ets/announcement/AnnouncementPage&";
@@ -61,7 +61,7 @@ class Index extends ViewPU {
                 {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         if (isInitialRender) {
-                            let componentCall = new WealthPageView(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 21, col: 9 });
+                            let componentCall = new HomePageView(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 21, col: 9 });
                             ViewPU.create(componentCall);
                             let paramsLambda = () => {
                                 return {};
@@ -71,7 +71,7 @@ class Index extends ViewPU {
                         else {
                             this.updateStateVarsOfChildByElmtId(elmtId, {});
                         }
-                    }, { name: "WealthPageView" });
+                    }, { name: "HomePageView" });
                 }
             });
             TabContent.tabBar({ builder: () => {

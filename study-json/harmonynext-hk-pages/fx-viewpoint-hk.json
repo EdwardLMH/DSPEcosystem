@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "3.0",
+  "pageId": "fx-viewpoint-hk",
+  "screen": "fx_viewpoint",
+  "ttl": 300,
+  "metadata": {
+    "pageId": "fx-viewpoint-hk",
+    "locale": "en",
+    "textDir": "ltr",
+    "platform": "all",
+    "channel": "SDUI",
+    "version": 1,
+    "publishedAt": "2026-05-16T12:34:42.893Z",
+    "generatedAt": "2026-05-17T12:34:42.894Z",
+    "a11y": {
+      "reduceMotion": false,
+      "highContrast": false,
+      "largeText": false,
+      "voiceOver": false,
+      "talkBack": false,
+      "screenReader": false
+    }
+  },
+  "layout": {
+    "type": "SCROLL",
+    "children": [
+      {
+        "instanceId": "mi-header",
+        "type": "HEADER_NAV",
+        "visible": true,
+        "locked": true,
+        "props": {
+          "title": "FX Viewpoint",
+          "showNotificationBell": false,
+          "showQRScanner": false,
+          "showBackButton": true
+        }
+      },
+      {
+        "instanceId": "mi-content-header",
+        "type": "VIDEO_PLAYER",
+        "visible": true,
+        "locked": false,
+        "props": {
+          "ucpAssetId": "asset-008",
+          "title": "FX Viewpoint — EUR & GBP Market Insights (May 2026)",
+          "thumbnailUrl": "http://localhost:4000/media/fx-viewpoint-thumbnail.jpg",
+          "videoUrl": "http://localhost:4000/media/fx-viewpoint.mp4",
+          "presenterName": "Jackie Wong",
+          "presenterTitle": "FX Strategist, HSBC Global Research",
+          "autoplay": false,
+          "showCaption": true
+        }
+      },
+      {
+        "instanceId": "mi-briefing",
+        "type": "MARKET_BRIEFING_TEXT",
+        "visible": true,
+        "locked": false,
+        "props": {
+          "ucpContentId": "ucp-content-fx-viewpoint-001",
+          "sectionTitle": "Key takeaways",
+          "bulletPoints": [
+            "A weak USD is likely to persist into 2026, providing temporary support for the EUR and GBP.",
+            "With the ECB expected to maintain its policy rate in 2026, the EUR should remain broadly stable.",
+            "BoE delivered a 25 bps cut in May 2026 — further easing is data-dependent and market pricing appears stretched.",
+            "GBP/USD faces near-term resistance at 1.3200 amid mixed UK growth signals.",
+            "Investors should consider diversified FX exposure to manage downside risk against a volatile USD backdrop."
+          ],
+          "disclaimer": "This material is issued by HSBC and is for information purposes only. It does not constitute investment advice or a recommendation to buy or sell any financial instrument."
+        }
+      },
+      {
+        "instanceId": "mi-contact-rm",
+        "type": "CONTACT_RM_CTA",
+        "visible": true,
+        "locked": false,
+        "props": {
+          "label": "Contact Your RM",
+          "subLabel": "Speak to your Relationship Manager about FX opportunities",
+          "deepLink": "hsbc://rm/contact?context=fx-viewpoint",
+          "backgroundColor": "#DB0011",
+          "textColor": "#FFFFFF",
+          "sticky": true
+        }
+      }
+    ]
+  }
+}

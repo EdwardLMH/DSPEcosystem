@@ -1,4 +1,4 @@
-# HSBC Digital Sales Promotion Platform — Ecosystem Architecture
+# HSBC Digital Sales Promotion Ecosystem — Ecosystem Architecture
 
 ## Repository Structure
 
@@ -56,7 +56,7 @@ DSPEcosystem/
 │   └── src/
 │       ├── engine/              # SDUIRenderer, ComponentRegistry (24 components)
 │       ├── components/          # HSBC component implementations
-│       ├── pages/               # WealthHubPage, KYCDemoPage, FXViewpointPage
+│       ├── pages/               # HomePage, KYCDemoPage, FXViewpointPage
 │       ├── types/               # JSON schema TypeScript types
 │       ├── hooks/               # SDUI data fetching hooks
 │       └── analytics/           # TealiumClient auto-instrumentation
@@ -65,7 +65,7 @@ DSPEcosystem/
 │   └── HSBCSDUI/
 │       ├── KYCSDUIStepRouter.swift
 │       ├── KYC/                 # KYCShellViews, KYCStepViews (11 KYC steps)
-│       ├── Wealth/              # WealthPageView
+│       ├── Home/              # HomePageView
 │       ├── FXViewpoint/         # FXViewpointView
 │       ├── HiveTokens.swift
 │       └── Analytics/           # TealiumClient.swift
@@ -74,14 +74,14 @@ DSPEcosystem/
 │   └── app/src/main/java/com/hsbc/sdui/
 │       ├── engine/              # SDUIComponentRegistry, Composable dispatch
 │       ├── kyc/                 # KYCStepRouter, KYCShellViews
-│       ├── wealth/              # WealthPageScreen
+│       ├── home/                # HomePageScreen
 │       └── fxviewpoint/         # FXViewpointScreen
 │
 ├── harmonynext-sdui/            # ArkTS / ArkUI — HarmonyOS NEXT SDUI Renderer
 │   └── entry/src/main/ets/
 │       ├── pages/Index.ets      # Tab bar entry: Home Hub, FX Viewpoint, OBKYC
 │       ├── kyc/                 # KYCShellViews.ets, KYCStepViews.ets
-│       ├── wealth/              # WealthPage.ets, AISearchPage.ets
+│       ├── home/                # HomePage.ets, AISearchPage.ets
 │       ├── fxviewpoint/         # FXViewpointPage.ets
 │       ├── network/             # KYCNetworkService.ets, SensorDataClient.ets
 │       └── common/              # HiveTokens.ets
@@ -120,7 +120,7 @@ DSPEcosystem/
 
 | Screen | Route / ID | Implemented slice contract |
 |--------|------------|----------------------------|
-| Home Hub (HK) | `GET /api/v1/screen/home-wealth-hk` | 9 slices: `HOME_SEARCH_HEADER`, `COMBO_QUICK_ACCESS`, `CARD_ACTIVATION_BANNER`, `QUEST_BANNER`, `FEATURE_PRODUCT`, `WEALTH_STUDIO_CAROUSEL`, `GUIDES_INSIGHTS_CAROUSEL`, `FX_WATCHLIST`, `DISCOVER_MORE_CAROUSEL` |
+| Home Hub (HK) | `GET /api/v1/screen/home-hub-hk` | 9 slices: `HOME_SEARCH_HEADER`, `COMBO_QUICK_ACCESS`, `CARD_ACTIVATION_BANNER`, `QUEST_BANNER`, `FEATURE_PRODUCT`, `WEALTH_STUDIO_CAROUSEL`, `GUIDES_INSIGHTS_CAROUSEL`, `FX_WATCHLIST`, `DISCOVER_MORE_CAROUSEL` |
 | FX Viewpoint | `GET /api/v1/screen/fx-viewpoint-hk` | `VIDEO_PLAYER`, `MARKET_BRIEFING_TEXT`, `CONTACT_RM_CTA` |
 | OBKYC | `/api/v1/kyc/sessions/**` | Platform-split step plan with web compound steps and mobile-native steps |
 

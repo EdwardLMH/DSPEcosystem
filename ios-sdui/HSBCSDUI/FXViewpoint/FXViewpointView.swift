@@ -212,9 +212,9 @@ private struct FXVideoPlayer: View {
     #endif
 
     private var videoURL: URL {
-        var raw = slice.string("videoUrl") ?? "\(mediaBase)/media/fx-viewpoint.mov"
+        var raw = slice.string("videoUrl") ?? "\(mediaBase)/media/fx-viewpoint.mp4"
         raw = raw.replacingOccurrences(of: "http://localhost:4000", with: mediaBase)
-        return URL(string: raw) ?? URL(string: "\(mediaBase)/media/fx-viewpoint.mov")!
+        return URL(string: raw) ?? URL(string: "\(mediaBase)/media/fx-viewpoint.mp4")!
     }
 
     var body: some View {
@@ -474,7 +474,7 @@ private struct FXHardcodedView: View {
                     // Video player / thumbnail
                     if isPlaying {
                         InlineAVPlayer(
-                            url: URL(string: "\(mediaBase)/media/fx-viewpoint.mov")!,
+                            url: URL(string: "\(mediaBase)/media/fx-viewpoint.mp4")!,
                             onClose: { isPlaying = false }
                         )
                         .frame(height: 210)

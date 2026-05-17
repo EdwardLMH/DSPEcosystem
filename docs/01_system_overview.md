@@ -1,4 +1,4 @@
-# HSBC Digital Sales Promotion Platform — System Overview
+# HSBC Digital Sales Promotion Ecosystem — System Overview
 
 **Document Version:** 1.4  
 **Classification:** Internal — Confidential  
@@ -28,7 +28,7 @@
 
 ## 1. Executive Summary
 
-**HSBC Digital Sales Promotion Platform (DSPP)** is a content orchestration ecosystem that lets marketing and product teams publish, personalise, and optimise promotional experiences across all HSBC digital channels — without app releases or engineering sprints.
+**HSBC Digital Sales Promotion Ecosystem (DSPE)** is a content orchestration ecosystem that lets marketing and product teams publish, personalise, and optimise promotional experiences across all HSBC digital channels — without app releases or engineering sprints.
 
 - **Publish in Seconds, Not Sprints** — Content goes from draft to live across iOS, Android, HarmonyOS NEXT, Web, and WeChat in under 60 seconds, with no App Store dependency.
 
@@ -52,7 +52,7 @@
 
 ```
  ╔══════════════════════════════════════════════════════════════════════════════════════╗
- ║                    HSBC Digital Sales Promotion Platform (DSPP)                      ║
+ ║                    HSBC Digital Sales Promotion Ecosystem (DSPE)                      ║
  ║                                                                                      ║
  ║  ┌──────────────┐   ┌──────────────────┐   ┌────────────────────────┐               ║
  ║  │ OCDP/UCP     │   │   Java BFF       │   │  DAP (Analytics)       │               ║

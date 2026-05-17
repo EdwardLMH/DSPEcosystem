@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { KYCDemoPage } from './pages/kyc/KYCDemoPage';
-import { WealthHubPage } from './pages/wealth/WealthHubPage';
+import { HomePage } from './pages/home/HomePage';
 import { FXViewpointPage } from './pages/fxviewpoint/FXViewpointPage';
 import { DepositCampaignPage } from './pages/deposit/DepositCampaignPage';
 import { SDUIProvider } from './context/SDUIContext';
@@ -34,8 +34,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <BrowserRouter>
         <main id="main-content">
           <Routes>
-            <Route path="/" element={<Navigate to="/wealth" replace />} />
-            <Route path="/wealth"           element={<WealthHubPage />} />
+            <Route path="/" element={<Navigate to="/home" replace />} />
+            <Route path="/home"             element={<HomePage />} />
             <Route path="/fx-viewpoint"     element={<FXViewpointPage />} />
             <Route path="/deposit"          element={<DepositCampaignPage />} />
             <Route path="/kyc/demo"         element={<KYCDemoPage />} />

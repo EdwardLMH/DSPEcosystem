@@ -96,10 +96,14 @@ class TealiumWebClient {
     analyticsClient.fire('page_view', payload)
   }
 
-  // ── Wealth Hub HK events ───────────────────────────────────────────────────
+  // ── Home Hub (HK) events ───────────────────────────────────────────────────
+
+  homeHubViewed(): void {
+    this.view('home_hub_hk', { journey_name: 'home_hub' })
+  }
 
   wealthHubViewed(): void {
-    this.view('wealth_hub_hk', { journey_name: 'wealth_hub' })
+    this.homeHubViewed()
   }
 
   sliceImpression(sliceType: string, instanceId: string,
@@ -107,7 +111,7 @@ class TealiumWebClient {
     this.track({
       tealium_event: 'slice_impression', event_category: 'Wealth',
       event_action: 'slice_viewed', event_label: sliceType,
-      screen_name: 'wealth_hub_hk', journey_name: 'wealth_hub',
+      screen_name: 'home_hub_hk', journey_name: 'home_hub',
       component_id: instanceId, content_id: contentId,
       slice_type: sliceType, position,
     })
@@ -118,7 +122,7 @@ class TealiumWebClient {
     this.track({
       tealium_event: 'slice_tap', event_category: 'Wealth',
       event_action: 'cta_tapped', event_label: ctaLabel,
-      screen_name: 'wealth_hub_hk', journey_name: 'wealth_hub',
+      screen_name: 'home_hub_hk', journey_name: 'home_hub',
       component_id: instanceId, content_id: contentId,
       slice_type: sliceType, deep_link: deepLink, cta_label: ctaLabel,
     })
@@ -128,7 +132,7 @@ class TealiumWebClient {
     this.track({
       tealium_event: 'promo_impression', event_category: 'Wealth',
       event_action: 'promo_viewed', event_label: title,
-      screen_name: 'wealth_hub_hk', journey_name: 'wealth_hub',
+      screen_name: 'home_hub_hk', journey_name: 'home_hub',
       component_id: instanceId, content_id: contentId, promo_title: title,
     })
   }
@@ -137,7 +141,7 @@ class TealiumWebClient {
     this.track({
       tealium_event: 'promo_tap', event_category: 'Wealth',
       event_action: 'promo_tapped', event_label: title,
-      screen_name: 'wealth_hub_hk', journey_name: 'wealth_hub',
+      screen_name: 'home_hub_hk', journey_name: 'home_hub',
       component_id: instanceId, content_id: contentId, promo_title: title,
     })
   }
@@ -146,7 +150,7 @@ class TealiumWebClient {
     this.track({
       tealium_event: 'product_tap', event_category: 'Wealth',
       event_action: 'product_tapped', event_label: name,
-      screen_name: 'wealth_hub_hk', journey_name: 'wealth_hub',
+      screen_name: 'home_hub_hk', journey_name: 'home_hub',
       component_id: id, product_name: name,
     })
   }
@@ -155,7 +159,7 @@ class TealiumWebClient {
     this.track({
       tealium_event: 'quick_access_tap', event_category: 'Wealth',
       event_action: 'quick_access_tapped', event_label: label,
-      screen_name: 'wealth_hub_hk', journey_name: 'wealth_hub',
+      screen_name: 'home_hub_hk', journey_name: 'home_hub',
       quick_label: label, deep_link: deepLink,
     })
   }
@@ -164,7 +168,7 @@ class TealiumWebClient {
     this.track({
       tealium_event: 'ranking_tap', event_category: 'Wealth',
       event_action: 'ranking_tapped', event_label: title,
-      screen_name: 'wealth_hub_hk', journey_name: 'wealth_hub',
+      screen_name: 'home_hub_hk', journey_name: 'home_hub',
       ranking_title: title, ranking_badge: badge,
     })
   }
@@ -173,7 +177,7 @@ class TealiumWebClient {
     this.track({
       tealium_event: 'deal_tap', event_category: 'Wealth',
       event_action: 'deal_tapped', event_label: brand,
-      screen_name: 'wealth_hub_hk', journey_name: 'wealth_hub',
+      screen_name: 'home_hub_hk', journey_name: 'home_hub',
       brand_name: brand, deal_tag: tag,
     })
   }
@@ -182,7 +186,7 @@ class TealiumWebClient {
     this.track({
       tealium_event: 'ad_dismissed', event_category: 'Wealth',
       event_action: 'ad_banner_dismissed', event_label: title,
-      screen_name: 'wealth_hub_hk', journey_name: 'wealth_hub', ad_title: title,
+      screen_name: 'home_hub_hk', journey_name: 'home_hub', ad_title: title,
     })
   }
 
@@ -190,7 +194,7 @@ class TealiumWebClient {
     this.track({
       tealium_event: 'ai_assistant_tap', event_category: 'Wealth',
       event_action: 'ai_assistant_tapped',
-      screen_name: 'wealth_hub_hk', journey_name: 'wealth_hub',
+      screen_name: 'home_hub_hk', journey_name: 'home_hub',
     })
   }
 
@@ -198,7 +202,7 @@ class TealiumWebClient {
     this.track({
       tealium_event: 'wealth_studio_tap', event_category: 'Wealth',
       event_action: 'wealth_studio_tapped', event_label: title,
-      screen_name: 'wealth_hub_hk', journey_name: 'wealth_hub',
+      screen_name: 'home_hub_hk', journey_name: 'home_hub',
       episode_label: episodeLabel, cta_label: ctaLabel,
     })
   }
@@ -207,7 +211,7 @@ class TealiumWebClient {
     this.track({
       tealium_event: 'guides_tap', event_category: 'Wealth',
       event_action: 'guides_tapped', event_label: title,
-      screen_name: 'wealth_hub_hk', journey_name: 'wealth_hub',
+      screen_name: 'home_hub_hk', journey_name: 'home_hub',
       article_id: articleId, deep_link: deepLink,
     })
   }
@@ -216,7 +220,7 @@ class TealiumWebClient {
     this.track({
       tealium_event: 'discover_more_tap', event_category: 'Wealth',
       event_action: 'discover_more_tapped', event_label: title,
-      screen_name: 'wealth_hub_hk', journey_name: 'wealth_hub',
+      screen_name: 'home_hub_hk', journey_name: 'home_hub',
       campaign_tag: tag, deep_link: deepLink,
     })
   }

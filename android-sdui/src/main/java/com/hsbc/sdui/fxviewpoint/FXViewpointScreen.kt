@@ -238,7 +238,7 @@ private fun FXVideoPlayer(slice: FXSlice) {
     val videoUrl = slice.str("videoUrl")
         .replace("http://localhost:4000", "http://10.0.2.2:4000")
         .replace("http://127.0.0.1:4000", "http://10.0.2.2:4000")
-        .ifEmpty { "http://10.0.2.2:4000/media/fx-viewpoint.mov" }
+        .ifEmpty { "http://10.0.2.2:4000/media/fx-viewpoint.mp4" }
 
     Column {
         if (showPlayer) {

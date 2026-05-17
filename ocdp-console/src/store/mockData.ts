@@ -20,6 +20,7 @@ export const MARKETS: Market[] = [
 export const RELEASE_TARGETS: ReleaseTarget[] = [
   { targetId: 'GLOBAL', displayName: 'Global (.com)',           domainSuffix: '.com',    isGlobal: true,  active: true },
   { targetId: 'HK',     displayName: 'Hong Kong (.com.hk)',     domainSuffix: '.com.hk', isGlobal: false, active: true },
+  { targetId: 'CN',     displayName: 'China (WeChat)',          domainSuffix: 'wechat',  isGlobal: false, active: true },
   { targetId: 'SG',     displayName: 'Singapore (.com.sg)',     domainSuffix: '.com.sg', isGlobal: false, active: true },
   { targetId: 'UK',     displayName: 'United Kingdom (.co.uk)', domainSuffix: '.co.uk',  isGlobal: false, active: true },
   { targetId: 'IN',     displayName: 'India (bank.in)',         domainSuffix: 'bank.in', isGlobal: false, active: true },
@@ -38,6 +39,7 @@ export const AD_GROUPS: AdGroup[] = [
   { groupId: 'HK-WEALTH-AD',        groupName: 'HK Wealth AD Group',          marketId: 'HK',     bizLineId: 'WEALTH',   groupType: 'AD_GROUP' },
   { groupId: 'HK-PAYMENT-AD',       groupName: 'HK Payment AD Group',         marketId: 'HK',     bizLineId: 'PAYMENT',  groupType: 'AD_GROUP' },
   { groupId: 'HK-MARKETING-AD',     groupName: 'HK Marketing AD Group',       marketId: 'HK',     bizLineId: 'MARKETING', groupType: 'AD_GROUP' },
+  { groupId: 'CN-WEALTH-AD',        groupName: 'CN Wealth AD Group',          marketId: 'CN',     bizLineId: 'WEALTH',   groupType: 'AD_GROUP' },
   { groupId: 'SG-WEALTH-AD',        groupName: 'SG Wealth AD Group',          marketId: 'SG',     bizLineId: 'WEALTH',   groupType: 'AD_GROUP' },
   { groupId: 'GLOBAL-WEALTH-AD',    groupName: 'Global Wealth AD Group',      marketId: 'GLOBAL', bizLineId: 'WEALTH',   groupType: 'AD_GROUP' },
   { groupId: 'HK-ADMIN-GRP',        groupName: 'HK Admin Group',              marketId: 'HK',     bizLineId: 'WEALTH',   groupType: 'ADMIN_GROUP' },
@@ -104,13 +106,13 @@ export const WECHAT_TEMPLATES: WeChatMessageTemplate[] = [
 
 // ─── Mock pages (sourced from UCP) ───────────────────────────────────────────
 
-export const PAGE_HOME_WEALTH: PageLayout = {
-  pageId: 'home-wealth-hk', name: 'Home Hub (HK)',
-  pageType: 'WEALTH_HUB', description: 'Main wealth hub home page for HK market',
+export const PAGE_HOME_HUB: PageLayout = {
+  pageId: 'home-hub-hk', name: 'Home Hub (HK)',
+  pageType: 'HOME_HUB', description: 'Main Home Hub page for HK market',
   nativeTargets: ['ios', 'android', 'harmonynext', 'web'], locale: 'zh-TW', thumbnail: '💰', tags: ['wealth', 'home', 'hk'],
   channel: 'SDUI', scope: 'MARKET', marketId: 'HK',
   releaseMarketIds: ['HK'], bizLineId: 'WEALTH', groupId: 'HK-WEALTH-AD',
-  webSlug: '/wealth',
+  webSlug: '/home',
   authoringStatus: 'APPROVED',
   supportedLocales: ['zh-TW', 'en'],
   translations: {},
@@ -246,8 +248,8 @@ export const PAGE_HOME_WEALTH: PageLayout = {
             presenterTitle: 'Senior Wealth Strategist, HSBC Premier',
             durationSeconds: 90,
             ucpAssetId: 'asset-014',
-            videoUrl: 'http://localhost:3001/media/Wealth1.mov',
-            thumbnailUrl: 'https://placehold.co/1280x720/0A1628/ffffff?text=Wealth+Studio+Ep14',
+            videoUrl: 'http://localhost:4000/media/Wealth1.mp4',
+            thumbnailUrl: 'http://localhost:4000/media/fx-viewpoint-thumbnail.jpg',
           },
           {
             id: 'ws-ep15',
@@ -260,8 +262,8 @@ export const PAGE_HOME_WEALTH: PageLayout = {
             presenterTitle: 'Head of Alternative Investments, HSBC Jade',
             durationSeconds: 145,
             ucpAssetId: 'asset-015',
-            videoUrl: 'http://localhost:3001/media/Wealth2.mov',
-            thumbnailUrl: 'https://placehold.co/1280x720/0A1628/c9a96e?text=Wealth+Studio+Ep15',
+            videoUrl: 'http://localhost:4000/media/Wealth2.mp4',
+            thumbnailUrl: 'http://localhost:4000/media/fx-viewpoint-thumbnail.jpg',
           },
         ],
       },
@@ -528,8 +530,8 @@ export const PAGE_FX_VIEWPOINT: PageLayout = {
       props: {
         ucpAssetId: 'asset-008',
         title: 'FX Viewpoint — EUR & GBP Market Insights (May 2026)',
-        thumbnailUrl: 'https://placehold.co/1280x720/003366/ffffff?text=FX+Viewpoint+EUR+%26+GBP',
-        videoUrl: 'http://localhost:3001/media/fx-viewpoint.mov',
+        thumbnailUrl: 'http://localhost:4000/media/fx-viewpoint-thumbnail.jpg',
+        videoUrl: 'http://localhost:4000/media/fx-viewpoint.mp4',
         presenterName: 'Jackie Wong',
         presenterTitle: 'FX Strategist, HSBC Global Research',
         autoplay: false,
@@ -566,12 +568,12 @@ export const PAGE_FX_VIEWPOINT: PageLayout = {
 };
 
 export const PAGE_DEPOSIT_CAMPAIGN: PageLayout = {
-  pageId: 'deposit-campaign-hk', name: 'New Fund Deposit Campaign (CN)',
+  pageId: 'deposit-campaign-cn', name: 'New Fund Deposit Campaign (CN)',
   pageType: 'CAMPAIGN', pageTemplateId: 'tpl-deposit-campaign',
   description: 'Renminbi Savings new fund deposit campaign — elevated time deposit rates with rate table and FAQ.',
   nativeTargets: ['ios', 'android', 'harmonynext', 'web'], locale: 'en-CN', thumbnail: '🏦', tags: ['deposit', 'savings', 'campaign', 'renminbi', 'time-deposit'],
   channel: 'SDUI', scope: 'MARKET', marketId: 'CN',
-  releaseMarketIds: ['CN'], bizLineId: 'WEALTH', groupId: 'HK-WEALTH-AD',
+  releaseMarketIds: ['CN'], bizLineId: 'WEALTH', groupId: 'CN-WEALTH-AD',
   isPublic: true,
   webSlug: '/cn/wealth/savings/new-fund-deposit-campaign',
   webMetaTitle: 'New Fund Time Deposit Campaign | HSBC Bank Wealth',
@@ -673,7 +675,7 @@ const ANNOUNCEMENT_SPECIAL_PROPS = {
   contentRef: { source: 'UCP', id: 'ucp-ann-special-taipo-fire-001' },
   visual: {
     assetId: 'asset-ann-envelope',
-    imageUrl: 'https://placehold.co/360x190/FFFFFF/DB0011?text=HSBC+Envelope',
+    imageUrl: 'http://localhost:4000/media/announcement-envelope.jpg',
     altText: 'HSBC special announcement envelope illustration',
     placement: 'envelope-top',
   },
@@ -730,7 +732,7 @@ const ANNOUNCEMENT_FORCE_UPDATE_PROPS = {
   contentRef: { source: 'UCP', id: 'ucp-ann-force-update-elaisee-001' },
   visual: {
     assetId: 'asset-ann-elaisee',
-    imageUrl: 'https://placehold.co/360x180/DB0011/FFFFFF?text=eLaisee',
+    imageUrl: 'http://localhost:4000/media/announcement-elaisee.jpg',
     altText: 'eLaisee feature artwork',
     placement: 'modal-top',
   },
@@ -820,7 +822,7 @@ export const PAGE_ANNOUNCEMENT_FORCE_UPDATE = announcementPage(
 );
 
 export const ALL_PAGES: PageLayout[] = [
-  PAGE_HOME_WEALTH,
+  PAGE_HOME_HUB,
   PAGE_JADE_CAMPAIGN,
   PAGE_VISA_CAMPAIGN,
   PAGE_OBKYC,
@@ -1124,23 +1126,24 @@ export const MOCK_JOURNEY_PAGES_WEB: JourneyPage[] = [
 ];
 
 export const MOCK_WORKFLOW: WorkflowEntry[] = [
-  { entryId: 'wf-001', pageId: 'home-wealth-hk',        pageName: 'Home Hub (HK)',                 status: 'LIVE',  authorId: 'j.chan@hsbc.com.hk', authorName: 'Janet Chan', comments: [], layout: PAGE_HOME_WEALTH,    version: 3 },
+  { entryId: 'wf-001', pageId: 'home-hub-hk',        pageName: 'Home Hub (HK)',                 status: 'LIVE',  authorId: 'j.chan@hsbc.com.hk', authorName: 'Janet Chan', comments: [], layout: PAGE_HOME_HUB,       version: 3 },
   { entryId: 'wf-002', pageId: 'jade-upgrade-hk',       pageName: 'Elite Upgrade Campaign (HK)',   status: 'LIVE',  authorId: 'j.chan@hsbc.com.hk', authorName: 'Janet Chan', comments: [], layout: PAGE_JADE_CAMPAIGN,  version: 2 },
   { entryId: 'wf-003', pageId: 'visa-platinum-campaign', pageName: 'Visa Platinum Q3 Campaign',    status: 'DRAFT', authorId: 'j.chan@hsbc.com.hk', authorName: 'Janet Chan', comments: [], layout: PAGE_VISA_CAMPAIGN,  version: 1 },
   { entryId: 'wf-004', pageId: 'obkyc-journey',          pageName: 'OBKYC – Account Opening Journey', status: 'DRAFT', authorId: 'k.lee@hsbc.com.hk', authorName: 'Karen Lee', comments: [], layout: PAGE_OBKYC, version: 1 },
   { entryId: 'wf-005', pageId: 'fx-viewpoint-hk',        pageName: 'FX Viewpoint — EUR & GBP (HK)', status: 'LIVE', authorId: 'j.chan@hsbc.com.hk', authorName: 'Janet Chan', comments: [], layout: PAGE_FX_VIEWPOINT, version: 1 },
-  { entryId: 'wf-006', pageId: 'deposit-campaign-hk',    pageName: 'New Fund Deposit Campaign (CN)', status: 'LIVE', authorId: 'j.chan@hsbc.com.hk', authorName: 'Janet Chan', comments: [], layout: PAGE_DEPOSIT_CAMPAIGN, version: 1 },
+  { entryId: 'wf-006', pageId: 'deposit-campaign-cn',    pageName: 'New Fund Deposit Campaign (CN)', status: 'LIVE', authorId: 'j.chan@hsbc.com.hk', authorName: 'Janet Chan', comments: [], layout: PAGE_DEPOSIT_CAMPAIGN, version: 1 },
 ];
 
 // ─── Market production status ─────────────────────────────────────────────────
 
 export const MOCK_MARKET_STATUS: PageMarketStatus[] = [
-  { pageId: 'home-wealth-hk',         targetId: 'HK',     productionStatus: 'LIVE',           liveVersion: 3, lastPublishedAt: '2026-03-12' },
+  { pageId: 'home-hub-hk',         targetId: 'HK',     productionStatus: 'LIVE',           liveVersion: 3, lastPublishedAt: '2026-03-12' },
   { pageId: 'jade-upgrade-hk',        targetId: 'HK',     productionStatus: 'LIVE',           liveVersion: 2, lastPublishedAt: '2026-03-15' },
   { pageId: 'visa-platinum-campaign', targetId: 'GLOBAL',  productionStatus: 'LIVE',           liveVersion: 2, lastPublishedAt: '2026-03-10' },
   { pageId: 'visa-platinum-campaign', targetId: 'HK',     productionStatus: 'LIVE',           liveVersion: 2, lastPublishedAt: '2026-03-12' },
   { pageId: 'visa-platinum-campaign', targetId: 'SG',     productionStatus: 'NEVER_RELEASED' },
   { pageId: 'fx-viewpoint-hk',        targetId: 'HK',     productionStatus: 'LIVE',           liveVersion: 1, lastPublishedAt: '2026-05-02' },
+  { pageId: 'deposit-campaign-cn',    targetId: 'CN',     productionStatus: 'LIVE',           liveVersion: 1, lastPublishedAt: '2026-05-16' },
 ];
 
 // ─── AEO Scores ───────────────────────────────────────────────────────────────
@@ -1196,8 +1199,8 @@ export const MOCK_AEO_SCORES: AEOScore[] = [
 // ─── Usage Stats ──────────────────────────────────────────────────────────────
 
 export const MOCK_USAGE_STATS: PageUsageStat[] = [
-  // Home Hub (HK) — SDUI wealth hub, high-traffic flagship page
-  { pageId: 'home-wealth-hk',  targetId: 'HK',
+  // Home Hub (HK) — SDUI home hub, high-traffic flagship page
+  { pageId: 'home-hub-hk',  targetId: 'HK',
     dau: 42800, wau: 189400, mau: 612000,
     newUsers: 38200, returningUsers: 573800,
     avgSessionSec: 187, avgPageDepth: 3.4, bounceRate: 0.18,
@@ -1231,7 +1234,7 @@ export const MOCK_USAGE_STATS: PageUsageStat[] = [
     conversionRate: 0.071, ctr: 0.18, errorRate: 0.003 },
 
   // Deposit Campaign (CN / WeChat) — WeChat channel
-  { pageId: 'deposit-campaign-hk', targetId: 'HK',
+  { pageId: 'deposit-campaign-cn', targetId: 'CN',
     dau: 4120,  wau: 22100,  mau: 79800,
     newUsers: 31200, returningUsers: 48600,
     avgSessionSec: 97,  avgPageDepth: 1.4, bounceRate: 0.52,
@@ -1253,7 +1256,7 @@ export const MOCK_JOURNEY_STATS: JourneyUsageStat[] = [
 // ─── Audit log ────────────────────────────────────────────────────────────────
 
 export const MOCK_AUDIT: AuditEntry[] = [
-  { id: 'a-001', timestamp: new Date(Date.now() - 86400000 * 10).toISOString(), actorId: 'j.chan@hsbc.com.hk', actorRole: 'WEALTH-AUTHOR', action: 'PAGE_RELEASED',  pageId: 'home-wealth-hk',         pageName: 'Home Hub (HK)',                 details: 'Released to HK v3',                    marketId: 'HK', releaseTargetId: 'HK' },
+  { id: 'a-001', timestamp: new Date(Date.now() - 86400000 * 10).toISOString(), actorId: 'j.chan@hsbc.com.hk', actorRole: 'WEALTH-AUTHOR', action: 'PAGE_RELEASED',  pageId: 'home-hub-hk',         pageName: 'Home Hub (HK)',                 details: 'Released to HK v3',                    marketId: 'HK', releaseTargetId: 'HK' },
   { id: 'a-002', timestamp: new Date(Date.now() - 86400000 * 5).toISOString(),  actorId: 'j.chan@hsbc.com.hk', actorRole: 'WEALTH-AUTHOR', action: 'PAGE_SUBMITTED', pageId: 'visa-platinum-campaign',  pageName: 'Visa Platinum Q3 Campaign',     details: 'Submitted for India (bank.in)',         marketId: 'GLOBAL', releaseTargetId: 'IN' },
   { id: 'a-003', timestamp: new Date(Date.now() - 86400000 * 3).toISOString(),  actorId: 'j.chan@hsbc.com.hk', actorRole: 'WEALTH-AUTHOR', action: 'WECHAT_MSG_SENT', pageId: 'jade-upgrade-hk',        pageName: 'Elite Upgrade Campaign (HK)',   details: 'Template msg sent to 48,200 followers', marketId: 'HK' },
   { id: 'a-004', timestamp: new Date(Date.now() - 86400000 * 1).toISOString(),  actorId: 'm.wong@hsbc.com.hk', actorRole: 'WEALTH-APPROVER', action: 'APPROVED',    pageId: 'jade-upgrade-hk',        pageName: 'Elite Upgrade Campaign (HK)',   details: 'Approved for HK production',            marketId: 'HK', releaseTargetId: 'HK' },
@@ -1380,7 +1383,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
           contentRef: { source: 'UCP', id: 'ucp-ann-special-taipo-fire-001' },
           visual: {
             assetId: 'asset-ann-envelope',
-            imageUrl: 'https://placehold.co/360x190/FFFFFF/DB0011?text=HSBC+Envelope',
+            imageUrl: 'http://localhost:4000/media/announcement-envelope.jpg',
             altText: 'HSBC special announcement envelope illustration',
             placement: 'envelope-top',
           },

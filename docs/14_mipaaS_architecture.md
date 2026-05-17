@@ -42,7 +42,7 @@ miPaaS is the operational complement to **DAP** (data ingestion and raw analytic
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────┐
-│                        HSBC Digital Sales Promotion Platform (DSPP)                  │
+│                        HSBC Digital Sales Promotion Ecosystem (DSPE)                  │
 │                                                                                       │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐  ┌──────────────────┐  │
 │  │  UCP / OCDP     │  │   Java BFF       │  │  DAP         │  │  miPaaS          │  │

@@ -1,4 +1,4 @@
-// HSBC Digital Sales Promotion Platform — SDUI Type Definitions
+// HSBC Digital Sales Promotion Ecosystem — SDUI Type Definitions
 
 export type ActionType =
   | 'NAVIGATE'

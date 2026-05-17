@@ -34,17 +34,17 @@ interface DepositHeaderBar_Params {
 }
 interface DepositCampaignView_Params {
     loadState?: number;
-    sdui?: WealthSlice[];
+    sdui?: ScreenSlice[];
     onBack?: () => void;
 }
 interface DepositSDUISliceView_Params {
-    slice?: WealthSlice;
+    slice?: ScreenSlice;
     onBack?: () => void;
 }
 import { Hive } from "@normalized:N&&&entry/src/main/ets/common/HiveTokens&";
 import { SensorDataClient } from "@normalized:N&&&entry/src/main/ets/network/SensorDataClient&";
 import { fetchDepositCampaignScreen } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
-import type { WealthSlice } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
+import type { ScreenSlice } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
 // ─── Load-state enum ──────────────────────────────────────────────────────────
 // ArkTS forbids string-union @State — plain number constants are used instead.
 const LOAD_IDLE = 0;
@@ -78,7 +78,7 @@ class DepositSDUISliceView extends ViewPU {
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
-    private slice: WealthSlice;
+    private slice: ScreenSlice;
     private onBack: () => void;
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -276,23 +276,23 @@ export class DepositCampaignView extends ViewPU {
     set loadState(newValue: number) {
         this.__loadState.set(newValue);
     }
-    private __sdui: ObservedPropertyObjectPU<WealthSlice[]>;
+    private __sdui: ObservedPropertyObjectPU<ScreenSlice[]>;
     get sdui() {
         return this.__sdui.get();
     }
-    set sdui(newValue: WealthSlice[]) {
+    set sdui(newValue: ScreenSlice[]) {
         this.__sdui.set(newValue);
     }
     private onBack: () => void;
     aboutToAppear() {
-        SensorDataClient.track('deposit_campaign_viewed', 'Deposit', 'page_viewed', '', 'deposit_campaign_hk', 'deposit_campaign');
+        SensorDataClient.track('deposit_campaign_viewed', 'Deposit', 'page_viewed', '', 'deposit_campaign_cn', 'deposit_campaign');
         this.loadFromBFF();
     }
     private async loadFromBFF(): Promise<void> {
         this.loadState = LOAD_LOADING;
         try {
             const payload = await fetchDepositCampaignScreen();
-            this.sdui = payload.layout.children.filter((s: WealthSlice) => s.visible !== false);
+            this.sdui = payload.layout.children.filter((s: ScreenSlice) => s.visible !== false);
             this.loadState = LOAD_DONE;
         }
         catch (_e) {
@@ -582,7 +582,7 @@ class DepositHeaderBar extends ViewPU {
                         Text.fontSize(22);
                         Text.fontColor(Hive.Color.n800);
                         Text.onClick(() => {
-                            SensorDataClient.track('back_tap', 'Deposit', 'back_tapped', '', 'deposit_campaign_hk', 'deposit_campaign');
+                            SensorDataClient.track('back_tap', 'Deposit', 'back_tapped', '', 'deposit_campaign_cn', 'deposit_campaign');
                             this.onBack();
                         });
                     }, Text);
@@ -808,7 +808,7 @@ class DepositRateTable extends ViewPU {
             Column.width('100%');
             Column.backgroundColor(Hive.Color.brandWhite);
             Column.onAppear(() => {
-                SensorDataClient.track('slice_impression', 'Deposit', 'DEPOSIT_RATE_TABLE', 'dep-rate-table', 'deposit_campaign_hk', 'deposit_campaign');
+                SensorDataClient.track('slice_impression', 'Deposit', 'DEPOSIT_RATE_TABLE', 'dep-rate-table', 'deposit_campaign_cn', 'deposit_campaign');
             });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -986,10 +986,10 @@ class DepositOpenCTA extends ViewPU {
             Button.borderRadius(12);
             Button.margin({ left: 16, right: 16, top: 12, bottom: 12 });
             Button.onClick(() => {
-                SensorDataClient.track('deposit_cta_tap', 'Deposit', 'open_deposit_tapped', this.deepLink(), 'deposit_campaign_hk', 'deposit_campaign');
+                SensorDataClient.track('deposit_cta_tap', 'Deposit', 'open_deposit_tapped', this.deepLink(), 'deposit_campaign_cn', 'deposit_campaign');
             });
             Button.onAppear(() => {
-                SensorDataClient.track('slice_impression', 'Deposit', 'DEPOSIT_OPEN_CTA', 'dep-open-cta', 'deposit_campaign_hk', 'deposit_campaign');
+                SensorDataClient.track('slice_impression', 'Deposit', 'DEPOSIT_OPEN_CTA', 'dep-open-cta', 'deposit_campaign_cn', 'deposit_campaign');
             });
         }, Button);
         Button.pop();
@@ -1057,7 +1057,7 @@ class DepositFAQSection extends ViewPU {
             Column.width('100%');
             Column.backgroundColor(Hive.Color.brandWhite);
             Column.onAppear(() => {
-                SensorDataClient.track('slice_impression', 'Deposit', 'DEPOSIT_FAQ', 'dep-faq', 'deposit_campaign_hk', 'deposit_campaign');
+                SensorDataClient.track('slice_impression', 'Deposit', 'DEPOSIT_FAQ', 'dep-faq', 'deposit_campaign_cn', 'deposit_campaign');
             });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1431,7 +1431,7 @@ class DepositHardcodedCTA extends ViewPU {
             Button.borderRadius(12);
             Button.margin({ left: 16, right: 16, top: 12, bottom: 12 });
             Button.onClick(() => {
-                SensorDataClient.track('deposit_cta_tap', 'Deposit', 'open_deposit_tapped', 'hsbc://deposit/open?currency=CNY&campaign=new-fund', 'deposit_campaign_hk', 'deposit_campaign');
+                SensorDataClient.track('deposit_cta_tap', 'Deposit', 'open_deposit_tapped', 'hsbc://deposit/open?currency=CNY&campaign=new-fund', 'deposit_campaign_cn', 'deposit_campaign');
             });
         }, Button);
         Button.pop();

@@ -19,6 +19,7 @@ export const AD_GROUPS: AdGroup[] = [
   { groupId: 'HK-WEALTH-AD',     groupName: 'HK Wealth AD Group',      marketId: 'HK',     bizLineId: 'WEALTH',      groupType: 'AD_GROUP' },
   { groupId: 'HK-PAYMENT-AD',    groupName: 'HK Payment AD Group',     marketId: 'HK',     bizLineId: 'PAYMENT',     groupType: 'AD_GROUP' },
   { groupId: 'HK-MARKETING-AD',  groupName: 'HK Marketing AD Group',   marketId: 'HK',     bizLineId: 'MARKETING',   groupType: 'AD_GROUP' },
+  { groupId: 'CN-WEALTH-AD',     groupName: 'CN Wealth AD Group',      marketId: 'CN',     bizLineId: 'WEALTH',      groupType: 'AD_GROUP' },
   { groupId: 'SG-WEALTH-AD',     groupName: 'SG Wealth AD Group',      marketId: 'SG',     bizLineId: 'WEALTH',      groupType: 'AD_GROUP' },
   { groupId: 'GLOBAL-WEALTH-AD', groupName: 'Global Wealth AD Group',  marketId: 'GLOBAL', bizLineId: 'WEALTH',      groupType: 'AD_GROUP' },
   { groupId: 'HK-ADMIN-GRP',     groupName: 'HK Admin Group',          marketId: 'HK',     bizLineId: 'WEALTH',      groupType: 'ADMIN_GROUP' },
@@ -29,10 +30,10 @@ export const AD_GROUPS: AdGroup[] = [
 // ─── Mock pages ───────────────────────────────────────────────────────────────
 
 export const DEFAULT_PAGE_LAYOUT: PageLayout = {
-  pageId: 'home-wealth-hk',
-  name: 'Home – Wealth Hub (HK)',
-  pageType: 'WEALTH_HUB',
-  description: 'Main wealth hub home page for HK market',
+  pageId: 'home-hub-hk',
+  name: 'Home Hub (HK)',
+  pageType: 'HOME_HUB',
+  description: 'Main Home Hub page for HK market',
   platform: 'all',
   locale: 'zh-TW',
   thumbnail: '💰',
@@ -101,8 +102,8 @@ export const DEFAULT_PAGE_LAYOUT: PageLayout = {
             presenter: 'Emily Cheung',
             presenterTitle: 'Senior Wealth Strategist, HSBC Premier',
             durationSeconds: 90,
-            thumbnailUrl: 'https://placehold.co/1280x720/0A1628/ffffff?text=Wealth+Studio+Ep14',
-            videoUrl: 'http://localhost:3001/media/Wealth1.mov',
+            thumbnailUrl: 'http://localhost:4000/media/fx-viewpoint-thumbnail.jpg',
+            videoUrl: 'http://localhost:4000/media/Wealth1.mp4',
           },
           {
             id: 'ws-ep15',
@@ -112,8 +113,8 @@ export const DEFAULT_PAGE_LAYOUT: PageLayout = {
             presenter: 'Derek Lam',
             presenterTitle: 'Head of Alternative Investments, HSBC Jade',
             durationSeconds: 145,
-            thumbnailUrl: 'https://placehold.co/1280x720/0A1628/c9a96e?text=Wealth+Studio+Ep15',
-            videoUrl: 'http://localhost:3001/media/Wealth2.mov',
+            thumbnailUrl: 'http://localhost:4000/media/fx-viewpoint-thumbnail.jpg',
+            videoUrl: 'http://localhost:4000/media/Wealth2.mp4',
           },
         ],
       },
@@ -278,8 +279,8 @@ export const MARKET_INSIGHT_PAGE: PageLayout = {
       props: {
         ucpAssetId: 'asset-008',
         title: 'FX Viewpoint — EUR & GBP Market Insights (May 2026)',
-        thumbnailUrl: 'https://placehold.co/1280x720/003366/ffffff?text=FX+Viewpoint+EUR+%26+GBP',
-        videoUrl: 'http://localhost:3001/media/fx-viewpoint.mov',
+        thumbnailUrl: 'http://localhost:4000/media/fx-viewpoint-thumbnail.jpg',
+        videoUrl: 'http://localhost:4000/media/fx-viewpoint.mp4',
         presenterName: 'Jackie Wong',
         presenterTitle: 'FX Strategist, HSBC Global Research',
         autoplay: false,
@@ -321,7 +322,7 @@ export const MARKET_INSIGHT_PAGE: PageLayout = {
 };
 
 export const DEPOSIT_CAMPAIGN_PAGE: PageLayout = {
-  pageId: 'deposit-campaign-hk',
+  pageId: 'deposit-campaign-cn',
   name: 'New Fund Deposit Campaign (CN)',
   pageType: 'CAMPAIGN',
   description: 'Renminbi Savings new fund deposit campaign — highlights elevated time deposit rates with a rate table and FAQ.',
@@ -330,7 +331,7 @@ export const DEPOSIT_CAMPAIGN_PAGE: PageLayout = {
   thumbnail: '🏦',
   tags: ['deposit', 'savings', 'campaign', 'renminbi', 'time-deposit'],
   bizLineId: 'WEALTH',
-  groupId: 'HK-WEALTH-AD',
+  groupId: 'CN-WEALTH-AD',
   authoringStatus: 'APPROVED',
   slices: [
     {
@@ -455,8 +456,8 @@ export const ALL_PAGES: PageLayout[] = [
 export const MOCK_WORKFLOW_ENTRIES: WorkflowEntry[] = [
   {
     entryId: 'wf-001',
-    pageId: 'home-wealth-hk',
-    pageName: 'Home – Wealth Hub (HK)',
+    pageId: 'home-hub-hk',
+    pageName: 'Home Hub (HK)',
     status: 'LIVE',
     authorId: 'j.chan@hsbc.com.hk',
     authorName: 'Janet Chan',
@@ -510,8 +511,8 @@ export const MOCK_WORKFLOW_ENTRIES: WorkflowEntry[] = [
   },
   {
     entryId: 'wf-006',
-    pageId: 'deposit-campaign-hk',
-    pageName: 'New Fund Deposit Campaign (HK)',
+    pageId: 'deposit-campaign-cn',
+    pageName: 'New Fund Deposit Campaign (CN)',
     status: 'LIVE',
     authorId: 'j.chan@hsbc.com.hk',
     authorName: 'Janet Chan',
@@ -530,8 +531,8 @@ export const MOCK_AUDIT: AuditEntry[] = [
     actorId: 'j.chan@hsbc.com.hk',
     actorRole: 'WEALTH-AUTHOR',
     action: 'PAGE_CREATED',
-    pageId: 'home-wealth-hk',
-    pageName: 'Home – Wealth Hub (HK)',
+    pageId: 'home-hub-hk',
+    pageName: 'Home Hub (HK)',
     details: 'Initial page draft',
     bizLineId: 'WEALTH',
   },
@@ -541,8 +542,8 @@ export const MOCK_AUDIT: AuditEntry[] = [
     actorId: 'j.chan@hsbc.com.hk',
     actorRole: 'WEALTH-AUTHOR',
     action: 'PAGE_APPROVED',
-    pageId: 'home-wealth-hk',
-    pageName: 'Home – Wealth Hub (HK)',
+    pageId: 'home-hub-hk',
+    pageName: 'Home Hub (HK)',
     details: 'Approved v3',
     bizLineId: 'WEALTH',
   },
@@ -769,8 +770,8 @@ export const MOCK_CONTENT_ASSETS: ContentAsset[] = [
     assetType: 'VIDEO',
     mimeType: 'video/mp4',
     sizeBytes: 163549482,
-    url: '/media/fx-viewpoint.mov',
-    thumbnailUrl: 'https://placehold.co/1280x720/003366/ffffff?text=FX+Viewpoint+EUR+%26+GBP',
+    url: 'http://localhost:4000/media/fx-viewpoint.mp4',
+    thumbnailUrl: 'http://localhost:4000/media/fx-viewpoint-thumbnail.jpg',
     altText: 'HSBC FX Viewpoint: EUR and GBP — ECB on hold and BoE cut rates. Presented by Jackie Wong.',
     tags: ['fx', 'viewpoint', 'eur', 'gbp', 'market-insight', 'wealth'],
     marketId: 'HK',
@@ -836,8 +837,8 @@ export const MOCK_CONTENT_ASSETS: ContentAsset[] = [
     assetType: 'VIDEO',
     mimeType: 'video/quicktime',
     sizeBytes: 1304056,
-    url: '/media/Wealth1.mov',
-    thumbnailUrl: 'https://placehold.co/1280x720/0A1628/ffffff?text=Wealth+Studio+Ep14',
+    url: 'http://localhost:4000/media/Wealth1.mp4',
+    thumbnailUrl: 'http://localhost:4000/media/fx-viewpoint-thumbnail.jpg',
     altText: 'Wealth Studio Episode 14 — Navigating Markets in 2026',
     tags: ['wealth-studio', 'premier', 'elite', 'video', 'market'],
     marketId: 'HK',
@@ -862,8 +863,8 @@ export const MOCK_CONTENT_ASSETS: ContentAsset[] = [
     assetType: 'VIDEO',
     mimeType: 'video/quicktime',
     sizeBytes: 2387501,
-    url: '/media/Wealth2.mov',
-    thumbnailUrl: 'https://placehold.co/1280x720/0A1628/c9a96e?text=Wealth+Studio+Ep15',
+    url: 'http://localhost:4000/media/Wealth2.mp4',
+    thumbnailUrl: 'http://localhost:4000/media/fx-viewpoint-thumbnail.jpg',
     altText: 'Wealth Studio Episode 15 — Gold & Alternative Assets',
     tags: ['wealth-studio', 'premier', 'elite', 'video', 'gold'],
     marketId: 'HK',
@@ -1351,10 +1352,10 @@ export const CONTENT_APPROVAL_FLOWS: ContentApprovalFlow[] = [
 
 export const MOCK_PAGES_REFERENCING_ASSETS: Record<string, { pageId: string; pageName: string }[]> = {
   'asset-008': [{ pageId: 'fx-viewpoint-hk',       pageName: 'FX Viewpoint — EUR & GBP (HK)' }],
-  'asset-001': [{ pageId: 'home-wealth-hk',         pageName: 'Home – Wealth Hub (HK)' }],
+  'asset-001': [{ pageId: 'home-hub-hk',         pageName: 'Home Hub (HK)' }],
   'asset-002': [{ pageId: 'visa-promo-hk',          pageName: 'VISA Infinite Promo (HK)' }],
   'asset-006': [{ pageId: 'wechat-jade-hk',         pageName: 'WeChat Jade Campaign (HK)' }],
-  'asset-009': [{ pageId: 'deposit-campaign-hk',    pageName: 'New Fund Deposit Campaign (HK)' }],
+  'asset-009': [{ pageId: 'deposit-campaign-cn',    pageName: 'New Fund Deposit Campaign (CN)' }],
 };
 
 // ─── Page Templates ───────────────────────────────────────────────────────────
@@ -1513,7 +1514,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
           contentRef: { source: 'UCP', id: 'ucp-ann-special-taipo-fire-001' },
           visual: {
             assetId: 'asset-ann-envelope',
-            imageUrl: 'https://placehold.co/360x190/FFFFFF/DB0011?text=HSBC+Envelope',
+            imageUrl: 'http://localhost:4000/media/announcement-envelope.jpg',
             altText: 'HSBC special announcement envelope illustration',
             placement: 'envelope-top',
           },

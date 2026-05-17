@@ -108,17 +108,19 @@ object TealiumClient {
         return bytes.joinToString("") { "%02x".format(it) }
     }
 
-    // ── Wealth Hub events ─────────────────────────────────────────────────────
+    // ── Home Hub events ─────────────────────────────────────────────────────
 
-    fun wealthHubViewed() = track(
+    fun homeHubViewed() = track(
         event = "page_view", category = "Wealth", action = "screen_viewed",
-        label = "wealth_hub_hk", screen = "wealth_hub_hk", journey = "wealth_hub"
+        label = "home_hub_hk", screen = "home_hub_hk", journey = "home_hub"
     )
+
+    fun wealthHubViewed() = homeHubViewed()
 
     fun sliceImpression(sliceType: String, instanceId: String,
                         position: Int, contentId: String = "") = track(
         event = "slice_impression", category = "Wealth", action = "slice_viewed",
-        label = sliceType, screen = "wealth_hub_hk", journey = "wealth_hub",
+        label = sliceType, screen = "home_hub_hk", journey = "home_hub",
         componentId = instanceId, contentId = contentId,
         custom = mapOf("slice_type" to sliceType, "position" to position.toString())
     )
@@ -126,74 +128,74 @@ object TealiumClient {
     fun sliceTapped(sliceType: String, instanceId: String,
                     ctaLabel: String, deepLink: String, contentId: String = "") = track(
         event = "slice_tap", category = "Wealth", action = "cta_tapped",
-        label = ctaLabel, screen = "wealth_hub_hk", journey = "wealth_hub",
+        label = ctaLabel, screen = "home_hub_hk", journey = "home_hub",
         componentId = instanceId, contentId = contentId,
         custom = mapOf("slice_type" to sliceType, "deep_link" to deepLink, "cta_label" to ctaLabel)
     )
 
     fun promoBannerImpression(title: String, instanceId: String, contentId: String = "") = track(
         event = "promo_impression", category = "Wealth", action = "promo_viewed",
-        label = title, screen = "wealth_hub_hk", journey = "wealth_hub",
+        label = title, screen = "home_hub_hk", journey = "home_hub",
         componentId = instanceId, contentId = contentId, custom = mapOf("promo_title" to title)
     )
 
     fun promoBannerTapped(title: String, instanceId: String, contentId: String = "") = track(
         event = "promo_tap", category = "Wealth", action = "promo_tapped",
-        label = title, screen = "wealth_hub_hk", journey = "wealth_hub",
+        label = title, screen = "home_hub_hk", journey = "home_hub",
         componentId = instanceId, contentId = contentId, custom = mapOf("promo_title" to title)
     )
 
-    fun wealthProductTapped(name: String, id: String) = track(
+    fun homeProductTapped(name: String, id: String) = track(
         event = "product_tap", category = "Wealth", action = "product_tapped",
-        label = name, screen = "wealth_hub_hk", journey = "wealth_hub",
+        label = name, screen = "home_hub_hk", journey = "home_hub",
         componentId = id, custom = mapOf("product_name" to name)
     )
 
     fun quickAccessTapped(label: String, deepLink: String) = track(
         event = "quick_access_tap", category = "Wealth", action = "quick_access_tapped",
-        label = label, screen = "wealth_hub_hk", journey = "wealth_hub",
+        label = label, screen = "home_hub_hk", journey = "home_hub",
         custom = mapOf("quick_label" to label, "deep_link" to deepLink)
     )
 
     fun rankingsTapped(title: String, badge: String) = track(
         event = "ranking_tap", category = "Wealth", action = "ranking_tapped",
-        label = title, screen = "wealth_hub_hk", journey = "wealth_hub",
+        label = title, screen = "home_hub_hk", journey = "home_hub",
         custom = mapOf("ranking_title" to title, "ranking_badge" to badge)
     )
 
     fun lifeDealTapped(brand: String, tag: String) = track(
         event = "deal_tap", category = "Wealth", action = "deal_tapped",
-        label = brand, screen = "wealth_hub_hk", journey = "wealth_hub",
+        label = brand, screen = "home_hub_hk", journey = "home_hub",
         custom = mapOf("brand_name" to brand, "deal_tag" to tag)
     )
 
     fun wealthStudioTapped(episodeLabel: String, title: String, ctaLabel: String) = track(
         event = "studio_tap", category = "Wealth", action = "studio_tapped",
-        label = title, screen = "wealth_hub_hk", journey = "wealth_hub",
+        label = title, screen = "home_hub_hk", journey = "home_hub",
         custom = mapOf("episode_label" to episodeLabel, "cta_label" to ctaLabel)
     )
 
     fun guidesTapped(title: String, id: String, deepLink: String) = track(
         event = "guide_tap", category = "Wealth", action = "guide_tapped",
-        label = title, screen = "wealth_hub_hk", journey = "wealth_hub",
+        label = title, screen = "home_hub_hk", journey = "home_hub",
         componentId = id, custom = mapOf("deep_link" to deepLink)
     )
 
     fun discoverMoreTapped(tag: String, title: String, deepLink: String) = track(
         event = "discover_tap", category = "Wealth", action = "discover_tapped",
-        label = title, screen = "wealth_hub_hk", journey = "wealth_hub",
+        label = title, screen = "home_hub_hk", journey = "home_hub",
         custom = mapOf("card_tag" to tag, "deep_link" to deepLink)
     )
 
     fun adBannerDismissed(title: String) = track(
         event = "ad_dismissed", category = "Wealth", action = "ad_banner_dismissed",
-        label = title, screen = "wealth_hub_hk", journey = "wealth_hub",
+        label = title, screen = "home_hub_hk", journey = "home_hub",
         custom = mapOf("ad_title" to title)
     )
 
     fun aiAssistantTapped() = track(
         event = "ai_assistant_tap", category = "Wealth",
-        action = "ai_assistant_tapped", screen = "wealth_hub_hk", journey = "wealth_hub"
+        action = "ai_assistant_tapped", screen = "home_hub_hk", journey = "home_hub"
     )
 
     // ── KYC Journey events ────────────────────────────────────────────────────

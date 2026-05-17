@@ -35,7 +35,7 @@ interface SAProperties {
     user_id_hash: string;
     segment_id: string;
     locale: string;
-    // Wealth Hub specific
+    // Home Hub specific
     slice_type?: string;
     position?: number;
     deep_link?: string;
@@ -128,9 +128,12 @@ class _SensorDataClient {
             this.queue = merged;
         }).finally(() => client.destroy());
     }
-    // ── Wealth Hub event helpers ─────────────────────────────────────────────────
+    // ── Home Hub (HK) event helpers ──────────────────────────────────────────────
+    homeHubViewed(): void {
+        this.track('$pageview', 'Wealth', 'screen_viewed', 'home_hub_hk', 'home_hub_hk', 'home_hub');
+    }
     wealthHubViewed(): void {
-        this.track('$pageview', 'Wealth', 'screen_viewed', 'wealth_hub_hk', 'wealth_hub_hk', 'wealth_hub');
+        this.homeHubViewed();
     }
     sliceImpression(sliceType: string, instanceId: string, position: number, contentId: string = ''): void {
         // FIX: arkts-no-untyped-obj-literals — Record<string, ESObject> literal must be
@@ -138,73 +141,73 @@ class _SensorDataClient {
         const extra: Record<string, any> = {};
         extra['slice_type'] = sliceType as any;
         extra['position'] = position as any;
-        this.track('slice_impression', 'Wealth', 'slice_viewed', sliceType, 'wealth_hub_hk', 'wealth_hub', '', '', instanceId, contentId, '', '', '', '', extra);
+        this.track('slice_impression', 'Wealth', 'slice_viewed', sliceType, 'home_hub_hk', 'home_hub', '', '', instanceId, contentId, '', '', '', '', extra);
     }
     sliceTapped(sliceType: string, instanceId: string, ctaLabel: string, deepLink: string, contentId: string = ''): void {
         const extra: Record<string, any> = {};
         extra['slice_type'] = sliceType as any;
         extra['deep_link'] = deepLink as any;
         extra['cta_label'] = ctaLabel as any;
-        this.track('slice_tap', 'Wealth', 'cta_tapped', ctaLabel, 'wealth_hub_hk', 'wealth_hub', '', '', instanceId, contentId, '', '', '', '', extra);
+        this.track('slice_tap', 'Wealth', 'cta_tapped', ctaLabel, 'home_hub_hk', 'home_hub', '', '', instanceId, contentId, '', '', '', '', extra);
     }
     promoBannerImpression(title: string, instanceId: string, contentId: string = ''): void {
         const extra: Record<string, any> = {};
         extra['promo_title'] = title as any;
-        this.track('promo_impression', 'Wealth', 'promo_viewed', title, 'wealth_hub_hk', 'wealth_hub', '', '', instanceId, contentId, '', '', '', '', extra);
+        this.track('promo_impression', 'Wealth', 'promo_viewed', title, 'home_hub_hk', 'home_hub', '', '', instanceId, contentId, '', '', '', '', extra);
     }
     promoBannerTapped(title: string, instanceId: string, contentId: string = ''): void {
         const extra: Record<string, any> = {};
         extra['promo_title'] = title as any;
-        this.track('promo_tap', 'Wealth', 'promo_tapped', title, 'wealth_hub_hk', 'wealth_hub', '', '', instanceId, contentId, '', '', '', '', extra);
+        this.track('promo_tap', 'Wealth', 'promo_tapped', title, 'home_hub_hk', 'home_hub', '', '', instanceId, contentId, '', '', '', '', extra);
     }
     wealthProductTapped(name: string, id: string): void {
         const extra: Record<string, any> = {};
         extra['product_name'] = name as any;
-        this.track('product_tap', 'Wealth', 'product_tapped', name, 'wealth_hub_hk', 'wealth_hub', '', '', id, '', '', '', '', '', extra);
+        this.track('product_tap', 'Wealth', 'product_tapped', name, 'home_hub_hk', 'home_hub', '', '', id, '', '', '', '', '', extra);
     }
     quickAccessTapped(label: string, deepLink: string): void {
         const extra: Record<string, any> = {};
         extra['deep_link'] = deepLink as any;
-        this.track('quick_access_tap', 'Wealth', 'quick_access_tapped', label, 'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '', '', '', extra);
+        this.track('quick_access_tap', 'Wealth', 'quick_access_tapped', label, 'home_hub_hk', 'home_hub', '', '', '', '', '', '', '', '', extra);
     }
     rankingsTapped(title: string, badge: string): void {
         const extra: Record<string, any> = {};
         extra['ranking_title'] = title as any;
         extra['ranking_badge'] = badge as any;
-        this.track('ranking_tap', 'Wealth', 'ranking_tapped', title, 'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '', '', '', extra);
+        this.track('ranking_tap', 'Wealth', 'ranking_tapped', title, 'home_hub_hk', 'home_hub', '', '', '', '', '', '', '', '', extra);
     }
     lifeDealTapped(brand: string, tag: string): void {
         const extra: Record<string, any> = {};
         extra['brand_name'] = brand as any;
         extra['deal_tag'] = tag as any;
-        this.track('deal_tap', 'Wealth', 'deal_tapped', brand, 'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '', '', '', extra);
+        this.track('deal_tap', 'Wealth', 'deal_tapped', brand, 'home_hub_hk', 'home_hub', '', '', '', '', '', '', '', '', extra);
     }
     adBannerDismissed(title: string): void {
         const extra: Record<string, any> = {};
         extra['promo_title'] = title as any;
-        this.track('ad_dismissed', 'Wealth', 'ad_banner_dismissed', title, 'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '', '', '', extra);
+        this.track('ad_dismissed', 'Wealth', 'ad_banner_dismissed', title, 'home_hub_hk', 'home_hub', '', '', '', '', '', '', '', '', extra);
     }
     aiAssistantTapped(): void {
-        this.track('ai_assistant_tap', 'Wealth', 'ai_assistant_tapped', '', 'wealth_hub_hk', 'wealth_hub');
+        this.track('ai_assistant_tap', 'Wealth', 'ai_assistant_tapped', '', 'home_hub_hk', 'home_hub');
     }
-    // ── Home Hub HK event helpers ────────────────────────────────────────────────
+    // ── Home Hub (HK) carousel event helpers ─────────────────────────────────────
     wealthStudioTapped(title: string, instanceId: string): void {
         const extra: Record<string, any> = {};
         extra['episode_title'] = title as any;
         extra['instance_id'] = instanceId as any;
-        this.track('wealth_studio_tap', 'Wealth', 'wealth_studio_tapped', title, 'wealth_hub_hk', 'wealth_hub', '', '', instanceId, '', '', '', '', '', extra);
+        this.track('wealth_studio_tap', 'Wealth', 'wealth_studio_tapped', title, 'home_hub_hk', 'home_hub', '', '', instanceId, '', '', '', '', '', extra);
     }
     guidesTapped(title: string, instanceId: string): void {
         const extra: Record<string, any> = {};
         extra['guide_title'] = title as any;
         extra['instance_id'] = instanceId as any;
-        this.track('guides_tap', 'Wealth', 'guides_tapped', title, 'wealth_hub_hk', 'wealth_hub', '', '', instanceId, '', '', '', '', '', extra);
+        this.track('guides_tap', 'Wealth', 'guides_tapped', title, 'home_hub_hk', 'home_hub', '', '', instanceId, '', '', '', '', '', extra);
     }
     discoverMoreTapped(title: string, tag: string): void {
         const extra: Record<string, any> = {};
         extra['campaign_title'] = title as any;
         extra['campaign_tag'] = tag as any;
-        this.track('discover_more_tap', 'Wealth', 'discover_more_tapped', title, 'wealth_hub_hk', 'wealth_hub', '', '', '', '', '', '', '', '', extra);
+        this.track('discover_more_tap', 'Wealth', 'discover_more_tapped', title, 'home_hub_hk', 'home_hub', '', '', '', '', '', '', '', '', extra);
     }
     // ── KYC Journey event helpers ────────────────────────────────────────────────
     kycJourneyStarted(): void {

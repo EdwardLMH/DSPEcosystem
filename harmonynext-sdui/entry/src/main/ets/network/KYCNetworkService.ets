@@ -111,33 +111,37 @@ export async function submitStep(sessionId: string, stepId: string, req: SubmitR
   )
 }
 
-// ─── Wealth Hub SDUI delivery ──────────────────────────────────────────────────
-// Returns the published SDUI layout for the Home Wealth Hub HK page.
+// ─── Home Hub (HK) SDUI delivery ───────────────────────────────────────────────
+// Returns the published SDUI layout for the Home Hub (HK) page.
 // Throws if no LIVE page has been published yet (BFF returns 404).
 
-export interface WealthSlice {
+export interface ScreenSlice {
   instanceId: string
   type: string
   props: Record<string, ESObject>
   visible: boolean
 }
 
-export interface WealthScreenLayout {
+export interface ScreenLayout {
   type: string
-  children: WealthSlice[]
+  children: ScreenSlice[]
 }
 
-export interface WealthScreenPayload {
+export interface ScreenPayload {
   schemaVersion: string
   screen: string
   ttl: number
   metadata: Record<string, ESObject>
-  layout: WealthScreenLayout
+  layout: ScreenLayout
 }
 
-export async function fetchWealthScreen(): Promise<WealthScreenPayload> {
+export type HomeSlice = ScreenSlice
+export type HomeScreenLayout = ScreenLayout
+export type HomeScreenPayload = ScreenPayload
+
+export async function fetchHomeScreen(): Promise<HomeScreenPayload> {
   const client = http.createHttp()
-  const resp = await client.request(BASE_URL + '/screen/home-wealth-hk', {
+  const resp = await client.request(BASE_URL + '/screen/home-hub-hk', {
     method: http.RequestMethod.GET,
     header: { 'Accept': 'application/json' },
     connectTimeout: 8000,
@@ -145,19 +149,19 @@ export async function fetchWealthScreen(): Promise<WealthScreenPayload> {
   })
   client.destroy()
   if (resp.responseCode !== 200) {
-    throw new Error(`fetchWealthScreen: HTTP ${resp.responseCode}`)
+    throw new Error(`fetchHomeScreen: HTTP ${resp.responseCode}`)
   }
   if (typeof resp.result === 'string') {
-    return JSON.parse(resp.result) as WealthScreenPayload
+    return JSON.parse(resp.result) as HomeScreenPayload
   }
-  throw new Error(`fetchWealthScreen: unexpected response type`)
+  throw new Error(`fetchHomeScreen: unexpected response type`)
 }
 
 // ─── FX Viewpoint SDUI delivery ───────────────────────────────────────────────
 // Fetches the published FX Viewpoint (EUR & GBP) page from the BFF.
 // The page is always LIVE so this should never throw in a running mock-bff session.
 
-export async function fetchFXViewpointScreen(): Promise<WealthScreenPayload> {
+export async function fetchFXViewpointScreen(): Promise<ScreenPayload> {
   const client = http.createHttp()
   const resp = await client.request(BASE_URL + '/screen/fx-viewpoint-hk', {
     method: http.RequestMethod.GET,
@@ -170,7 +174,7 @@ export async function fetchFXViewpointScreen(): Promise<WealthScreenPayload> {
     throw new Error(`fetchFXViewpointScreen: HTTP ${resp.responseCode}`)
   }
   if (typeof resp.result === 'string') {
-    return JSON.parse(resp.result) as WealthScreenPayload
+    return JSON.parse(resp.result) as ScreenPayload
   }
   throw new Error(`fetchFXViewpointScreen: unexpected response type`)
 }
@@ -179,9 +183,9 @@ export async function fetchFXViewpointScreen(): Promise<WealthScreenPayload> {
 // Fetches the New Fund Deposit Campaign (CN) page from the BFF.
 // The page is always LIVE in mock-bff.
 
-export async function fetchDepositCampaignScreen(): Promise<WealthScreenPayload> {
+export async function fetchDepositCampaignScreen(): Promise<ScreenPayload> {
   const client = http.createHttp()
-  const resp = await client.request(BASE_URL + '/screen/deposit-campaign-hk', {
+  const resp = await client.request(BASE_URL + '/screen/deposit-campaign-cn', {
     method: http.RequestMethod.GET,
     header: { 'Accept': 'application/json', 'x-platform': 'harmonynext' },
     connectTimeout: 8000,
@@ -192,7 +196,7 @@ export async function fetchDepositCampaignScreen(): Promise<WealthScreenPayload>
     throw new Error(`fetchDepositCampaignScreen: HTTP ${resp.responseCode}`)
   }
   if (typeof resp.result === 'string') {
-    return JSON.parse(resp.result) as WealthScreenPayload
+    return JSON.parse(resp.result) as ScreenPayload
   }
   throw new Error(`fetchDepositCampaignScreen: unexpected response type`)
 }
@@ -200,7 +204,7 @@ export async function fetchDepositCampaignScreen(): Promise<WealthScreenPayload>
 // ─── Announcement Overlay SDUI delivery ───────────────────────────────────────
 // Fetches native-only announcement pages authored in OCDP and served by mock-bff.
 
-export async function fetchAnnouncementScreen(screenId: string): Promise<WealthScreenPayload> {
+export async function fetchAnnouncementScreen(screenId: string): Promise<ScreenPayload> {
   const client = http.createHttp()
   const resp = await client.request(BASE_URL + '/screen/' + screenId, {
     method: http.RequestMethod.GET,
@@ -213,7 +217,7 @@ export async function fetchAnnouncementScreen(screenId: string): Promise<WealthS
     throw new Error(`fetchAnnouncementScreen: HTTP ${resp.responseCode}`)
   }
   if (typeof resp.result === 'string') {
-    return JSON.parse(resp.result) as WealthScreenPayload
+    return JSON.parse(resp.result) as ScreenPayload
   }
   throw new Error(`fetchAnnouncementScreen: unexpected response type`)
 }

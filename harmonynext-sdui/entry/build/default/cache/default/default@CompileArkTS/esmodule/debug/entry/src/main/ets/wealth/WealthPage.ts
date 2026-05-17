@@ -973,7 +973,7 @@ class SDUIHomeSearchHeader extends ViewPU {
                         Text.fontColor(Hive.Color.brandWhite);
                         Text.margin({ right: 12 });
                         Text.onClick(() => {
-                            SensorDataClient.track('notification_tap', 'Wealth', 'notification_tapped', '', 'home_search_header', 'wealth_hub');
+                            SensorDataClient.track('notification_tap', 'Wealth', 'notification_tapped', '', 'home_search_header', 'home_hub');
                         });
                     }, Text);
                     Text.pop();
@@ -994,7 +994,7 @@ class SDUIHomeSearchHeader extends ViewPU {
                         Text.fontSize(20);
                         Text.fontColor(Hive.Color.brandWhite);
                         Text.onClick(() => {
-                            SensorDataClient.track('headset_tap', 'Wealth', 'headset_tapped', '', 'home_search_header', 'wealth_hub');
+                            SensorDataClient.track('headset_tap', 'Wealth', 'headset_tapped', '', 'home_search_header', 'home_hub');
                         });
                     }, Text);
                     Text.pop();
@@ -1024,7 +1024,7 @@ class SDUIHomeSearchHeader extends ViewPU {
             Row.borderRadius(18);
             Row.backgroundColor(Hive.Color.brandWhite);
             Row.onClick(() => {
-                SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '', 'home_search_header', 'wealth_hub');
+                SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '', 'home_search_header', 'home_hub');
                 this.onSearchTap();
             });
         }, Row);
@@ -2536,7 +2536,7 @@ class SDUIFXWatchlist extends ViewPU {
                     Row.width('100%');
                     Row.padding({ left: 16, right: 16, top: 10, bottom: 10 });
                     Row.onClick(() => {
-                        SensorDataClient.track('fx_pair_tap', 'Wealth', 'fx_pair_tapped', this.pairId(raw), 'fx_watchlist', 'wealth_hub');
+                        SensorDataClient.track('fx_pair_tap', 'Wealth', 'fx_pair_tapped', this.pairId(raw), 'fx_watchlist', 'home_hub');
                     });
                 }, Row);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -2903,7 +2903,7 @@ class WHHomeSearchHeader extends ViewPU {
             Text.fontColor(Hive.Color.brandWhite);
             Text.margin({ right: 12 });
             Text.onClick(() => {
-                SensorDataClient.track('notification_tap', 'Wealth', 'notification_tapped', '', 'home_search_header', 'wealth_hub');
+                SensorDataClient.track('notification_tap', 'Wealth', 'notification_tapped', '', 'home_search_header', 'home_hub');
             });
         }, Text);
         Text.pop();
@@ -2912,7 +2912,7 @@ class WHHomeSearchHeader extends ViewPU {
             Text.fontSize(20);
             Text.fontColor(Hive.Color.brandWhite);
             Text.onClick(() => {
-                SensorDataClient.track('headset_tap', 'Wealth', 'headset_tapped', '', 'home_search_header', 'wealth_hub');
+                SensorDataClient.track('headset_tap', 'Wealth', 'headset_tapped', '', 'home_search_header', 'home_hub');
             });
         }, Text);
         Text.pop();
@@ -2934,7 +2934,7 @@ class WHHomeSearchHeader extends ViewPU {
             Row.borderRadius(18);
             Row.backgroundColor(Hive.Color.brandWhite);
             Row.onClick(() => {
-                SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '', 'home_search_header', 'wealth_hub');
+                SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '', 'home_search_header', 'home_hub');
                 this.onSearchTap();
             });
         }, Row);
@@ -3904,7 +3904,7 @@ class WHFXWatchlist extends ViewPU {
                     Row.width('100%');
                     Row.padding({ left: 16, right: 16, top: 10, bottom: 10 });
                     Row.onClick(() => {
-                        SensorDataClient.track('fx_pair_tap', 'Wealth', 'fx_pair_tapped', `${pair.base}/${pair.quote}`, 'fx_watchlist', 'wealth_hub');
+                        SensorDataClient.track('fx_pair_tap', 'Wealth', 'fx_pair_tapped', `${pair.base}/${pair.quote}`, 'fx_watchlist', 'home_hub');
                     });
                 }, Row);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {

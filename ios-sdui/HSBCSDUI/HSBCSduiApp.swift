@@ -23,14 +23,14 @@ struct HSBCSduiApp: App {
 struct HSBCHomeView: View {
     @State private var journey: Journey? = nil
 
-    enum Journey { case kyc, wealth, fxViewpoint, deposit, announcement, forceUpdate }
+    enum Journey { case kyc, home, fxViewpoint, deposit, announcement, forceUpdate }
 
     var body: some View {
         Group {
             if let j = journey {
                 switch j {
                 case .kyc:         KYCRootView().environment(AppStore())
-                case .wealth:      WealthPageView()
+                case .home:        HomePageView()
                 case .fxViewpoint: FXViewpointView(onBack: { journey = nil })
                 case .deposit:     DepositCampaignView(onBack: { journey = nil })
                 case .announcement: AnnouncementView(kind: .special, onBack: { journey = nil })
@@ -78,12 +78,12 @@ private struct JourneySelectorView: View {
                         VStack(spacing: Hive.Spacing.s4) {
                             JourneyCard(
                                 icon: "🏦",
-                                badge: "Home Hub HK",
+                                badge: "Home Hub (HK)",
                                 title: "Home Hub (HK)",
-                                description: "The UCP-driven Wealth Hub HK page with HeaderNav, QuickAccess, PromoBanner, FunctionGrid, AI Assistant, Flash Loan, Wealth Selection, Rankings and Life Deals.",
+                                description: "The UCP-driven Home Hub (HK) page with the canonical 9-slice SDUI layout.",
                                 tags: ["SDUI", "Tealium Analytics", "zh-HK"],
                                 accentColor: Hive.Color.brandPrimary,
-                                action: { onSelect(.wealth) }
+                                action: { onSelect(.home) }
                             )
 
                             JourneyCard(

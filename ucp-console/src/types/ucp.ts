@@ -98,7 +98,7 @@ export interface CanvasSlice {
 
 // ─── Page Layout ──────────────────────────────────────────────────────────────
 
-export type PageType = 'WEALTH_HUB' | 'KYC_JOURNEY' | 'PRODUCT' | 'CAMPAIGN' | 'MARKET_INSIGHT' | 'ANNOUNCEMENT' | 'CUSTOM';
+export type PageType = 'HOME_HUB' | 'WEALTH_HUB' | 'KYC_JOURNEY' | 'PRODUCT' | 'CAMPAIGN' | 'MARKET_INSIGHT' | 'ANNOUNCEMENT' | 'CUSTOM';
 
 export type AuthoringStatus = 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED';
 

@@ -3,7 +3,7 @@
 // Renders Home Hub, FX Viewpoint, Deposit Campaign, and OBKYC journey with tab navigation.
 
 import { KYCRootView } from '../kyc/KYCShellViews'
-import { WealthPageView } from '../wealth/WealthPage'
+import { HomePageView } from '../home/HomePage'
 import { FXViewpointView } from '../fxviewpoint/FXViewpointPage'
 import { DepositCampaignView } from '../deposit/DepositCampaignPage'
 import { ANNOUNCEMENT_FORCE_UPDATE, ANNOUNCEMENT_SPECIAL, AnnouncementPage } from '../announcement/AnnouncementPage'
@@ -18,7 +18,7 @@ struct Index {
   build() {
     Tabs({ barPosition: BarPosition.End, controller: this.controller }) {
       TabContent() {
-        WealthPageView()
+        HomePageView()
       }.tabBar(this.tabBarItem('🏦', 'Home Hub', 0))
 
       TabContent() {

@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "3.0",
+  "pageId": "announcement-force-update-hk",
+  "screen": "announcement_force_update_hk",
+  "ttl": 300,
+  "metadata": {
+    "pageId": "announcement-force-update-hk",
+    "locale": "en",
+    "textDir": "ltr",
+    "platform": "all",
+    "channel": "SDUI",
+    "version": 1,
+    "publishedAt": "2026-05-15T01:00:00.000Z",
+    "generatedAt": "2026-05-17T12:34:42.894Z",
+    "marketTimeZone": "Asia/Hong_Kong",
+    "nativeTargets": [
+      "ios",
+      "android",
+      "harmonynext"
+    ],
+    "a11y": {
+      "reduceMotion": false,
+      "highContrast": false,
+      "largeText": false,
+      "voiceOver": false,
+      "talkBack": false,
+      "screenReader": false
+    }
+  },
+  "layout": {
+    "type": "OVERLAY",
+    "children": [
+      {
+        "instanceId": "ann-overlay",
+        "type": "ANNOUNCEMENT_OVERLAY",
+        "visible": true,
+        "locked": false,
+        "props": {
+          "scenario": "JOURNEY_FORCE_UPDATE",
+          "styleVariant": "INLINE_FORCE_UPDATE",
+          "contentRef": {
+            "source": "UCP",
+            "id": "ucp-ann-force-update-elaisee-001"
+          },
+          "visual": {
+            "assetId": "asset-ann-elaisee",
+            "imageUrl": "http://localhost:4000/media/announcement-elaisee.jpg",
+            "altText": "eLaisee feature artwork",
+            "placement": "modal-top"
+          },
+          "title": "Get ready for eLaisee",
+          "body": [
+            "Enjoy Chinese New Year by sending eLaisee money with customised messages, 24 hours a day, in an eco-friendlier way.",
+            "Make sure your app is up to date to use the new feature."
+          ],
+          "hotlines": [],
+          "dontShowAgain": {
+            "enabled": false,
+            "label": ""
+          },
+          "actions": [
+            {
+              "id": "update-now",
+              "label": "Update now",
+              "type": "appUpdate",
+              "style": "primary",
+              "url": "app-store://hsbc-mobile"
+            }
+          ],
+          "minAppVersion": {
+            "ios": "6.18.0",
+            "android": "6.18.0",
+            "harmonynext": "6.18.0"
+          },
+          "journeyIds": [
+            "elaisee"
+          ],
+          "expiry": "2026-02-28T23:59:59+08:00",
+          "priority": 100,
+          "blockInteraction": true,
+          "legalEntityText": ""
+        }
+      }
+    ]
+  }
+}

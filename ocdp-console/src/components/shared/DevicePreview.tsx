@@ -1516,7 +1516,7 @@ function PhoneFrame({ device, slices, segment }: { device: DeviceSpec; slices: C
           )}
         </div>
 
-        {/* Bottom tab navigation — shown for WEALTH_HUB pages */}
+        {/* Bottom tab navigation — shown for Home Hub-style pages */}
         {slices.some(s => ['HOME_SEARCH_HEADER', 'PREMIER_HEADER', 'ELITE_HEADER', 'ADVANCE_HEADER', 'MASS_HEADER', 'HOME_SEARCH_BAR', 'CONTENT_TAB_BAR', 'COMBO_QUICK_ACCESS'].includes(s.type)) && (
           <div style={{ background: '#fff', borderTop: '1px solid #E5E7EB', padding: '4px 0 2px', display: 'flex', justifyContent: 'space-around', flexShrink: 0 }}>
             {[
@@ -1553,8 +1553,8 @@ function WebBrowserFrame({ slices, webSlug, variant = 'standard' }: { slices: Ca
   const isSdui = variant === 'sdui';
   const visibleSlices = slices.filter(s => s.visible);
   const address = isSdui
-    ? `m.hsbc.com.hk${webSlug ?? '/wealth-hub'}`
-    : `www.hsbc.com.hk${webSlug ?? '/wealth-hub'}`;
+    ? `m.hsbc.com.hk${webSlug ?? '/home'}`
+    : `www.hsbc.com.hk${webSlug ?? '/home'}`;
 
   return (
     <div style={{

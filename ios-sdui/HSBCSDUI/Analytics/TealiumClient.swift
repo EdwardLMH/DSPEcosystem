@@ -215,84 +215,88 @@ public final class TealiumClient {
     }
 }
 
-// MARK: - WealthHub Tealium Events (pre-typed helpers)
+// MARK: - Home Hub Tealium Events (pre-typed helpers)
 
 public extension TealiumClient {
 
-    // ── Wealth Hub slice impressions ──────────────────────────────────────────
+    // ── Home Hub slice impressions ──────────────────────────────────────────
 
-    static func wealthHubViewed(screen: String = "wealth_hub_hk") {
+    static func homeHubViewed(screen: String = "home_hub_hk") {
         track(event: "page_view", category: "Wealth", action: "screen_viewed",
-              label: screen, screen: screen, journey: "wealth_hub")
+              label: screen, screen: screen, journey: "home_hub")
+    }
+
+    static func wealthHubViewed(screen: String = "home_hub_hk") {
+        homeHubViewed(screen: screen)
     }
 
     static func sliceImpression(sliceType: String, instanceId: String,
                                  position: Int, contentId: String = "") {
         track(event: "slice_impression", category: "Wealth", action: "slice_viewed",
-              label: sliceType, screen: "wealth_hub_hk",
-              journey: "wealth_hub", componentId: instanceId, contentId: contentId,
+              label: sliceType, screen: "home_hub_hk",
+              journey: "home_hub", componentId: instanceId, contentId: contentId,
               custom: ["slice_type": sliceType, "position": String(position)])
     }
 
     static func sliceTapped(sliceType: String, instanceId: String,
                              ctaLabel: String, deepLink: String, contentId: String = "") {
         track(event: "slice_tap", category: "Wealth", action: "cta_tapped",
-              label: ctaLabel, screen: "wealth_hub_hk",
-              journey: "wealth_hub", componentId: instanceId, contentId: contentId,
+              label: ctaLabel, screen: "home_hub_hk",
+              journey: "home_hub", componentId: instanceId, contentId: contentId,
               custom: ["slice_type": sliceType, "deep_link": deepLink, "cta_label": ctaLabel])
     }
 
     static func promoBannerImpression(title: String, instanceId: String, contentId: String = "") {
         track(event: "promo_impression", category: "Wealth", action: "promo_viewed",
-              label: title, screen: "wealth_hub_hk",
-              journey: "wealth_hub", componentId: instanceId, contentId: contentId,
+              label: title, screen: "home_hub_hk",
+              journey: "home_hub", componentId: instanceId, contentId: contentId,
               custom: ["promo_title": title])
     }
 
     static func promoBannerTapped(title: String, instanceId: String, contentId: String = "") {
         track(event: "promo_tap", category: "Wealth", action: "promo_tapped",
-              label: title, screen: "wealth_hub_hk",
-              journey: "wealth_hub", componentId: instanceId, contentId: contentId,
+              label: title, screen: "home_hub_hk",
+              journey: "home_hub", componentId: instanceId, contentId: contentId,
               custom: ["promo_title": title])
     }
 
     static func wealthProductTapped(productName: String, productId: String) {
         track(event: "product_tap", category: "Wealth", action: "product_tapped",
-              label: productName, screen: "wealth_hub_hk",
-              journey: "wealth_hub", componentId: productId,
+              label: productName, screen: "home_hub_hk",
+              journey: "home_hub", componentId: productId,
               custom: ["product_name": productName])
     }
 
     static func quickAccessTapped(label: String, deepLink: String) {
         track(event: "quick_access_tap", category: "Wealth", action: "quick_access_tapped",
-              label: label, screen: "wealth_hub_hk",
-              journey: "wealth_hub",
+              label: label, screen: "home_hub_hk",
+              journey: "home_hub",
               custom: ["quick_label": label, "deep_link": deepLink])
     }
 
     static func rankingsTapped(title: String, badge: String) {
         track(event: "ranking_tap", category: "Wealth", action: "ranking_tapped",
-              label: title, screen: "wealth_hub_hk",
-              journey: "wealth_hub",
+              label: title, screen: "home_hub_hk",
+              journey: "home_hub",
               custom: ["ranking_title": title, "ranking_badge": badge])
     }
 
     static func lifeDealTapped(brand: String, tag: String) {
         track(event: "deal_tap", category: "Wealth", action: "deal_tapped",
-              label: brand, screen: "wealth_hub_hk",
-              journey: "wealth_hub",
+              label: brand, screen: "home_hub_hk",
+              journey: "home_hub",
               custom: ["brand_name": brand, "deal_tag": tag])
     }
 
     static func adBannerDismissed(title: String) {
         track(event: "ad_dismissed", category: "Wealth", action: "ad_banner_dismissed",
-              label: title, screen: "wealth_hub_hk",
-              journey: "wealth_hub", custom: ["ad_title": title])
+              label: title, screen: "home_hub_hk",
+              journey: "home_hub", custom: ["ad_title": title])
     }
 
     static func aiAssistantTapped() {
         track(event: "ai_assistant_tap", category: "Wealth", action: "ai_assistant_tapped",
-              screen: "wealth_hub_hk", journey: "wealth_hub")
+              screen: "home_hub_hk", journey: "home_hub")
     }
 
     // ── KYC Journey Tealium Events ────────────────────────────────────────────
@@ -363,22 +367,22 @@ public extension TealiumClient {
 
     static func wealthStudioTapped(title: String, instanceId: String) {
         track(event: "wealth_studio_tap", category: "Wealth", action: "wealth_studio_tapped",
-              label: title, screen: "wealth_hub_hk",
-              journey: "wealth_hub", componentId: instanceId,
+              label: title, screen: "home_hub_hk",
+              journey: "home_hub", componentId: instanceId,
               custom: ["studio_title": title])
     }
 
     static func guidesTapped(title: String, instanceId: String) {
         track(event: "guides_tap", category: "Wealth", action: "guides_insights_tapped",
-              label: title, screen: "wealth_hub_hk",
-              journey: "wealth_hub", componentId: instanceId,
+              label: title, screen: "home_hub_hk",
+              journey: "home_hub", componentId: instanceId,
               custom: ["guide_title": title])
     }
 
     static func discoverMoreTapped(title: String, tag: String) {
         track(event: "discover_more_tap", category: "Wealth", action: "discover_more_tapped",
-              label: title, screen: "wealth_hub_hk",
-              journey: "wealth_hub",
+              label: title, screen: "home_hub_hk",
+              journey: "home_hub",
               custom: ["card_title": title, "card_tag": tag])
     }
 }

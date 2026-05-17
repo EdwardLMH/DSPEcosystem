@@ -242,7 +242,7 @@ export interface CanvasSlice {
   visibilityRule?: VisibilityRule;
 }
 
-export type PageType = 'WEALTH_HUB' | 'KYC_JOURNEY' | 'PRODUCT' | 'CAMPAIGN' | 'MARKET_INSIGHT' | 'ANNOUNCEMENT' | 'CUSTOM';
+export type PageType = 'HOME_HUB' | 'WEALTH_HUB' | 'KYC_JOURNEY' | 'PRODUCT' | 'CAMPAIGN' | 'MARKET_INSIGHT' | 'ANNOUNCEMENT' | 'CUSTOM';
 
 export interface CampaignSchedule {
   publishAt: string;

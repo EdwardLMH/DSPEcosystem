@@ -274,7 +274,7 @@ The repository currently includes the following concrete SDUI screen contracts:
 
 | Screen | Endpoint | Slice contract |
 |--------|----------|----------------|
-| Home Hub (HK) | `GET /api/v1/screen/home-wealth-hk` | `HOME_SEARCH_HEADER`, `COMBO_QUICK_ACCESS`, `CARD_ACTIVATION_BANNER`, `QUEST_BANNER`, `FEATURE_PRODUCT`, `WEALTH_STUDIO_CAROUSEL`, `GUIDES_INSIGHTS_CAROUSEL`, `FX_WATCHLIST`, `DISCOVER_MORE_CAROUSEL` |
+| Home Hub (HK) | `GET /api/v1/screen/home-hub-hk` | `HOME_SEARCH_HEADER`, `COMBO_QUICK_ACCESS`, `CARD_ACTIVATION_BANNER`, `QUEST_BANNER`, `FEATURE_PRODUCT`, `WEALTH_STUDIO_CAROUSEL`, `GUIDES_INSIGHTS_CAROUSEL`, `FX_WATCHLIST`, `DISCOVER_MORE_CAROUSEL` |
 | FX Viewpoint | `GET /api/v1/screen/fx-viewpoint-hk` | `VIDEO_PLAYER`, `MARKET_BRIEFING_TEXT`, `CONTACT_RM_CTA` |
 | KYC | `/api/v1/kyc/sessions/**` | Platform-split KYC steps with web compound components and mobile-native steps |
 
@@ -318,7 +318,8 @@ Client-side corpus caching (recommended):
 // Root payload returned by BFF for every screen request
 interface ScreenPayload {
   schemaVersion: string;          // "2.3"
-  screen: string;                 // "home-wealth-hk" | "fx-viewpoint-hk" | "kyc-step-{id}" | ...
+  pageId: string;                 // stable page ID, e.g. "home-hub-hk"
+  screen: string;                 // analytics/rendering screen name, e.g. "home_hub_hk" | "fx_viewpoint" | "kyc-step-{id}"
   ttl: number;                    // seconds client may cache this payload
   integrity: string;              // HMAC-SHA256 of payload body
   layout: LayoutNode;
@@ -538,7 +539,7 @@ interface Spacing {
 
 These are the canonical slice types managed in the UCP Console (`sliceDefinitions.ts`) and served by the BFF as `type` values in the SDUI JSON. They correspond 1:1 to the component registry entries in each client.
 
-#### `home-wealth-hk` — Home Hub (HK) Slices
+#### `home-hub-hk` — Home Hub (HK) Slices
 
 | # | SliceType | Category | Singleton | Description |
 |---|-----------|----------|-----------|-------------|
@@ -562,7 +563,7 @@ These are the canonical slice types managed in the UCP Console (`sliceDefinition
 
 #### Legacy / Retired UCP Slice Types
 
-The following slice types existed in earlier iterations but are **not used** by the current `home-wealth-hk` layout. They remain registered in the UCP component registry for backwards compatibility with older published pages.
+The following slice types existed in earlier iterations but are **not used** by the current `home-hub-hk` layout. They remain registered in the UCP component registry for backwards compatibility with older published pages.
 
 | SliceType | Category | Notes |
 |-----------|----------|-------|
@@ -772,7 +773,7 @@ struct SDUIRenderer {
 
 Analytics on HarmonyOS NEXT routes to **SensorDataClient** (神策数据) rather than Tealium, to satisfy China data residency requirements (PIPL). The `KYCNetworkService.ets` and `SensorDataClient.ets` share the same base URL configuration via `AppStorage`.
 
-> **Note:** The code example above shows the old slice dispatcher. The current `WealthPage.ets` dispatches the 9 Home Hub slices (`HOME_SEARCH_HEADER`, `COMBO_QUICK_ACCESS`, `CARD_ACTIVATION_BANNER`, `QUEST_BANNER`, `FEATURE_PRODUCT`, `WEALTH_STUDIO_CAROUSEL`, `GUIDES_INSIGHTS_CAROUSEL`, `FX_WATCHLIST`, `DISCOVER_MORE_CAROUSEL`) using the same `if/else if` pattern. `switch` and `const`/`let` declarations are forbidden inside ArkTS `build()` blocks.
+> **Note:** The code example above shows the old slice dispatcher. The current `HomePage.ets` dispatches the 9 Home Hub slices (`HOME_SEARCH_HEADER`, `COMBO_QUICK_ACCESS`, `CARD_ACTIVATION_BANNER`, `QUEST_BANNER`, `FEATURE_PRODUCT`, `WEALTH_STUDIO_CAROUSEL`, `GUIDES_INSIGHTS_CAROUSEL`, `FX_WATCHLIST`, `DISCOVER_MORE_CAROUSEL`) using the same `if/else if` pattern. `switch` and `const`/`let` declarations are forbidden inside ArkTS `build()` blocks.
 
 ### 6.5 Action Handler Registry
 

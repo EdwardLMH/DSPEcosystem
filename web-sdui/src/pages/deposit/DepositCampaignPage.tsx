@@ -32,7 +32,7 @@ export function DepositCampaignPage() {
   });
 
   useEffect(() => {
-    fetch(`${BFF_BASE}/screen/deposit-campaign-hk`, {
+    fetch(`${BFF_BASE}/screen/deposit-campaign-cn`, {
       headers: { ...bffHeaders, 'x-platform': 'web', Accept: 'application/json' },
     })
       .then(r => r.json())

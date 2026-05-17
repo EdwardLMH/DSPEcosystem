@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>新资金定期存款推广（中国）- OCDP 静态预览</title>
+  <meta name="description" content="OCDP 新资金定期存款推广（中国）页面的简体中文静态 HTML 学习预览。" />
+  <style>
+    :root {
+      color-scheme: light;
+      --hsbc-red: #c41230;
+      --hsbc-dark-red: #a10f29;
+      --text: #1a1a1a;
+      --muted: #666;
+      --soft: #f8f8f8;
+      --line: #e6e6e6;
+      --warning-bg: #fff7ed;
+      --warning-text: #92400e;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #eceff3;
+      color: var(--text);
+    }
+
+    .ocdp-shell {
+      min-height: 100vh;
+      display: grid;
+      place-items: start center;
+      padding: 32px 16px;
+    }
+
+    .phone {
+      width: min(430px, 100%);
+      min-height: 820px;
+      background: var(--soft);
+      border: 1px solid #d6d9de;
+      box-shadow: 0 18px 60px rgba(15, 23, 42, 0.18);
+      overflow: hidden;
+    }
+
+    .ocdp-meta {
+      background: #111827;
+      color: #f9fafb;
+      padding: 10px 14px;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .ocdp-meta strong {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .back {
+      border: 0;
+      background: transparent;
+      color: #0a0a0a;
+      font-size: 28px;
+      line-height: 1;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+    }
+
+    .header-title {
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .hero {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+      background: #173b67;
+    }
+
+    .callout {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 16px;
+      background: var(--warning-bg);
+    }
+
+    .badge {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(146, 64, 14, 0.12);
+      color: var(--warning-text);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .callout-title {
+      color: var(--warning-text);
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .callout-copy {
+      color: rgba(146, 64, 14, 0.82);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .rate-table {
+      background: #fff;
+    }
+
+    .rate-table-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--soft);
+    }
+
+    .section-title {
+      color: #333;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .as-at {
+      color: #888;
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    .rate-columns,
+    .rate-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+      padding: 9px 16px;
+    }
+
+    .rate-columns {
+      background: #f5f6f8;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .rate-row {
+      min-height: 46px;
+      border-top: 1px solid #f0f0f0;
+      font-size: 13px;
+    }
+
+    .rate-row:nth-child(even) {
+      background: #fff;
+    }
+
+    .rate-row:nth-child(odd) {
+      background: #fafafa;
+    }
+
+    .rate-value {
+      color: var(--hsbc-red);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .footnote {
+      padding: 10px 16px;
+      background: var(--soft);
+      color: #888;
+      font-size: 10px;
+      line-height: 1.45;
+    }
+
+    .cta-wrap {
+      padding: 12px 16px;
+      background: var(--soft);
+    }
+
+    .cta {
+      width: 100%;
+      min-height: 54px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--hsbc-red);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .cta:active {
+      background: var(--hsbc-dark-red);
+    }
+
+    .spacer {
+      height: 16px;
+    }
+
+    .faq {
+      background: #fff;
+    }
+
+    .faq-title {
+      padding: 12px 16px;
+      background: var(--soft);
+      color: #333;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    details {
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    details:last-child {
+      border-bottom: 0;
+    }
+
+    summary {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::after {
+      content: "∨";
+      margin-left: auto;
+      color: #888;
+      font-size: 13px;
+    }
+
+    details[open] summary::after {
+      content: "∧";
+    }
+
+    .answer {
+      padding: 0 16px 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 520px) {
+      .ocdp-shell {
+        padding: 0;
+      }
+
+      .phone {
+        width: 100%;
+        min-height: 100vh;
+        border: 0;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="ocdp-shell">
+    <article class="phone" aria-label="新资金定期存款推广中国静态预览">
+      <div class="ocdp-meta">
+        <strong>OCDP 静态预览</strong>
+        页面：新资金定期存款推广（中国） · Page ID: deposit-campaign-cn · 市场：CN · 渠道：SDUI
+      </div>
+
+      <header class="header">
+        <button class="back" type="button" aria-label="返回" onclick="history.back()">‹</button>
+        <div class="header-title">人民币储蓄优惠</div>
+      </header>
+
+      <img
+        class="hero"
+        src="../../mock-bff/public/media/deposit-campaign-banner.jpg"
+        alt="父亲和孩子眺望山湖景色，展示人民币储蓄新资金存款推广"
+      />
+
+      <section class="callout" aria-labelledby="campaign-rate-title">
+        <span class="badge">仅限新资金</span>
+        <div id="campaign-rate-title" class="callout-title">年化等值利率高达 1.15% p.a.</div>
+        <div class="callout-copy">
+          3 个月新资金人民币可转让存款证，专为新存入资金而设。
+          限时优惠，把握机会，让资金开始赚取更多收益。
+        </div>
+      </section>
+
+      <section class="rate-table" aria-labelledby="rate-table-title">
+        <div class="rate-table-head">
+          <div id="rate-table-title" class="section-title">定期存款利率：</div>
+          <div class="as-at">截至 2025/5/22</div>
+        </div>
+        <div class="rate-columns" aria-hidden="true">
+          <span>存期</span>
+          <span>年利率</span>
+        </div>
+        <div class="rate-row">
+          <span>3 个月定期存款</span>
+          <span class="rate-value">0.65%</span>
+        </div>
+        <div class="rate-row">
+          <span>6 个月定期存款</span>
+          <span class="rate-value">0.85%</span>
+        </div>
+        <div class="rate-row">
+          <span>12 个月定期存款</span>
+          <span class="rate-value">0.95%</span>
+        </div>
+        <div class="rate-row">
+          <span>24 个月定期存款</span>
+          <span class="rate-value">1.05%</span>
+        </div>
+        <div class="rate-row">
+          <span>36 个月定期存款</span>
+          <span class="rate-value">1.25%</span>
+        </div>
+        <div class="rate-row">
+          <span>60 个月定期存款</span>
+          <span class="rate-value">1.30%</span>
+        </div>
+        <div class="footnote">
+          个人银行客户定期存款最低结余为人民币 50 元。
+          新资金指此前未存放于汇丰的资金。
+        </div>
+      </section>
+
+      <div class="cta-wrap">
+        <button
+          class="cta"
+          type="button"
+          onclick="window.location.href='hsbc://deposit/open?currency=CNY&amp;campaign=new-fund'"
+        >
+          开立存款
+        </button>
+      </div>
+
+      <div class="spacer" aria-hidden="true"></div>
+
+      <section class="faq" aria-labelledby="faq-title">
+        <div id="faq-title" class="faq-title">常见问题</div>
+
+        <details>
+          <summary>我可以在定期存款到期前提前支取吗？</summary>
+          <div class="answer">
+            可以，但提前支取可能导致利息减少或不获支付利息，并可能需要支付提前支取费用。
+            如为外币存款，请前往银行网点办理。
+          </div>
+        </details>
+
+        <details>
+          <summary>如果到期后没有支取资金，会发生什么？</summary>
+          <div class="answer">
+            如果到期时没有支取资金，多数银行会按当时适用利率自动续存相同期限。
+            您也可以在到期前选择支取资金或更改存期。
+          </div>
+        </details>
+
+        <details>
+          <summary>定期存款可以存放多久？</summary>
+          <div class="answer">
+            银行通常提供 3 个月、6 个月、1 年、2 年、3 年、5 年甚至 10 年等不同期限。
+            一般而言，期限越长，利率可能越高；较常见的选择包括 6 个月或 12 个月。
+          </div>
+        </details>
+
+        <details>
+          <summary>为什么定期存款利率通常高于普通储蓄账户？</summary>
+          <div class="answer">
+            因为客户会在固定期限内存放资金，银行能够更稳定地安排资金运用。
+            因此，银行可将部分收益以较高利息的形式回馈给客户。
+          </div>
+        </details>
+      </section>
+    </article>
+  </main>
+</body>
+</html>

@@ -70,7 +70,7 @@ private final class DepositViewModel: ObservableObject {
     #endif
 
     func load() async {
-        guard let url = URL(string: "\(baseURL)/api/v1/screen/deposit-campaign-hk") else {
+        guard let url = URL(string: "\(baseURL)/api/v1/screen/deposit-campaign-cn") else {
             state = .error; return
         }
         do {

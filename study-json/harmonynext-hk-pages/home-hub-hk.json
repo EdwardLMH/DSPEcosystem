@@ -1,0 +1,400 @@
+{
+  "schemaVersion": "3.0",
+  "pageId": "home-hub-hk",
+  "pageType": "HOME_HUB",
+  "screen": "home_hub_hk",
+  "ttl": 300,
+  "metadata": {
+    "pageId": "home-hub-hk",
+    "pageType": "HOME_HUB",
+    "locale": "en",
+    "textDir": "ltr",
+    "platform": "all",
+    "channel": "SDUI",
+    "version": 3,
+    "publishedAt": "2026-03-22T12:15:05.884Z",
+    "generatedAt": "2026-05-17T12:34:23.554Z",
+    "a11y": {
+      "reduceMotion": false,
+      "highContrast": false,
+      "largeText": false,
+      "voiceOver": false,
+      "talkBack": false,
+      "screenReader": false
+    }
+  },
+  "layout": {
+    "type": "SCROLL",
+    "children": [
+      {
+        "instanceId": "slice-home-search-header",
+        "type": "HOME_SEARCH_HEADER",
+        "visible": true,
+        "locked": true,
+        "props": {
+          "premierLabel": "HSBC Premier",
+          "premierBg": "#DB0011",
+          "eliteLabel": "HSBC Elite",
+          "eliteBg": "#0D5C3A",
+          "advanceLabel": "HSBC One",
+          "advanceBg": "#D4580A",
+          "massLabel": "HSBC Personal Banking",
+          "massBg": "#4B5563",
+          "enableNotification": true,
+          "enableHeadset": true,
+          "placeholder": "Search functions, products & content",
+          "enableSemanticSearch": true,
+          "searchApiEndpoint": "/api/v1/search/semantic"
+        }
+      },
+      {
+        "instanceId": "slice-combo-quick-access",
+        "type": "COMBO_QUICK_ACCESS",
+        "visible": true,
+        "locked": false,
+        "props": {
+          "tabs": [
+            {
+              "id": "my-pick",
+              "label": "My pick",
+              "active": true
+            },
+            {
+              "id": "invest",
+              "label": "Invest",
+              "active": false
+            },
+            {
+              "id": "global",
+              "label": "Global",
+              "active": false
+            },
+            {
+              "id": "hk-daily",
+              "label": "HK Daily",
+              "active": false
+            }
+          ],
+          "row1Items": [
+            {
+              "id": "qa-1",
+              "icon": "account",
+              "label": "Account overview",
+              "deepLink": "hsbc://accounts"
+            },
+            {
+              "id": "qa-2",
+              "icon": "transfer",
+              "label": "Transfer Globally",
+              "deepLink": "hsbc://transfer/global"
+            },
+            {
+              "id": "qa-3",
+              "icon": "fx",
+              "label": "Foreign exchange",
+              "deepLink": "hsbc://fx"
+            },
+            {
+              "id": "qa-4",
+              "icon": "stock",
+              "label": "Trade stock",
+              "deepLink": "hsbc://trade/stock"
+            },
+            {
+              "id": "qa-5",
+              "icon": "deposit",
+              "label": "Time deposit",
+              "deepLink": "hsbc://deposit"
+            }
+          ],
+          "row2Items": [
+            {
+              "id": "qa-6",
+              "icon": "holding",
+              "label": "My holding details",
+              "deepLink": "hsbc://holdings"
+            },
+            {
+              "id": "qa-7",
+              "icon": "safe",
+              "label": "Money safe",
+              "deepLink": "hsbc://money-safe"
+            },
+            {
+              "id": "qa-8",
+              "icon": "fps",
+              "label": "Local transfer/FPS",
+              "deepLink": "hsbc://transfer/fps"
+            },
+            {
+              "id": "qa-9",
+              "icon": "scan",
+              "label": "Scan to pay",
+              "deepLink": "hsbc://scan-pay"
+            },
+            {
+              "id": "qa-10",
+              "icon": "all",
+              "label": "All product & services",
+              "deepLink": "hsbc://all-services"
+            }
+          ]
+        }
+      },
+      {
+        "instanceId": "slice-card-activation",
+        "type": "CARD_ACTIVATION_BANNER",
+        "visible": true,
+        "locked": false,
+        "props": {
+          "message": "Your card needs to be activated",
+          "deepLink": "hsbc://card/activate"
+        }
+      },
+      {
+        "instanceId": "slice-getting-started",
+        "type": "QUEST_BANNER",
+        "visible": true,
+        "locked": false,
+        "props": {
+          "title": "Getting started",
+          "description": "Open investment account and complete the following quests to enjoy reward!",
+          "ctaLabel": "Check out all 4 quests",
+          "ctaDeepLink": "hsbc://quests",
+          "totalQuests": 4
+        }
+      },
+      {
+        "instanceId": "slice-feature-product",
+        "type": "FEATURE_PRODUCT",
+        "visible": true,
+        "locked": false,
+        "props": {
+          "sectionTitle": "Feature product",
+          "tabs": [
+            "Top performers",
+            "Top dividend",
+            "Top selling",
+            "Instalment"
+          ],
+          "activeTab": "Top performers",
+          "activeButtonId": "top-performers",
+          "buttons": [
+            {
+              "id": "top-performers",
+              "name": "Top performers",
+              "description": "Top 3 funds by 1Y return",
+              "url": "/api/v1/funds/feature-products?filter=top-performers&limit=3"
+            },
+            {
+              "id": "top-dividend",
+              "name": "Top dividend",
+              "description": "Income funds with higher dividend profile",
+              "url": "/api/v1/funds/feature-products?filter=top-dividend&limit=3"
+            },
+            {
+              "id": "top-selling",
+              "name": "Top selling",
+              "description": "Best selling funds by subscription volume",
+              "url": "/api/v1/funds/feature-products?filter=top-selling&limit=3"
+            },
+            {
+              "id": "installment",
+              "name": "Installment",
+              "description": "Funds suitable for installment investment plans",
+              "url": "/api/v1/funds/feature-products?filter=installment&limit=3"
+            }
+          ],
+          "funds": [
+            {
+              "id": "fp-1",
+              "name": "AB SICAV I - LOW VOLATILITY EQUITY PORTFOLIO CLASS AD S...",
+              "code": "U43120",
+              "returnLabel": "1Y return",
+              "returnValue": "+54.79%",
+              "returnPositive": true,
+              "tags": []
+            },
+            {
+              "id": "fp-2",
+              "name": "HANG SENG INDEX FUND CLASS A (HKD)",
+              "code": "U42272",
+              "returnLabel": "1Y return",
+              "returnValue": "+18.10%",
+              "returnPositive": true,
+              "tags": [
+                "ESG"
+              ]
+            },
+            {
+              "id": "fp-3",
+              "name": "ALLIANZ INCOME AND GROWTH CLASS AM DIS (HKD MONTHLY...",
+              "code": "U40032",
+              "returnLabel": "1Y return",
+              "returnValue": "+11.45%",
+              "returnPositive": true,
+              "tags": [
+                "New fund"
+              ]
+            }
+          ],
+          "moreLabel": "View Best selling fund list (10)",
+          "moreDeepLink": "hsbc://funds/best-selling",
+          "bestSellingUrl": "/api/v1/funds/feature-products?filter=best-selling&limit=10"
+        }
+      },
+      {
+        "instanceId": "slice-wealth-studio",
+        "type": "WEALTH_STUDIO_CAROUSEL",
+        "visible": true,
+        "locked": false,
+        "props": {
+          "sectionTitle": "Premier Elite Wealth Studio",
+          "moreLabel": "View all",
+          "moreDeepLink": "hsbc://wealth-studio",
+          "items": [
+            {
+              "id": "ws-1",
+              "episodeLabel": "Episode 14",
+              "liveBadge": "To-be-live on 1 Feb 15:30",
+              "title": "Navigating Markets in 2026",
+              "ctaLabel": "Register for live stream",
+              "imageColor": "#1A1A2E",
+              "videoUrl": "http://localhost:4000/media/Wealth1.mp4"
+            },
+            {
+              "id": "ws-2",
+              "episodeLabel": "Episode 15",
+              "title": "Gold & Alternative Assets",
+              "ctaLabel": "Watch now",
+              "imageColor": "#0F2040",
+              "videoUrl": "http://localhost:4000/media/Wealth2.mp4"
+            }
+          ]
+        }
+      },
+      {
+        "instanceId": "slice-guides-insights",
+        "type": "GUIDES_INSIGHTS_CAROUSEL",
+        "visible": true,
+        "locked": false,
+        "props": {
+          "sectionTitle": "Guides and insights",
+          "moreLabel": "View all",
+          "moreDeepLink": "hsbc://guides",
+          "items": [
+            {
+              "id": "gi-1",
+              "title": "Investment 101 - An investment in knowledge pays the best interest - Benjamin Franklin",
+              "date": "8 Apr 2024",
+              "imageColor": "#2D3748",
+              "deepLink": "hsbc://guides/investment-101"
+            },
+            {
+              "id": "gi-2",
+              "title": "Market outlook Q2 2024",
+              "date": "2 Apr 2024",
+              "imageColor": "#1A365D",
+              "deepLink": "hsbc://guides/market-outlook"
+            }
+          ]
+        }
+      },
+      {
+        "instanceId": "slice-fx-watchlist",
+        "type": "FX_WATCHLIST",
+        "visible": true,
+        "locked": false,
+        "props": {
+          "sectionTitle": "FX watchlist",
+          "tierBadge": "Gold Forex Club tier",
+          "tierDescription": "15% Spread discount has been applied to your rate.",
+          "pairs": [
+            {
+              "id": "fx-1",
+              "pair": "USD/JPY",
+              "sellLabel": "Sell USD",
+              "sellRate": "148.44",
+              "buyLabel": "Buy USD",
+              "buyRate": "148.12"
+            },
+            {
+              "id": "fx-2",
+              "pair": "HKD/CHF",
+              "sellLabel": "Sell HKD",
+              "sellRate": "0.1042",
+              "buyLabel": "Buy HKD",
+              "buyRate": "0.1038"
+            },
+            {
+              "id": "fx-3",
+              "pair": "HKD/THB",
+              "sellLabel": "Sell HKD",
+              "sellRate": "4.1055",
+              "buyLabel": "Buy HKD",
+              "buyRate": "4.1132"
+            }
+          ],
+          "moreLabel": "View more in FX",
+          "moreDeepLink": "hsbc://fx/watchlist"
+        }
+      },
+      {
+        "instanceId": "slice-discover-more",
+        "type": "DISCOVER_MORE_CAROUSEL",
+        "visible": true,
+        "locked": false,
+        "props": {
+          "sectionTitle": "Discover more",
+          "items": [
+            {
+              "id": "dm-1",
+              "tag": "Time Deposit",
+              "tagColor": "#DB0011",
+              "title": "Up to 15.5% p.a. FX Deposit Rate",
+              "subtitle": "Earn up to 15.5% p.a. on FX & Time Deposits! T&Cs apply.",
+              "imageColor": "#1A2E4A",
+              "deepLink": "hsbc://deposit/fx"
+            },
+            {
+              "id": "dm-2",
+              "tag": "Well+",
+              "tagColor": "#6B46C1",
+              "title": "PURE Sign up 10-day free trial",
+              "subtitle": "Enjoy 10 days free access to PURE fitness with Well+.",
+              "imageColor": "#2D3748",
+              "deepLink": "hsbc://wellplus"
+            },
+            {
+              "id": "dm-3",
+              "tag": "Premier Credit Card",
+              "tagColor": "#B7791F",
+              "title": "Up to 10x reward points on dining",
+              "subtitle": "Dine and earn more with your HSBC Premier card.",
+              "imageColor": "#2D1B00",
+              "deepLink": "hsbc://credit-card/rewards"
+            },
+            {
+              "id": "dm-4",
+              "tag": "Investment",
+              "tagColor": "#2B6CB0",
+              "title": "Zero brokerage on first 3 trades",
+              "subtitle": "Start investing with zero commission for new investors.",
+              "imageColor": "#1A2E4A",
+              "deepLink": "hsbc://invest/promo"
+            },
+            {
+              "id": "dm-5",
+              "tag": "Insurance",
+              "tagColor": "#276749",
+              "title": "Protect what matters most",
+              "subtitle": "Comprehensive life coverage starting from HKD 180/month.",
+              "imageColor": "#1C2E1C",
+              "deepLink": "hsbc://insurance/life"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

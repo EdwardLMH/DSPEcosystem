@@ -86,7 +86,7 @@ data class DepositScreenPayload(
 )
 
 interface DepositApi {
-    @GET("screen/deposit-campaign-hk")
+    @GET("screen/deposit-campaign-cn")
     suspend fun fetchDepositCampaign(): DepositScreenPayload
 }
 
@@ -115,7 +115,7 @@ fun DepositCampaignScreen(onBack: () -> Unit = {}) {
 
     LaunchedEffect(Unit) {
         TealiumClient.track("deposit_campaign_viewed", "Deposit", "page_viewed",
-            "deposit_campaign_hk", "deposit_campaign")
+            "deposit_campaign_cn", "deposit_campaign")
         scope.launch {
             loadState = try {
                 val payload = depositApi.fetchDepositCampaign()
@@ -205,7 +205,7 @@ private fun DepositHeaderBar(
                 Text("‹", fontSize = 22.sp, color = N800,
                     modifier = Modifier.clickable {
                         TealiumClient.track("back_tap", "Deposit", "back_tapped",
-                            "deposit_campaign_hk", "deposit_campaign")
+                            "deposit_campaign_cn", "deposit_campaign")
                         onBack()
                     })
             }

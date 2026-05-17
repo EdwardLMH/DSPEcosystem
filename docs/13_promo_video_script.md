@@ -1,4 +1,4 @@
-# DSPP Promotional Video — Director's Script
+# DSPE Promotional Video — Director's Script
 
 **Duration:** 2:30  
 **Tone:** Professional, confident, forward-looking  
@@ -17,10 +17,10 @@
 
 ## Scene 2 — The Reveal (0:20–0:30)
 
-**Visual:** DSPP logo animates in. Tagline: *"Author Once. Deliver Everywhere. Stay Discoverable."*
+**Visual:** DSPE logo animates in. Tagline: *"Author Once. Deliver Everywhere. Stay Discoverable."*
 
 **Voiceover:**
-> "Introducing HSBC Digital Sales Promotion Platform."
+> "Introducing HSBC Digital Sales Promotion Ecosystem."
 
 ---
 
@@ -71,15 +71,15 @@
 
 ## Scene 8 — Close (2:15–2:30)
 
-**Visual:** DSPP logo centered. Tagline below. Contact details.
+**Visual:** DSPE logo centered. Tagline below. Contact details.
 
 **Text on screen:**
 > *Author Once. Deliver Everywhere. Stay Discoverable.*
 >
-> *HSBC Digital Sales Promotion Platform*
+> *HSBC Digital Sales Promotion Ecosystem*
 
 **Voiceover:**
-> "Your customers have already moved to AI search. Your campaigns shouldn't wait for app releases. DSPP — publish in seconds, discover everywhere."
+> "Your customers have already moved to AI search. Your campaigns shouldn't wait for app releases. DSPE — publish in seconds, discover everywhere."
 
 ---
 

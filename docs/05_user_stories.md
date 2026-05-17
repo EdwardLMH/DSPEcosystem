@@ -1,4 +1,4 @@
-# HSBC Digital Sales Promotion Platform — Agile User Story Backlog
+# HSBC Digital Sales Promotion Ecosystem — Agile User Story Backlog
 
 > **Project:** DSP Ecosystem  
 > **Last Updated:** 2026-04-18  

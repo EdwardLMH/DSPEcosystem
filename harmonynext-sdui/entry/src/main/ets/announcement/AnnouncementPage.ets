@@ -3,7 +3,7 @@
 
 import { Hive } from '../common/HiveTokens'
 import { SensorDataClient } from '../network/SensorDataClient'
-import { fetchAnnouncementScreen, WealthSlice } from '../network/KYCNetworkService'
+import { fetchAnnouncementScreen, ScreenSlice } from '../network/KYCNetworkService'
 
 const LOAD_LOADING = 1
 const LOAD_DONE = 2
@@ -23,7 +23,7 @@ export struct AnnouncementPage {
   kind: number = ANNOUNCEMENT_SPECIAL
   onBack: () => void = () => {}
   @State loadState: number = LOAD_LOADING
-  @State slice: WealthSlice = { instanceId: '', type: '', props: {}, visible: true }
+  @State slice: ScreenSlice = { instanceId: '', type: '', props: {}, visible: true }
   @State dontShowAgain: boolean = false
 
   aboutToAppear() {
@@ -56,7 +56,7 @@ export struct AnnouncementPage {
     this.loadState = LOAD_LOADING
     try {
       const payload = await fetchAnnouncementScreen(this.screenId())
-      const slices = payload.layout.children.filter((s: WealthSlice) => {
+      const slices = payload.layout.children.filter((s: ScreenSlice) => {
         return s.visible !== false && s.type === 'ANNOUNCEMENT_OVERLAY'
       })
       if (slices.length > 0) {

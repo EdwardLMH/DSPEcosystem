@@ -29,17 +29,17 @@ interface FXHeaderNavBar_Params {
 }
 interface FXViewpointView_Params {
     loadState?: number;
-    sdui?: WealthSlice[];
+    sdui?: ScreenSlice[];
     onBack?: () => void;
 }
 interface FXSDUISliceView_Params {
-    slice?: WealthSlice;
+    slice?: ScreenSlice;
     onBack?: () => void;
 }
 import { Hive } from "@normalized:N&&&entry/src/main/ets/common/HiveTokens&";
 import { SensorDataClient } from "@normalized:N&&&entry/src/main/ets/network/SensorDataClient&";
 import { fetchFXViewpointScreen } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
-import type { WealthSlice } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
+import type { ScreenSlice } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
 // ─── Load-state enum ──────────────────────────────────────────────────────────
 // ArkTS forbids string-union @State — plain number constants are used instead.
 const LOAD_IDLE = 0;
@@ -73,7 +73,7 @@ class FXSDUISliceView extends ViewPU {
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
-    private slice: WealthSlice;
+    private slice: ScreenSlice;
     private onBack: () => void;
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -230,11 +230,11 @@ export class FXViewpointView extends ViewPU {
     set loadState(newValue: number) {
         this.__loadState.set(newValue);
     }
-    private __sdui: ObservedPropertyObjectPU<WealthSlice[]>;
+    private __sdui: ObservedPropertyObjectPU<ScreenSlice[]>;
     get sdui() {
         return this.__sdui.get();
     }
-    set sdui(newValue: WealthSlice[]) {
+    set sdui(newValue: ScreenSlice[]) {
         this.__sdui.set(newValue);
     }
     private onBack: () => void;
@@ -246,15 +246,15 @@ export class FXViewpointView extends ViewPU {
         this.loadState = LOAD_LOADING;
         try {
             const payload = await fetchFXViewpointScreen();
-            this.sdui = payload.layout.children.filter((s: WealthSlice) => s.visible !== false);
+            this.sdui = payload.layout.children.filter((s: ScreenSlice) => s.visible !== false);
             this.loadState = LOAD_DONE;
         }
         catch (_e) {
             this.loadState = LOAD_ERROR;
         }
     }
-    private stickySlice(): WealthSlice | undefined {
-        return this.sdui.find((s: WealthSlice) => s.type === 'CONTACT_RM_CTA' && (s.props['sticky'] as boolean) === true);
+    private stickySlice(): ScreenSlice | undefined {
+        return this.sdui.find((s: ScreenSlice) => s.type === 'CONTACT_RM_CTA' && (s.props['sticky'] as boolean) === true);
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -336,7 +336,7 @@ export class FXViewpointView extends ViewPU {
                                 }, { name: "FXSDUISliceView" });
                             }
                         };
-                        this.forEachUpdateFunction(elmtId, this.sdui.filter((s: WealthSlice) => s.type !== 'CONTACT_RM_CTA'), forEachItemGenFunction);
+                        this.forEachUpdateFunction(elmtId, this.sdui.filter((s: ScreenSlice) => s.type !== 'CONTACT_RM_CTA'), forEachItemGenFunction);
                     }, ForEach);
                     // SDUI path — render body slices (skip sticky CTA; rendered below)
                     ForEach.pop();
@@ -613,7 +613,7 @@ class FXVideoPlayer extends ViewPU {
     private videoUrl(): string {
         const raw = this.props['videoUrl'] as string ?? '';
         return raw.replace('http://localhost:4000', 'http://10.0.2.2:4000')
-            || 'http://10.0.2.2:4000/media/fx-viewpoint.mov';
+            || 'http://10.0.2.2:4000/media/fx-viewpoint.mp4';
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {

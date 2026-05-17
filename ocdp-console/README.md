@@ -1,4 +1,4 @@
-# OCDP Console — HSBC Digital Sales Promotion Platform
+# OCDP Console — HSBC Digital Sales Promotion Ecosystem
 
 **Omni-Channel Content Delivery Platform** — the staff-facing authoring console for creating, reviewing, and publishing SDUI pages and journeys across iOS, Android, HarmonyOS NEXT, Web, and WeChat channels.
 
@@ -176,7 +176,7 @@ ocdp-console/src/
 
 ## Canonical SDUI Design — Home Hub (HK)
 
-The file `src/store/mockData.ts` contains the authoritative slice design for `PAGE_HOME_WEALTH` (`home-wealth-hk`). All four SDUI platform implementations (iOS, Android, HarmonyOS NEXT, Web) must match this canonical 9-slice layout:
+The file `src/store/mockData.ts` contains the authoritative slice design for `PAGE_HOME_HUB` (`home-hub-hk`). All four SDUI platform implementations (iOS, Android, HarmonyOS NEXT, Web) must match this canonical 9-slice layout:
 
 | # | Slice Type |
 |---|-----------|
