@@ -1447,6 +1447,26 @@ function SliceRow({ type, props, segment }: { type: string; props?: Record<strin
     );
   }
 
+  if (type === 'DEPOSIT_INSURANCE') {
+    return (
+      <div style={{ padding: '12px', background: '#fff', flexShrink: 0 }}>
+        <div style={{ fontWeight: 700, fontSize: 11, color: '#111', marginBottom: 8 }}>{String(p.title ?? 'Deposit Insurance')}</div>
+        <a href={String(p.linkUrl ?? '#')} style={{ display: 'block', border: '1px solid #E5E7EB', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
+          <img src={String(p.logoUrl ?? '/media/deposit-insurance-logo.jpg')} alt={String(p.altText ?? 'Deposit Insurance')} style={{ display: 'block', width: '100%', height: 88, objectFit: 'contain' }} />
+        </a>
+      </div>
+    );
+  }
+
+  if (type === 'JSON_LD_STRUCTURED_DATA' || type === 'SEO_STRUCTURED_DATA') {
+    return (
+      <div style={{ padding: '8px 12px', background: '#EEF2FF', flexShrink: 0, borderLeft: '3px solid #4F46E5' }}>
+        <div style={{ fontSize: 9, fontWeight: 700, color: '#4F46E5' }}>JSON-LD Structured Data · hidden in output</div>
+        <div style={{ marginTop: 4, fontSize: 8, color: '#6B7280' }}>{String(p.schemaType ?? 'schema.org/WebPage')}</div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ background: '#F3F4F6', height: 36, display: 'flex', alignItems: 'center', paddingLeft: 8, flexShrink: 0 }}>
       <span style={{ fontSize: 8, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{type}</span>

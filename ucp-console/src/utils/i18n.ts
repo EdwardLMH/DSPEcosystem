@@ -192,6 +192,8 @@ export const TRANSLATABLE_PROP_KEYS: Record<string, string[]> = {
   DEPOSIT_RATE_TABLE: ['sectionTitle', 'footnote'],
   DEPOSIT_OPEN_CTA: ['label'],
   DEPOSIT_FAQ: ['sectionTitle'],
+  DEPOSIT_INSURANCE: ['title', 'altText'],
+  JSON_LD_STRUCTURED_DATA: ['copyrightText', 'publicSecurityText', 'icpText'],
   CAMPAIGN_HERO: ['headline', 'subHeadline', 'badge'],
   CAMPAIGN_BENEFITS: ['sectionTitle'],
   CAMPAIGN_CTA: ['ctaLabel', 'ctaSubtext', 'offerBadge', 'secondaryLabel'],

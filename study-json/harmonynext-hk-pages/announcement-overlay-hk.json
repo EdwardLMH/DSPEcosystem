@@ -7,11 +7,11 @@
     "pageId": "announcement-overlay-hk",
     "locale": "en",
     "textDir": "ltr",
-    "platform": "all",
+    "platform": "harmonynext",
     "channel": "SDUI",
     "version": 1,
     "publishedAt": "2026-05-15T01:00:00.000Z",
-    "generatedAt": "2026-05-17T12:34:42.894Z",
+    "generatedAt": "2026-05-17T16:13:11.692Z",
     "marketTimeZone": "Asia/Hong_Kong",
     "nativeTargets": [
       "ios",
@@ -44,7 +44,7 @@
           },
           "visual": {
             "assetId": "asset-ann-envelope",
-            "imageUrl": "http://localhost:4000/media/announcement-envelope.jpg",
+            "imageUrl": "http://127.0.0.1:4000/media/announcement-envelope.jpg",
             "altText": "HSBC special announcement envelope illustration",
             "placement": "envelope-top"
           },

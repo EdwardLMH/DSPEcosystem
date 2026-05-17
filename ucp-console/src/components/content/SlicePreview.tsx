@@ -29,6 +29,7 @@ export const PALETTE_ITEMS: { sliceType: string; label: string; icon: string; ca
   { sliceType: 'DEPOSIT_RATE_TABLE', label: 'Deposit Rate Table', icon: '🏦', category: 'wealth' },
   { sliceType: 'DEPOSIT_OPEN_CTA', label: 'Button CTA', icon: '🏧', category: 'wealth' },
   { sliceType: 'DEPOSIT_FAQ', label: 'General FAQ', icon: '❓', category: 'wealth' },
+  { sliceType: 'DEPOSIT_INSURANCE', label: 'Deposit Insurance', icon: '🛡️', category: 'wealth' },
   { sliceType: 'WEALTH_SELECTION', label: 'Wealth Selection', icon: '💰', category: 'wealth' },
   { sliceType: 'FEATURED_RANKINGS', label: 'Featured Rankings', icon: '🏆', category: 'wealth' },
   { sliceType: 'FX_WATCHLIST', label: 'FX Watchlist', icon: '💱', category: 'wealth' },
@@ -43,6 +44,7 @@ export const PALETTE_ITEMS: { sliceType: string; label: string; icon: string; ca
   // SEO / AEO compliance
   { sliceType: 'SEO_HERO_HEADER', label: 'SEO Hero Header', icon: '🔍', category: 'navigation', singleton: true },
   { sliceType: 'SEO_FAQ', label: 'SEO/AEO FAQ', icon: '❓', category: 'insight', singleton: true },
+  { sliceType: 'JSON_LD_STRUCTURED_DATA', label: 'JSON-LD Structured Data · hidden in output', icon: '🗂️', category: 'layout', singleton: true },
   { sliceType: 'SEO_STRUCTURED_DATA', label: 'Structured Data (JSON-LD)', icon: '🗂️', category: 'layout', singleton: true },
 ];
 
@@ -495,7 +497,17 @@ export function SliceBlockPreview({ slice }: { slice: PageTemplateStarterSlice }
     </div>
   );
 
-  if (t === 'SEO_STRUCTURED_DATA') return (
+  if (t === 'DEPOSIT_INSURANCE') return (
+    <div style={{ padding: '8px 12px', background: '#fff', borderLeft: '3px solid #059669' }}>
+      <div style={{ fontSize: 8, fontWeight: 700, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Deposit Insurance</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <img src={s(p.logoUrl, '/media/deposit-insurance-logo.jpg')} alt={s(p.altText, 'Deposit Insurance')} style={{ width: 76, height: 46, objectFit: 'contain', background: '#F9FAFB', borderRadius: 4 }} />
+        <div style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.4 }}>{s(p.linkUrl, 'Compliance notice PDF')}</div>
+      </div>
+    </div>
+  );
+
+  if (t === 'SEO_STRUCTURED_DATA' || t === 'JSON_LD_STRUCTURED_DATA') return (
     <div style={{ padding: '6px 10px', background: '#EEF2FF', display: 'flex', alignItems: 'center', gap: 6, borderLeft: '3px solid #4F46E5' }}>
       <span style={{ fontSize: 14 }}>🗂️</span>
       <div>

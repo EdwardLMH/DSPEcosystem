@@ -67,6 +67,8 @@ function defaultPropsFor(t: string): Record<string, unknown> {
     DEPOSIT_RATE_TABLE: { sectionTitle: 'Time Deposit Rate:', asAtDate: '', rates: [{ term: '3 Month', rate: '—' }, { term: '6 Month', rate: '—' }, { term: '12 Month', rate: '—' }], footnote: '' },
     DEPOSIT_OPEN_CTA: { label: 'Open a Deposit', deepLink: 'hsbc://deposit/open', backgroundColor: '#C41E3A', textColor: '#FFFFFF' },
     DEPOSIT_FAQ: { sectionTitle: 'Frequently Asked Questions', items: [] },
+    DEPOSIT_INSURANCE: { title: 'Deposit Insurance', logoUrl: '/media/deposit-insurance-logo.jpg', altText: 'Deposit Insurance', linkUrl: 'https://www.hsbc.com.cn/content/dam/hsbc/cn/docs/insurance/insurance-prodcut-electronic-notice.pdf' },
+    JSON_LD_STRUCTURED_DATA: { schemaType: 'schema.org/WebPage', lastReviewedDate: '2026-05-17', copyrightText: '© 版权所有。汇丰银行（中国）有限公司2026', publicSecurityText: '沪公网安备 31011502400282号', publicSecurityUrl: 'https://beian.mps.gov.cn/#/query/webSearch', icpText: '沪ICP备15029387-3号', icpUrl: 'https://beian.miit.gov.cn/#/Integrated/index', jsonLd: '{}' },
     SPACER: { height: 24 },
     QUICK_ACCESS_GRID: { items: [] },
     COMBO_QUICK_ACCESS: { tabs: [], row1Items: [], row2Items: [] },
@@ -76,7 +78,7 @@ function defaultPropsFor(t: string): Record<string, unknown> {
 
 // ─── Prop field definitions ───────────────────────────────────────────────────
 
-type PF = { key: string; label: string; type: 'text' | 'textarea' | 'number' | 'boolean' | 'color' | 'url' | 'select'; placeholder?: string; options?: { value: string; label: string }[] };
+type PF = { key: string; label: string; type: 'text' | 'textarea' | 'number' | 'boolean' | 'color' | 'url' | 'select' | 'date'; placeholder?: string; options?: { value: string; label: string }[] };
 
 const PROP_FIELDS: Record<string, PF[]> = {
   HEADER_NAV: [{ key: 'title', label: 'Title', type: 'text', placeholder: 'Page Title' }, { key: 'showNotificationBell', label: 'Show Notification Bell', type: 'boolean' }, { key: 'showQRScanner', label: 'Show QR Scanner', type: 'boolean' }],
@@ -99,6 +101,8 @@ const PROP_FIELDS: Record<string, PF[]> = {
   DEPOSIT_RATE_TABLE: [{ key: 'sectionTitle', label: 'Section Title', type: 'text', placeholder: 'Time Deposit Rate:' }, { key: 'asAtDate', label: 'As At Date', type: 'text', placeholder: '5/22/2025' }, { key: 'footnote', label: 'Footnote', type: 'textarea', placeholder: 'Minimum balance applies.' }],
   DEPOSIT_OPEN_CTA: [{ key: 'label', label: 'Button Label', type: 'text', placeholder: 'Open a Deposit' }, { key: 'deepLink', label: 'Deep Link', type: 'url', placeholder: 'hsbc://deposit/open' }, { key: 'backgroundColor', label: 'Background Colour', type: 'color' }, { key: 'textColor', label: 'Text Colour', type: 'color' }],
   DEPOSIT_FAQ: [{ key: 'sectionTitle', label: 'Section Title', type: 'text', placeholder: 'Frequently Asked Questions' }],
+  DEPOSIT_INSURANCE: [{ key: 'title', label: 'Title', type: 'text', placeholder: 'Deposit Insurance' }, { key: 'logoUrl', label: 'Logo URL', type: 'url', placeholder: '/media/deposit-insurance-logo.jpg' }, { key: 'altText', label: 'Alt Text', type: 'text', placeholder: 'Deposit Insurance' }, { key: 'linkUrl', label: 'PDF Link URL', type: 'url', placeholder: 'https://...' }],
+  JSON_LD_STRUCTURED_DATA: [{ key: 'schemaType', label: 'Schema Type', type: 'text', placeholder: 'schema.org/WebPage' }, { key: 'lastReviewedDate', label: 'Last reviewed date', type: 'date', placeholder: 'YYYY-MM-DD' }, { key: 'copyrightText', label: 'Copyright', type: 'text', placeholder: '© 版权所有。汇丰银行（中国）有限公司2026' }, { key: 'publicSecurityText', label: 'Public Security Filing', type: 'text', placeholder: '沪公网安备 31011502400282号' }, { key: 'publicSecurityUrl', label: 'Public Security URL', type: 'url', placeholder: 'https://beian.mps.gov.cn/#/query/webSearch' }, { key: 'icpText', label: 'ICP Filing', type: 'text', placeholder: '沪ICP备15029387-3号' }, { key: 'icpUrl', label: 'ICP URL', type: 'url', placeholder: 'https://beian.miit.gov.cn/#/Integrated/index' }, { key: 'jsonLd', label: 'JSON-LD', type: 'textarea', placeholder: '{}' }],
   WEALTH_SELECTION: [{ key: 'sectionTitle', label: 'Section Title', type: 'text', placeholder: 'Wealth Products' }, { key: 'moreDeepLink', label: 'More Deep Link', type: 'url', placeholder: 'hsbc://...' }],
   FEATURED_RANKINGS: [{ key: 'sectionTitle', label: 'Section Title', type: 'text', placeholder: 'Top Funds' }, { key: 'moreDeepLink', label: 'More Deep Link', type: 'url', placeholder: 'hsbc://...' }],
   FX_WATCHLIST: [{ key: 'sectionTitle', label: 'Section Title', type: 'text', placeholder: 'FX Watchlist' }, { key: 'tierBadge', label: 'Tier Badge', type: 'text', placeholder: 'Gold Forex Club' }, { key: 'tierDescription', label: 'Tier Description', type: 'textarea', placeholder: '15% Spread discount.' }, { key: 'moreLabel', label: 'More Label', type: 'text', placeholder: 'View more' }, { key: 'moreDeepLink', label: 'More Deep Link', type: 'url', placeholder: 'hsbc://fx' }],
@@ -138,6 +142,9 @@ function PropInput({ field, value, onChange }: { field: PF; value: unknown; onCh
   }
   if (field.type === 'number') {
     return <input type="number" value={String(value ?? '')} onChange={e => onChange(Number(e.target.value))} placeholder={field.placeholder} style={inp} />;
+  }
+  if (field.type === 'date') {
+    return <input type="date" value={String(value ?? '')} onChange={e => onChange(e.target.value)} placeholder={field.placeholder} style={inp} />;
   }
   if (field.type === 'select' && field.options) {
     return (

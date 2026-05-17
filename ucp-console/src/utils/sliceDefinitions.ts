@@ -114,6 +114,16 @@ export const SLICE_DEFINITIONS: Partial<Record<SliceType, SliceDefinition>> = {
     description: 'Collapsible FAQ accordion for deposit products — question/answer pairs',
     configurable: ['sectionTitle', 'items'], minHeight: 200,
   },
+  DEPOSIT_INSURANCE: {
+    type: 'DEPOSIT_INSURANCE', label: 'Deposit Insurance', category: 'wealth', icon: '🛡️',
+    description: 'Deposit insurance logo and link to the official electronic notice PDF',
+    configurable: ['title', 'logoUrl', 'altText', 'linkUrl'], minHeight: 120,
+  },
+  JSON_LD_STRUCTURED_DATA: {
+    type: 'JSON_LD_STRUCTURED_DATA', label: 'JSON-LD Structured Data · hidden in output', category: 'layout', icon: '🗂️',
+    description: 'Invisible JSON-LD and legal filing block for Web Standard pages. Rendered in output metadata/footer, not as a visible content panel.',
+    configurable: ['schemaType', 'lastReviewedDate', 'copyrightText', 'publicSecurityText', 'publicSecurityUrl', 'icpText', 'icpUrl', 'jsonLd'], minHeight: 32, singleton: true,
+  },
   // ── SEO / AEO compliance slices (auto-injected, locked) ──────────────────────
   SEO_HERO_HEADER: {
     type: 'SEO_HERO_HEADER', label: 'SEO Hero Header', category: 'navigation', icon: '🔍',

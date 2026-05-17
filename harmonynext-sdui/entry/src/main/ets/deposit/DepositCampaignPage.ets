@@ -7,6 +7,8 @@
 import { Hive } from '../common/HiveTokens'
 import { SensorDataClient } from '../network/SensorDataClient'
 import { fetchDepositCampaignScreen, ScreenSlice } from '../network/KYCNetworkService'
+import common from '@ohos.app.ability.common'
+import Want from '@ohos.app.ability.Want'
 
 // ─── Load-state enum ──────────────────────────────────────────────────────────
 // ArkTS forbids string-union @State — plain number constants are used instead.
@@ -45,6 +47,8 @@ struct DepositSDUISliceView {
       DepositOpenCTA({ props: this.slice.props })
     } else if (this.slice.type === 'DEPOSIT_FAQ') {
       DepositFAQSection({ props: this.slice.props })
+    } else if (this.slice.type === 'DEPOSIT_INSURANCE') {
+      DepositInsuranceSection({ props: this.slice.props, instanceId: this.slice.instanceId })
     } else if (this.slice.type === 'SPACER') {
       Blank().height((this.slice.props['height'] as number) ?? 16)
     }
@@ -61,8 +65,14 @@ export struct DepositCampaignView {
   onBack: () => void = () => {}
 
   aboutToAppear() {
-    SensorDataClient.track('deposit_campaign_viewed', 'Deposit', 'page_viewed', '',
-      'deposit_campaign_cn', 'deposit_campaign')
+    const extra: Record<string, ESObject> = {}
+    extra['provider'] = 'SensorsData' as ESObject
+    extra['page_id'] = 'deposit-campaign-cn' as ESObject
+    extra['market'] = 'CN' as ESObject
+    extra['metric_dau'] = true as ESObject
+    extra['metric_mau'] = true as ESObject
+    SensorDataClient.track('sensorsdata_page_view', 'Deposit', 'page_viewed', 'New Fund Deposit Campaign (CN)',
+      'deposit_campaign_cn', 'deposit_campaign', '', '', '', '', '', '', '', '', extra)
     this.loadFromBFF()
   }
 
@@ -292,7 +302,45 @@ struct DepositOpenCTA {
 
   private label(): string    { return this.props['label'] as string ?? 'Open a Deposit' }
   private bgColor(): string  { return this.props['backgroundColor'] as string ?? '#C41E3A' }
-  private deepLink(): string { return this.props['deepLink'] as string ?? 'hsbc://deposit/open' }
+  private deepLink(): string { return this.props['deepLink'] as string ?? 'hsbc-cn://deposit/open?currency=CNY&campaign=new-fund' }
+  private fallbackUrl(): string {
+    const fallback = this.props['fallback'] as Record<string, string>
+    if (fallback && fallback['huawei']) {
+      return fallback['huawei']
+    }
+    if (fallback && fallback['android']) {
+      return fallback['android']
+    }
+    return 'https://www.hsbc.com.cn/mobile-banking/'
+  }
+
+  private async openDeposit(): Promise<void> {
+    const clickExtra: Record<string, ESObject> = {}
+    clickExtra['provider'] = 'SensorsData' as ESObject
+    clickExtra['page_id'] = 'deposit-campaign-cn' as ESObject
+    clickExtra['target'] = this.deepLink() as ESObject
+    clickExtra['metric_click_rate'] = true as ESObject
+    clickExtra['metric_conversion_rate'] = true as ESObject
+    SensorDataClient.track('sensorsdata_deposit_open_click', 'Deposit', 'open_deposit_clicked', this.deepLink(),
+      'deposit_campaign_cn', 'deposit_campaign', '', '', 'dep-open-cta', '', '', '', '', '', clickExtra)
+    const context = getContext(this) as common.UIAbilityContext
+    try {
+      const appWant: Want = { uri: this.deepLink() }
+      await context.startAbility(appWant)
+      const conversionExtra: Record<string, ESObject> = {}
+      conversionExtra['provider'] = 'SensorsData' as ESObject
+      conversionExtra['page_id'] = 'deposit-campaign-cn' as ESObject
+      conversionExtra['target'] = this.deepLink() as ESObject
+      conversionExtra['metric_conversion_rate'] = true as ESObject
+      SensorDataClient.track('sensorsdata_deposit_open_conversion', 'Deposit', 'open_deposit_deeplink_opened',
+        this.deepLink(), 'deposit_campaign_cn', 'deposit_campaign', '', '', 'dep-open-cta', '', '', '', '', '', conversionExtra)
+    } catch (_e) {
+      try {
+        const fallbackWant: Want = { uri: this.fallbackUrl() }
+        await context.startAbility(fallbackWant)
+      } catch (_ignore) {}
+    }
+  }
 
   build() {
     Button(this.label())
@@ -302,8 +350,7 @@ struct DepositOpenCTA {
       .borderRadius(12)
       .margin({ left: 16, right: 16, top: 12, bottom: 12 })
       .onClick(() => {
-        SensorDataClient.track('deposit_cta_tap', 'Deposit', 'open_deposit_tapped', this.deepLink(),
-          'deposit_campaign_cn', 'deposit_campaign')
+        this.openDeposit()
       })
       .onAppear(() => {
         SensorDataClient.track('slice_impression', 'Deposit', 'DEPOSIT_OPEN_CTA', 'dep-open-cta',
@@ -367,6 +414,53 @@ struct DepositFAQSection {
     .width('100%').backgroundColor(Hive.Color.brandWhite)
     .onAppear(() => {
       SensorDataClient.track('slice_impression', 'Deposit', 'DEPOSIT_FAQ', 'dep-faq',
+        'deposit_campaign_cn', 'deposit_campaign')
+    })
+  }
+}
+
+// ─── 6. Deposit Insurance ─────────────────────────────────────────────────────
+
+@Component
+struct DepositInsuranceSection {
+  props: Record<string, ESObject> = {}
+  instanceId: string = 'dep-insurance'
+
+  private title(): string { return this.props['title'] as string ?? '存款保险' }
+  private linkUrl(): string {
+    return this.props['linkUrl'] as string ??
+      'https://www.hsbc.com.cn/content/dam/hsbc/cn/docs/insurance/insurance-prodcut-electronic-notice.pdf'
+  }
+  private logoUrl(): string {
+    const raw = this.props['logoUrl'] as string ?? '/media/deposit-insurance-logo.jpg'
+    if (raw.indexOf('http://localhost:4000') === 0) {
+      return raw.replace('http://localhost:4000', 'http://10.0.2.2:4000')
+    }
+    if (raw.indexOf('/media/') === 0) {
+      return 'http://10.0.2.2:4000' + raw
+    }
+    return raw
+  }
+
+  build() {
+    Row() {
+      Image(this.logoUrl())
+        .width('100%')
+        .height(140)
+        .objectFit(ImageFit.Contain)
+        .padding(10)
+        .backgroundColor(Hive.Color.brandWhite)
+        .border({ width: 1, color: Hive.Color.n200, radius: 8 })
+        .onClick(() => {
+          SensorDataClient.track('deposit_insurance_tap', 'Deposit', 'deposit_insurance_tapped',
+            this.linkUrl(), 'deposit_campaign_cn', 'deposit_campaign')
+        })
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+    .backgroundColor(Hive.Color.brandWhite)
+    .onAppear(() => {
+      SensorDataClient.track('slice_impression', 'Deposit', 'DEPOSIT_INSURANCE', this.instanceId,
         'deposit_campaign_cn', 'deposit_campaign')
     })
   }

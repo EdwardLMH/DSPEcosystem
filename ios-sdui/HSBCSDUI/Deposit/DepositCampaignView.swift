@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // MARK: - SDUI payload models (Deposit Campaign page)
 
@@ -36,6 +37,10 @@ private struct DepositSlice: Decodable, Identifiable {
     }
     func array(_ key: String) -> [JSONAny]? {
         if case .array(let a) = props?[key] { return a }
+        return nil
+    }
+    func object(_ key: String) -> [String: JSONAny]? {
+        if case .object(let o) = props?[key] { return o }
         return nil
     }
 }
@@ -114,7 +119,25 @@ struct DepositCampaignView: View {
                 DepositHardcodedView(onBack: onBack)
             }
         }
-        .task { await vm.load() }
+        .task {
+            TealiumClient.track(
+                datasource: "sensorsdata_ios",
+                event: "sensorsdata_page_view",
+                category: "Deposit",
+                action: "page_viewed",
+                label: "New Fund Deposit Campaign (CN)",
+                screen: "deposit_campaign_cn",
+                journey: "deposit_campaign",
+                custom: [
+                    "provider": "SensorsData",
+                    "page_id": "deposit-campaign-cn",
+                    "market": "CN",
+                    "metric_dau": "true",
+                    "metric_mau": "true"
+                ]
+            )
+            await vm.load()
+        }
     }
 }
 
@@ -165,6 +188,9 @@ private struct DepositSliceView: View {
 
         case "DEPOSIT_FAQ":
             DepositFAQSection(slice: slice)
+
+        case "DEPOSIT_INSURANCE":
+            DepositInsuranceSection(slice: slice)
 
         case "SPACER":
             let h = slice.double("height") ?? 16
@@ -390,6 +416,66 @@ private struct DepositRateTable: View {
 private struct DepositOpenCTA: View {
     let slice: DepositSlice
 
+    private func fallbackUrl(for key: String) -> String? {
+        guard let fallback = slice.object("fallback"),
+              case .string(let url) = fallback[key] else { return nil }
+        return url
+    }
+
+    private func trackOpenDepositClick(label: String, deepLink: String) {
+        TealiumClient.track(
+            datasource: "sensorsdata_ios",
+            event: "sensorsdata_deposit_open_click",
+            category: "Deposit",
+            action: "open_deposit_clicked",
+            label: label,
+            screen: "deposit_campaign_cn",
+            journey: "deposit_campaign",
+            componentId: "dep-open-cta",
+            custom: [
+                "provider": "SensorsData",
+                "page_id": "deposit-campaign-cn",
+                "target": deepLink,
+                "metric_click_rate": "true",
+                "metric_conversion_rate": "true"
+            ]
+        )
+    }
+
+    private func trackOpenDepositConversion(label: String, deepLink: String) {
+        TealiumClient.track(
+            datasource: "sensorsdata_ios",
+            event: "sensorsdata_deposit_open_conversion",
+            category: "Deposit",
+            action: "open_deposit_deeplink_opened",
+            label: label,
+            screen: "deposit_campaign_cn",
+            journey: "deposit_campaign",
+            componentId: "dep-open-cta",
+            custom: [
+                "provider": "SensorsData",
+                "page_id": "deposit-campaign-cn",
+                "target": deepLink,
+                "metric_conversion_rate": "true"
+            ]
+        )
+    }
+
+    private func openDeposit(label: String, deepLink: String) {
+        trackOpenDepositClick(label: label, deepLink: deepLink)
+
+        guard let appUrl = URL(string: deepLink) else { return }
+        UIApplication.shared.open(appUrl, options: [:]) { opened in
+            if opened {
+                trackOpenDepositConversion(label: label, deepLink: deepLink)
+                return
+            }
+            guard let fallback = fallbackUrl(for: "ios"),
+                  let storeUrl = URL(string: fallback) else { return }
+            UIApplication.shared.open(storeUrl, options: [:])
+        }
+    }
+
     var body: some View {
         let label   = slice.string("label") ?? "Open a Deposit"
         let bgHex   = slice.string("backgroundColor") ?? "#C41E3A"
@@ -397,8 +483,7 @@ private struct DepositOpenCTA: View {
         let deepLink = slice.string("deepLink") ?? "hsbc://deposit/open"
 
         Button {
-            TealiumClient.sliceTapped(sliceType: "DEPOSIT_OPEN_CTA",
-                instanceId: "dep-open-cta", ctaLabel: label, deepLink: deepLink)
+            openDeposit(label: label, deepLink: deepLink)
         } label: {
             Text(label)
                 .font(.system(size: 16, weight: .bold))
@@ -491,6 +576,78 @@ private struct DepositFAQSection: View {
         .onAppear {
             TealiumClient.sliceImpression(sliceType: "DEPOSIT_FAQ",
                                           instanceId: "dep-faq", position: 6)
+        }
+    }
+}
+
+// MARK: - 6. Deposit Insurance
+
+private struct DepositInsuranceSection: View {
+    let slice: DepositSlice
+    @Environment(\.openURL) private var openURL
+    @StateObject private var loader = RemoteImageLoader()
+
+    #if targetEnvironment(simulator)
+    private let mediaBase = "http://127.0.0.1:4000"
+    #else
+    private let mediaBase = "http://10.81.103.103:4000"
+    #endif
+
+    private var title: String {
+        slice.string("title") ?? "存款保险"
+    }
+
+    private var logoUrl: String {
+        let raw = slice.string("logoUrl") ?? "/media/deposit-insurance-logo.jpg"
+        if raw.hasPrefix("/media/") { return "\(mediaBase)\(raw)" }
+        return raw
+            .replacingOccurrences(of: "http://localhost:4000", with: mediaBase)
+            .replacingOccurrences(of: "http://localhost", with: mediaBase)
+    }
+
+    private var linkUrl: String {
+        slice.string("linkUrl") ?? "https://www.hsbc.com.cn/content/dam/hsbc/cn/docs/insurance/insurance-prodcut-electronic-notice.pdf"
+    }
+
+    var body: some View {
+        Button {
+            TealiumClient.sliceTapped(sliceType: "DEPOSIT_INSURANCE",
+                instanceId: slice.instanceId, ctaLabel: title, deepLink: linkUrl)
+            if let url = URL(string: linkUrl) {
+                openURL(url)
+            }
+        } label: {
+            ZStack {
+                Hive.Color.brandWhite
+                if let img = loader.image {
+                    Image(uiImage: img)
+                        .resizable()
+                        .scaledToFit()
+                        .padding(10)
+                } else if loader.failed {
+                    Text(title)
+                        .font(Hive.Typography.labelBase)
+                        .foregroundColor(Hive.Color.n700)
+                        .padding(16)
+                } else {
+                    ProgressView()
+                }
+            }
+            .frame(maxWidth: .infinity, minHeight: 140, maxHeight: 140)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Hive.Color.n200, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Hive.Color.brandWhite)
+        .onAppear {
+            loader.load(from: logoUrl)
+            TealiumClient.sliceImpression(sliceType: "DEPOSIT_INSURANCE",
+                                          instanceId: slice.instanceId, position: 7)
         }
     }
 }

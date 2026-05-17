@@ -1,8 +1,11 @@
 package com.hsbc.sdui.deposit
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -53,6 +58,9 @@ data class DepositSlice(
 ) {
     fun str(key: String): String = props[key]?.toString() ?: ""
     fun bool(key: String): Boolean = props[key] as? Boolean ?: false
+
+    @Suppress("UNCHECKED_CAST")
+    fun objectMap(key: String): Map<String, Any?> = props[key] as? Map<String, Any?> ?: emptyMap()
 
     @Suppress("UNCHECKED_CAST")
     fun rateRows(): List<Pair<String, String>> {
@@ -114,8 +122,22 @@ fun DepositCampaignScreen(onBack: () -> Unit = {}) {
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        TealiumClient.track("deposit_campaign_viewed", "Deposit", "page_viewed",
-            "deposit_campaign_cn", "deposit_campaign")
+        TealiumClient.track(
+            datasource = "sensorsdata_android",
+            event = "sensorsdata_page_view",
+            category = "Deposit",
+            action = "page_viewed",
+            label = "New Fund Deposit Campaign (CN)",
+            screen = "deposit_campaign_cn",
+            journey = "deposit_campaign",
+            custom = mapOf(
+                "provider" to "SensorsData",
+                "page_id" to "deposit-campaign-cn",
+                "market" to "CN",
+                "metric_dau" to "true",
+                "metric_mau" to "true"
+            )
+        )
         scope.launch {
             loadState = try {
                 val payload = depositApi.fetchDepositCampaign()
@@ -178,6 +200,7 @@ private fun DepositSliceView(slice: DepositSlice, onBack: () -> Unit) {
         "DEPOSIT_RATE_TABLE"-> DepositRateTable(slice = slice)
         "DEPOSIT_OPEN_CTA"  -> DepositOpenCTA(slice = slice)
         "DEPOSIT_FAQ"       -> DepositFAQSection(slice = slice)
+        "DEPOSIT_INSURANCE" -> DepositInsuranceSection(slice = slice)
         "SPACER"            -> {
             val h = (slice.props["height"] as? Double)?.toInt() ?: 16
             Spacer(Modifier.height(h.dp))
@@ -325,14 +348,60 @@ private fun DepositRateTable(slice: DepositSlice) {
 
 @Composable
 private fun DepositOpenCTA(slice: DepositSlice) {
+    val context  = LocalContext.current
     val label    = slice.str("label").ifEmpty { "Open a Deposit" }
     val bgHex    = slice.str("backgroundColor").ifEmpty { "#C41E3A" }
-    val deepLink = slice.str("deepLink")
+    val deepLink = slice.str("deepLink").ifEmpty { "hsbc-cn://deposit/open?currency=CNY&campaign=new-fund" }
+    val fallback = slice.objectMap("fallback")
+    val androidFallback = fallback["android"]?.toString() ?: "https://www.hsbc.com.cn/mobile-banking/"
 
     LaunchedEffect(Unit) { TealiumClient.sliceImpression("DEPOSIT_OPEN_CTA", "dep-open-cta", 4) }
 
     Button(
-        onClick = { TealiumClient.sliceTapped("DEPOSIT_OPEN_CTA", "dep-open-cta", label, deepLink) },
+        onClick = {
+            TealiumClient.track(
+                datasource = "sensorsdata_android",
+                event = "sensorsdata_deposit_open_click",
+                category = "Deposit",
+                action = "open_deposit_clicked",
+                label = label,
+                screen = "deposit_campaign_cn",
+                journey = "deposit_campaign",
+                componentId = "dep-open-cta",
+                custom = mapOf(
+                    "provider" to "SensorsData",
+                    "page_id" to "deposit-campaign-cn",
+                    "target" to deepLink,
+                    "metric_click_rate" to "true",
+                    "metric_conversion_rate" to "true"
+                )
+            )
+            val opened = runCatching {
+                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(deepLink)))
+            }.isSuccess
+            if (opened) {
+                TealiumClient.track(
+                    datasource = "sensorsdata_android",
+                    event = "sensorsdata_deposit_open_conversion",
+                    category = "Deposit",
+                    action = "open_deposit_deeplink_opened",
+                    label = label,
+                    screen = "deposit_campaign_cn",
+                    journey = "deposit_campaign",
+                    componentId = "dep-open-cta",
+                    custom = mapOf(
+                        "provider" to "SensorsData",
+                        "page_id" to "deposit-campaign-cn",
+                        "target" to deepLink,
+                        "metric_conversion_rate" to "true"
+                    )
+                )
+            } else {
+                runCatching {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(androidFallback)))
+                }
+            }
+        },
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp).height(52.dp),
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(containerColor = parseHex(bgHex))
@@ -382,6 +451,53 @@ private fun DepositFAQSection(slice: DepositSlice) {
                 }
             }
             if (idx < items.size - 1) Divider(color = N100, modifier = Modifier.padding(start = 16.dp))
+        }
+    }
+}
+
+// ─── 6. Deposit Insurance ─────────────────────────────────────────────────────
+
+@Composable
+private fun DepositInsuranceSection(slice: DepositSlice) {
+    val uriHandler = LocalUriHandler.current
+    val title = slice.str("title").ifEmpty { "存款保险" }
+    val logoUrl = slice.str("logoUrl")
+        .ifEmpty { "/media/deposit-insurance-logo.jpg" }
+        .replace("http://localhost:4000", "http://10.0.2.2:4000")
+        .let { if (it.startsWith("/media/")) "http://10.0.2.2:4000$it" else it }
+    val linkUrl = slice.str("linkUrl").ifEmpty {
+        "https://www.hsbc.com.cn/content/dam/hsbc/cn/docs/insurance/insurance-prodcut-electronic-notice.pdf"
+    }
+
+    LaunchedEffect(Unit) {
+        TealiumClient.sliceImpression("DEPOSIT_INSURANCE", slice.instanceId, 7)
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(White)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(140.dp)
+                .clickable {
+                    TealiumClient.sliceTapped("DEPOSIT_INSURANCE", slice.instanceId, title, linkUrl)
+                    uriHandler.openUri(linkUrl)
+                },
+            shape = RoundedCornerShape(8.dp),
+            color = White,
+            tonalElevation = 0.dp,
+            border = BorderStroke(1.dp, N200)
+        ) {
+            AsyncImage(
+                model = logoUrl,
+                contentDescription = slice.str("altText").ifEmpty { title },
+                modifier = Modifier.fillMaxSize().padding(10.dp),
+                contentScale = ContentScale.Fit,
+            )
         }
     }
 }

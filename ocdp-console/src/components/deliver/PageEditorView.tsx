@@ -47,6 +47,35 @@ function utcToZonedInput(iso: string | undefined, timeZone: string) {
   return `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}`;
 }
 
+function todayInShanghai() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+  const map = Object.fromEntries(parts.filter(p => p.type !== 'literal').map(p => [p.type, p.value]));
+  return `${map.year}-${map.month}-${map.day}`;
+}
+
+function withCurrentReviewDateForDepositCampaign(slices: CanvasSlice[], pageId: string) {
+  if (pageId !== 'deposit-campaign-cn') return slices;
+  const today = todayInShanghai();
+  return slices.map(slice => {
+    if (slice.type !== 'JSON_LD_STRUCTURED_DATA') return slice;
+    const current = typeof slice.props?.lastReviewedDate === 'string' ? slice.props.lastReviewedDate : '';
+    const nextReviewedDate = current > today ? current : today;
+    const rawJsonLd = typeof slice.props?.jsonLd === 'string' ? slice.props.jsonLd : '{}';
+    let jsonLd = rawJsonLd;
+    try {
+      jsonLd = JSON.stringify({ ...JSON.parse(rawJsonLd || '{}'), dateModified: nextReviewedDate });
+    } catch {
+      jsonLd = rawJsonLd;
+    }
+    return { ...slice, props: { ...slice.props, lastReviewedDate: nextReviewedDate, jsonLd } };
+  });
+}
+
 // ─── Slice renderer (preview in canvas) ──────────────────────────────────────
 
 // Shared KYC canvas style helpers
@@ -1121,6 +1150,27 @@ function SlicePreview({ slice, segment }: { slice: CanvasSlice; segment?: string
       );
     }
 
+    case 'DEPOSIT_INSURANCE':
+      return (
+        <div style={{ ...base, padding: '10px 12px', background: '#fff' }}>
+          <div style={{ fontWeight: 700, fontSize: 11, color: '#111', marginBottom: 8 }}>{String(p.title ?? 'Deposit Insurance')}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, border: '1px solid #E5E7EB', borderRadius: 8, padding: 8 }}>
+            <img src={String(p.logoUrl ?? '/media/deposit-insurance-logo.jpg')} alt={String(p.altText ?? 'Deposit Insurance')} style={{ width: 108, height: 64, objectFit: 'contain', flexShrink: 0 }} />
+            <div style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.4, wordBreak: 'break-all' }}>{String(p.linkUrl ?? '')}</div>
+          </div>
+        </div>
+      );
+
+    case 'JSON_LD_STRUCTURED_DATA':
+    case 'SEO_STRUCTURED_DATA':
+      return (
+        <div style={{ ...base, padding: '8px 12px', background: '#EEF2FF', borderLeft: '3px solid #4F46E5' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: '#4F46E5' }}>JSON-LD Structured Data · hidden in output</div>
+          <div style={{ marginTop: 4, fontSize: 8, color: '#6B7280', lineHeight: 1.4 }}>{String(p.schemaType ?? 'schema.org/WebPage')}</div>
+          {!!p.icpText && <div style={{ marginTop: 4, fontSize: 8, color: '#6B7280' }}>{String(p.icpText)}</div>}
+        </div>
+      );
+
     case 'CAMPAIGN_HERO': {
       const accent = String(p.accentColor ?? '#C9A84C');
       const bg = String(p.bgGradient ?? 'linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%)');
@@ -2034,7 +2084,7 @@ function MetaPanel({
 interface PropField {
   key: string;
   label: string;
-  type: 'text' | 'textarea' | 'number' | 'select' | 'boolean' | 'color' | 'url';
+  type: 'text' | 'textarea' | 'number' | 'select' | 'boolean' | 'color' | 'url' | 'date';
   placeholder?: string;
   options?: { value: string; label: string }[];
 }
@@ -2369,6 +2419,22 @@ const SLICE_PROP_FIELDS: Partial<Record<string, PropField[]>> = {
   DEPOSIT_FAQ: [
     { key: 'sectionTitle', label: 'Section Title', type: 'text', placeholder: 'Frequently Asked Questions' },
   ],
+  DEPOSIT_INSURANCE: [
+    { key: 'title', label: 'Title', type: 'text', placeholder: 'Deposit Insurance' },
+    { key: 'logoUrl', label: 'Logo URL', type: 'url', placeholder: '/media/deposit-insurance-logo.jpg' },
+    { key: 'altText', label: 'Alt Text', type: 'text', placeholder: 'Deposit Insurance' },
+    { key: 'linkUrl', label: 'PDF Link URL', type: 'url', placeholder: 'https://...' },
+  ],
+  JSON_LD_STRUCTURED_DATA: [
+    { key: 'schemaType', label: 'Schema Type', type: 'text', placeholder: 'schema.org/WebPage' },
+    { key: 'lastReviewedDate', label: 'Last reviewed date', type: 'date', placeholder: 'YYYY-MM-DD' },
+    { key: 'copyrightText', label: 'Copyright', type: 'text', placeholder: '© 版权所有。汇丰银行（中国）有限公司2026' },
+    { key: 'publicSecurityText', label: 'Public Security Filing', type: 'text', placeholder: '沪公网安备 31011502400282号' },
+    { key: 'publicSecurityUrl', label: 'Public Security URL', type: 'url', placeholder: 'https://beian.mps.gov.cn/#/query/webSearch' },
+    { key: 'icpText', label: 'ICP Filing', type: 'text', placeholder: '沪ICP备15029387-3号' },
+    { key: 'icpUrl', label: 'ICP URL', type: 'url', placeholder: 'https://beian.miit.gov.cn/#/Integrated/index' },
+    { key: 'jsonLd', label: 'JSON-LD', type: 'textarea', placeholder: '{}' },
+  ],
   ANNOUNCEMENT_OVERLAY: [
     { key: 'scenario', label: 'Scenario', type: 'select', options: [
       { value: 'MAINTENANCE_NOTICE', label: 'Maintenance notice' },
@@ -2439,6 +2505,8 @@ const SLICE_LABELS: Partial<Record<string, string>> = {
   DEPOSIT_RATE_TABLE: 'Deposit Rate Table',
   DEPOSIT_OPEN_CTA: 'Button CTA',
   DEPOSIT_FAQ: 'General FAQ',
+  DEPOSIT_INSURANCE: 'Deposit Insurance',
+  JSON_LD_STRUCTURED_DATA: 'JSON-LD Structured Data · hidden in output',
   ANNOUNCEMENT_OVERLAY: 'Announcement Overlay',
   ANNOUNCEMENT_VISUAL: 'Announcement Visual',
   ANNOUNCEMENT_BODY: 'Announcement Body',
@@ -2538,7 +2606,7 @@ function PropFieldInput({ field, value, onChange }: {
 
   return (
     <input
-      type={field.type === 'number' ? 'number' : 'text'}
+      type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'}
       value={String(value ?? '')}
       onChange={e => onChange(field.type === 'number' ? Number(e.target.value) : e.target.value)}
       placeholder={field.placeholder}
@@ -4750,6 +4818,22 @@ export function PageEditorView() {
         { id: 'faq-4', question: 'Why is the interest rate higher for time deposits than regular savings accounts?', answer: 'Banks can offer better rates because they know you\'ll keep your money in the account for a fixed period. This lets them use the funds for longer-term investments, so they share more of the profit with you as interest.' },
       ],
     });
+    if (comp.sliceType === 'DEPOSIT_INSURANCE') Object.assign(defaultProps, {
+      title: 'Deposit Insurance',
+      logoUrl: '/media/deposit-insurance-logo.jpg',
+      altText: 'Deposit Insurance logo',
+      linkUrl: 'https://www.hsbc.com.cn/content/dam/hsbc/cn/docs/insurance/insurance-prodcut-electronic-notice.pdf',
+    });
+    if (comp.sliceType === 'JSON_LD_STRUCTURED_DATA') Object.assign(defaultProps, {
+      schemaType: 'schema.org/WebPage',
+      lastReviewedDate: todayInShanghai(),
+      copyrightText: '© 版权所有。汇丰银行（中国）有限公司2026',
+      publicSecurityText: '沪公网安备 31011502400282号',
+      publicSecurityUrl: 'https://beian.mps.gov.cn/#/query/webSearch',
+      icpText: '沪ICP备15029387-3号',
+      icpUrl: 'https://beian.miit.gov.cn/#/Integrated/index',
+      jsonLd: '{}',
+    });
     if (comp.sliceType === 'ANNOUNCEMENT_OVERLAY') Object.assign(defaultProps, ANNOUNCEMENT_PRESETS.special.props);
     if (comp.sliceType === 'ANNOUNCEMENT_VISUAL') Object.assign(defaultProps, {
       assetId: 'asset-ann-envelope',
@@ -4914,10 +4998,11 @@ export function PageEditorView() {
   }
 
   function saveChanges(name: string, description: string) {
+    const reviewedSlices = withCurrentReviewDateForDepositCampaign(slices, pageId);
     if (isJourneyPage) {
       dispatch({ type: 'EDIT_JOURNEY_PAGE', pageId, updates: { name, description } });
     } else {
-      dispatch({ type: 'EDIT_PAGE', pageId, updates: { name, description } });
+      dispatch({ type: 'EDIT_PAGE', pageId, updates: { name, description, slices: reviewedSlices } });
     }
     dispatch({ type: 'SHOW_TOAST', message: `"${name}" saved`, toastType: 'success' });
   }

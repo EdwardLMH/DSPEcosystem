@@ -118,6 +118,11 @@ export type SliceType =
   | 'DEPOSIT_RATE_TABLE'      // Time deposit interest rate table (rates only, no CTA)
   | 'DEPOSIT_OPEN_CTA'        // Full-width "Open a Deposit" CTA button for deposit campaigns
   | 'DEPOSIT_FAQ'             // Collapsible FAQ accordion for deposit products
+  | 'DEPOSIT_INSURANCE'       // Deposit insurance logo and compliance document link
+  | 'JSON_LD_STRUCTURED_DATA' // Hidden JSON-LD / legal structured data block for Web Standard output
+  | 'SEO_HERO_HEADER'         // SEO/AEO H1 header block
+  | 'SEO_FAQ'                 // SEO/AEO FAQ schema block
+  | 'SEO_STRUCTURED_DATA'     // Legacy hidden JSON-LD block
   | 'ANNOUNCEMENT_OVERLAY'    // Full-screen dimmed overlay for maintenance, notices, forced update and seasonal greetings
   | 'ANNOUNCEMENT_VISUAL'     // Illustration / brand visual block used by announcement pages
   | 'ANNOUNCEMENT_BODY'       // Structured announcement title, copy, hotline and preference text

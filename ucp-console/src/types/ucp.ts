@@ -43,6 +43,8 @@ export type SliceType =
   | 'DEPOSIT_RATE_TABLE'
   | 'DEPOSIT_OPEN_CTA'
   | 'DEPOSIT_FAQ'
+  | 'DEPOSIT_INSURANCE'
+  | 'JSON_LD_STRUCTURED_DATA'
   | 'ANNOUNCEMENT_OVERLAY'
   | 'ANNOUNCEMENT_VISUAL'
   | 'ANNOUNCEMENT_BODY'
@@ -109,6 +111,8 @@ export interface PageLayout {
   description?: string;
   platform: 'ios' | 'android' | 'web' | 'all';
   locale: string;
+  supportedLocales?: string[];
+  translations?: Record<string, Record<string, Record<string, string>>>;
   slices: CanvasSlice[];
   thumbnail?: string;
   tags?: string[];

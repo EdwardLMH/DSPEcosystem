@@ -12,8 +12,8 @@
     "platform": "all",
     "channel": "SDUI",
     "version": 3,
-    "publishedAt": "2026-03-22T12:15:05.884Z",
-    "generatedAt": "2026-05-17T12:34:23.554Z",
+    "publishedAt": "2026-03-22T15:27:58.089Z",
+    "generatedAt": "2026-05-17T16:13:11.686Z",
     "a11y": {
       "reduceMotion": false,
       "highContrast": false,
@@ -260,7 +260,7 @@
               "title": "Navigating Markets in 2026",
               "ctaLabel": "Register for live stream",
               "imageColor": "#1A1A2E",
-              "videoUrl": "http://localhost:4000/media/Wealth1.mp4"
+              "videoUrl": "http://127.0.0.1:4000/media/Wealth1.mp4"
             },
             {
               "id": "ws-2",
@@ -268,7 +268,7 @@
               "title": "Gold & Alternative Assets",
               "ctaLabel": "Watch now",
               "imageColor": "#0F2040",
-              "videoUrl": "http://localhost:4000/media/Wealth2.mp4"
+              "videoUrl": "http://127.0.0.1:4000/media/Wealth2.mp4"
             }
           ]
         }

@@ -7,6 +7,7 @@ interface MetaConfig {
   description?: string;
   canonicalUrl?: string;
   jsonLd?: Record<string, unknown>;
+  force?: boolean;
 }
 
 /**
@@ -18,7 +19,7 @@ export function useChannelMeta(config: MetaConfig) {
   const info = getLocaleInfo(locale);
 
   useEffect(() => {
-    if (channel !== 'WEB_STANDARD') return;
+    if (channel !== 'WEB_STANDARD' && !config.force) return;
 
     // Title
     if (config.title) document.title = config.title;
@@ -67,7 +68,7 @@ export function useChannelMeta(config: MetaConfig) {
         ...config.jsonLd,
       });
     }
-  }, [channel, locale, config.title, config.description, config.canonicalUrl]);
+  }, [channel, locale, config.title, config.description, config.canonicalUrl, config.force, JSON.stringify(config.jsonLd ?? {})]);
 }
 
 /**

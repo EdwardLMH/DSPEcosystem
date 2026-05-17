@@ -215,6 +215,25 @@ export const PALETTE_COMPONENTS: PaletteComponent[] = [
     minHeight: 200,
     configurable: ['sectionTitle', 'items'],
   },
+  {
+    sliceType: 'DEPOSIT_INSURANCE',
+    label: 'Deposit Insurance',
+    icon: '🛡️',
+    category: 'wealth',
+    description: 'Deposit insurance logo block linking to the official HSBC China electronic notice PDF',
+    minHeight: 120,
+    configurable: ['title', 'logoUrl', 'altText', 'linkUrl'],
+  },
+  {
+    sliceType: 'JSON_LD_STRUCTURED_DATA',
+    label: 'JSON-LD Structured Data · hidden in output',
+    icon: '🗂️',
+    category: 'layout',
+    description: 'Hidden structured-data and China legal filing block for Web Standard output',
+    singleton: true,
+    minHeight: 32,
+    configurable: ['schemaType', 'lastReviewedDate', 'copyrightText', 'publicSecurityText', 'publicSecurityUrl', 'icpText', 'icpUrl', 'jsonLd'],
+  },
   // ── Announcement components ────────────────────────────────────────────────
   {
     sliceType: 'ANNOUNCEMENT_OVERLAY',

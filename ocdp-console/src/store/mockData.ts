@@ -567,21 +567,71 @@ export const PAGE_FX_VIEWPOINT: PageLayout = {
   ],
 };
 
+const DEPOSIT_LEGAL_PROPS = {
+  schemaType: 'schema.org/WebPage',
+  lastReviewedDate: '2026-05-17',
+  copyrightText: '© 版权所有。汇丰银行（中国）有限公司2026',
+  publicSecurityText: '沪公网安备 31011502400282号',
+  publicSecurityUrl: 'https://beian.mps.gov.cn/#/query/webSearch',
+  icpText: '沪ICP备15029387-3号',
+  icpUrl: 'https://beian.miit.gov.cn/#/Integrated/index',
+  jsonLd: JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FinancialProduct',
+    name: '汇丰中国新资金存款优惠',
+    provider: {
+      '@type': 'BankOrCreditUnion',
+      name: '汇丰银行（中国）有限公司',
+    },
+    areaServed: 'CN',
+    category: 'Time Deposit',
+    dateModified: '2026-05-17',
+  }),
+};
+
+const DEPOSIT_INSURANCE_PROPS = {
+  title: '存款保险',
+  logoUrl: '/media/deposit-insurance-logo.jpg',
+  altText: '存款保险标识',
+  linkUrl: 'https://www.hsbc.com.cn/content/dam/hsbc/cn/docs/insurance/insurance-prodcut-electronic-notice.pdf',
+};
+
 export const PAGE_DEPOSIT_CAMPAIGN: PageLayout = {
   pageId: 'deposit-campaign-cn', name: 'New Fund Deposit Campaign (CN)',
   pageType: 'CAMPAIGN', pageTemplateId: 'tpl-deposit-campaign',
-  description: 'Renminbi Savings new fund deposit campaign — elevated time deposit rates with rate table and FAQ.',
-  nativeTargets: ['ios', 'android', 'harmonynext', 'web'], locale: 'en-CN', thumbnail: '🏦', tags: ['deposit', 'savings', 'campaign', 'renminbi', 'time-deposit'],
+  description: '汇丰中国人民币新资金定期存款优惠页面，包含利率表、常见问题、存款保险及合规备案信息。',
+  nativeTargets: ['ios', 'android', 'harmonynext', 'web'], locale: 'zh-CN', thumbnail: '🏦', tags: ['deposit', 'savings', 'campaign', 'renminbi', 'time-deposit', 'seo', 'aeo', 'sensordata'],
   channel: 'SDUI', scope: 'MARKET', marketId: 'CN',
   releaseMarketIds: ['CN'], bizLineId: 'WEALTH', groupId: 'CN-WEALTH-AD',
   isPublic: true,
   webSlug: '/cn/wealth/savings/new-fund-deposit-campaign',
-  webMetaTitle: 'New Fund Time Deposit Campaign | HSBC Bank Wealth',
-  webMetaDescription: 'Open an HSBC Renminbi time deposit today and earn up to 1.15% p.a. AER on new funds. Explore competitive rates for 3–60 month terms. Start growing your savings with HSBC Wealth now.',
-  authorCredentials: 'HSBC Wealth Management — Product Team',
+  webMetaTitle: '人民币新资金定期存款优惠 | 汇丰中国',
+  webMetaDescription: '了解汇丰中国人民币新资金定期存款优惠、参考利率、办理方式、常见问题及存款保险信息，并通过汇丰中国手机银行开立存款。',
+  authorCredentials: '汇丰中国财富管理产品团队',
   authoringStatus: 'APPROVED',
-  supportedLocales: ['en', 'zh-TW', 'zh-CN'],
-  translations: {},
+  supportedLocales: ['zh-CN', 'en'],
+  translations: {
+    en: {
+      'dep-header': { title: 'Renminbi Savings Offers' },
+      'dep-cd-rate-banner': {
+        title: 'Up to 1.15% p.a. Annual Equivalent Rate',
+        subtitle: '3-Month New Fund CNY Transferable CD exclusively for new deposits. Start earning more with HSBC China today.',
+        badgeText: 'New funds only',
+      },
+      'dep-rate-table': {
+        sectionTitle: 'Time Deposit Rates',
+        footnote: 'Minimum balance for Personal Banking customers is RMB50. New Fund refers to eligible funds newly deposited with HSBC China. Rates are for reference only and are subject to change.',
+      },
+      'dep-open-cta': { label: 'Open a Deposit' },
+      'dep-faq': { sectionTitle: 'Frequently Asked Questions' },
+      'dep-insurance': { title: 'Deposit Insurance', altText: 'Deposit Insurance logo' },
+      'dep-legal-jsonld': {
+        copyrightText: '© Copyright. HSBC Bank (China) Company Limited 2026',
+        publicSecurityText: 'Shanghai public security filing No. 31011502400282',
+        icpText: 'Shanghai ICP No. 15029387-3',
+      },
+    },
+  },
   campaignSchedule: {
     publishAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
     takedownAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 60).toISOString(),
@@ -589,7 +639,7 @@ export const PAGE_DEPOSIT_CAMPAIGN: PageLayout = {
   slices: [
     {
       instanceId: 'dep-header', type: 'HEADER_NAV', visible: true, locked: true,
-      props: { title: 'Renminbi Savings Offers', showNotificationBell: false, showQRScanner: false, showBackButton: true },
+      props: { title: '人民币存款优惠', showNotificationBell: false, showQRScanner: false, showBackButton: true },
     },
     {
       instanceId: 'dep-image-banner', type: 'PROMO_BANNER', visible: true, locked: false,
@@ -602,9 +652,9 @@ export const PAGE_DEPOSIT_CAMPAIGN: PageLayout = {
     {
       instanceId: 'dep-cd-rate-banner', type: 'PROMO_BANNER', visible: true, locked: false,
       props: {
-        title: '🌟 Up to 1.15% p.a. Annual Equivalent Rate',
-        subtitle: '3-Month New Fund CNY Transferable CD — exclusively for new deposits. Don\'t miss this limited-time rate. Start earning more today.',
-        badgeText: '🔥 New Funds Only',
+        title: '年化利率最高 1.15%',
+        subtitle: '3个月人民币新资金可转让存单优惠，适用于符合条件的新转入资金。把握限时机会，让闲置资金更有效运用。',
+        badgeText: '仅限新资金',
         backgroundColor: '#FFF7ED',
         textColor: '#92400E',
       },
@@ -612,24 +662,35 @@ export const PAGE_DEPOSIT_CAMPAIGN: PageLayout = {
     {
       instanceId: 'dep-rate-table', type: 'DEPOSIT_RATE_TABLE', visible: true, locked: false,
       props: {
-        sectionTitle: 'Time Deposit Rate:',
-        asAtDate: '5/22/2025',
+        sectionTitle: '定期存款利率',
+        asAtDate: '2025/05/22',
         rates: [
-          { term: '3 Month Time Deposit',  rate: '0.65' },
-          { term: '6 Month Time Deposit',  rate: '0.85' },
-          { term: '12 Month Time Deposit', rate: '0.95' },
-          { term: '24 Month Time Deposit', rate: '1.05' },
-          { term: '36 Month Time Deposit', rate: '1.25' },
-          { term: '60 Month Time Deposit', rate: '1.30' },
+          { term: '3个月定期存款',  rate: '0.65' },
+          { term: '6个月定期存款',  rate: '0.85' },
+          { term: '12个月定期存款', rate: '0.95' },
+          { term: '24个月定期存款', rate: '1.05' },
+          { term: '36个月定期存款', rate: '1.25' },
+          { term: '60个月定期存款', rate: '1.30' },
         ],
-        footnote: 'Time deposit minimum balance for Personal Banking customers: RMB50. New Fund refers to funds not previously held with HSBC.',
+        footnote: '个人银行客户定期存款起存金额为人民币50元。新资金指符合条件的新转入汇丰中国资金。利率仅供参考，并可能不时调整。',
       },
     },
     {
       instanceId: 'dep-open-cta', type: 'DEPOSIT_OPEN_CTA', visible: true, locked: false,
       props: {
-        label: 'Open a Deposit',
-        deepLink: 'hsbc://deposit/open?currency=CNY&campaign=new-fund',
+        label: '立即开立存款',
+        deepLink: 'hsbc-cn://deposit/open?currency=CNY&campaign=new-fund',
+        fallback: {
+          ios: 'https://apps.apple.com/cn/app/hsbc-china/id1467398731',
+          android: 'https://www.hsbc.com.cn/mobile-banking/',
+          huawei: 'appmarket://details?id=cn.com.hsbc.hsbcchina',
+          xiaomi: 'mimarket://details?id=cn.com.hsbc.hsbcchina',
+        },
+        analytics: {
+          provider: 'SensorsData',
+          events: ['deposit_open_click', 'deposit_open_conversion'],
+          metrics: ['dau', 'mau', 'click_rate', 'conversion_rate'],
+        },
         backgroundColor: '#C41E3A',
         textColor: '#FFFFFF',
       },
@@ -641,30 +702,38 @@ export const PAGE_DEPOSIT_CAMPAIGN: PageLayout = {
     {
       instanceId: 'dep-faq', type: 'DEPOSIT_FAQ', visible: true, locked: false,
       props: {
-        sectionTitle: 'Frequently Asked Questions',
+        sectionTitle: '常见问题',
         items: [
           {
             id: 'faq-1',
-            question: 'Can I withdraw my time deposit before it matures?',
-            answer: 'Yes, you can. But you\'ll earn less or no interest, and may have to pay an early withdrawal fee. For foreign currency deposits, visit a bank branch.',
+            question: '定期存款到期前可以提前支取吗？',
+            answer: '可以。提前支取可能无法享受原定利率，利息可能减少或为零，并可能产生相关费用。具体规则以汇丰中国实际办理要求为准。',
           },
           {
             id: 'faq-2',
-            question: 'What happens if I don\'t withdraw my money after maturity?',
-            answer: 'If you don\'t take out your money when it matures, most banks will automatically renew your deposit for the same term at the current interest rate. You can also choose to withdraw it or change the term before maturity.',
+            question: '到期后没有支取会怎样？',
+            answer: '您可在办理时选择到期处理方式，例如到期支取或自动续存。自动续存时通常将按续存当日适用利率执行。',
           },
           {
             id: 'faq-3',
-            question: 'How long can I keep a time deposit?',
-            answer: 'Banks usually offer terms like 3 months, 6 months, 1 year, 2 years, 3 years, 5 years, or even 10 years. Longer terms usually have higher interest rates. The most popular choices are 6-month or 12-month plans.',
+            question: '可选择哪些存期？',
+            answer: '常见存期包括3个月、6个月、12个月、24个月、36个月及60个月。不同存期对应不同利率，您可根据资金安排选择。',
           },
           {
             id: 'faq-4',
-            question: 'Why is the interest rate higher for time deposits than regular savings accounts?',
-            answer: 'Banks can offer better rates because they know you\'ll keep your money in the account for a fixed period. This lets them use the funds for longer-term investments, so they share more of the profit with you as interest.',
+            question: '为什么定期存款利率通常高于活期存款？',
+            answer: '定期存款在约定期限内保持资金稳定，因此银行通常可提供高于活期存款的利率。实际利率以办理时页面或网点公示为准。',
           },
         ],
       },
+    },
+    {
+      instanceId: 'dep-insurance', type: 'DEPOSIT_INSURANCE', visible: true, locked: false,
+      props: DEPOSIT_INSURANCE_PROPS,
+    },
+    {
+      instanceId: 'dep-legal-jsonld', type: 'JSON_LD_STRUCTURED_DATA', visible: false, locked: false,
+      props: { ...DEPOSIT_LEGAL_PROPS, hidden: true, webOnly: true, outputChannels: ['WEB_STANDARD', 'web-sdui'] },
     },
   ],
 };
@@ -1455,13 +1524,13 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
   {
     templateId: 'tpl-deposit-campaign',
     name: 'Deposit Campaign',
-    description: 'SDUI campaign page for time deposit and savings rate promotions. Includes header nav, promotional banner, structured rate table, open-deposit CTA and FAQ accordion. Follows HSBC wealth campaign standards for CN and HK markets.',
+    description: 'SDUI campaign page for China time deposit promotions. Delivered to iOS, Android, HarmonyNext and Web SDUI; web output includes hidden JSON-LD for SEO/AEO.',
     icon: '🏦',
-    channels: ['SDUI'],
+    channels: ['SDUI', 'WEB_STANDARD'],
     bizLineIds: ['WEALTH', 'MARKETING'],
     category: 'campaign',
-    seoRequired: false,
-    aeoRequired: false,
+    seoRequired: true,
+    aeoRequired: true,
     status: 'ACTIVE',
     createdAt: '2026-03-01T00:00:00Z',
     updatedAt: '2026-05-01T00:00:00Z',
@@ -1474,6 +1543,8 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
       { type: 'DEPOSIT_OPEN_CTA', props: { label: 'Open a Deposit', deepLink: 'hsbc://deposit/open', backgroundColor: '#C41E3A', textColor: '#FFFFFF' }, locked: false },
       { type: 'SPACER', props: { height: 16 }, locked: false },
       { type: 'DEPOSIT_FAQ', props: { sectionTitle: 'Frequently Asked Questions', items: [{ id: 'faq-1', question: 'What is a time deposit?', answer: 'A time deposit is a savings product with a fixed term and a guaranteed interest rate.' }, { id: 'faq-2', question: 'What is "New Fund"?', answer: 'New Fund refers to funds not previously held with HSBC.' }] }, locked: false },
+      { type: 'DEPOSIT_INSURANCE', props: DEPOSIT_INSURANCE_PROPS, locked: false },
+      { type: 'JSON_LD_STRUCTURED_DATA', props: { ...DEPOSIT_LEGAL_PROPS, hidden: true, webOnly: true, outputChannels: ['WEB_STANDARD', 'web-sdui'] }, locked: false },
     ],
   },
 ];

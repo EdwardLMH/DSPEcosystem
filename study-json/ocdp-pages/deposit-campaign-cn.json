@@ -1,0 +1,203 @@
+{
+  "schemaVersion": "3.0",
+  "pageId": "deposit-campaign-cn",
+  "screen": "deposit_campaign",
+  "ttl": 300,
+  "metadata": {
+    "pageId": "deposit-campaign-cn",
+    "locale": "zh-CN",
+    "textDir": "ltr",
+    "platform": "harmonynext",
+    "channel": "SDUI",
+    "supportedLocales": [
+      "zh-CN",
+      "en"
+    ],
+    "analytics": {
+      "provider": "SensorsData",
+      "metrics": [
+        "dau",
+        "mau",
+        "click_rate",
+        "conversion_rate"
+      ],
+      "events": [
+        "sensorsdata_page_view",
+        "sensorsdata_deposit_open_click",
+        "sensorsdata_deposit_open_conversion"
+      ]
+    },
+    "version": 1,
+    "publishedAt": "2026-05-16T16:13:11.694Z",
+    "generatedAt": "2026-05-17T16:13:11.694Z",
+    "a11y": {
+      "reduceMotion": false,
+      "highContrast": false,
+      "largeText": false,
+      "voiceOver": false,
+      "talkBack": false,
+      "screenReader": false
+    }
+  },
+  "layout": {
+    "type": "SCROLL",
+    "children": [
+      {
+        "instanceId": "dep-header",
+        "type": "HEADER_NAV",
+        "visible": true,
+        "locked": true,
+        "props": {
+          "title": "人民币存款优惠",
+          "showNotificationBell": false,
+          "showQRScanner": false,
+          "showBackButton": true
+        }
+      },
+      {
+        "instanceId": "dep-image-banner",
+        "type": "PROMO_BANNER",
+        "visible": true,
+        "locked": false,
+        "props": {
+          "imageUrl": "http://127.0.0.1:4000/media/deposit-campaign-banner.jpg",
+          "ucpAssetId": "asset-009",
+          "backgroundColor": "#FFFFFF"
+        }
+      },
+      {
+        "instanceId": "dep-cd-rate-banner",
+        "type": "PROMO_BANNER",
+        "visible": true,
+        "locked": false,
+        "props": {
+          "title": "年化利率最高 1.15%",
+          "subtitle": "3个月人民币新资金可转让存单优惠，适用于符合条件的新转入资金。把握限时机会，让闲置资金更有效运用。",
+          "badgeText": "仅限新资金",
+          "backgroundColor": "#FFF7ED",
+          "textColor": "#92400E"
+        }
+      },
+      {
+        "instanceId": "dep-rate-table",
+        "type": "DEPOSIT_RATE_TABLE",
+        "visible": true,
+        "locked": false,
+        "props": {
+          "sectionTitle": "定期存款利率",
+          "asAtDate": "2025/05/22",
+          "rates": [
+            {
+              "term": "3个月定期存款",
+              "rate": "0.65"
+            },
+            {
+              "term": "6个月定期存款",
+              "rate": "0.85"
+            },
+            {
+              "term": "12个月定期存款",
+              "rate": "0.95"
+            },
+            {
+              "term": "24个月定期存款",
+              "rate": "1.05"
+            },
+            {
+              "term": "36个月定期存款",
+              "rate": "1.25"
+            },
+            {
+              "term": "60个月定期存款",
+              "rate": "1.30"
+            }
+          ],
+          "footnote": "个人银行客户定期存款起存金额为人民币50元。新资金指符合条件的新转入汇丰中国资金。利率仅供参考，并可能不时调整。"
+        }
+      },
+      {
+        "instanceId": "dep-open-cta",
+        "type": "DEPOSIT_OPEN_CTA",
+        "visible": true,
+        "locked": false,
+        "props": {
+          "label": "立即开立存款",
+          "deepLink": "hsbc-cn://deposit/open?currency=CNY&campaign=new-fund",
+          "fallback": {
+            "ios": "https://apps.apple.com/cn/app/hsbc-china/id1467398731",
+            "android": "https://www.hsbc.com.cn/mobile-banking/",
+            "huawei": "appmarket://details?id=cn.com.hsbc.hsbcchina",
+            "xiaomi": "mimarket://details?id=cn.com.hsbc.hsbcchina"
+          },
+          "analytics": {
+            "provider": "SensorsData",
+            "events": [
+              "deposit_open_click",
+              "deposit_open_conversion"
+            ],
+            "metrics": [
+              "dau",
+              "mau",
+              "click_rate",
+              "conversion_rate"
+            ]
+          },
+          "backgroundColor": "#C41E3A",
+          "textColor": "#FFFFFF"
+        }
+      },
+      {
+        "instanceId": "dep-spacer",
+        "type": "SPACER",
+        "visible": true,
+        "locked": false,
+        "props": {
+          "height": 16
+        }
+      },
+      {
+        "instanceId": "dep-faq",
+        "type": "DEPOSIT_FAQ",
+        "visible": true,
+        "locked": false,
+        "props": {
+          "sectionTitle": "常见问题",
+          "items": [
+            {
+              "id": "faq-1",
+              "question": "定期存款到期前可以提前支取吗？",
+              "answer": "可以。提前支取可能无法享受原定利率，利息可能减少或为零，并可能产生相关费用。具体规则以汇丰中国实际办理要求为准。"
+            },
+            {
+              "id": "faq-2",
+              "question": "到期后没有支取会怎样？",
+              "answer": "您可在办理时选择到期处理方式，例如到期支取或自动续存。自动续存时通常将按续存当日适用利率执行。"
+            },
+            {
+              "id": "faq-3",
+              "question": "可选择哪些存期？",
+              "answer": "常见存期包括3个月、6个月、12个月、24个月、36个月及60个月。不同存期对应不同利率，您可根据资金安排选择。"
+            },
+            {
+              "id": "faq-4",
+              "question": "为什么定期存款利率通常高于活期存款？",
+              "answer": "定期存款在约定期限内保持资金稳定，因此银行通常可提供高于活期存款的利率。实际利率以办理时页面或网点公示为准。"
+            }
+          ]
+        }
+      },
+      {
+        "instanceId": "dep-insurance",
+        "type": "DEPOSIT_INSURANCE",
+        "visible": true,
+        "locked": false,
+        "props": {
+          "title": "存款保险",
+          "logoUrl": "http://127.0.0.1:4000/media/deposit-insurance-logo.jpg",
+          "altText": "存款保险标识",
+          "linkUrl": "https://www.hsbc.com.cn/content/dam/hsbc/cn/docs/insurance/insurance-prodcut-electronic-notice.pdf"
+        }
+      }
+    ]
+  }
+}

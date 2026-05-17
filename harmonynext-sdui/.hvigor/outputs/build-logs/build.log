@@ -9606,3 +9606,1419 @@ Require stack:
 [2026-05-17T20:13:25.948] [DEBUG] debug-file - watch worker: worker id should be larger than 0. Nothing will be sent to any worker thread.
 [2026-05-17T20:13:25.948] [DEBUG] debug-file - watch worker: worker id should be larger than 0. Nothing will be sent to any worker thread.
 [2026-05-17T20:13:25.955] [DEBUG] debug-file - worker[6] exits with exit code 1.
+[2026-05-18T00:00:13.909] [DEBUG] debug-file - env: nodejsVersion=v18.20.1
+[2026-05-18T00:00:13.922] [DEBUG] debug-file - env: daemon=true
+[2026-05-18T00:00:13.910] [DEBUG] debug-file - env: hvigor-config.json5 content = {
+  modelVersion: '6.1.0',
+  dependencies: {},
+  execution: {},
+  logging: {},
+  nodeOptions: {}
+}
+[2026-05-18T00:00:14.220] [DEBUG] debug-file - session manager: set active socket. socketId=5KuwdRoazEYRgnG-AAAB
+[2026-05-18T00:00:14.237] [DEBUG] debug-file - java daemon tryConnect success
+[2026-05-18T00:00:14.471] [DEBUG] debug-file - watch worker: worker id should be larger than 0. Nothing will be sent to any worker thread.
+[2026-05-18T00:00:14.473] [DEBUG] debug-file - Since there is no instance or instance is terminated, create a new worker pool.
+[2026-05-18T00:00:14.473] [DEBUG] debug-file - Worker pool is initialized with config:  {
+  minPoolNum: 2,
+  maxPoolNum: undefined,
+  maxCoreSize: undefined,
+  cacheCapacity: undefined,
+  cacheTtl: undefined
+}
+[2026-05-18T00:00:14.473] [DEBUG] debug-file - Create  resident worker with id: 0.
+[2026-05-18T00:00:14.475] [DEBUG] debug-file - Create  resident worker with id: 1.
+[2026-05-18T00:00:14.476] [DEBUG] debug-file - Workers' log level updated to INFO
+[2026-05-18T00:00:14.482] [DEBUG] debug-file - Hvigor init with startParameters:{
+  hvigorfileTypeCheck: false,
+  parallelExecution: true,
+  incrementalExecution: true,
+  printStackTrace: false,
+  daemon: true,
+  analyze: 0,
+  logLevel: Level { level: 20000, levelStr: 'INFO', colour: 'green' },
+  optimizationStrategy: 'memory',
+  hotCompile: undefined,
+  hotReloadBuild: undefined,
+  customizedParam: undefined
+}
+[2026-05-18T00:00:14.486] [DEBUG] debug-file - Cache service initialization finished in 4 ms 
+[2026-05-18T00:00:14.487] [DEBUG] debug-file - hvigorfile, resolving /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/hvigorfile.ts
+[2026-05-18T00:00:15.224] [DEBUG] debug-file - hvigorfile, require result:  { default: { modules: [] } }
+[2026-05-18T00:00:15.224] [DEBUG] debug-file - hvigorfile, binding system plugins null
+[2026-05-18T00:00:15.224] [DEBUG] debug-file - Starting plugin build process
+[2026-05-18T00:00:15.224] [DEBUG] debug-file - App plugin prepare start...
+[2026-05-18T00:00:15.224] [DEBUG] debug-file - App plugin prepare end...
+[2026-05-18T00:00:15.224] [DEBUG] debug-file - App plugin creating...
+[2026-05-18T00:00:15.324] [DEBUG] debug-file - App plugin register hook start...
+[2026-05-18T00:00:15.324] [DEBUG] debug-file - App plugin register hook end...
+[2026-05-18T00:00:15.324] [DEBUG] debug-file - Plugin build process completed
+[2026-05-18T00:00:15.325] [DEBUG] debug-file - Start initialize project's product build option map with build mode debug.
+[2026-05-18T00:00:15.325] [DEBUG] debug-file - Picking option from product 'default' with build mode 'debug'.
+[2026-05-18T00:00:15.325] [DEBUG] debug-file - Product 'default' build option initialized
+[2026-05-18T00:00:15.325] [DEBUG] debug-file - End initialize project's product build option map with build mode 'debug'.
+[2026-05-18T00:00:15.326] [DEBUG] debug-file - Obtain build option for product 'default'in this build.
+[2026-05-18T00:00:15.327] [DEBUG] debug-file - No signingConfig found, initRemoteHspCache failed.
+[2026-05-18T00:00:15.328] [DEBUG] debug-file - Local scan or download HarmonyOS sdk components toolchains,ets,js,native,previewer
+[2026-05-18T00:00:15.330] [DEBUG] debug-file - Local scan or download hmscore sdk components toolchains,ets,native
+[2026-05-18T00:00:15.331] [DEBUG] debug-file - Start recording SDK configuration permission data.
+[2026-05-18T00:00:15.355] [DEBUG] debug-file - Sdk init in 28 ms 
+[2026-05-18T00:00:15.357] [DEBUG] debug-file - Project task initialization takes 2 ms 
+[2026-05-18T00:00:15.358] [DEBUG] debug-file - hvigorfile, begin to bind custom plugins...
+[2026-05-18T00:00:15.358] [DEBUG] debug-file - hvigorfile, no custom plugins were found in /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/hvigorfile.ts
+[2026-05-18T00:00:15.358] [DEBUG] debug-file - hvigorfile, resolve finished /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/hvigorfile.ts
+[2026-05-18T00:00:15.358] [DEBUG] debug-file - hvigorfile, resolving /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/hvigorfile.ts
+[2026-05-18T00:00:15.362] [DEBUG] debug-file - hvigorfile, require result:  { default: {} }
+[2026-05-18T00:00:15.362] [DEBUG] debug-file - hvigorfile, binding system plugins null
+[2026-05-18T00:00:15.362] [DEBUG] debug-file - Starting plugin build process
+[2026-05-18T00:00:15.362] [DEBUG] debug-file - Hap plugin creating...
+[2026-05-18T00:00:15.363] [DEBUG] debug-file - failed to load cangjie to dynamically generate schemas: Error: Cannot find module '@ohos/cangjie-build-support/index'
+Require stack:
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/hooks/cangjie-register.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/strategy/stage-init-strategy.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/builder/abstract-plugin-builder.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/builder/app-plugin-builder.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/factory/plugin-factory.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/index.js
+- /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/hvigorfile.ts
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor/src/base/internal/lifecycle/configuration.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor/src/base/boot/index.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor/src/base/daemon/cluster/worker-process-lifecycle.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor/src/base/daemon/process/daemon-process-boot-script.js
+[2026-05-18T00:00:15.368] [DEBUG] debug-file - Start initialize module-target build option map, moduleName=entry, buildMode=debug
+[2026-05-18T00:00:15.368] [DEBUG] debug-file - Target 'default' config initialized
+[2026-05-18T00:00:15.369] [DEBUG] debug-file - Module 'entry' target 'default' build option initialized
+[2026-05-18T00:00:15.369] [DEBUG] debug-file - End initialize module-target build option map, moduleName=entry
+[2026-05-18T00:00:15.369] [DEBUG] debug-file - Start initialize module-target build option map, moduleName=entry, buildMode=release
+[2026-05-18T00:00:15.369] [DEBUG] debug-file - Target 'default' config initialized
+[2026-05-18T00:00:15.369] [DEBUG] debug-file - Module 'entry' target 'default' build option initialized
+[2026-05-18T00:00:15.369] [DEBUG] debug-file - End initialize module-target build option map, moduleName=entry
+[2026-05-18T00:00:15.369] [DEBUG] debug-file - Start initialize module-target build option map, moduleName=entry, buildMode=debug
+[2026-05-18T00:00:15.369] [DEBUG] debug-file - Target 'default' config initialized
+[2026-05-18T00:00:15.369] [DEBUG] debug-file - Module 'entry' target 'default' build option initialized
+[2026-05-18T00:00:15.369] [DEBUG] debug-file - End initialize module-target build option map, moduleName=entry
+[2026-05-18T00:00:15.369] [DEBUG] debug-file - Obtain build option for module 'entry' target 'default'in this build.
+[2026-05-18T00:00:15.372] [DEBUG] debug-file - Module entry task initialization takes 3 ms 
+[2026-05-18T00:00:15.372] [DEBUG] debug-file - Hap plugin register hook start...
+[2026-05-18T00:00:15.372] [DEBUG] debug-file - Hap plugin register hook end...
+[2026-05-18T00:00:15.372] [DEBUG] debug-file - Plugin build process completed
+[2026-05-18T00:00:15.372] [DEBUG] debug-file - hvigorfile, begin to bind custom plugins...
+[2026-05-18T00:00:15.372] [DEBUG] debug-file - hvigorfile, no custom plugins were found in /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/hvigorfile.ts
+[2026-05-18T00:00:15.372] [DEBUG] debug-file - hvigorfile, resolve finished /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/hvigorfile.ts
+[2026-05-18T00:00:15.413] [DEBUG] debug-file - hvigorfile, resolve hvigorfile dependencies in 41 ms 
+[2026-05-18T00:00:15.413] [DEBUG] debug-file - project has submodules:entry
+[2026-05-18T00:00:15.414] [DEBUG] debug-file - start to load updatedOhPackageInfo to the disk
+[2026-05-18T00:00:15.415] [DEBUG] debug-file - load to the disk finished
+[2026-05-18T00:00:15.415] [DEBUG] debug-file - Start to initialize dependency information.
+[2026-05-18T00:00:15.416] [DEBUG] debug-file - Module harmonynext-sdui Collected Dependency: 
+[2026-05-18T00:00:15.416] [DEBUG] debug-file - Module harmonynext-sdui's total dependency: 0
+[2026-05-18T00:00:15.417] [DEBUG] debug-file - Start to initialize dependency information.
+[2026-05-18T00:00:15.418] [DEBUG] debug-file - Module entry Collected Dependency: 
+[2026-05-18T00:00:15.418] [DEBUG] debug-file - Module entry's total dependency: 0
+[2026-05-18T00:00:15.420] [DEBUG] debug-file - Configuration phase cost:934 ms 
+[2026-05-18T00:00:15.421] [DEBUG] debug-file - Configuration task cost before running: 945 ms 
+[2026-05-18T00:00:15.421] [DEBUG] debug-file - Executing task :entry:init
+[2026-05-18T00:00:15.421] [DEBUG] debug-file - entry : init cost memory 0.0165252685546875
+[2026-05-18T00:00:15.421] [DEBUG] debug-file - runTaskFromQueue task cost before running: 946 ms 
+[2026-05-18T00:00:15.421] [INFO] debug-file - Finished :entry:init... after 1 ms 
+[2026-05-18T00:00:15.422] [DEBUG] debug-file - Executing task ::init
+[2026-05-18T00:00:15.422] [DEBUG] debug-file - harmonynext-sdui : init cost memory 0.014190673828125
+[2026-05-18T00:00:15.422] [DEBUG] debug-file - runTaskFromQueue task cost before running: 946 ms 
+[2026-05-18T00:00:15.422] [INFO] debug-file - Finished ::init... after 1 ms 
+[2026-05-18T00:00:15.423] [DEBUG] debug-file - Obtain build option for module 'entry' target 'default'in this build.
+[2026-05-18T00:00:15.425] [DEBUG] debug-file - Cleanup worker 0.
+[2026-05-18T00:00:15.425] [DEBUG] debug-file - Worker 0 has been cleaned up.
+[2026-05-18T00:00:15.425] [DEBUG] debug-file - Current idle worker size: 1.
+[2026-05-18T00:00:15.425] [DEBUG] debug-file - Current resident worker size: 2.
+[2026-05-18T00:00:15.425] [DEBUG] debug-file - Cleanup worker 1.
+[2026-05-18T00:00:15.425] [DEBUG] debug-file - Worker 1 has been cleaned up.
+[2026-05-18T00:00:15.425] [DEBUG] debug-file - Current idle worker size: 0.
+[2026-05-18T00:00:15.425] [DEBUG] debug-file - Current resident worker size: 2.
+[2026-05-18T00:00:15.425] [DEBUG] debug-file - hvigor build process will be closed.
+[2026-05-18T00:00:15.505] [DEBUG] debug-file - worker[0] exits with exit code 1.
+[2026-05-18T00:00:15.506] [DEBUG] debug-file - worker[1] exits with exit code 1.
+[2026-05-18T00:00:15.519] [DEBUG] debug-file - session manager: send message to worker process.
+[2026-05-18T00:00:15.519] [DEBUG] debug-file - session manager: send message to worker process.
+[2026-05-18T00:00:15.519] [DEBUG] debug-file - watch worker: worker id should be larger than 0. Nothing will be sent to any worker thread.
+[2026-05-18T00:00:15.520] [DEBUG] debug-file - watch worker: worker id should be larger than 0. Nothing will be sent to any worker thread.
+[2026-05-18T00:00:24.009] [DEBUG] debug-file - session manager: set active socket. socketId=tbWMfPumVACzeQ3sAAAD
+[2026-05-18T00:00:24.035] [DEBUG] debug-file - watch worker: worker id should be larger than 0. Nothing will be sent to any worker thread.
+[2026-05-18T00:00:24.036] [DEBUG] debug-file - Workers' log level updated to INFO
+[2026-05-18T00:00:24.045] [DEBUG] debug-file - Hvigor init with startParameters:{
+  hvigorfileTypeCheck: false,
+  parallelExecution: true,
+  incrementalExecution: true,
+  printStackTrace: false,
+  daemon: true,
+  analyze: 0,
+  logLevel: Level { level: 20000, levelStr: 'INFO', colour: 'green' },
+  optimizationStrategy: 'memory',
+  hotCompile: undefined,
+  hotReloadBuild: undefined,
+  customizedParam: undefined
+}
+[2026-05-18T00:00:24.064] [DEBUG] debug-file - Cache service initialization finished in 20 ms 
+[2026-05-18T00:00:24.066] [DEBUG] debug-file - hvigorfile, resolving /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/hvigorfile.ts
+[2026-05-18T00:00:24.077] [DEBUG] debug-file - hvigorfile, require result:  { default: { modules: [] } }
+[2026-05-18T00:00:24.078] [DEBUG] debug-file - hvigorfile, binding system plugins null
+[2026-05-18T00:00:24.082] [DEBUG] debug-file - Starting plugin build process
+[2026-05-18T00:00:24.083] [DEBUG] debug-file - App plugin prepare start...
+[2026-05-18T00:00:24.083] [DEBUG] debug-file - App plugin prepare end...
+[2026-05-18T00:00:24.083] [DEBUG] debug-file - App plugin creating...
+[2026-05-18T00:00:24.091] [DEBUG] debug-file - App plugin register hook start...
+[2026-05-18T00:00:24.091] [DEBUG] debug-file - App plugin register hook end...
+[2026-05-18T00:00:24.091] [DEBUG] debug-file - Plugin build process completed
+[2026-05-18T00:00:24.092] [DEBUG] debug-file - Start initialize project's product build option map with build mode debug.
+[2026-05-18T00:00:24.092] [DEBUG] debug-file - Picking option from product 'default' with build mode 'debug'.
+[2026-05-18T00:00:24.093] [DEBUG] debug-file - Product 'default' build option initialized
+[2026-05-18T00:00:24.093] [DEBUG] debug-file - End initialize project's product build option map with build mode 'debug'.
+[2026-05-18T00:00:24.098] [DEBUG] debug-file - Obtain build option for product 'default'in this build.
+[2026-05-18T00:00:24.100] [DEBUG] debug-file - No signingConfig found, initRemoteHspCache failed.
+[2026-05-18T00:00:24.106] [DEBUG] debug-file - Start recording SDK configuration permission data.
+[2026-05-18T00:00:24.273] [DEBUG] debug-file - Sdk init in 172 ms 
+[2026-05-18T00:00:24.294] [DEBUG] debug-file - Project task initialization takes 15 ms 
+[2026-05-18T00:00:24.295] [DEBUG] debug-file - hvigorfile, begin to bind custom plugins...
+[2026-05-18T00:00:24.295] [DEBUG] debug-file - hvigorfile, no custom plugins were found in /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/hvigorfile.ts
+[2026-05-18T00:00:24.295] [DEBUG] debug-file - hvigorfile, resolve finished /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/hvigorfile.ts
+[2026-05-18T00:00:24.295] [DEBUG] debug-file - hvigorfile, resolving /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/hvigorfile.ts
+[2026-05-18T00:00:24.301] [DEBUG] debug-file - hvigorfile, require result:  { default: {} }
+[2026-05-18T00:00:24.301] [DEBUG] debug-file - hvigorfile, binding system plugins null
+[2026-05-18T00:00:24.301] [DEBUG] debug-file - Starting plugin build process
+[2026-05-18T00:00:24.301] [DEBUG] debug-file - Hap plugin creating...
+[2026-05-18T00:00:24.301] [DEBUG] debug-file - failed to load cangjie to dynamically generate schemas: Error: Cannot find module '@ohos/cangjie-build-support/index'
+Require stack:
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/hooks/cangjie-register.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/strategy/stage-init-strategy.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/builder/abstract-plugin-builder.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/builder/app-plugin-builder.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/factory/plugin-factory.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/index.js
+- /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/hvigorfile.ts
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor/src/base/internal/lifecycle/configuration.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor/src/base/boot/index.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor/src/base/daemon/cluster/worker-process-lifecycle.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor/src/base/daemon/process/daemon-process-boot-script.js
+[2026-05-18T00:00:24.303] [DEBUG] debug-file - Start initialize module-target build option map, moduleName=entry, buildMode=debug
+[2026-05-18T00:00:24.303] [DEBUG] debug-file - Target 'default' config initialized
+[2026-05-18T00:00:24.303] [DEBUG] debug-file - Module 'entry' target 'default' build option initialized
+[2026-05-18T00:00:24.303] [DEBUG] debug-file - End initialize module-target build option map, moduleName=entry
+[2026-05-18T00:00:24.303] [DEBUG] debug-file - Start initialize module-target build option map, moduleName=entry, buildMode=release
+[2026-05-18T00:00:24.303] [DEBUG] debug-file - Target 'default' config initialized
+[2026-05-18T00:00:24.303] [DEBUG] debug-file - Module 'entry' target 'default' build option initialized
+[2026-05-18T00:00:24.303] [DEBUG] debug-file - End initialize module-target build option map, moduleName=entry
+[2026-05-18T00:00:24.303] [DEBUG] debug-file - Start initialize module-target build option map, moduleName=entry, buildMode=debug
+[2026-05-18T00:00:24.303] [DEBUG] debug-file - Target 'default' config initialized
+[2026-05-18T00:00:24.303] [DEBUG] debug-file - Module 'entry' target 'default' build option initialized
+[2026-05-18T00:00:24.303] [DEBUG] debug-file - End initialize module-target build option map, moduleName=entry
+[2026-05-18T00:00:24.303] [DEBUG] debug-file - Obtain build option for module 'entry' target 'default'in this build.
+[2026-05-18T00:00:24.304] [DEBUG] debug-file - Module entry task initialization takes 1 ms 
+[2026-05-18T00:00:24.305] [DEBUG] debug-file - Hap plugin register hook start...
+[2026-05-18T00:00:24.305] [DEBUG] debug-file - Hap plugin register hook end...
+[2026-05-18T00:00:24.305] [DEBUG] debug-file - Plugin build process completed
+[2026-05-18T00:00:24.305] [DEBUG] debug-file - hvigorfile, begin to bind custom plugins...
+[2026-05-18T00:00:24.305] [DEBUG] debug-file - hvigorfile, no custom plugins were found in /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/hvigorfile.ts
+[2026-05-18T00:00:24.305] [DEBUG] debug-file - hvigorfile, resolve finished /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/hvigorfile.ts
+[2026-05-18T00:00:24.434] [DEBUG] debug-file - hvigorfile, resolve hvigorfile dependencies in 129 ms 
+[2026-05-18T00:00:24.434] [DEBUG] debug-file - project has submodules:entry
+[2026-05-18T00:00:24.438] [DEBUG] debug-file - start to load updatedOhPackageInfo to the disk
+[2026-05-18T00:00:24.442] [DEBUG] debug-file - load to the disk finished
+[2026-05-18T00:00:24.443] [DEBUG] debug-file - Start to initialize dependency information.
+[2026-05-18T00:00:24.444] [DEBUG] debug-file - Module harmonynext-sdui Collected Dependency: 
+[2026-05-18T00:00:24.444] [DEBUG] debug-file - Module harmonynext-sdui's total dependency: 0
+[2026-05-18T00:00:24.444] [DEBUG] debug-file - Start to initialize dependency information.
+[2026-05-18T00:00:24.445] [DEBUG] debug-file - Module entry Collected Dependency: 
+[2026-05-18T00:00:24.445] [DEBUG] debug-file - Module entry's total dependency: 0
+[2026-05-18T00:00:24.446] [DEBUG] debug-file - Configuration phase cost:380 ms 
+[2026-05-18T00:00:24.448] [DEBUG] debug-file - Configuration task cost before running: 412 ms 
+[2026-05-18T00:00:24.459] [DEBUG] debug-file - Executing task :entry:default@PreBuild
+[2026-05-18T00:00:24.462] [DEBUG] debug-file - Task 'entry:default@PreBuild' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:00:24.473] [DEBUG] debug-file - Incremental task entry:default@PreBuild pre-execution cost: 7 ms .
+[2026-05-18T00:00:24.473] [DEBUG] debug-file - entry : default@PreBuild cost memory 0.259521484375
+[2026-05-18T00:00:24.475] [INFO] debug-file - UP-TO-DATE :entry:default@PreBuild...  
+[2026-05-18T00:00:24.477] [DEBUG] debug-file - Executing task :entry:default@CreateModuleInfo
+[2026-05-18T00:00:24.478] [DEBUG] debug-file - Task 'entry:default@CreateModuleInfo' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:00:24.478] [DEBUG] debug-file - entry : default@CreateModuleInfo cost memory 0.0404205322265625
+[2026-05-18T00:00:24.478] [DEBUG] debug-file - runTaskFromQueue task cost before running: 443 ms 
+[2026-05-18T00:00:24.478] [INFO] debug-file - Finished :entry:default@CreateModuleInfo... after 2 ms 
+[2026-05-18T00:00:24.480] [DEBUG] debug-file - Executing task :entry:default@GenerateMetadata
+[2026-05-18T00:00:24.481] [DEBUG] debug-file - Task 'entry:default@GenerateMetadata' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:00:24.483] [DEBUG] debug-file - Incremental task entry:default@GenerateMetadata pre-execution cost: 3 ms .
+[2026-05-18T00:00:24.483] [DEBUG] debug-file - entry : default@GenerateMetadata cost memory 0.0785980224609375
+[2026-05-18T00:00:24.484] [INFO] debug-file - UP-TO-DATE :entry:default@GenerateMetadata...  
+[2026-05-18T00:00:24.485] [DEBUG] debug-file - Executing task :entry:default@ConfigureCmake
+[2026-05-18T00:00:24.485] [DEBUG] debug-file - entry : default@ConfigureCmake cost memory 0.0146636962890625
+[2026-05-18T00:00:24.485] [DEBUG] debug-file - runTaskFromQueue task cost before running: 450 ms 
+[2026-05-18T00:00:24.486] [INFO] debug-file - Finished :entry:default@ConfigureCmake... after 1 ms 
+[2026-05-18T00:00:24.487] [DEBUG] debug-file - Executing task :entry:default@MergeProfile
+[2026-05-18T00:00:24.487] [DEBUG] debug-file - Task 'entry:default@MergeProfile' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:00:24.490] [DEBUG] debug-file - Incremental task entry:default@MergeProfile pre-execution cost: 2 ms .
+[2026-05-18T00:00:24.490] [DEBUG] debug-file - entry : default@MergeProfile cost memory 0.3671112060546875
+[2026-05-18T00:00:24.491] [INFO] debug-file - UP-TO-DATE :entry:default@MergeProfile...  
+[2026-05-18T00:00:24.492] [DEBUG] debug-file - Executing task :entry:default@CreateBuildProfile
+[2026-05-18T00:00:24.493] [DEBUG] debug-file - Task 'entry:default@CreateBuildProfile' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:00:24.496] [DEBUG] debug-file - Incremental task entry:default@CreateBuildProfile pre-execution cost: 2 ms .
+[2026-05-18T00:00:24.497] [DEBUG] debug-file - entry : default@CreateBuildProfile cost memory 0.09527587890625
+[2026-05-18T00:00:24.497] [INFO] debug-file - UP-TO-DATE :entry:default@CreateBuildProfile...  
+[2026-05-18T00:00:24.499] [DEBUG] debug-file - Executing task :entry:default@PreCheckSyscap
+[2026-05-18T00:00:24.499] [DEBUG] debug-file - entry : default@PreCheckSyscap cost memory 0.01750946044921875
+[2026-05-18T00:00:24.499] [DEBUG] debug-file - runTaskFromQueue task cost before running: 464 ms 
+[2026-05-18T00:00:24.500] [INFO] debug-file - Finished :entry:default@PreCheckSyscap... after 1 ms 
+[2026-05-18T00:00:24.501] [DEBUG] debug-file - Executing task :entry:default@GeneratePkgContextInfo
+[2026-05-18T00:00:24.509] [DEBUG] debug-file - Task 'entry:default@GeneratePkgContextInfo' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:00:24.510] [DEBUG] debug-file - Incremental task entry:default@GeneratePkgContextInfo pre-execution cost: 1 ms .
+[2026-05-18T00:00:24.510] [DEBUG] debug-file - entry : default@GeneratePkgContextInfo cost memory 0.26753997802734375
+[2026-05-18T00:00:24.511] [INFO] debug-file - UP-TO-DATE :entry:default@GeneratePkgContextInfo...  
+[2026-05-18T00:00:24.512] [DEBUG] debug-file - Executing task :entry:default@GeneratePkgSdkInfo
+[2026-05-18T00:00:24.513] [DEBUG] debug-file - Task 'entry:default@GeneratePkgSdkInfo' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:00:24.513] [DEBUG] debug-file - entry : default@GeneratePkgSdkInfo cost memory 0.08349609375
+[2026-05-18T00:00:24.513] [DEBUG] debug-file - runTaskFromQueue task cost before running: 478 ms 
+[2026-05-18T00:00:24.517] [INFO] debug-file - Finished :entry:default@GeneratePkgSdkInfo... after 2 ms 
+[2026-05-18T00:00:24.521] [DEBUG] debug-file - Executing task :entry:default@ProcessIntegratedHsp
+[2026-05-18T00:00:24.521] [DEBUG] debug-file - entry:default@ProcessIntegratedHsp is not up-to-date, since the output file '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/build/cache/default/integrated_hsp/integratedHspCache.json' does not exist.
+[2026-05-18T00:00:24.521] [DEBUG] debug-file - Incremental task entry:default@ProcessIntegratedHsp pre-execution cost: 1 ms .
+[2026-05-18T00:00:24.522] [DEBUG] debug-file - entry : default@ProcessIntegratedHsp cost memory 0.05782318115234375
+[2026-05-18T00:00:24.522] [DEBUG] debug-file - runTaskFromQueue task cost before running: 486 ms 
+[2026-05-18T00:00:24.522] [INFO] debug-file - Finished :entry:default@ProcessIntegratedHsp... after 2 ms 
+[2026-05-18T00:00:24.523] [DEBUG] debug-file - Executing task :entry:default@BuildNativeWithCmake
+[2026-05-18T00:00:24.523] [DEBUG] debug-file - entry : default@BuildNativeWithCmake cost memory 0.014556884765625
+[2026-05-18T00:00:24.523] [DEBUG] debug-file - runTaskFromQueue task cost before running: 487 ms 
+[2026-05-18T00:00:24.523] [INFO] debug-file - Finished :entry:default@BuildNativeWithCmake... after 1 ms 
+[2026-05-18T00:00:24.524] [DEBUG] debug-file - Executing task :entry:default@MakePackInfo
+[2026-05-18T00:00:24.526] [DEBUG] debug-file - Incremental task entry:default@MakePackInfo pre-execution cost: 1 ms .
+[2026-05-18T00:00:24.526] [DEBUG] debug-file - entry : default@MakePackInfo cost memory 0.09719085693359375
+[2026-05-18T00:00:24.526] [INFO] debug-file - UP-TO-DATE :entry:default@MakePackInfo...  
+[2026-05-18T00:00:24.527] [DEBUG] debug-file - Executing task :entry:default@SyscapTransform
+[2026-05-18T00:00:24.527] [DEBUG] debug-file - File: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/syscap.json' from 'sysCapJsonPath' is not exists, just ignore.
+[2026-05-18T00:00:24.528] [DEBUG] debug-file - Task 'entry:default@SyscapTransform' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:00:24.541] [DEBUG] debug-file - entry:default@SyscapTransform is not up-to-date, since the output file '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/syscap/default/rpcid.sc' does not exist.
+[2026-05-18T00:00:24.542] [DEBUG] debug-file - Incremental task entry:default@SyscapTransform pre-execution cost: 14 ms .
+[2026-05-18T00:00:24.542] [DEBUG] debug-file - entry : default@SyscapTransform cost memory 0.11420440673828125
+[2026-05-18T00:00:24.542] [DEBUG] debug-file - runTaskFromQueue task cost before running: 507 ms 
+[2026-05-18T00:00:24.542] [INFO] debug-file - Finished :entry:default@SyscapTransform... after 15 ms 
+[2026-05-18T00:00:24.544] [DEBUG] debug-file - Executing task :entry:default@ProcessProfile
+[2026-05-18T00:00:24.545] [DEBUG] debug-file - Task 'entry:default@ProcessProfile' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:00:24.545] [DEBUG] debug-file - Incremental task entry:default@ProcessProfile pre-execution cost: 1 ms .
+[2026-05-18T00:00:24.546] [DEBUG] debug-file - entry : default@ProcessProfile cost memory 0.1151275634765625
+[2026-05-18T00:00:24.546] [INFO] debug-file - UP-TO-DATE :entry:default@ProcessProfile...  
+[2026-05-18T00:00:24.546] [DEBUG] debug-file - Executing task :entry:default@ProcessRouterMap
+[2026-05-18T00:00:24.548] [DEBUG] debug-file - Incremental task entry:default@ProcessRouterMap pre-execution cost: 1 ms .
+[2026-05-18T00:00:24.548] [DEBUG] debug-file - entry : default@ProcessRouterMap cost memory 0.13336181640625
+[2026-05-18T00:00:24.548] [INFO] debug-file - UP-TO-DATE :entry:default@ProcessRouterMap...  
+[2026-05-18T00:00:24.550] [DEBUG] debug-file - Executing task :entry:default@ProcessShareConfig
+[2026-05-18T00:00:24.552] [DEBUG] debug-file - Incremental task entry:default@ProcessShareConfig pre-execution cost: 1 ms .
+[2026-05-18T00:00:24.552] [DEBUG] debug-file - entry : default@ProcessShareConfig cost memory 0.11522674560546875
+[2026-05-18T00:00:24.552] [INFO] debug-file - UP-TO-DATE :entry:default@ProcessShareConfig...  
+[2026-05-18T00:00:24.553] [DEBUG] debug-file - Executing task :entry:default@ProcessStartupConfig
+[2026-05-18T00:00:24.553] [DEBUG] debug-file - Task 'entry:default@ProcessStartupConfig' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:00:24.554] [DEBUG] debug-file - entry:default@ProcessStartupConfig is not up-to-date, since the output file '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/startup/default/startup_config.json' does not exist.
+[2026-05-18T00:00:24.554] [DEBUG] debug-file - Incremental task entry:default@ProcessStartupConfig pre-execution cost: 1 ms .
+[2026-05-18T00:00:24.555] [DEBUG] debug-file - entry : default@ProcessStartupConfig cost memory 0.1188201904296875
+[2026-05-18T00:00:24.555] [DEBUG] debug-file - runTaskFromQueue task cost before running: 520 ms 
+[2026-05-18T00:00:24.556] [INFO] debug-file - Finished :entry:default@ProcessStartupConfig... after 3 ms 
+[2026-05-18T00:00:24.558] [DEBUG] debug-file - Executing task :entry:default@BuildNativeWithNinja
+[2026-05-18T00:00:24.558] [DEBUG] debug-file - entry : default@BuildNativeWithNinja cost memory 0.02019500732421875
+[2026-05-18T00:00:24.558] [DEBUG] debug-file - runTaskFromQueue task cost before running: 523 ms 
+[2026-05-18T00:00:24.559] [INFO] debug-file - Finished :entry:default@BuildNativeWithNinja... after 1 ms 
+[2026-05-18T00:00:24.563] [DEBUG] debug-file - restool module names: entry; moduleName=entry, taskName=default@ProcessResource
+[2026-05-18T00:00:24.566] [DEBUG] debug-file - Executing task :entry:default@ProcessResource
+[2026-05-18T00:00:24.566] [DEBUG] debug-file - Task 'entry:default@ProcessResource' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:00:24.566] [DEBUG] debug-file - Incremental task entry:default@ProcessResource pre-execution cost: 1 ms .
+[2026-05-18T00:00:24.567] [DEBUG] debug-file - entry : default@ProcessResource cost memory 0.25030517578125
+[2026-05-18T00:00:24.568] [INFO] debug-file - UP-TO-DATE :entry:default@ProcessResource...  
+[2026-05-18T00:00:24.570] [DEBUG] debug-file - Executing task :entry:default@GenerateLoaderJson
+[2026-05-18T00:00:24.570] [DEBUG] debug-file - Task 'entry:default@GenerateLoaderJson' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:00:24.575] [DEBUG] debug-file - Incremental task entry:default@GenerateLoaderJson pre-execution cost: 4 ms .
+[2026-05-18T00:00:24.576] [DEBUG] debug-file - entry : default@GenerateLoaderJson cost memory 0.43863677978515625
+[2026-05-18T00:00:24.577] [INFO] debug-file - UP-TO-DATE :entry:default@GenerateLoaderJson...  
+[2026-05-18T00:00:24.577] [DEBUG] debug-file - Executing task :entry:default@ProcessLibs
+[2026-05-18T00:00:24.579] [DEBUG] debug-file - Incremental task entry:default@ProcessLibs pre-execution cost: 1 ms .
+[2026-05-18T00:00:24.580] [DEBUG] debug-file - entry : default@ProcessLibs cost memory 0.08170318603515625
+[2026-05-18T00:00:24.580] [INFO] debug-file - UP-TO-DATE :entry:default@ProcessLibs...  
+[2026-05-18T00:00:24.581] [DEBUG] debug-file - restool module names: entry; moduleName=entry, taskName=default@CompileResource
+[2026-05-18T00:00:24.583] [DEBUG] debug-file - Executing task :entry:default@CompileResource
+[2026-05-18T00:00:24.591] [DEBUG] debug-file - Incremental task entry:default@CompileResource pre-execution cost: 5 ms .
+[2026-05-18T00:00:24.591] [DEBUG] debug-file - entry : default@CompileResource cost memory 0.32977294921875
+[2026-05-18T00:00:24.592] [INFO] debug-file - UP-TO-DATE :entry:default@CompileResource...  
+[2026-05-18T00:00:24.594] [DEBUG] debug-file - Executing task :entry:default@DoNativeStrip
+[2026-05-18T00:00:24.595] [DEBUG] debug-file - File: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/binxo/default' from 'doBinxoNativeLibs' is not exists, just ignore.
+[2026-05-18T00:00:24.595] [DEBUG] debug-file - Task 'entry:default@DoNativeStrip' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:00:24.596] [DEBUG] debug-file - Incremental task entry:default@DoNativeStrip pre-execution cost: 1 ms .
+[2026-05-18T00:00:24.596] [DEBUG] debug-file - entry : default@DoNativeStrip cost memory 0.0782012939453125
+[2026-05-18T00:00:24.597] [INFO] debug-file - UP-TO-DATE :entry:default@DoNativeStrip...  
+[2026-05-18T00:00:24.598] [DEBUG] debug-file - Executing task :entry:default@CompileArkTS
+[2026-05-18T00:00:24.601] [DEBUG] debug-file - obfuscationOptions: undefined
+[2026-05-18T00:00:24.605] [DEBUG] debug-file - Task 'entry:default@CompileArkTS' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:00:24.610] [DEBUG] debug-file - entry:default@CompileArkTS is not up-to-date, since the input file '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets' has been changed.
+[2026-05-18T00:00:24.611] [DEBUG] debug-file - Incremental task entry:default@CompileArkTS pre-execution cost: 5 ms .
+[2026-05-18T00:00:24.682] [DEBUG] debug-file - build config:
+[2026-05-18T00:00:24.683] [DEBUG] debug-file - {
+  moduleType: 'entry',
+  perf: 0,
+  targetName: '.default',
+  packageManagerType: 'ohpm',
+  localPropertiesPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/local.properties',
+  isPreview: false,
+  isOhosTest: false,
+  isLocalTest: false,
+  buildMode: 'Debug',
+  hotReloadBuild: undefined,
+  watchMode: 'false',
+  aceProfilePath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/resources/base/profile',
+  etsLoaderPath: '/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/build-tools/ets-loader',
+  modulePath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry',
+  testFrameworkPar: {
+    testMode: undefined,
+    coveragePathFilter: undefined,
+    coverageMode: undefined
+  },
+  needCoverageInsert: false,
+  debugLine: false,
+  projectTopDir: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui',
+  compileSdkVersion: 23,
+  compatibleSdkVersion: 23,
+  originCompatibleSdkVersion: '6.1.0(23)',
+  compatibleSdkVersionStage: undefined,
+  bundleName: 'c***i',
+  etsLoaderVersion: '6.1.0.105',
+  etsLoaderReleaseType: 'Release',
+  aotCompileMode: 'type',
+  apPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/modules.ap',
+  entryModuleName: 'entry',
+  entryModuleVersion: '1.0.0',
+  entryPackageName: 'entry',
+  allModuleNameHash: '5ae6dbb62e21ba1033e632315c1b234d364db8f267129118e48b470b1f1a26e0',
+  externalApiPaths: [ '/Applications/DevEco-Studio.app/Contents/sdk/default/hms/ets' ],
+  compilerTypes: [],
+  isCrossplatform: false,
+  hvigorPluginFile: undefined,
+  compilePluginPath: undefined,
+  buildGeneratedProfilePath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/generated/profile/default',
+  bundleType: 'app',
+  arkTSVersion: undefined,
+  apiVersion: 23,
+  needCompleteSourcesMap: false,
+  isFaMode: false,
+  buildDir: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build',
+  deviceTypes: [ 'phone' ],
+  pkgContextInfo: {
+    entry: {
+      packageName: 'entry',
+      bundleName: '*****',
+      moduleName: '',
+      version: '',
+      entryPath: 'src/main/',
+      isSO: false,
+      dependencyAlias: ''
+    }
+  },
+  ohPackagePathMap: {},
+  dependencyAliasMap: {},
+  permission: {
+    requestPermissions: [ [Object], [Object] ],
+    definePermissions: undefined
+  },
+  useGetCurrentBundleName: false,
+  projectArkOption: undefined,
+  sourceMapDir: undefined,
+  branchElimination: false,
+  transformLib: undefined,
+  tsImportSendable: false,
+  resolveConflictMode: true,
+  depName2RootPath: {},
+  depName2DepInfo: {},
+  depName2OhExports: {},
+  rootPathSet: [ '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui' ],
+  useNativeResolver: true,
+  shouldEmitJs: true,
+  useTscResolve: false,
+  singleFileEmit: false,
+  userProjectConfig: {
+    autoLazyImport: false,
+    allowEmptyBundleName: false,
+    reExportCheckMode: 'noCheck',
+    executionMode: 'memory',
+    usePathPlaceholder: false,
+    writeRollupCache: true,
+    isExpandImportEnabled: false,
+    expandImportExclude: '',
+    lazyImportExclude: '',
+    lazyImportInclude: '',
+    ignoreCrossplatformCheck: false,
+    isHarDeduplicateEnabled: false,
+    skipOhModulesLint: false,
+    enableStrictCheckOHModule: false,
+    disableSendableCheckRules: [],
+    useDeclarationFileSignature: false,
+    customizedOptions: undefined,
+    integratedHsp: false,
+    isPreloadSoEnabled: false
+  },
+  executionMode: 'memory',
+  arkCompileCachePath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/cache/default/default@CompileArkTS/esmodule',
+  autoLazyFilter: undefined,
+  isHarDeduplicateEnabled: false,
+  intermediateHarDuplicateDirPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/har_duplicate/default',
+  autoLazyImport: false,
+  allowEmptyBundleName: false,
+  reExportCheckMode: 'noCheck',
+  usePathPlaceholder: false,
+  writeRollupCache: true,
+  isExpandImportEnabled: false,
+  expandImportExclude: '',
+  lazyImportExclude: '',
+  lazyImportInclude: '',
+  ignoreCrossplatformCheck: false,
+  skipOhModulesLint: false,
+  enableStrictCheckOHModule: false,
+  disableSendableCheckRules: [],
+  useDeclarationFileSignature: false,
+  customizedOptions: undefined,
+  integratedHsp: false,
+  isPreloadSoEnabled: false,
+  strictMode: {
+    caseSensitiveCheck: true,
+    useNormalizedOHMUrl: true,
+    noExternalImportByPath: true
+  },
+  useNormalizedOHMUrl: true,
+  caseSensitiveCheck: true,
+  aceModuleJsonPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/ark_module.json',
+  appResource: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/ResourceTable.txt',
+  rawFileResource: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/resources/rawfile',
+  resourceTableHash: '3a6316ca081d1a49e58361b290c05f6587a3e1ac83886471cf6e354968717ce3',
+  runtimeOS: 'HarmonyOS',
+  sdkInfo: 'false:23:6.1.0.105:Release',
+  aceModuleRoot: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets',
+  compileMode: 'esmodule',
+  aceSuperVisualPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/supervisual',
+  aceBuildJson: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader/default/loader.json',
+  cachePath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/cache/default/default@CompileArkTS/esmodule/debug',
+  aceModuleBuild: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader_out/default/ets',
+  supportChunks: true,
+  declaredFilesPath: undefined,
+  shouldCollectDirectImportees: false,
+  isByteCodeHarOptimize: false,
+  expandImportPath: undefined,
+  resourceTableTs: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/generated/r/default/ResourceTable.ts',
+  moduleMetaInfoFiles: [
+    {
+      filePath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/generated/r/default/ResourceTable.ts',
+      ohmurl: '&entry/build/generated/r/ResourceTable&'
+    }
+  ],
+  pkgNameToPkgBriefInfo: {
+    entry: {
+      pkgRoot: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry',
+      originalSourceRoots: undefined,
+      sourceRoots: [Array],
+      pkgName: 'entry'
+    }
+  },
+  projectModel: {
+    '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main': {
+      moduleName: 'entry',
+      modulePkgPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry',
+      belongProjectPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui'
+    },
+    '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry': {
+      moduleName: 'entry',
+      modulePkgPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry',
+      belongProjectPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui'
+    },
+    '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui': {
+      moduleName: 'harmonynext-sdui',
+      modulePkgPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui',
+      belongProjectPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui'
+    }
+  },
+  pkgJsonFileHash: '708b1a12259422158f3dea295fa5c55c4be3f5fde2bb85bec44a25e8b9a84213',
+  allModulePaths: [ '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry' ],
+  routerMap: {},
+  obfuscationOptions: undefined,
+  byteCodeHarToDependencyKeys: undefined,
+  compileBlockPkg: [],
+  mockParams: {
+    decorator: '@MockSetup',
+    packageName: '@ohos/hamock',
+    etsSourceRootPath: 'src/main/ets',
+    mockConfigPath: undefined,
+    mockConfigKey2ModuleInfo: {},
+    source2ModuleIdMap: {}
+  },
+  copyCodeResourceEnable: true,
+  copyCodeResourceExcludes: [],
+  copyCodeResourceIncludes: undefined,
+  uiTransformOptimization: false,
+  sdkPath: '/Applications/DevEco-Studio.app/Contents/sdk',
+  needPreloadSoFileSet: {},
+  preloadSoFilePath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/preload/default/preload.json',
+  useSourceHash: false,
+  localModuleParamMap: {},
+  otherPaths: {
+    'entry/*': [ '../*', '../../../build/default/generated/profile/default/*' ]
+  },
+  collectImportersConfig: undefined
+}
+[2026-05-18T00:00:24.684] [DEBUG] debug-file - Compile arkts with external api path: /Applications/DevEco-Studio.app/Contents/sdk/default/hms/ets
+[2026-05-18T00:00:24.688] [DEBUG] debug-file - default@CompileArkTS work[0] is submitted.
+[2026-05-18T00:00:24.689] [DEBUG] debug-file - default@CompileArkTS work[0] is pushed to ready queue.
+[2026-05-18T00:00:24.689] [DEBUG] debug-file - default@CompileArkTS work[0] is not dispatched.
+[2026-05-18T00:00:24.690] [DEBUG] debug-file - CopyResources startTime: 3067140657219375
+[2026-05-18T00:00:24.690] [DEBUG] debug-file - default@CompileArkTS work[1] is submitted.
+[2026-05-18T00:00:24.691] [DEBUG] debug-file - default@CompileArkTS work[1] is pushed to ready queue.
+[2026-05-18T00:00:24.691] [DEBUG] debug-file - default@CompileArkTS work[1] is not dispatched.
+[2026-05-18T00:00:24.691] [DEBUG] debug-file - entry : default@CompileArkTS cost memory -11.338584899902344
+[2026-05-18T00:00:24.693] [DEBUG] debug-file - Executing task :entry:default@BuildJS
+[2026-05-18T00:00:24.694] [DEBUG] debug-file - Task 'entry:default@BuildJS' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:00:24.696] [DEBUG] debug-file - entry : default@BuildJS cost memory 0.14731597900390625
+[2026-05-18T00:00:24.696] [DEBUG] debug-file - runTaskFromQueue task cost before running: 660 ms 
+[2026-05-18T00:00:24.696] [INFO] debug-file - Finished :entry:default@BuildJS... after 3 ms 
+[2026-05-18T00:00:24.697] [DEBUG] debug-file - Executing task :entry:default@CacheNativeLibs
+[2026-05-18T00:00:24.698] [DEBUG] debug-file - File: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/binxo/default' from 'cacheBinxoNativeLibs' is not exists, just ignore.
+[2026-05-18T00:00:24.698] [DEBUG] debug-file - Task 'entry:default@CacheNativeLibs' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:00:24.699] [DEBUG] debug-file - Incremental task entry:default@CacheNativeLibs pre-execution cost: 2 ms .
+[2026-05-18T00:00:24.700] [DEBUG] debug-file - entry : default@CacheNativeLibs cost memory 0.0987091064453125
+[2026-05-18T00:00:24.700] [INFO] debug-file - UP-TO-DATE :entry:default@CacheNativeLibs...  
+[2026-05-18T00:00:24.988] [DEBUG] debug-file - A work dispatched to worker[7] failed because unable to get work from ready queue.
+[2026-05-18T00:00:24.989] [DEBUG] debug-file - Create  resident worker with id: 6.
+[2026-05-18T00:00:24.995] [DEBUG] debug-file - default@CompileArkTS work[1] has been dispatched to worker[6].
+[2026-05-18T00:00:25.641] [DEBUG] debug-file - A work dispatched to worker[7] failed because unable to get work from ready queue.
+[2026-05-18T00:00:25.641] [DEBUG] debug-file - A work dispatched to worker[6] failed because of worker busy.
+[2026-05-18T00:00:25.641] [DEBUG] debug-file - A work dispatched to worker[5] failed because unable to get work from ready queue.
+[2026-05-18T00:00:25.641] [DEBUG] debug-file - Create  resident worker with id: 4.
+[2026-05-18T00:00:25.642] [DEBUG] debug-file - default@CompileArkTS work[0] has been dispatched to worker[4].
+[2026-05-18T00:00:25.888] [DEBUG] debug-file - worker[6] has one work done.
+[2026-05-18T00:00:25.888] [DEBUG] debug-file - CopyResources is end, endTime: 3067141855651416
+[2026-05-18T00:00:25.888] [DEBUG] debug-file - default@CompileArkTS work[1] done.
+[2026-05-18T00:00:26.395] [DEBUG] debug-file - A work dispatched to worker[6] failed because unable to get work from ready queue.
+[2026-05-18T00:00:31.278] [DEBUG] debug-file - Ark compile task finished.finished time is 3067147244791750
+[2026-05-18T00:00:31.278] [DEBUG] debug-file - worker[4] has one work error.
+[2026-05-18T00:00:31.279] [DEBUG] debug-file - default@CompileArkTS work[0] failed.
+[2026-05-18T00:00:31.281] [ERROR] debug-file - Failed :entry:default@CompileArkTS... 
+[2026-05-18T00:00:31.282] [WARN] debug-file - 
+[33m1 WARN: [33m[33mArkTS:WARN: For details about ArkTS syntax errors, see FAQs[39m[39m
+[33m2 WARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets:17:36
+ 'getSystemLocale' has been deprecated.
+[39m[39m
+[33m3 WARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets:56:22
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33m4 WARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets:144:22
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33m5 WARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets:166:22
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33m6 WARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets:188:22
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33m7 WARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets:209:22
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33m8 WARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/home/AISearchPage.ets:299:5
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33m9 WARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/home/AISearchPage.ets:299:18
+ 'showToast' has been deprecated.
+[39m[39m
+[33m10 WARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets:129:7
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33m11 WARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets:130:13
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33m12 WARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets:134:17
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33m13 WARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets:150:5
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33m14 WARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets:151:11
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33m15 WARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets:212:41
+ 'size' has been deprecated.
+[39m[39m
+[33m16 WARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets:234:12
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33m17 WARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets:239:19
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33m18 WARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets:245:5
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33m19 WARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets:246:11
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33m20 WARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/home/HomePage.ets:190:5
+ 'getContext' has been deprecated.
+[39m[39m
+[33m21 WARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/deposit/DepositCampaignPage.ets:325:21
+ 'getContext' has been deprecated.
+[39m[39m
+[2026-05-18T00:00:31.283] [DEBUG] debug-file - hvigor build process will be closed with an error.
+[2026-05-18T00:00:31.311] [DEBUG] debug-file - ERROR: stacktrace = Error: ArkTS Compiler Error
+[31m1 ERROR: [31m10605038 ArkTS Compiler Error
+Error Message: Object literal must correspond to some explicitly declared class or interface (arkts-no-untyped-obj-literals) At File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/deposit/DepositCampaignPage.ets:68:82
+[39m
+[39m
+[31m2 ERROR: [31m10605038 ArkTS Compiler Error
+Error Message: Object literal must correspond to some explicitly declared class or interface (arkts-no-untyped-obj-literals) At File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/deposit/DepositCampaignPage.ets:318:94
+[39m
+[39m
+[31m3 ERROR: [31m10605038 ArkTS Compiler Error
+Error Message: Object literal must correspond to some explicitly declared class or interface (arkts-no-untyped-obj-literals) At File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/deposit/DepositCampaignPage.ets:329:113
+[39m
+[39m
+[31mCOMPILE RESULT:FAIL {ERROR:4 WARN:21}[39m
+    at runArkPack (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/node_modules/@ohos/hvigor-arkts-compose/dist/src/arkts-pack.js:1:5076)
+ArkTSCompilerError: ArkTS Compiler Error
+    at throwArkTsCompilerError (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/node_modules/@ohos/hvigor-arkts-compose/dist/src/data/compose-error.js:1:423)
+    at throwErrorIfHasErrorInfo (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/node_modules/@ohos/hvigor-arkts-compose/dist/src/plugins/common-plugin.js:1:4894)
+    at Object.handler (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/node_modules/@ohos/hvigor-arkts-compose/dist/src/plugins/common-plugin.js:1:2989)
+    at /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/node_modules/@ohos/hvigor-arkts-base/node_modules/rollup/dist/shared/rollup.js:27864:40
+[2026-05-18T00:00:31.311] [ERROR] debug-file - Error: ArkTS Compiler Error
+[31m1 ERROR: [31m10605038 ArkTS Compiler Error
+Error Message: Object literal must correspond to some explicitly declared class or interface (arkts-no-untyped-obj-literals) At File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/deposit/DepositCampaignPage.ets:68:82
+[39m
+[39m
+[31m2 ERROR: [31m10605038 ArkTS Compiler Error
+Error Message: Object literal must correspond to some explicitly declared class or interface (arkts-no-untyped-obj-literals) At File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/deposit/DepositCampaignPage.ets:318:94
+[39m
+[39m
+[31m3 ERROR: [31m10605038 ArkTS Compiler Error
+Error Message: Object literal must correspond to some explicitly declared class or interface (arkts-no-untyped-obj-literals) At File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/deposit/DepositCampaignPage.ets:329:113
+[39m
+[39m
+[31mCOMPILE RESULT:FAIL {ERROR:4 WARN:21}[39m
+    at runArkPack (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/node_modules/@ohos/hvigor-arkts-compose/dist/src/arkts-pack.js:1:5076)
+ArkTSCompilerError: ArkTS Compiler Error
+    at throwArkTsCompilerError (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/node_modules/@ohos/hvigor-arkts-compose/dist/src/data/compose-error.js:1:423)
+    at throwErrorIfHasErrorInfo (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/node_modules/@ohos/hvigor-arkts-compose/dist/src/plugins/common-plugin.js:1:4894)
+    at Object.handler (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/node_modules/@ohos/hvigor-arkts-compose/dist/src/plugins/common-plugin.js:1:2989)
+    at /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/node_modules/@ohos/hvigor-arkts-base/node_modules/rollup/dist/shared/rollup.js:27864:40
+[2026-05-18T00:00:31.313] [ERROR] debug-file - BUILD FAILED in 7 s 277 ms 
+[2026-05-18T00:00:31.313] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@PreBuild is up-to-date.
+[2026-05-18T00:00:31.313] [DEBUG] debug-file - Update task entry:default@CreateModuleInfo output file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/generated/profile/default/ModuleInfo.ts cache.
+[2026-05-18T00:00:31.314] [DEBUG] debug-file - Incremental task entry:default@CreateModuleInfo post-execution cost:1 ms .
+[2026-05-18T00:00:31.314] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@GenerateMetadata is up-to-date.
+[2026-05-18T00:00:31.314] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@MergeProfile is up-to-date.
+[2026-05-18T00:00:31.314] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@CreateBuildProfile is up-to-date.
+[2026-05-18T00:00:31.314] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@GeneratePkgContextInfo is up-to-date.
+[2026-05-18T00:00:31.314] [DEBUG] debug-file - Update task entry:default@GeneratePkgSdkInfo output file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader/default/pkgSdkInfo.json cache.
+[2026-05-18T00:00:31.314] [DEBUG] debug-file - Incremental task entry:default@GeneratePkgSdkInfo post-execution cost:1 ms .
+[2026-05-18T00:00:31.314] [DEBUG] debug-file - Update task entry:default@ProcessIntegratedHsp output file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/build/cache/default/integrated_hsp/integratedHspCache.json cache.
+[2026-05-18T00:00:31.314] [DEBUG] debug-file - Incremental task entry:default@ProcessIntegratedHsp post-execution cost:1 ms .
+[2026-05-18T00:00:31.314] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@MakePackInfo is up-to-date.
+[2026-05-18T00:00:31.315] [DEBUG] debug-file - Update task entry:default@SyscapTransform input file:/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/toolchains/syscap_tool cache by regenerate.
+[2026-05-18T00:00:31.315] [DEBUG] debug-file - Update task entry:default@SyscapTransform input file:/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/device-define cache by regenerate.
+[2026-05-18T00:00:31.315] [DEBUG] debug-file - Update task entry:default@SyscapTransform output file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/syscap/default/rpcid.sc cache.
+[2026-05-18T00:00:31.315] [DEBUG] debug-file - Incremental task entry:default@SyscapTransform post-execution cost:1 ms .
+[2026-05-18T00:00:31.315] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@ProcessProfile is up-to-date.
+[2026-05-18T00:00:31.316] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@ProcessRouterMap is up-to-date.
+[2026-05-18T00:00:31.316] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@ProcessShareConfig is up-to-date.
+[2026-05-18T00:00:31.316] [DEBUG] debug-file - Update task entry:default@ProcessStartupConfig input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache by regenerate.
+[2026-05-18T00:00:31.316] [DEBUG] debug-file - Update task entry:default@ProcessStartupConfig output file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/startup/default/startup_config.json cache.
+[2026-05-18T00:00:31.316] [DEBUG] debug-file - Incremental task entry:default@ProcessStartupConfig post-execution cost:1 ms .
+[2026-05-18T00:00:31.316] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@ProcessResource is up-to-date.
+[2026-05-18T00:00:31.316] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@GenerateLoaderJson is up-to-date.
+[2026-05-18T00:00:31.316] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@ProcessLibs is up-to-date.
+[2026-05-18T00:00:31.316] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@CompileResource is up-to-date.
+[2026-05-18T00:00:31.316] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@DoNativeStrip is up-to-date.
+[2026-05-18T00:00:31.317] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader/default cache by regenerate.
+[2026-05-18T00:00:31.317] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/ResourceTable.txt cache by regenerate.
+[2026-05-18T00:00:31.317] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/ark_module.json cache by regenerate.
+[2026-05-18T00:00:31.317] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/resources/base/profile cache by regenerate.
+[2026-05-18T00:00:31.318] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets cache from map.
+[2026-05-18T00:00:31.318] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache by regenerate.
+[2026-05-18T00:00:31.318] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/generated/profile/default/BuildProfile.ets cache by regenerate.
+[2026-05-18T00:00:31.318] [DEBUG] debug-file - Update task entry:default@CompileArkTS output file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader_out/default/ets cache.
+[2026-05-18T00:00:31.318] [DEBUG] debug-file - Incremental task entry:default@CompileArkTS post-execution cost:2 ms .
+[2026-05-18T00:00:31.318] [DEBUG] debug-file - Update task entry:default@BuildJS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader/default cache by regenerate.
+[2026-05-18T00:00:31.318] [DEBUG] debug-file - Update task entry:default@BuildJS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/ResourceTable.txt cache by regenerate.
+[2026-05-18T00:00:31.318] [DEBUG] debug-file - Update task entry:default@BuildJS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/ark_module.json cache by regenerate.
+[2026-05-18T00:00:31.318] [DEBUG] debug-file - Update task entry:default@BuildJS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/resources/base/profile cache by regenerate.
+[2026-05-18T00:00:31.318] [DEBUG] debug-file - Update task entry:default@BuildJS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache by regenerate.
+[2026-05-18T00:00:31.318] [DEBUG] debug-file - Update task entry:default@BuildJS output file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader_out/default/js cache.
+[2026-05-18T00:00:31.319] [DEBUG] debug-file - Incremental task entry:default@BuildJS post-execution cost:1 ms .
+[2026-05-18T00:00:31.319] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@CacheNativeLibs is up-to-date.
+[2026-05-18T00:00:31.336] [DEBUG] debug-file - Cleanup worker 6.
+[2026-05-18T00:00:31.337] [DEBUG] debug-file - Worker 6 has been cleaned up.
+[2026-05-18T00:00:31.337] [DEBUG] debug-file - Current idle worker size: 1.
+[2026-05-18T00:00:31.337] [DEBUG] debug-file - Current resident worker size: 2.
+[2026-05-18T00:00:31.338] [DEBUG] debug-file - hvigor build process will be closed.
+[2026-05-18T00:00:31.361] [DEBUG] debug-file - worker[6] exits with exit code 1.
+[2026-05-18T00:00:31.364] [DEBUG] debug-file - session manager: send message to worker process.
+[2026-05-18T00:00:31.365] [DEBUG] debug-file - session manager: send message to worker process.
+[2026-05-18T00:00:31.367] [DEBUG] debug-file - watch worker: worker id should be larger than 0. Nothing will be sent to any worker thread.
+[2026-05-18T00:00:31.367] [DEBUG] debug-file - watch worker: worker id should be larger than 0. Nothing will be sent to any worker thread.
+[2026-05-18T00:06:04.188] [DEBUG] debug-file - session manager: set active socket. socketId=uZzqBb567BxHU2lWAAAF
+[2026-05-18T00:06:04.196] [DEBUG] debug-file - watch worker: worker id should be larger than 0. Nothing will be sent to any worker thread.
+[2026-05-18T00:06:04.200] [DEBUG] debug-file - Workers' log level updated to INFO
+[2026-05-18T00:06:04.214] [DEBUG] debug-file - Hvigor init with startParameters:{
+  hvigorfileTypeCheck: false,
+  parallelExecution: true,
+  incrementalExecution: true,
+  printStackTrace: false,
+  daemon: true,
+  analyze: 0,
+  logLevel: Level { level: 20000, levelStr: 'INFO', colour: 'green' },
+  optimizationStrategy: 'memory',
+  hotCompile: undefined,
+  hotReloadBuild: undefined,
+  customizedParam: undefined
+}
+[2026-05-18T00:06:04.224] [DEBUG] debug-file - Cache service initialization finished in 10 ms 
+[2026-05-18T00:06:04.226] [DEBUG] debug-file - hvigorfile, resolving /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/hvigorfile.ts
+[2026-05-18T00:06:04.263] [DEBUG] debug-file - hvigorfile, require result:  { default: { modules: [] } }
+[2026-05-18T00:06:04.263] [DEBUG] debug-file - hvigorfile, binding system plugins null
+[2026-05-18T00:06:04.272] [DEBUG] debug-file - Starting plugin build process
+[2026-05-18T00:06:04.272] [DEBUG] debug-file - App plugin prepare start...
+[2026-05-18T00:06:04.274] [DEBUG] debug-file - App plugin prepare end...
+[2026-05-18T00:06:04.274] [DEBUG] debug-file - App plugin creating...
+[2026-05-18T00:06:04.322] [DEBUG] debug-file - App plugin register hook start...
+[2026-05-18T00:06:04.322] [DEBUG] debug-file - App plugin register hook end...
+[2026-05-18T00:06:04.322] [DEBUG] debug-file - Plugin build process completed
+[2026-05-18T00:06:04.324] [DEBUG] debug-file - Start initialize project's product build option map with build mode debug.
+[2026-05-18T00:06:04.324] [DEBUG] debug-file - Picking option from product 'default' with build mode 'debug'.
+[2026-05-18T00:06:04.324] [DEBUG] debug-file - Product 'default' build option initialized
+[2026-05-18T00:06:04.324] [DEBUG] debug-file - End initialize project's product build option map with build mode 'debug'.
+[2026-05-18T00:06:04.326] [DEBUG] debug-file - Obtain build option for product 'default'in this build.
+[2026-05-18T00:06:04.330] [DEBUG] debug-file - No signingConfig found, initRemoteHspCache failed.
+[2026-05-18T00:06:04.344] [DEBUG] debug-file - Start recording SDK configuration permission data.
+[2026-05-18T00:06:04.388] [DEBUG] debug-file - Sdk init in 57 ms 
+[2026-05-18T00:06:04.394] [DEBUG] debug-file - Project task initialization takes 5 ms 
+[2026-05-18T00:06:04.394] [DEBUG] debug-file - hvigorfile, begin to bind custom plugins...
+[2026-05-18T00:06:04.394] [DEBUG] debug-file - hvigorfile, no custom plugins were found in /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/hvigorfile.ts
+[2026-05-18T00:06:04.394] [DEBUG] debug-file - hvigorfile, resolve finished /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/hvigorfile.ts
+[2026-05-18T00:06:04.394] [DEBUG] debug-file - hvigorfile, resolving /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/hvigorfile.ts
+[2026-05-18T00:06:04.401] [DEBUG] debug-file - hvigorfile, require result:  { default: {} }
+[2026-05-18T00:06:04.401] [DEBUG] debug-file - hvigorfile, binding system plugins null
+[2026-05-18T00:06:04.401] [DEBUG] debug-file - Starting plugin build process
+[2026-05-18T00:06:04.401] [DEBUG] debug-file - Hap plugin creating...
+[2026-05-18T00:06:04.402] [DEBUG] debug-file - failed to load cangjie to dynamically generate schemas: Error: Cannot find module '@ohos/cangjie-build-support/index'
+Require stack:
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/hooks/cangjie-register.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/strategy/stage-init-strategy.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/builder/abstract-plugin-builder.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/builder/app-plugin-builder.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/factory/plugin-factory.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/index.js
+- /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/hvigorfile.ts
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor/src/base/internal/lifecycle/configuration.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor/src/base/boot/index.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor/src/base/daemon/cluster/worker-process-lifecycle.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor/src/base/daemon/process/daemon-process-boot-script.js
+[2026-05-18T00:06:04.404] [DEBUG] debug-file - Start initialize module-target build option map, moduleName=entry, buildMode=debug
+[2026-05-18T00:06:04.404] [DEBUG] debug-file - Target 'default' config initialized
+[2026-05-18T00:06:04.405] [DEBUG] debug-file - Module 'entry' target 'default' build option initialized
+[2026-05-18T00:06:04.405] [DEBUG] debug-file - End initialize module-target build option map, moduleName=entry
+[2026-05-18T00:06:04.405] [DEBUG] debug-file - Start initialize module-target build option map, moduleName=entry, buildMode=release
+[2026-05-18T00:06:04.405] [DEBUG] debug-file - Target 'default' config initialized
+[2026-05-18T00:06:04.405] [DEBUG] debug-file - Module 'entry' target 'default' build option initialized
+[2026-05-18T00:06:04.405] [DEBUG] debug-file - End initialize module-target build option map, moduleName=entry
+[2026-05-18T00:06:04.405] [DEBUG] debug-file - Start initialize module-target build option map, moduleName=entry, buildMode=debug
+[2026-05-18T00:06:04.405] [DEBUG] debug-file - Target 'default' config initialized
+[2026-05-18T00:06:04.405] [DEBUG] debug-file - Module 'entry' target 'default' build option initialized
+[2026-05-18T00:06:04.405] [DEBUG] debug-file - End initialize module-target build option map, moduleName=entry
+[2026-05-18T00:06:04.405] [DEBUG] debug-file - Obtain build option for module 'entry' target 'default'in this build.
+[2026-05-18T00:06:04.410] [DEBUG] debug-file - Module entry task initialization takes 5 ms 
+[2026-05-18T00:06:04.410] [DEBUG] debug-file - Hap plugin register hook start...
+[2026-05-18T00:06:04.411] [DEBUG] debug-file - Hap plugin register hook end...
+[2026-05-18T00:06:04.411] [DEBUG] debug-file - Plugin build process completed
+[2026-05-18T00:06:04.411] [DEBUG] debug-file - hvigorfile, begin to bind custom plugins...
+[2026-05-18T00:06:04.411] [DEBUG] debug-file - hvigorfile, no custom plugins were found in /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/hvigorfile.ts
+[2026-05-18T00:06:04.411] [DEBUG] debug-file - hvigorfile, resolve finished /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/hvigorfile.ts
+[2026-05-18T00:06:04.502] [DEBUG] debug-file - hvigorfile, resolve hvigorfile dependencies in 92 ms 
+[2026-05-18T00:06:04.502] [DEBUG] debug-file - project has submodules:entry
+[2026-05-18T00:06:04.504] [DEBUG] debug-file - start to load updatedOhPackageInfo to the disk
+[2026-05-18T00:06:04.505] [DEBUG] debug-file - load to the disk finished
+[2026-05-18T00:06:04.505] [DEBUG] debug-file - Start to initialize dependency information.
+[2026-05-18T00:06:04.505] [DEBUG] debug-file - Module harmonynext-sdui Collected Dependency: 
+[2026-05-18T00:06:04.505] [DEBUG] debug-file - Module harmonynext-sdui's total dependency: 0
+[2026-05-18T00:06:04.506] [DEBUG] debug-file - Start to initialize dependency information.
+[2026-05-18T00:06:04.506] [DEBUG] debug-file - Module entry Collected Dependency: 
+[2026-05-18T00:06:04.506] [DEBUG] debug-file - Module entry's total dependency: 0
+[2026-05-18T00:06:04.507] [DEBUG] debug-file - Configuration phase cost:282 ms 
+[2026-05-18T00:06:04.507] [DEBUG] debug-file - Configuration task cost before running: 306 ms 
+[2026-05-18T00:06:04.509] [DEBUG] debug-file - Executing task :entry:default@PreBuild
+[2026-05-18T00:06:04.509] [DEBUG] debug-file - Task 'entry:default@PreBuild' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:06:04.511] [DEBUG] debug-file - Incremental task entry:default@PreBuild pre-execution cost: 1 ms .
+[2026-05-18T00:06:04.511] [DEBUG] debug-file - entry : default@PreBuild cost memory 0.228240966796875
+[2026-05-18T00:06:04.512] [INFO] debug-file - UP-TO-DATE :entry:default@PreBuild...  
+[2026-05-18T00:06:04.513] [DEBUG] debug-file - Executing task :entry:default@CreateModuleInfo
+[2026-05-18T00:06:04.513] [DEBUG] debug-file - Task 'entry:default@CreateModuleInfo' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:06:04.514] [DEBUG] debug-file - entry : default@CreateModuleInfo cost memory 0.040313720703125
+[2026-05-18T00:06:04.514] [DEBUG] debug-file - runTaskFromQueue task cost before running: 313 ms 
+[2026-05-18T00:06:04.514] [INFO] debug-file - Finished :entry:default@CreateModuleInfo... after 1 ms 
+[2026-05-18T00:06:04.514] [DEBUG] debug-file - Executing task :entry:default@GenerateMetadata
+[2026-05-18T00:06:04.514] [DEBUG] debug-file - Task 'entry:default@GenerateMetadata' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:06:04.515] [DEBUG] debug-file - Incremental task entry:default@GenerateMetadata pre-execution cost: 1 ms .
+[2026-05-18T00:06:04.515] [DEBUG] debug-file - entry : default@GenerateMetadata cost memory 0.07416534423828125
+[2026-05-18T00:06:04.515] [INFO] debug-file - UP-TO-DATE :entry:default@GenerateMetadata...  
+[2026-05-18T00:06:04.515] [DEBUG] debug-file - Executing task :entry:default@ConfigureCmake
+[2026-05-18T00:06:04.515] [DEBUG] debug-file - entry : default@ConfigureCmake cost memory 0.0145721435546875
+[2026-05-18T00:06:04.515] [DEBUG] debug-file - runTaskFromQueue task cost before running: 314 ms 
+[2026-05-18T00:06:04.515] [INFO] debug-file - Finished :entry:default@ConfigureCmake... after 1 ms 
+[2026-05-18T00:06:04.516] [DEBUG] debug-file - Executing task :entry:default@MergeProfile
+[2026-05-18T00:06:04.516] [DEBUG] debug-file - Task 'entry:default@MergeProfile' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:06:04.516] [DEBUG] debug-file - Incremental task entry:default@MergeProfile pre-execution cost: 1 ms .
+[2026-05-18T00:06:04.516] [DEBUG] debug-file - entry : default@MergeProfile cost memory 0.11685943603515625
+[2026-05-18T00:06:04.516] [INFO] debug-file - UP-TO-DATE :entry:default@MergeProfile...  
+[2026-05-18T00:06:04.517] [DEBUG] debug-file - Executing task :entry:default@CreateBuildProfile
+[2026-05-18T00:06:04.517] [DEBUG] debug-file - Task 'entry:default@CreateBuildProfile' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:06:04.517] [DEBUG] debug-file - Incremental task entry:default@CreateBuildProfile pre-execution cost: 1 ms .
+[2026-05-18T00:06:04.517] [DEBUG] debug-file - entry : default@CreateBuildProfile cost memory 0.091278076171875
+[2026-05-18T00:06:04.517] [INFO] debug-file - UP-TO-DATE :entry:default@CreateBuildProfile...  
+[2026-05-18T00:06:04.518] [DEBUG] debug-file - Executing task :entry:default@PreCheckSyscap
+[2026-05-18T00:06:04.518] [DEBUG] debug-file - entry : default@PreCheckSyscap cost memory 0.01486968994140625
+[2026-05-18T00:06:04.518] [DEBUG] debug-file - runTaskFromQueue task cost before running: 317 ms 
+[2026-05-18T00:06:04.518] [INFO] debug-file - Finished :entry:default@PreCheckSyscap... after 1 ms 
+[2026-05-18T00:06:04.518] [DEBUG] debug-file - Executing task :entry:default@GeneratePkgContextInfo
+[2026-05-18T00:06:04.520] [DEBUG] debug-file - Task 'entry:default@GeneratePkgContextInfo' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:06:04.521] [DEBUG] debug-file - Incremental task entry:default@GeneratePkgContextInfo pre-execution cost: 1 ms .
+[2026-05-18T00:06:04.521] [DEBUG] debug-file - entry : default@GeneratePkgContextInfo cost memory 0.21781158447265625
+[2026-05-18T00:06:04.521] [INFO] debug-file - UP-TO-DATE :entry:default@GeneratePkgContextInfo...  
+[2026-05-18T00:06:04.521] [DEBUG] debug-file - Executing task :entry:default@GeneratePkgSdkInfo
+[2026-05-18T00:06:04.522] [DEBUG] debug-file - Task 'entry:default@GeneratePkgSdkInfo' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:06:04.522] [DEBUG] debug-file - entry : default@GeneratePkgSdkInfo cost memory 0.0829010009765625
+[2026-05-18T00:06:04.522] [DEBUG] debug-file - runTaskFromQueue task cost before running: 321 ms 
+[2026-05-18T00:06:04.522] [INFO] debug-file - Finished :entry:default@GeneratePkgSdkInfo... after 1 ms 
+[2026-05-18T00:06:04.522] [DEBUG] debug-file - Executing task :entry:default@ProcessIntegratedHsp
+[2026-05-18T00:06:04.522] [DEBUG] debug-file - entry:default@ProcessIntegratedHsp is not up-to-date, since the output file '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/build/cache/default/integrated_hsp/integratedHspCache.json' does not exist.
+[2026-05-18T00:06:04.522] [DEBUG] debug-file - Incremental task entry:default@ProcessIntegratedHsp pre-execution cost: 1 ms .
+[2026-05-18T00:06:04.523] [DEBUG] debug-file - entry : default@ProcessIntegratedHsp cost memory 0.05786895751953125
+[2026-05-18T00:06:04.523] [DEBUG] debug-file - runTaskFromQueue task cost before running: 321 ms 
+[2026-05-18T00:06:04.523] [INFO] debug-file - Finished :entry:default@ProcessIntegratedHsp... after 1 ms 
+[2026-05-18T00:06:04.523] [DEBUG] debug-file - Executing task :entry:default@BuildNativeWithCmake
+[2026-05-18T00:06:04.523] [DEBUG] debug-file - entry : default@BuildNativeWithCmake cost memory 0.0150146484375
+[2026-05-18T00:06:04.523] [DEBUG] debug-file - runTaskFromQueue task cost before running: 322 ms 
+[2026-05-18T00:06:04.523] [INFO] debug-file - Finished :entry:default@BuildNativeWithCmake... after 1 ms 
+[2026-05-18T00:06:04.524] [DEBUG] debug-file - Executing task :entry:default@MakePackInfo
+[2026-05-18T00:06:04.525] [DEBUG] debug-file - Incremental task entry:default@MakePackInfo pre-execution cost: 1 ms .
+[2026-05-18T00:06:04.525] [DEBUG] debug-file - entry : default@MakePackInfo cost memory 0.0967559814453125
+[2026-05-18T00:06:04.525] [INFO] debug-file - UP-TO-DATE :entry:default@MakePackInfo...  
+[2026-05-18T00:06:04.525] [DEBUG] debug-file - Executing task :entry:default@SyscapTransform
+[2026-05-18T00:06:04.525] [DEBUG] debug-file - File: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/syscap.json' from 'sysCapJsonPath' is not exists, just ignore.
+[2026-05-18T00:06:04.525] [DEBUG] debug-file - Task 'entry:default@SyscapTransform' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:06:04.526] [DEBUG] debug-file - entry:default@SyscapTransform is not up-to-date, since the output file '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/syscap/default/rpcid.sc' does not exist.
+[2026-05-18T00:06:04.526] [DEBUG] debug-file - Incremental task entry:default@SyscapTransform pre-execution cost: 1 ms .
+[2026-05-18T00:06:04.527] [DEBUG] debug-file - entry : default@SyscapTransform cost memory 0.10997772216796875
+[2026-05-18T00:06:04.527] [DEBUG] debug-file - runTaskFromQueue task cost before running: 326 ms 
+[2026-05-18T00:06:04.527] [INFO] debug-file - Finished :entry:default@SyscapTransform... after 2 ms 
+[2026-05-18T00:06:04.528] [DEBUG] debug-file - Executing task :entry:default@ProcessProfile
+[2026-05-18T00:06:04.529] [DEBUG] debug-file - Task 'entry:default@ProcessProfile' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:06:04.530] [DEBUG] debug-file - Incremental task entry:default@ProcessProfile pre-execution cost: 1 ms .
+[2026-05-18T00:06:04.530] [DEBUG] debug-file - entry : default@ProcessProfile cost memory 0.11444091796875
+[2026-05-18T00:06:04.530] [INFO] debug-file - UP-TO-DATE :entry:default@ProcessProfile...  
+[2026-05-18T00:06:04.530] [DEBUG] debug-file - Executing task :entry:default@ProcessRouterMap
+[2026-05-18T00:06:04.531] [DEBUG] debug-file - Incremental task entry:default@ProcessRouterMap pre-execution cost: 1 ms .
+[2026-05-18T00:06:04.531] [DEBUG] debug-file - entry : default@ProcessRouterMap cost memory 0.13211822509765625
+[2026-05-18T00:06:04.533] [INFO] debug-file - UP-TO-DATE :entry:default@ProcessRouterMap...  
+[2026-05-18T00:06:04.534] [DEBUG] debug-file - Executing task :entry:default@ProcessShareConfig
+[2026-05-18T00:06:04.535] [DEBUG] debug-file - Incremental task entry:default@ProcessShareConfig pre-execution cost: 1 ms .
+[2026-05-18T00:06:04.535] [DEBUG] debug-file - entry : default@ProcessShareConfig cost memory 0.11428070068359375
+[2026-05-18T00:06:04.535] [INFO] debug-file - UP-TO-DATE :entry:default@ProcessShareConfig...  
+[2026-05-18T00:06:04.535] [DEBUG] debug-file - Executing task :entry:default@ProcessStartupConfig
+[2026-05-18T00:06:04.535] [DEBUG] debug-file - Task 'entry:default@ProcessStartupConfig' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:06:04.535] [DEBUG] debug-file - entry:default@ProcessStartupConfig is not up-to-date, since the output file '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/startup/default/startup_config.json' does not exist.
+[2026-05-18T00:06:04.535] [DEBUG] debug-file - Incremental task entry:default@ProcessStartupConfig pre-execution cost: 1 ms .
+[2026-05-18T00:06:04.536] [DEBUG] debug-file - entry : default@ProcessStartupConfig cost memory 0.1179046630859375
+[2026-05-18T00:06:04.536] [DEBUG] debug-file - runTaskFromQueue task cost before running: 335 ms 
+[2026-05-18T00:06:04.536] [INFO] debug-file - Finished :entry:default@ProcessStartupConfig... after 1 ms 
+[2026-05-18T00:06:04.537] [DEBUG] debug-file - Executing task :entry:default@BuildNativeWithNinja
+[2026-05-18T00:06:04.537] [DEBUG] debug-file - entry : default@BuildNativeWithNinja cost memory 0.02008819580078125
+[2026-05-18T00:06:04.537] [DEBUG] debug-file - runTaskFromQueue task cost before running: 336 ms 
+[2026-05-18T00:06:04.537] [INFO] debug-file - Finished :entry:default@BuildNativeWithNinja... after 1 ms 
+[2026-05-18T00:06:04.538] [DEBUG] debug-file - restool module names: entry; moduleName=entry, taskName=default@ProcessResource
+[2026-05-18T00:06:04.539] [DEBUG] debug-file - Executing task :entry:default@ProcessResource
+[2026-05-18T00:06:04.539] [DEBUG] debug-file - Task 'entry:default@ProcessResource' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:06:04.540] [DEBUG] debug-file - Incremental task entry:default@ProcessResource pre-execution cost: 1 ms .
+[2026-05-18T00:06:04.540] [DEBUG] debug-file - entry : default@ProcessResource cost memory 0.12590789794921875
+[2026-05-18T00:06:04.540] [INFO] debug-file - UP-TO-DATE :entry:default@ProcessResource...  
+[2026-05-18T00:06:04.541] [DEBUG] debug-file - Executing task :entry:default@GenerateLoaderJson
+[2026-05-18T00:06:04.541] [DEBUG] debug-file - Task 'entry:default@GenerateLoaderJson' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:06:04.543] [DEBUG] debug-file - Incremental task entry:default@GenerateLoaderJson pre-execution cost: 2 ms .
+[2026-05-18T00:06:04.543] [DEBUG] debug-file - entry : default@GenerateLoaderJson cost memory 0.4295806884765625
+[2026-05-18T00:06:04.544] [INFO] debug-file - UP-TO-DATE :entry:default@GenerateLoaderJson...  
+[2026-05-18T00:06:04.546] [DEBUG] debug-file - Executing task :entry:default@ProcessLibs
+[2026-05-18T00:06:04.547] [DEBUG] debug-file - Incremental task entry:default@ProcessLibs pre-execution cost: 1 ms .
+[2026-05-18T00:06:04.547] [DEBUG] debug-file - entry : default@ProcessLibs cost memory 0.0795440673828125
+[2026-05-18T00:06:04.547] [INFO] debug-file - UP-TO-DATE :entry:default@ProcessLibs...  
+[2026-05-18T00:06:04.547] [DEBUG] debug-file - restool module names: entry; moduleName=entry, taskName=default@CompileResource
+[2026-05-18T00:06:04.548] [DEBUG] debug-file - Executing task :entry:default@CompileResource
+[2026-05-18T00:06:04.550] [DEBUG] debug-file - Incremental task entry:default@CompileResource pre-execution cost: 3 ms .
+[2026-05-18T00:06:04.550] [DEBUG] debug-file - entry : default@CompileResource cost memory 0.326385498046875
+[2026-05-18T00:06:04.551] [INFO] debug-file - UP-TO-DATE :entry:default@CompileResource...  
+[2026-05-18T00:06:04.551] [DEBUG] debug-file - Executing task :entry:default@DoNativeStrip
+[2026-05-18T00:06:04.551] [DEBUG] debug-file - File: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/binxo/default' from 'doBinxoNativeLibs' is not exists, just ignore.
+[2026-05-18T00:06:04.551] [DEBUG] debug-file - Task 'entry:default@DoNativeStrip' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:06:04.551] [DEBUG] debug-file - Incremental task entry:default@DoNativeStrip pre-execution cost: 1 ms .
+[2026-05-18T00:06:04.551] [DEBUG] debug-file - entry : default@DoNativeStrip cost memory 0.0772705078125
+[2026-05-18T00:06:04.552] [INFO] debug-file - UP-TO-DATE :entry:default@DoNativeStrip...  
+[2026-05-18T00:06:04.552] [DEBUG] debug-file - Executing task :entry:default@CompileArkTS
+[2026-05-18T00:06:04.552] [DEBUG] debug-file - obfuscationOptions: undefined
+[2026-05-18T00:06:04.552] [DEBUG] debug-file - Task 'entry:default@CompileArkTS' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:06:04.556] [DEBUG] debug-file - build config:
+[2026-05-18T00:06:04.556] [DEBUG] debug-file - {
+  moduleType: 'entry',
+  perf: 0,
+  targetName: '.default',
+  packageManagerType: 'ohpm',
+  localPropertiesPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/local.properties',
+  isPreview: false,
+  isOhosTest: false,
+  isLocalTest: false,
+  buildMode: 'Debug',
+  hotReloadBuild: undefined,
+  watchMode: 'false',
+  aceProfilePath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/resources/base/profile',
+  etsLoaderPath: '/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/build-tools/ets-loader',
+  modulePath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry',
+  testFrameworkPar: {
+    testMode: undefined,
+    coveragePathFilter: undefined,
+    coverageMode: undefined
+  },
+  needCoverageInsert: false,
+  debugLine: false,
+  projectTopDir: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui',
+  compileSdkVersion: 23,
+  compatibleSdkVersion: 23,
+  originCompatibleSdkVersion: '6.1.0(23)',
+  compatibleSdkVersionStage: undefined,
+  bundleName: 'c***i',
+  etsLoaderVersion: '6.1.0.105',
+  etsLoaderReleaseType: 'Release',
+  aotCompileMode: 'type',
+  apPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/modules.ap',
+  entryModuleName: 'entry',
+  entryModuleVersion: '1.0.0',
+  entryPackageName: 'entry',
+  allModuleNameHash: '5ae6dbb62e21ba1033e632315c1b234d364db8f267129118e48b470b1f1a26e0',
+  externalApiPaths: [ '/Applications/DevEco-Studio.app/Contents/sdk/default/hms/ets' ],
+  compilerTypes: [],
+  isCrossplatform: false,
+  hvigorPluginFile: undefined,
+  compilePluginPath: undefined,
+  buildGeneratedProfilePath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/generated/profile/default',
+  bundleType: 'app',
+  arkTSVersion: undefined,
+  apiVersion: 23,
+  needCompleteSourcesMap: false,
+  isFaMode: false,
+  buildDir: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build',
+  deviceTypes: [ 'phone' ],
+  pkgContextInfo: {
+    entry: {
+      packageName: 'entry',
+      bundleName: '*****',
+      moduleName: '',
+      version: '',
+      entryPath: 'src/main/',
+      isSO: false,
+      dependencyAlias: ''
+    }
+  },
+  ohPackagePathMap: {},
+  dependencyAliasMap: {},
+  permission: {
+    requestPermissions: [ [Object], [Object] ],
+    definePermissions: undefined
+  },
+  useGetCurrentBundleName: false,
+  projectArkOption: undefined,
+  sourceMapDir: undefined,
+  branchElimination: false,
+  transformLib: undefined,
+  tsImportSendable: false,
+  resolveConflictMode: true,
+  depName2RootPath: {},
+  depName2DepInfo: {},
+  depName2OhExports: {},
+  rootPathSet: [ '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui' ],
+  useNativeResolver: true,
+  shouldEmitJs: true,
+  useTscResolve: false,
+  singleFileEmit: false,
+  userProjectConfig: {
+    autoLazyImport: false,
+    allowEmptyBundleName: false,
+    reExportCheckMode: 'noCheck',
+    executionMode: 'memory',
+    usePathPlaceholder: false,
+    writeRollupCache: true,
+    isExpandImportEnabled: false,
+    expandImportExclude: '',
+    lazyImportExclude: '',
+    lazyImportInclude: '',
+    ignoreCrossplatformCheck: false,
+    isHarDeduplicateEnabled: false,
+    skipOhModulesLint: false,
+    enableStrictCheckOHModule: false,
+    disableSendableCheckRules: [],
+    useDeclarationFileSignature: false,
+    customizedOptions: undefined,
+    integratedHsp: false,
+    isPreloadSoEnabled: false
+  },
+  executionMode: 'memory',
+  arkCompileCachePath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/cache/default/default@CompileArkTS/esmodule',
+  autoLazyFilter: undefined,
+  isHarDeduplicateEnabled: false,
+  intermediateHarDuplicateDirPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/har_duplicate/default',
+  autoLazyImport: false,
+  allowEmptyBundleName: false,
+  reExportCheckMode: 'noCheck',
+  usePathPlaceholder: false,
+  writeRollupCache: true,
+  isExpandImportEnabled: false,
+  expandImportExclude: '',
+  lazyImportExclude: '',
+  lazyImportInclude: '',
+  ignoreCrossplatformCheck: false,
+  skipOhModulesLint: false,
+  enableStrictCheckOHModule: false,
+  disableSendableCheckRules: [],
+  useDeclarationFileSignature: false,
+  customizedOptions: undefined,
+  integratedHsp: false,
+  isPreloadSoEnabled: false,
+  strictMode: {
+    caseSensitiveCheck: true,
+    useNormalizedOHMUrl: true,
+    noExternalImportByPath: true
+  },
+  useNormalizedOHMUrl: true,
+  caseSensitiveCheck: true,
+  aceModuleJsonPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/ark_module.json',
+  appResource: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/ResourceTable.txt',
+  rawFileResource: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/resources/rawfile',
+  resourceTableHash: '3a6316ca081d1a49e58361b290c05f6587a3e1ac83886471cf6e354968717ce3',
+  runtimeOS: 'HarmonyOS',
+  sdkInfo: 'false:23:6.1.0.105:Release',
+  aceModuleRoot: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets',
+  compileMode: 'esmodule',
+  aceSuperVisualPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/supervisual',
+  aceBuildJson: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader/default/loader.json',
+  cachePath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/cache/default/default@CompileArkTS/esmodule/debug',
+  aceModuleBuild: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader_out/default/ets',
+  supportChunks: true,
+  declaredFilesPath: undefined,
+  shouldCollectDirectImportees: false,
+  isByteCodeHarOptimize: false,
+  expandImportPath: undefined,
+  resourceTableTs: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/generated/r/default/ResourceTable.ts',
+  moduleMetaInfoFiles: [
+    {
+      filePath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/generated/r/default/ResourceTable.ts',
+      ohmurl: '&entry/build/generated/r/ResourceTable&'
+    }
+  ],
+  pkgNameToPkgBriefInfo: {
+    entry: {
+      pkgRoot: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry',
+      originalSourceRoots: undefined,
+      sourceRoots: [Array],
+      pkgName: 'entry'
+    }
+  },
+  projectModel: {
+    '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main': {
+      moduleName: 'entry',
+      modulePkgPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry',
+      belongProjectPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui'
+    },
+    '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry': {
+      moduleName: 'entry',
+      modulePkgPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry',
+      belongProjectPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui'
+    },
+    '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui': {
+      moduleName: 'harmonynext-sdui',
+      modulePkgPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui',
+      belongProjectPath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui'
+    }
+  },
+  pkgJsonFileHash: '708b1a12259422158f3dea295fa5c55c4be3f5fde2bb85bec44a25e8b9a84213',
+  allModulePaths: [ '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry' ],
+  routerMap: {},
+  obfuscationOptions: undefined,
+  byteCodeHarToDependencyKeys: undefined,
+  compileBlockPkg: [],
+  mockParams: {
+    decorator: '@MockSetup',
+    packageName: '@ohos/hamock',
+    etsSourceRootPath: 'src/main/ets',
+    mockConfigPath: undefined,
+    mockConfigKey2ModuleInfo: {},
+    source2ModuleIdMap: {}
+  },
+  copyCodeResourceEnable: true,
+  copyCodeResourceExcludes: [],
+  copyCodeResourceIncludes: undefined,
+  uiTransformOptimization: false,
+  sdkPath: '/Applications/DevEco-Studio.app/Contents/sdk',
+  needPreloadSoFileSet: {},
+  preloadSoFilePath: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/preload/default/preload.json',
+  useSourceHash: false,
+  localModuleParamMap: {},
+  otherPaths: {
+    'entry/*': [ '../*', '../../../build/default/generated/profile/default/*' ]
+  },
+  collectImportersConfig: undefined
+}
+[2026-05-18T00:06:04.557] [DEBUG] debug-file - Compile arkts with external api path: /Applications/DevEco-Studio.app/Contents/sdk/default/hms/ets
+[2026-05-18T00:06:04.557] [DEBUG] debug-file - default@CompileArkTS work[2] is submitted.
+[2026-05-18T00:06:04.557] [DEBUG] debug-file - default@CompileArkTS work[2] is pushed to ready queue.
+[2026-05-18T00:06:04.557] [DEBUG] debug-file - default@CompileArkTS work[2] is not dispatched.
+[2026-05-18T00:06:04.558] [DEBUG] debug-file - CopyResources startTime: 3067480527230750
+[2026-05-18T00:06:04.558] [DEBUG] debug-file - default@CompileArkTS work[3] is submitted.
+[2026-05-18T00:06:04.558] [DEBUG] debug-file - default@CompileArkTS work[3] is pushed to ready queue.
+[2026-05-18T00:06:04.558] [DEBUG] debug-file - default@CompileArkTS work[3] is not dispatched.
+[2026-05-18T00:06:04.558] [DEBUG] debug-file - entry : default@CompileArkTS cost memory 0.9069061279296875
+[2026-05-18T00:06:04.559] [DEBUG] debug-file - Executing task :entry:default@BuildJS
+[2026-05-18T00:06:04.559] [DEBUG] debug-file - Task 'entry:default@BuildJS' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:06:04.559] [DEBUG] debug-file - entry : default@BuildJS cost memory 0.1296539306640625
+[2026-05-18T00:06:04.559] [DEBUG] debug-file - runTaskFromQueue task cost before running: 358 ms 
+[2026-05-18T00:06:04.559] [INFO] debug-file - Finished :entry:default@BuildJS... after 1 ms 
+[2026-05-18T00:06:04.560] [DEBUG] debug-file - Executing task :entry:default@CacheNativeLibs
+[2026-05-18T00:06:04.560] [DEBUG] debug-file - File: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/binxo/default' from 'cacheBinxoNativeLibs' is not exists, just ignore.
+[2026-05-18T00:06:04.560] [DEBUG] debug-file - Task 'entry:default@CacheNativeLibs' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:06:04.561] [DEBUG] debug-file - Incremental task entry:default@CacheNativeLibs pre-execution cost: 1 ms .
+[2026-05-18T00:06:04.561] [DEBUG] debug-file - entry : default@CacheNativeLibs cost memory 0.0902099609375
+[2026-05-18T00:06:04.561] [INFO] debug-file - UP-TO-DATE :entry:default@CacheNativeLibs...  
+[2026-05-18T00:06:04.759] [DEBUG] debug-file - A work dispatched to worker[7] failed because unable to get work from ready queue.
+[2026-05-18T00:06:04.759] [DEBUG] debug-file - Create  resident worker with id: 6.
+[2026-05-18T00:06:04.760] [DEBUG] debug-file - default@CompileArkTS work[3] has been dispatched to worker[6].
+[2026-05-18T00:06:05.274] [DEBUG] debug-file - worker[6] has one work done.
+[2026-05-18T00:06:05.275] [DEBUG] debug-file - CopyResources is end, endTime: 3067481244017958
+[2026-05-18T00:06:05.275] [DEBUG] debug-file - default@CompileArkTS work[3] done.
+[2026-05-18T00:06:05.275] [DEBUG] debug-file - A work dispatched to worker[6] failed because unable to get work from ready queue.
+[2026-05-18T00:06:05.870] [DEBUG] debug-file - A work dispatched to worker[7] failed because unable to get work from ready queue.
+[2026-05-18T00:06:05.870] [DEBUG] debug-file - A work dispatched to worker[6] failed because unable to get work from ready queue.
+[2026-05-18T00:06:05.870] [DEBUG] debug-file - A work dispatched to worker[5] failed because unable to get work from ready queue.
+[2026-05-18T00:06:05.870] [DEBUG] debug-file - default@CompileArkTS work[2] has been dispatched to worker[4].
+[2026-05-18T00:06:07.254] [WARN] debug-file - [33mWARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets:17:36
+ 'getSystemLocale' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets:56:22
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets:144:22
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets:166:22
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets:188:22
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets:209:22
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/home/AISearchPage.ets:299:5
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/home/AISearchPage.ets:299:18
+ 'showToast' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets:129:7
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets:130:13
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets:134:17
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets:150:5
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets:151:11
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets:212:41
+ 'size' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets:234:12
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets:239:19
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets:245:5
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets:246:11
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/home/HomePage.ets:190:5
+ 'getContext' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/deposit/DepositCampaignPage.ets:326:21
+ 'getContext' has been deprecated.
+[39m[39m
+
+[2026-05-18T00:06:07.257] [DEBUG] debug-file - worker[4] has one work done.
+[2026-05-18T00:06:07.258] [DEBUG] debug-file - Ark compile task finished.finished time is 3067483226976333
+[2026-05-18T00:06:07.259] [DEBUG] debug-file - default@CompileArkTS work[2] done.
+[2026-05-18T00:06:07.260] [INFO] debug-file - Finished :entry:default@CompileArkTS... after 1 s 401 ms 
+[2026-05-18T00:06:07.260] [DEBUG] debug-file - Executing task :entry:default@GeneratePkgModuleJson
+[2026-05-18T00:06:07.260] [DEBUG] debug-file - File: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/preload/default/preload.json' from 'preloadSoJsonPath' is not exists, just ignore.
+[2026-05-18T00:06:07.261] [DEBUG] debug-file - Error occurs while handling @Input 'shouldDeduplicateHar': The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received undefined
+[2026-05-18T00:06:07.261] [DEBUG] debug-file - Task 'entry:default@GeneratePkgModuleJson' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:06:07.261] [DEBUG] debug-file - Incremental task entry:default@GeneratePkgModuleJson pre-execution cost: 1 ms .
+[2026-05-18T00:06:07.261] [DEBUG] debug-file - entry : default@GeneratePkgModuleJson cost memory 0.09076690673828125
+[2026-05-18T00:06:07.262] [INFO] debug-file - UP-TO-DATE :entry:default@GeneratePkgModuleJson...  
+[2026-05-18T00:06:07.262] [DEBUG] debug-file - Executing task :entry:default@ProcessCompiledResources
+[2026-05-18T00:06:07.262] [DEBUG] debug-file - File: '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/preload/default/preload.json' from 'preloadSoJsonPath' is not exists, just ignore.
+[2026-05-18T00:06:07.262] [DEBUG] debug-file - Task 'entry:default@ProcessCompiledResources' cost while wrapping incremental declarations: 1 ms 
+[2026-05-18T00:06:07.262] [DEBUG] debug-file - entry : default@ProcessCompiledResources cost memory 0.05687713623046875
+[2026-05-18T00:06:07.262] [DEBUG] debug-file - runTaskFromQueue task cost before running: 3 s 61 ms 
+[2026-05-18T00:06:07.262] [INFO] debug-file - Finished :entry:default@ProcessCompiledResources... after 1 ms 
+[2026-05-18T00:06:07.263] [DEBUG] debug-file - Executing task :entry:default@PackageHap
+[2026-05-18T00:06:07.264] [DEBUG] debug-file - entry:default@PackageHap is not up-to-date, since the input file '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader_out/default/ets' has been changed.
+[2026-05-18T00:06:07.264] [DEBUG] debug-file - Incremental task entry:default@PackageHap pre-execution cost: 1 ms .
+[2026-05-18T00:06:07.265] [DEBUG] debug-file - Use tool [/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/toolchains/lib/app_packing_tool.jar]
+ [
+  'java',
+  '-Dfile.encoding=utf-8',
+  '-jar',
+  '/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/toolchains/lib/app_packing_tool.jar',
+  '--mode',
+  'hap',
+  '--force',
+  'true',
+  '--lib-path',
+  '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/stripped_native_libs/default',
+  '--json-path',
+  '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/package/default/module.json',
+  '--resources-path',
+  '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/resources',
+  '--index-path',
+  '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/resources.index',
+  '--pack-info-path',
+  '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/outputs/default/pack.info',
+  '--out-path',
+  '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/outputs/default/entry-default-unsigned.hap',
+  '--ets-path',
+  '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader_out/default/ets',
+  '--pkg-context-path',
+  '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader/default/pkgContextInfo.json'
+]
+[2026-05-18T00:06:07.266] [DEBUG] debug-file - default@PackageHap work[4] is submitted.
+[2026-05-18T00:06:07.266] [DEBUG] debug-file - default@PackageHap work[4] is pushed to ready queue.
+[2026-05-18T00:06:07.266] [DEBUG] debug-file - default@PackageHap work[4] is not dispatched.
+[2026-05-18T00:06:07.267] [DEBUG] debug-file - entry : default@PackageHap cost memory 0.3772735595703125
+[2026-05-18T00:06:07.467] [DEBUG] debug-file - A work dispatched to worker[7] failed because unable to get work from ready queue.
+[2026-05-18T00:06:07.467] [DEBUG] debug-file - default@PackageHap work[4] has been dispatched to worker[6].
+[2026-05-18T00:06:07.616] [DEBUG] debug-file - current process  memoryUsage: {
+  rss: 552747008,
+  heapTotal: 81821696,
+  heapUsed: 49985008,
+  external: 2212132,
+  arrayBuffers: 58678
+} os memoryUsage :15.677505493164062
+[2026-05-18T00:06:08.067] [DEBUG] debug-file - A work dispatched to worker[4] failed because unable to get work from ready queue.
+[2026-05-18T00:06:08.093] [DEBUG] debug-file - worker[6] has one work done.
+[2026-05-18T00:06:08.094] [DEBUG] debug-file - default@PackageHap work[4] done.
+[2026-05-18T00:06:08.094] [INFO] debug-file - Finished :entry:default@PackageHap... after 483 ms 
+[2026-05-18T00:06:08.094] [DEBUG] debug-file - Executing task :entry:default@PackingCheck
+[2026-05-18T00:06:08.098] [DEBUG] debug-file - entry : default@PackingCheck cost memory 0.4795074462890625
+[2026-05-18T00:06:08.098] [DEBUG] debug-file - runTaskFromQueue task cost before running: 3 s 897 ms 
+[2026-05-18T00:06:08.098] [INFO] debug-file - Finished :entry:default@PackingCheck... after 4 ms 
+[2026-05-18T00:06:08.098] [DEBUG] debug-file - Executing task :entry:default@SignHap
+[2026-05-18T00:06:08.099] [WARN] debug-file - Will skip sign 'hos_hap'. No signingConfigs profile is configured in current project.
+             If needed, configure the signingConfigs in /Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/build-profile.json5.
+[2026-05-18T00:06:08.099] [DEBUG] debug-file - entry:default@SignHap is not up-to-date, since the input file '/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/outputs/default/entry-default-unsigned.hap' has been changed.
+[2026-05-18T00:06:08.099] [DEBUG] debug-file - Incremental task entry:default@SignHap pre-execution cost: 1 ms .
+[2026-05-18T00:06:08.099] [DEBUG] debug-file - entry : default@SignHap cost memory 0.07616424560546875
+[2026-05-18T00:06:08.099] [DEBUG] debug-file - runTaskFromQueue task cost before running: 3 s 898 ms 
+[2026-05-18T00:06:08.099] [INFO] debug-file - Finished :entry:default@SignHap... after 1 ms 
+[2026-05-18T00:06:08.100] [DEBUG] debug-file - Executing task :entry:default@CollectDebugSymbol
+[2026-05-18T00:06:08.100] [DEBUG] debug-file - entry : default@CollectDebugSymbol cost memory 0.08889007568359375
+[2026-05-18T00:06:08.100] [DEBUG] debug-file - runTaskFromQueue task cost before running: 3 s 899 ms 
+[2026-05-18T00:06:08.100] [INFO] debug-file - Finished :entry:default@CollectDebugSymbol... after 1 ms 
+[2026-05-18T00:06:08.100] [DEBUG] debug-file - Executing task :entry:assembleHap
+[2026-05-18T00:06:08.100] [DEBUG] debug-file - entry : assembleHap cost memory 0.01268768310546875
+[2026-05-18T00:06:08.101] [DEBUG] debug-file - runTaskFromQueue task cost before running: 3 s 899 ms 
+[2026-05-18T00:06:08.101] [INFO] debug-file - Finished :entry:assembleHap... after 1 ms 
+[2026-05-18T00:06:08.101] [INFO] debug-file - BUILD SUCCESSFUL in 3 s 900 ms 
+[2026-05-18T00:06:08.101] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@PreBuild is up-to-date.
+[2026-05-18T00:06:08.101] [DEBUG] debug-file - Update task entry:default@CreateModuleInfo output file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/generated/profile/default/ModuleInfo.ts cache.
+[2026-05-18T00:06:08.102] [DEBUG] debug-file - Incremental task entry:default@CreateModuleInfo post-execution cost:1 ms .
+[2026-05-18T00:06:08.102] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@GenerateMetadata is up-to-date.
+[2026-05-18T00:06:08.102] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@MergeProfile is up-to-date.
+[2026-05-18T00:06:08.102] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@CreateBuildProfile is up-to-date.
+[2026-05-18T00:06:08.102] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@GeneratePkgContextInfo is up-to-date.
+[2026-05-18T00:06:08.102] [DEBUG] debug-file - Update task entry:default@GeneratePkgSdkInfo output file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader/default/pkgSdkInfo.json cache.
+[2026-05-18T00:06:08.102] [DEBUG] debug-file - Incremental task entry:default@GeneratePkgSdkInfo post-execution cost:1 ms .
+[2026-05-18T00:06:08.102] [DEBUG] debug-file - Update task entry:default@ProcessIntegratedHsp output file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/build/cache/default/integrated_hsp/integratedHspCache.json cache.
+[2026-05-18T00:06:08.102] [DEBUG] debug-file - Incremental task entry:default@ProcessIntegratedHsp post-execution cost:1 ms .
+[2026-05-18T00:06:08.102] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@MakePackInfo is up-to-date.
+[2026-05-18T00:06:08.102] [DEBUG] debug-file - Update task entry:default@SyscapTransform input file:/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/toolchains/syscap_tool cache by regenerate.
+[2026-05-18T00:06:08.102] [DEBUG] debug-file - Update task entry:default@SyscapTransform input file:/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/device-define cache by regenerate.
+[2026-05-18T00:06:08.102] [DEBUG] debug-file - Update task entry:default@SyscapTransform output file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/syscap/default/rpcid.sc cache.
+[2026-05-18T00:06:08.102] [DEBUG] debug-file - Incremental task entry:default@SyscapTransform post-execution cost:1 ms .
+[2026-05-18T00:06:08.102] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@ProcessProfile is up-to-date.
+[2026-05-18T00:06:08.102] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@ProcessRouterMap is up-to-date.
+[2026-05-18T00:06:08.102] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@ProcessShareConfig is up-to-date.
+[2026-05-18T00:06:08.103] [DEBUG] debug-file - Update task entry:default@ProcessStartupConfig input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache by regenerate.
+[2026-05-18T00:06:08.103] [DEBUG] debug-file - Update task entry:default@ProcessStartupConfig output file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/startup/default/startup_config.json cache.
+[2026-05-18T00:06:08.103] [DEBUG] debug-file - Incremental task entry:default@ProcessStartupConfig post-execution cost:1 ms .
+[2026-05-18T00:06:08.103] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@ProcessResource is up-to-date.
+[2026-05-18T00:06:08.103] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@GenerateLoaderJson is up-to-date.
+[2026-05-18T00:06:08.103] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@ProcessLibs is up-to-date.
+[2026-05-18T00:06:08.103] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@CompileResource is up-to-date.
+[2026-05-18T00:06:08.103] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@DoNativeStrip is up-to-date.
+[2026-05-18T00:06:08.104] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader/default cache by regenerate.
+[2026-05-18T00:06:08.104] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/ResourceTable.txt cache by regenerate.
+[2026-05-18T00:06:08.104] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/ark_module.json cache by regenerate.
+[2026-05-18T00:06:08.104] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/resources/base/profile cache by regenerate.
+[2026-05-18T00:06:08.104] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets cache by regenerate.
+[2026-05-18T00:06:08.105] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache by regenerate.
+[2026-05-18T00:06:08.105] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/generated/profile/default/BuildProfile.ets cache by regenerate.
+[2026-05-18T00:06:08.105] [DEBUG] debug-file - Update task entry:default@CompileArkTS output file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader_out/default/ets cache.
+[2026-05-18T00:06:08.105] [DEBUG] debug-file - Incremental task entry:default@CompileArkTS post-execution cost:2 ms .
+[2026-05-18T00:06:08.105] [DEBUG] debug-file - Update task entry:default@BuildJS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader/default cache by regenerate.
+[2026-05-18T00:06:08.105] [DEBUG] debug-file - Update task entry:default@BuildJS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/ResourceTable.txt cache by regenerate.
+[2026-05-18T00:06:08.105] [DEBUG] debug-file - Update task entry:default@BuildJS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/ark_module.json cache by regenerate.
+[2026-05-18T00:06:08.105] [DEBUG] debug-file - Update task entry:default@BuildJS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/resources/base/profile cache by regenerate.
+[2026-05-18T00:06:08.105] [DEBUG] debug-file - Update task entry:default@BuildJS input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache by regenerate.
+[2026-05-18T00:06:08.105] [DEBUG] debug-file - Update task entry:default@BuildJS output file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader_out/default/js cache.
+[2026-05-18T00:06:08.105] [DEBUG] debug-file - Incremental task entry:default@BuildJS post-execution cost:1 ms .
+[2026-05-18T00:06:08.105] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@CacheNativeLibs is up-to-date.
+[2026-05-18T00:06:08.105] [DEBUG] debug-file - There is no need to refresh cache, since the incremental task entry:default@GeneratePkgModuleJson is up-to-date.
+[2026-05-18T00:06:08.105] [DEBUG] debug-file - Incremental task entry:default@ProcessCompiledResources post-execution cost:1 ms .
+[2026-05-18T00:06:08.105] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/stripped_native_libs/default cache by regenerate.
+[2026-05-18T00:06:08.105] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/module.json cache by regenerate.
+[2026-05-18T00:06:08.105] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/resources cache by regenerate.
+[2026-05-18T00:06:08.106] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/res/default/resources.index cache by regenerate.
+[2026-05-18T00:06:08.106] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/outputs/default/pack.info cache by regenerate.
+[2026-05-18T00:06:08.106] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader_out/default/ets cache from map.
+[2026-05-18T00:06:08.106] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache by regenerate.
+[2026-05-18T00:06:08.106] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader_out/default/ets/sourceMaps.map cache by regenerate.
+[2026-05-18T00:06:08.106] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/generated/profile/default/BuildProfile.ets cache by regenerate.
+[2026-05-18T00:06:08.106] [DEBUG] debug-file - Update task entry:default@PackageHap output file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/outputs/default/entry-default-unsigned.hap cache.
+[2026-05-18T00:06:08.106] [DEBUG] debug-file - Update task entry:default@PackageHap output file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/source_map/default/sourceMaps.map cache.
+[2026-05-18T00:06:08.106] [DEBUG] debug-file - Update task entry:default@PackageHap output file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/outputs/default/mapping/sourceMaps.map cache.
+[2026-05-18T00:06:08.106] [DEBUG] debug-file - Incremental task entry:default@PackageHap post-execution cost:1 ms .
+[2026-05-18T00:06:08.106] [DEBUG] debug-file - Update task entry:default@SignHap input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/outputs/default/entry-default-unsigned.hap cache from map.
+[2026-05-18T00:06:08.106] [DEBUG] debug-file - Update task entry:default@SignHap output file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/outputs/default/entry-default-signed.hap cache.
+[2026-05-18T00:06:08.106] [DEBUG] debug-file - Incremental task entry:default@SignHap post-execution cost:1 ms .
+[2026-05-18T00:06:08.106] [DEBUG] debug-file - Update task entry:default@CollectDebugSymbol input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/loader_out/default/ets/sourceMaps.map cache by regenerate.
+[2026-05-18T00:06:08.106] [DEBUG] debug-file - Update task entry:default@CollectDebugSymbol input file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/intermediates/libs/default cache by regenerate.
+[2026-05-18T00:06:08.106] [DEBUG] debug-file - Update task entry:default@CollectDebugSymbol output file:/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/build/default/outputs/default/symbol cache.
+[2026-05-18T00:06:08.107] [DEBUG] debug-file - Incremental task entry:default@CollectDebugSymbol post-execution cost:1 ms .
+[2026-05-18T00:06:08.113] [DEBUG] debug-file - Cleanup worker 6.
+[2026-05-18T00:06:08.113] [DEBUG] debug-file - Worker 6 has been cleaned up.
+[2026-05-18T00:06:08.113] [DEBUG] debug-file - Current idle worker size: 1.
+[2026-05-18T00:06:08.113] [DEBUG] debug-file - Current resident worker size: 2.
+[2026-05-18T00:06:08.113] [DEBUG] debug-file - hvigor build process will be closed.
+[2026-05-18T00:06:08.119] [DEBUG] debug-file - session manager: send message to worker process.
+[2026-05-18T00:06:08.120] [DEBUG] debug-file - session manager: send message to worker process.
+[2026-05-18T00:06:08.122] [DEBUG] debug-file - watch worker: worker id should be larger than 0. Nothing will be sent to any worker thread.
+[2026-05-18T00:06:08.122] [DEBUG] debug-file - watch worker: worker id should be larger than 0. Nothing will be sent to any worker thread.
+[2026-05-18T00:06:08.125] [DEBUG] debug-file - worker[6] exits with exit code 1.

@@ -1167,54 +1167,106 @@ ucpPages.set('fx-viewpoint-hk', {
 });
 
 // Seed the Deposit Campaign page (LIVE)
+const DEPOSIT_LEGAL_PROPS = {
+  schemaType: 'schema.org/WebPage',
+  lastReviewedDate: '2026-05-17',
+  copyrightText: '© 版权所有。汇丰银行（中国）有限公司2026',
+  publicSecurityText: '沪公网安备 31011502400282号',
+  publicSecurityUrl: 'https://beian.mps.gov.cn/#/query/webSearch',
+  icpText: '沪ICP备15029387-3号',
+  icpUrl: 'https://beian.miit.gov.cn/#/Integrated/index',
+  jsonLd: JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FinancialProduct',
+    name: '汇丰中国新资金存款优惠',
+    provider: { '@type': 'BankOrCreditUnion', name: '汇丰银行（中国）有限公司' },
+    areaServed: 'CN',
+    category: 'Time Deposit',
+    dateModified: '2026-05-17',
+  }),
+};
+
+const DEPOSIT_INSURANCE_PROPS = {
+  title: '存款保险',
+  logoUrl: '/media/deposit-insurance-logo.jpg',
+  altText: '存款保险标识',
+  linkUrl: 'https://www.hsbc.com.cn/content/dam/hsbc/cn/docs/insurance/insurance-prodcut-electronic-notice.pdf',
+};
+
 ucpPages.set('deposit-campaign-cn', {
   pageId: 'deposit-campaign-cn',
   name: 'New Fund Deposit Campaign (CN)',
   platform: 'all',
-  locale: 'en-CN',
+  locale: 'zh-CN',
+  supportedLocales: ['zh-CN', 'en'],
+  channel: 'SDUI',
+  marketId: 'CN',
+  analytics: {
+    provider: 'SensorsData',
+    metrics: ['dau', 'mau', 'click_rate', 'conversion_rate'],
+    events: ['sensorsdata_page_view', 'sensorsdata_deposit_open_click', 'sensorsdata_deposit_open_conversion'],
+  },
   status: 'LIVE',
   version: 1,
   publishedAt: new Date(Date.now() - 86400000).toISOString(),
   slices: [
     { instanceId: 'dep-header', type: 'HEADER_NAV', visible: true, locked: true,
-      props: { title: 'Renminbi Savings Offers', showNotificationBell: false, showQRScanner: false, showBackButton: true } },
+      props: { title: '人民币存款优惠', showNotificationBell: false, showQRScanner: false, showBackButton: true } },
     { instanceId: 'dep-image-banner', type: 'PROMO_BANNER', visible: true, locked: false,
       props: { imageUrl: '/media/deposit-campaign-banner.jpg', ucpAssetId: 'asset-009', backgroundColor: '#FFFFFF' } },
     { instanceId: 'dep-cd-rate-banner', type: 'PROMO_BANNER', visible: true, locked: false,
       props: {
-        title: '🌟 Up to 1.15% p.a. Annual Equivalent Rate',
-        subtitle: '3-Month New Fund CNY Transferable CD — exclusively for new deposits. Don\'t miss this limited-time rate. Start earning more today.',
-        badgeText: '🔥 New Funds Only',
+        title: '年化利率最高 1.15%',
+        subtitle: '3个月人民币新资金可转让存单优惠，适用于符合条件的新转入资金。把握限时机会，让闲置资金更有效运用。',
+        badgeText: '仅限新资金',
         backgroundColor: '#FFF7ED',
         textColor: '#92400E',
       } },
     { instanceId: 'dep-rate-table', type: 'DEPOSIT_RATE_TABLE', visible: true, locked: false,
       props: {
-        sectionTitle: 'Time Deposit Rate:',
-        asAtDate: '5/22/2025',
+        sectionTitle: '定期存款利率',
+        asAtDate: '2025/05/22',
         rates: [
-          { term: '3 Month Time Deposit',  rate: '0.65' },
-          { term: '6 Month Time Deposit',  rate: '0.85' },
-          { term: '12 Month Time Deposit', rate: '0.95' },
-          { term: '24 Month Time Deposit', rate: '1.05' },
-          { term: '36 Month Time Deposit', rate: '1.25' },
-          { term: '60 Month Time Deposit', rate: '1.30' },
+          { term: '3个月定期存款',  rate: '0.65' },
+          { term: '6个月定期存款',  rate: '0.85' },
+          { term: '12个月定期存款', rate: '0.95' },
+          { term: '24个月定期存款', rate: '1.05' },
+          { term: '36个月定期存款', rate: '1.25' },
+          { term: '60个月定期存款', rate: '1.30' },
         ],
-        footnote: 'Time deposit minimum balance for Personal Banking customers: RMB50. New Fund refers to funds not previously held with HSBC.',
+        footnote: '个人银行客户定期存款起存金额为人民币50元。新资金指符合条件的新转入汇丰中国资金。利率仅供参考，并可能不时调整。',
       } },
     { instanceId: 'dep-open-cta', type: 'DEPOSIT_OPEN_CTA', visible: true, locked: false,
-      props: { label: 'Open a Deposit', deepLink: 'hsbc://deposit/open?currency=CNY&campaign=new-fund', backgroundColor: '#C41E3A', textColor: '#FFFFFF' } },
+      props: {
+        label: '立即开立存款',
+        deepLink: 'hsbc-cn://deposit/open?currency=CNY&campaign=new-fund',
+        fallback: {
+          ios: 'https://apps.apple.com/cn/app/hsbc-china/id1467398731',
+          android: 'https://www.hsbc.com.cn/mobile-banking/',
+          huawei: 'appmarket://details?id=cn.com.hsbc.hsbcchina',
+          xiaomi: 'mimarket://details?id=cn.com.hsbc.hsbcchina',
+        },
+        analytics: {
+          provider: 'SensorsData',
+          events: ['deposit_open_click', 'deposit_open_conversion'],
+          metrics: ['dau', 'mau', 'click_rate', 'conversion_rate'],
+        },
+        backgroundColor: '#C41E3A',
+        textColor: '#FFFFFF',
+      } },
     { instanceId: 'dep-spacer', type: 'SPACER', visible: true, locked: false, props: { height: 16 } },
     { instanceId: 'dep-faq', type: 'DEPOSIT_FAQ', visible: true, locked: false,
       props: {
-        sectionTitle: 'Frequently Asked Questions',
+        sectionTitle: '常见问题',
         items: [
-          { id: 'faq-1', question: 'Can I withdraw my time deposit before it matures?', answer: 'Yes, you can. But you\'ll earn less or no interest, and may have to pay an early withdrawal fee. For foreign currency deposits, visit a bank branch.' },
-          { id: 'faq-2', question: 'What happens if I don\'t withdraw my money after maturity?', answer: 'If you don\'t take out your money when it matures, most banks will automatically renew your deposit for the same term at the current interest rate. You can also choose to withdraw it or change the term before maturity.' },
-          { id: 'faq-3', question: 'How long can I keep a time deposit?', answer: 'Banks usually offer terms like 3 months, 6 months, 1 year, 2 years, 3 years, 5 years, or even 10 years. Longer terms usually have higher interest rates. The most popular choices are 6-month or 12-month plans.' },
-          { id: 'faq-4', question: 'Why is the interest rate higher for time deposits than regular savings accounts?', answer: 'Banks can offer better rates because they know you\'ll keep your money in the account for a fixed period. This lets them use the funds for longer-term investments, so they share more of the profit with you as interest.' },
+          { id: 'faq-1', question: '定期存款到期前可以提前支取吗？', answer: '可以。提前支取可能无法享受原定利率，利息可能减少或为零，并可能产生相关费用。具体规则以汇丰中国实际办理要求为准。' },
+          { id: 'faq-2', question: '到期后没有支取会怎样？', answer: '您可在办理时选择到期处理方式，例如到期支取或自动续存。自动续存时通常将按续存当日适用利率执行。' },
+          { id: 'faq-3', question: '可选择哪些存期？', answer: '常见存期包括3个月、6个月、12个月、24个月、36个月及60个月。不同存期对应不同利率，您可根据资金安排选择。' },
+          { id: 'faq-4', question: '为什么定期存款利率通常高于活期存款？', answer: '定期存款在约定期限内保持资金稳定，因此银行通常可提供高于活期存款的利率。实际利率以办理时页面或网点公示为准。' },
         ],
       } },
+    { instanceId: 'dep-insurance', type: 'DEPOSIT_INSURANCE', visible: true, locked: false, props: DEPOSIT_INSURANCE_PROPS },
+    { instanceId: 'dep-legal-jsonld', type: 'JSON_LD_STRUCTURED_DATA', visible: false, locked: false, props: { ...DEPOSIT_LEGAL_PROPS, hidden: true, webOnly: true, outputChannels: ['WEB_STANDARD', 'web-sdui'] } },
   ],
 });
 
@@ -1593,6 +1645,21 @@ app.get('/api/v1/ucp/content-assets', requireInternalAuth, (req, res) => {
       uploadedAt: new Date(Date.now() - 86400000).toISOString(),
       status: 'ACTIVE',
     },
+    {
+      assetId: 'asset-020',
+      name: 'Deposit Insurance',
+      assetType: 'IMAGE',
+      mimeType: 'image/jpeg',
+      sizeBytes: 301380,
+      url: '/media/deposit-insurance-logo.jpg',
+      thumbnailUrl: '/media/deposit-insurance-logo.jpg',
+      altText: '存款保险标识',
+      tags: ['deposit', 'insurance', 'compliance', 'cn'],
+      marketId: 'CN', bizLineId: 'WEALTH',
+      uploadedBy: 'j.chan@hsbc.com.hk', uploadedByName: 'Janet Chan',
+      uploadedAt: new Date(Date.now()).toISOString(),
+      status: 'ACTIVE',
+    },
   ];
 
   let assets = UCP_CONTENT_ASSETS;
@@ -1646,6 +1713,8 @@ app.get('/api/v1/ucp/components', requireInternalAuth, (req, res) => {
     { componentId: 'comp-DEPOSIT_RATE_TABLE',     sliceType: 'DEPOSIT_RATE_TABLE',     label: 'Deposit Rate Table',             icon: '🏦',    category: 'wealth',     description: 'Time deposit interest rate table — term and rate columns only',                        configurable: ['sectionTitle','asAtDate','rates','footnote'],                                                                     minHeight: 220, singleton: false, version: '1.0.0', maintainedBy: 'Wealth Product Team',        status: 'ACTIVE' },
     { componentId: 'comp-DEPOSIT_OPEN_CTA',       sliceType: 'DEPOSIT_OPEN_CTA',       label: 'Button CTA',                     icon: '🏧',    category: 'wealth',     description: 'Full-width "Open a Deposit" CTA button for deposit campaigns',                        configurable: ['label','deepLink','backgroundColor','textColor'],                                                                 minHeight: 56,  singleton: false, version: '1.0.0', maintainedBy: 'Wealth Product Team',        status: 'ACTIVE' },
     { componentId: 'comp-DEPOSIT_FAQ',            sliceType: 'DEPOSIT_FAQ',            label: 'General FAQ',                    icon: '❓',    category: 'wealth',     description: 'Collapsible FAQ accordion for deposit products',                                        configurable: ['sectionTitle','items'],                                                                                          minHeight: 200, singleton: false, version: '1.0.0', maintainedBy: 'Wealth Product Team',        status: 'ACTIVE' },
+    { componentId: 'comp-DEPOSIT_INSURANCE',      sliceType: 'DEPOSIT_INSURANCE',      label: 'Deposit Insurance',              icon: '🛡️',   category: 'wealth',     description: 'Deposit insurance logo block linking to the official HSBC China electronic notice PDF', configurable: ['title','logoUrl','altText','linkUrl'],                                                                           minHeight: 120, singleton: false, version: '1.0.0', maintainedBy: 'Wealth Product Team',        status: 'ACTIVE' },
+    { componentId: 'comp-JSON_LD_STRUCTURED_DATA',sliceType: 'JSON_LD_STRUCTURED_DATA',label: 'JSON-LD Structured Data · hidden in output', icon: '🗂️', category: 'layout', description: 'Hidden structured-data and China legal filing block for Web Standard output', configurable: ['schemaType','lastReviewedDate','copyrightText','publicSecurityText','publicSecurityUrl','icpText','icpUrl','jsonLd'], minHeight: 32, singleton: true, version: '1.0.0', maintainedBy: 'Web Enablement Team', status: 'ACTIVE' },
     { componentId: 'comp-ANNOUNCEMENT_OVERLAY',   sliceType: 'ANNOUNCEMENT_OVERLAY',   label: 'Announcement Overlay',           icon: '📣',    category: 'notice',     description: 'Full-screen dimmed announcement shell for maintenance, special announcement, forced update and seasonal greeting scenarios', configurable: ['scenario','styleVariant','contentRef','visual','title','body','hotlines','dontShowAgain','actions','expiry','priority','blockInteraction'], minHeight: 620, singleton: true,  version: '1.0.0', maintainedBy: 'Mobile Experience Platform Team', status: 'ACTIVE' },
     { componentId: 'comp-ANNOUNCEMENT_VISUAL',    sliceType: 'ANNOUNCEMENT_VISUAL',    label: 'Announcement Visual',            icon: '🖼️',   category: 'notice',     description: 'Illustration, brand logo or seasonal artwork block for announcement cards',             configurable: ['assetId','imageUrl','altText','placement','backgroundColor','safeAreaTop'],                                      minHeight: 160, singleton: false, version: '1.0.0', maintainedBy: 'Brand Design Systems Team',   status: 'ACTIVE' },
     { componentId: 'comp-ANNOUNCEMENT_BODY',      sliceType: 'ANNOUNCEMENT_BODY',      label: 'Announcement Body',              icon: '📝',    category: 'notice',     description: 'Structured title, message paragraphs, bullet lines, hotline links and opt-out checkbox text', configurable: ['headline','paragraphs','bulletItems','hotlines','dontShowAgainLabel','legalEntityText'], minHeight: 220, singleton: false, version: '1.0.0', maintainedBy: 'Content Engineering',          status: 'ACTIVE' },
@@ -1932,39 +2001,23 @@ app.get('/api/v1/screen/fx-viewpoint-hk', (req, res) => {
 
 // ─── GET /api/v1/screen/deposit-campaign-cn  — Deposit Campaign SDUI delivery ─
 // Zone 1 public endpoint — delivers the New Fund Deposit Campaign (CN) page as SDUI JSON.
-// Contains HEADER_NAV, PROMO_BANNER (deposit-campaign-banner.jpg), PROMO_BANNER (CD rate callout),
-// DEPOSIT_RATE_TABLE (rates only), DEPOSIT_OPEN_CTA, SPACER and DEPOSIT_FAQ.
+// Contains HEADER_NAV, PROMO_BANNER, DEPOSIT_RATE_TABLE, DEPOSIT_OPEN_CTA,
+// SPACER, DEPOSIT_FAQ, DEPOSIT_INSURANCE and JSON_LD_STRUCTURED_DATA.
 app.get('/api/v1/screen/deposit-campaign-cn', (req, res) => {
   const publishedAt = new Date(Date.now() - 86400000).toISOString();
-  const locale  = resolveLocale(req);
+  const locale  = req.headers['x-locale'] ? resolveLocale(req) : 'zh-CN';
   const a11y    = resolveA11yFlags(req);
-  const channel = resolveChannel(req);
-  res.json({
-    schemaVersion: '3.0',
-    pageId: 'deposit-campaign-cn',
-    screen: 'deposit_campaign',
-    ttl: 300,
-    metadata: {
-      pageId: 'deposit-campaign-cn',
-      locale,
-      textDir: resolveTextDir(locale),
-      platform: req.headers['x-platform'] || 'all',
-      channel,
-      version: 1,
-      publishedAt,
-      generatedAt: new Date().toISOString(),
-      a11y,
-    },
-    layout: {
-      type: 'SCROLL',
-      children: [
+  const channel = req.headers['x-channel'] ? resolveChannel(req) : 'SDUI';
+  const platform = String(req.headers['x-platform'] || 'all').toLowerCase();
+  const shouldIncludeWebOnly = channel === 'WEB_STANDARD' || platform === 'web';
+  const children = [
         {
           instanceId: 'dep-header',
           type: 'HEADER_NAV',
           visible: true,
           locked: true,
           props: {
-            title: 'Renminbi Savings Offers',
+            title: '人民币存款优惠',
             showNotificationBell: false,
             showQRScanner: false,
             showBackButton: true,
@@ -1987,9 +2040,9 @@ app.get('/api/v1/screen/deposit-campaign-cn', (req, res) => {
           visible: true,
           locked: false,
           props: {
-            title: '🌟 Up to 1.15% p.a. Annual Equivalent Rate',
-            subtitle: '3-Month New Fund CNY Transferable CD — exclusively for new deposits. Don\'t miss this limited-time rate. Start earning more today.',
-            badgeText: '🔥 New Funds Only',
+            title: '年化利率最高 1.15%',
+            subtitle: '3个月人民币新资金可转让存单优惠，适用于符合条件的新转入资金。把握限时机会，让闲置资金更有效运用。',
+            badgeText: '仅限新资金',
             backgroundColor: '#FFF7ED',
             textColor: '#92400E',
           },
@@ -2000,17 +2053,17 @@ app.get('/api/v1/screen/deposit-campaign-cn', (req, res) => {
           visible: true,
           locked: false,
           props: {
-            sectionTitle: 'Time Deposit Rate:',
-            asAtDate: '5/22/2025',
+            sectionTitle: '定期存款利率',
+            asAtDate: '2025/05/22',
             rates: [
-              { term: '3 Month Time Deposit',  rate: '0.65' },
-              { term: '6 Month Time Deposit',  rate: '0.85' },
-              { term: '12 Month Time Deposit', rate: '0.95' },
-              { term: '24 Month Time Deposit', rate: '1.05' },
-              { term: '36 Month Time Deposit', rate: '1.25' },
-              { term: '60 Month Time Deposit', rate: '1.30' },
+              { term: '3个月定期存款',  rate: '0.65' },
+              { term: '6个月定期存款',  rate: '0.85' },
+              { term: '12个月定期存款', rate: '0.95' },
+              { term: '24个月定期存款', rate: '1.05' },
+              { term: '36个月定期存款', rate: '1.25' },
+              { term: '60个月定期存款', rate: '1.30' },
             ],
-            footnote: 'Time deposit minimum balance for Personal Banking customers: RMB50. New Fund refers to funds not previously held with HSBC.',
+            footnote: '个人银行客户定期存款起存金额为人民币50元。新资金指符合条件的新转入汇丰中国资金。利率仅供参考，并可能不时调整。',
           },
         },
         {
@@ -2019,8 +2072,19 @@ app.get('/api/v1/screen/deposit-campaign-cn', (req, res) => {
           visible: true,
           locked: false,
           props: {
-            label: 'Open a Deposit',
-            deepLink: 'hsbc://deposit/open?currency=CNY&campaign=new-fund',
+            label: '立即开立存款',
+            deepLink: 'hsbc-cn://deposit/open?currency=CNY&campaign=new-fund',
+            fallback: {
+              ios: 'https://apps.apple.com/cn/app/hsbc-china/id1467398731',
+              android: 'https://www.hsbc.com.cn/mobile-banking/',
+              huawei: 'appmarket://details?id=cn.com.hsbc.hsbcchina',
+              xiaomi: 'mimarket://details?id=cn.com.hsbc.hsbcchina',
+            },
+            analytics: {
+              provider: 'SensorsData',
+              events: ['deposit_open_click', 'deposit_open_conversion'],
+              metrics: ['dau', 'mau', 'click_rate', 'conversion_rate'],
+            },
             backgroundColor: '#C41E3A',
             textColor: '#FFFFFF',
           },
@@ -2038,32 +2102,71 @@ app.get('/api/v1/screen/deposit-campaign-cn', (req, res) => {
           visible: true,
           locked: false,
           props: {
-            sectionTitle: 'Frequently Asked Questions',
+            sectionTitle: '常见问题',
             items: [
               {
                 id: 'faq-1',
-                question: 'Can I withdraw my time deposit before it matures?',
-                answer: 'Yes, you can. But you\'ll earn less or no interest, and may have to pay an early withdrawal fee. For foreign currency deposits, visit a bank branch.',
+                question: '定期存款到期前可以提前支取吗？',
+                answer: '可以。提前支取可能无法享受原定利率，利息可能减少或为零，并可能产生相关费用。具体规则以汇丰中国实际办理要求为准。',
               },
               {
                 id: 'faq-2',
-                question: 'What happens if I don\'t withdraw my money after maturity?',
-                answer: 'If you don\'t take out your money when it matures, most banks will automatically renew your deposit for the same term at the current interest rate. You can also choose to withdraw it or change the term before maturity.',
+                question: '到期后没有支取会怎样？',
+                answer: '您可在办理时选择到期处理方式，例如到期支取或自动续存。自动续存时通常将按续存当日适用利率执行。',
               },
               {
                 id: 'faq-3',
-                question: 'How long can I keep a time deposit?',
-                answer: 'Banks usually offer terms like 3 months, 6 months, 1 year, 2 years, 3 years, 5 years, or even 10 years. Longer terms usually have higher interest rates. The most popular choices are 6-month or 12-month plans.',
+                question: '可选择哪些存期？',
+                answer: '常见存期包括3个月、6个月、12个月、24个月、36个月及60个月。不同存期对应不同利率，您可根据资金安排选择。',
               },
               {
                 id: 'faq-4',
-                question: 'Why is the interest rate higher for time deposits than regular savings accounts?',
-                answer: 'Banks can offer better rates because they know you\'ll keep your money in the account for a fixed period. This lets them use the funds for longer-term investments, so they share more of the profit with you as interest.',
+                question: '为什么定期存款利率通常高于活期存款？',
+                answer: '定期存款在约定期限内保持资金稳定，因此银行通常可提供高于活期存款的利率。实际利率以办理时页面或网点公示为准。',
               },
             ],
           },
         },
-      ],
+        {
+          instanceId: 'dep-insurance',
+          type: 'DEPOSIT_INSURANCE',
+          visible: true,
+          locked: false,
+          props: { ...DEPOSIT_INSURANCE_PROPS, logoUrl: mediaUrl(req, '/media/deposit-insurance-logo.jpg') },
+        },
+        ...(shouldIncludeWebOnly ? [{
+          instanceId: 'dep-legal-jsonld',
+          type: 'JSON_LD_STRUCTURED_DATA',
+          visible: false,
+          locked: false,
+          props: { ...DEPOSIT_LEGAL_PROPS, hidden: true, webOnly: true, outputChannels: ['WEB_STANDARD', 'web-sdui'] },
+        }] : []),
+      ];
+  res.json({
+    schemaVersion: '3.0',
+    pageId: 'deposit-campaign-cn',
+    screen: 'deposit_campaign',
+    ttl: 300,
+    metadata: {
+      pageId: 'deposit-campaign-cn',
+      locale,
+      textDir: resolveTextDir(locale),
+      platform: req.headers['x-platform'] || 'all',
+      channel,
+      supportedLocales: ['zh-CN', 'en'],
+      analytics: {
+        provider: 'SensorsData',
+        metrics: ['dau', 'mau', 'click_rate', 'conversion_rate'],
+        events: ['sensorsdata_page_view', 'sensorsdata_deposit_open_click', 'sensorsdata_deposit_open_conversion'],
+      },
+      version: 1,
+      publishedAt,
+      generatedAt: new Date().toISOString(),
+      a11y,
+    },
+    layout: {
+      type: 'SCROLL',
+      children,
     },
   });
 });

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSDUIContext } from '../../context/SDUIContext';
 import { useChannelMeta } from '../../hooks/useChannelMeta';
+import { analyticsClient } from '../../analytics/AnalyticsClient';
 
 // ─── BFF base URL ─────────────────────────────────────────────────────────────
 
@@ -17,6 +18,7 @@ interface DepositSlice {
 
 interface RateRow { term: string; rate: string }
 interface FAQItem { id: string; question: string; answer: string }
+interface StoreFallbacks { ios?: string; android?: string; huawei?: string; xiaomi?: string }
 
 // ─── Root page ────────────────────────────────────────────────────────────────
 
@@ -24,12 +26,26 @@ export function DepositCampaignPage() {
   const { bffHeaders } = useSDUIContext();
   const [slices, setSlices] = useState<DepositSlice[] | null>(null);
   const [error, setError]   = useState(false);
+  const structuredSlice = slices?.find(s => s.type === 'JSON_LD_STRUCTURED_DATA' || s.type === 'SEO_STRUCTURED_DATA');
+  const lastReviewedDate = String(structuredSlice?.props['lastReviewedDate'] ?? '');
+  const parsedJsonLd = withLastReviewedDate(parseJsonLd(structuredSlice?.props['jsonLd']), lastReviewedDate);
 
   useChannelMeta({
-    title: 'New Fund Deposit Campaign — HSBC China',
-    description: 'Open a time deposit with HSBC and enjoy competitive RMB savings rates. Limited time offer.',
-    jsonLd: { '@type': 'FinancialProduct', name: 'HSBC New Fund Deposit', offers: { '@type': 'Offer', priceCurrency: 'CNY' } },
+    title: '人民币新资金定期存款优惠 | 汇丰中国',
+    description: '了解汇丰中国人民币新资金定期存款优惠、参考利率、办理方式、常见问题及存款保险信息。',
+    jsonLd: parsedJsonLd ?? { '@type': 'FinancialProduct', name: '汇丰中国新资金存款优惠', offers: { '@type': 'Offer', priceCurrency: 'CNY' } },
+    force: true,
   });
+
+  useEffect(() => {
+    analyticsClient.fire('sensorsdata_page_view', {
+      provider: 'SensorsData',
+      pageId: 'deposit-campaign-cn',
+      pageName: 'New Fund Deposit Campaign (CN)',
+      market: 'CN',
+      metrics: ['dau', 'mau'],
+    });
+  }, []);
 
   useEffect(() => {
     fetch(`${BFF_BASE}/screen/deposit-campaign-cn`, {
@@ -38,12 +54,12 @@ export function DepositCampaignPage() {
       .then(r => r.json())
       .then(data => {
         const children: DepositSlice[] = data?.layout?.children ?? [];
-        setSlices(children.filter(s => s.visible !== false));
+        setSlices(children);
       })
       .catch(() => setError(true));
   }, [bffHeaders['x-locale'], bffHeaders['x-channel']]);
 
-  const bodySlices = slices ?? [];
+  const bodySlices = (slices ?? []).filter(s => s.visible !== false);
 
   return (
     <div style={styles.page}>
@@ -62,6 +78,7 @@ export function DepositCampaignPage() {
             ? bodySlices.map(s => <SliceView key={s.instanceId} slice={s} />)
             : <DepositHardcodedFallback />
           }
+          {structuredSlice && <DepositLegalStructuredData slice={structuredSlice} />}
         </>
       )}
     </div>
@@ -85,6 +102,11 @@ function SliceView({ slice }: { slice: DepositSlice }) {
       return <DepositOpenCTA slice={slice} />;
     case 'DEPOSIT_FAQ':
       return <DepositFAQSection slice={slice} />;
+    case 'DEPOSIT_INSURANCE':
+      return <DepositInsurance slice={slice} />;
+    case 'JSON_LD_STRUCTURED_DATA':
+    case 'SEO_STRUCTURED_DATA':
+      return <DepositLegalStructuredData slice={slice} />;
     case 'SPACER':
       return <div style={{ height: Number(slice.props['height'] ?? 16) }} />;
     default:
@@ -183,18 +205,77 @@ function DepositRateTable({ slice }: { slice: DepositSlice }) {
 
 function DepositOpenCTA({ slice }: { slice: DepositSlice }) {
   const label    = String(slice.props['label'] ?? 'Open a Deposit');
+  const deepLink = String(slice.props['deepLink'] ?? 'hsbc-cn://deposit/open?currency=CNY&campaign=new-fund');
+  const fallback = (slice.props['fallback'] as StoreFallbacks | undefined) ?? {};
   const bgColor  = String(slice.props['backgroundColor'] ?? '#C41E3A');
   const textColor = String(slice.props['textColor'] ?? '#FFFFFF');
+  const openDeposit = () => {
+    analyticsClient.fire('sensorsdata_deposit_open_click', {
+      provider: 'SensorsData',
+      pageId: 'deposit-campaign-cn',
+      target: deepLink,
+      metrics: ['click_rate', 'conversion_rate'],
+    });
+    openDeepLinkWithFallback(deepLink, fallback, () => {
+      analyticsClient.fire('sensorsdata_deposit_open_conversion', {
+        provider: 'SensorsData',
+        pageId: 'deposit-campaign-cn',
+        target: deepLink,
+        metrics: ['conversion_rate'],
+      });
+    });
+  };
 
   return (
     <div style={styles.ctaWrap}>
       <button
         style={{ ...styles.ctaButton, backgroundColor: bgColor, color: textColor }}
-        onClick={() => console.log('hsbc://deposit/open?currency=CNY&campaign=new-fund')}
+        onClick={openDeposit}
       >
         {label}
       </button>
     </div>
+  );
+}
+
+function DepositInsurance({ slice }: { slice: DepositSlice }) {
+  const title = String(slice.props['title'] ?? '存款保险');
+  const logoUrl = String(slice.props['logoUrl'] ?? '/media/deposit-insurance-logo.jpg');
+  const altText = String(slice.props['altText'] ?? '存款保险标识');
+  const linkUrl = String(slice.props['linkUrl'] ?? 'https://www.hsbc.com.cn/content/dam/hsbc/cn/docs/insurance/insurance-prodcut-electronic-notice.pdf');
+
+  return (
+    <section style={styles.insuranceWrap} aria-label={title}>
+      <a
+        href={linkUrl}
+        target="_blank"
+        rel="noreferrer"
+        style={styles.insuranceLink}
+        onClick={() => analyticsClient.fire('sensorsdata_deposit_insurance_click', { provider: 'SensorsData', pageId: 'deposit-campaign-cn', target: linkUrl })}
+      >
+        <img src={logoUrl} alt={altText} style={styles.insuranceLogo} />
+      </a>
+    </section>
+  );
+}
+
+function DepositLegalStructuredData({ slice }: { slice: DepositSlice }) {
+  const copyrightText = String(slice.props['copyrightText'] ?? '');
+  const publicSecurityText = String(slice.props['publicSecurityText'] ?? '');
+  const publicSecurityUrl = String(slice.props['publicSecurityUrl'] ?? '');
+  const icpText = String(slice.props['icpText'] ?? '');
+  const icpUrl = String(slice.props['icpUrl'] ?? '');
+
+  return (
+    <footer style={styles.legalFooter} aria-label="Legal filing">
+      {copyrightText && <div>{copyrightText}</div>}
+      {publicSecurityText && (
+        <a href={publicSecurityUrl} target="_blank" rel="noreferrer" style={styles.legalLink}>{publicSecurityText}</a>
+      )}
+      {icpText && (
+        <a href={icpUrl} target="_blank" rel="noreferrer" style={styles.legalLink}>{icpText}</a>
+      )}
+    </footer>
   );
 }
 
@@ -339,6 +420,46 @@ function hexWithAlpha(hex: string, alpha: number): string {
   }
 }
 
+function parseJsonLd(value: unknown): Record<string, unknown> | null {
+  if (!value) return null;
+  if (typeof value === 'object') return value as Record<string, unknown>;
+  try {
+    return JSON.parse(String(value)) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+function withLastReviewedDate(jsonLd: Record<string, unknown> | null, lastReviewedDate: string) {
+  if (!jsonLd || !lastReviewedDate) return jsonLd;
+  return { ...jsonLd, dateModified: jsonLd.dateModified ?? lastReviewedDate };
+}
+
+function openDeepLinkWithFallback(deepLink: string, fallback: StoreFallbacks, onConversion?: () => void) {
+  const platform = detectMobileStore();
+  const fallbackUrl = fallback[platform] ?? fallback.android ?? fallback.ios ?? 'https://www.hsbc.com.cn/mobile-banking/';
+  const start = Date.now();
+  const handleVisibility = () => {
+    if (document.visibilityState === 'hidden') onConversion?.();
+  };
+  document.addEventListener('visibilitychange', handleVisibility, { once: true });
+  window.location.href = deepLink;
+  window.setTimeout(() => {
+    document.removeEventListener('visibilitychange', handleVisibility);
+    if (Date.now() - start < 1800 && document.visibilityState === 'visible') {
+      window.location.href = fallbackUrl;
+    }
+  }, 1200);
+}
+
+function detectMobileStore(): keyof StoreFallbacks {
+  const ua = navigator.userAgent.toLowerCase();
+  if (/iphone|ipad|ipod/.test(ua)) return 'ios';
+  if (ua.includes('huawei')) return 'huawei';
+  if (ua.includes('xiaomi') || ua.includes('miui')) return 'xiaomi';
+  return 'android';
+}
+
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles: Record<string, React.CSSProperties> = {
@@ -416,4 +537,9 @@ const styles: Record<string, React.CSSProperties> = {
   faqChevron: { fontSize: 13, color: '#999999', flexShrink: 0, marginTop: 1 },
   faqAnswer:  { fontSize: 13, color: '#666666', padding: '0 16px 14px', lineHeight: '1.5' },
   divider:    { height: 1, backgroundColor: '#F0F0F0', marginLeft: 16 },
+  insuranceWrap: { backgroundColor: '#FFFFFF', padding: '12px 16px' },
+  insuranceLink: { display: 'block', border: '1px solid #E5E7EB', borderRadius: 8, backgroundColor: '#FFFFFF', overflow: 'hidden' },
+  insuranceLogo: { display: 'block', width: '100%', height: 140, objectFit: 'contain' },
+  legalFooter: { display: 'flex', flexDirection: 'column', gap: 6, padding: '14px 16px 20px', backgroundColor: '#F8F8F8', color: '#666666', fontSize: 11, lineHeight: 1.4 },
+  legalLink: { color: '#555555', textDecoration: 'none' },
 };

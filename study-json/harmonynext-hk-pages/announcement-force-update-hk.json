@@ -7,11 +7,11 @@
     "pageId": "announcement-force-update-hk",
     "locale": "en",
     "textDir": "ltr",
-    "platform": "all",
+    "platform": "harmonynext",
     "channel": "SDUI",
     "version": 1,
     "publishedAt": "2026-05-15T01:00:00.000Z",
-    "generatedAt": "2026-05-17T12:34:42.894Z",
+    "generatedAt": "2026-05-17T16:13:11.693Z",
     "marketTimeZone": "Asia/Hong_Kong",
     "nativeTargets": [
       "ios",
@@ -44,7 +44,7 @@
           },
           "visual": {
             "assetId": "asset-ann-elaisee",
-            "imageUrl": "http://localhost:4000/media/announcement-elaisee.jpg",
+            "imageUrl": "http://127.0.0.1:4000/media/announcement-elaisee.jpg",
             "altText": "eLaisee feature artwork",
             "placement": "modal-top"
           },
