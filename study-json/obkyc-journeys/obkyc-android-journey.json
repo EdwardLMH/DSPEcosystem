@@ -1,0 +1,1110 @@
+{
+  "schemaVersion": "2.3",
+  "journeyId": "obkyc-account-opening",
+  "journeyName": "OBKYC Account Opening",
+  "sessionId": "kyc-7ae8c75e",
+  "platform": "android",
+  "channel": "SDUI",
+  "locale": "en",
+  "totalSteps": 11,
+  "generatedAt": "2026-05-18T11:04:25.878Z",
+  "endpoints": {
+    "start": "/api/v1/kyc/sessions/start",
+    "resume": "/api/v1/kyc/sessions/kyc-7ae8c75e/resume",
+    "step": "/api/v1/kyc/sessions/kyc-7ae8c75e/steps/{stepId}",
+    "submit": "/api/v1/kyc/sessions/kyc-7ae8c75e/steps/{stepId}/submit"
+  },
+  "steps": [
+    {
+      "schemaVersion": "2.3",
+      "screen": "kyc_step",
+      "ttl": 0,
+      "metadata": {
+        "sessionId": "kyc-7ae8c75e",
+        "stepId": "step-001",
+        "stepIndex": 1,
+        "totalSteps": 11,
+        "sectionTitle": "Personal Information",
+        "platform": "android",
+        "locale": "en",
+        "textDir": "ltr",
+        "channel": "SDUI",
+        "a11y": {
+          "reduceMotion": false,
+          "highContrast": false,
+          "largeText": false,
+          "voiceOver": false,
+          "talkBack": false,
+          "screenReader": false
+        }
+      },
+      "layout": {
+        "type": "KYCScrollContainer",
+        "id": "root-step-001",
+        "props": {
+          "platform": "android",
+          "dir": "ltr"
+        },
+        "children": [
+          {
+            "type": "KYCTextInput",
+            "id": "q_first_name",
+            "props": {
+              "questionId": "q_first_name",
+              "label": "First name",
+              "placeholder": "e.g. Tai Man",
+              "validation": {
+                "required": true,
+                "minLength": 1,
+                "errorMessage": "First name is required"
+              },
+              "savedValue": null,
+              "a11yLabel": "First name",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "q_first_name",
+              "customProperties": {
+                "section": "personal_details",
+                "questionType": "KYCTextInput",
+                "locale": "en"
+              }
+            }
+          },
+          {
+            "type": "KYCTextInput",
+            "id": "q_last_name",
+            "props": {
+              "questionId": "q_last_name",
+              "label": "Last name",
+              "placeholder": "e.g. CHAN",
+              "validation": {
+                "required": true,
+                "minLength": 1,
+                "errorMessage": "Last name is required"
+              },
+              "savedValue": null,
+              "a11yLabel": "Last name",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "q_last_name",
+              "customProperties": {
+                "section": "personal_details",
+                "questionType": "KYCTextInput",
+                "locale": "en"
+              }
+            }
+          },
+          {
+            "type": "KYCTextInput",
+            "id": "q_date_of_birth",
+            "props": {
+              "questionId": "q_date_of_birth",
+              "label": "Date of birth",
+              "placeholder": "YYYY-MM-DD",
+              "inputType": "date",
+              "validation": {
+                "required": true,
+                "errorMessage": "Date of birth is required"
+              },
+              "savedValue": null,
+              "a11yLabel": "Date of birth",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "q_date_of_birth",
+              "customProperties": {
+                "section": "personal_details",
+                "questionType": "KYCTextInput",
+                "locale": "en"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": "2.3",
+      "screen": "kyc_step",
+      "ttl": 0,
+      "metadata": {
+        "sessionId": "kyc-7ae8c75e",
+        "stepId": "step-002",
+        "stepIndex": 2,
+        "totalSteps": 11,
+        "sectionTitle": "Personal Information",
+        "platform": "android",
+        "locale": "en",
+        "textDir": "ltr",
+        "channel": "SDUI",
+        "a11y": {
+          "reduceMotion": false,
+          "highContrast": false,
+          "largeText": false,
+          "voiceOver": false,
+          "talkBack": false,
+          "screenReader": false
+        }
+      },
+      "layout": {
+        "type": "KYCScrollContainer",
+        "id": "root-step-002",
+        "props": {
+          "platform": "android",
+          "dir": "ltr"
+        },
+        "children": [
+          {
+            "type": "KYCSingleSelect",
+            "id": "q_nationality",
+            "props": {
+              "questionId": "q_nationality",
+              "label": "Nationality",
+              "options": [
+                {
+                  "value": "HK",
+                  "label": "Hong Kong SAR"
+                },
+                {
+                  "value": "CN",
+                  "label": "Mainland China"
+                },
+                {
+                  "value": "GB",
+                  "label": "United Kingdom"
+                },
+                {
+                  "value": "US",
+                  "label": "United States"
+                },
+                {
+                  "value": "SG",
+                  "label": "Singapore"
+                },
+                {
+                  "value": "OTHER",
+                  "label": "Other"
+                }
+              ],
+              "validation": {
+                "required": true
+              },
+              "savedValue": null,
+              "a11yLabel": "Nationality",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "q_nationality",
+              "customProperties": {
+                "section": "personal_details",
+                "questionType": "KYCSingleSelect",
+                "locale": "en"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": "2.3",
+      "screen": "kyc_step",
+      "ttl": 0,
+      "metadata": {
+        "sessionId": "kyc-7ae8c75e",
+        "stepId": "step-003",
+        "stepIndex": 3,
+        "totalSteps": 11,
+        "sectionTitle": "Identity Document",
+        "platform": "android",
+        "locale": "en",
+        "textDir": "ltr",
+        "channel": "SDUI",
+        "a11y": {
+          "reduceMotion": false,
+          "highContrast": false,
+          "largeText": false,
+          "voiceOver": false,
+          "talkBack": false,
+          "screenReader": false
+        }
+      },
+      "layout": {
+        "type": "KYCScrollContainer",
+        "id": "root-step-003",
+        "props": {
+          "platform": "android",
+          "dir": "ltr"
+        },
+        "children": [
+          {
+            "type": "KYCTextInput",
+            "id": "q_hkid_number",
+            "props": {
+              "questionId": "q_hkid_number",
+              "label": "HKID number",
+              "placeholder": "A123456(7)",
+              "helpText": "Include check digit in brackets",
+              "validation": {
+                "required": true,
+                "errorMessage": "HKID number is required"
+              },
+              "savedValue": null,
+              "a11yLabel": "HKID number",
+              "a11yHint": "Include check digit in brackets",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "q_hkid_number",
+              "customProperties": {
+                "section": "identity_document",
+                "questionType": "KYCTextInput",
+                "locale": "en"
+              }
+            }
+          },
+          {
+            "type": "KYCTextInput",
+            "id": "q_hkid_expiry",
+            "props": {
+              "questionId": "q_hkid_expiry",
+              "label": "HKID expiry date",
+              "placeholder": "DD/MM/YYYY or N/A",
+              "validation": {
+                "required": false
+              },
+              "savedValue": null,
+              "a11yLabel": "HKID expiry date",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "q_hkid_expiry",
+              "customProperties": {
+                "section": "identity_document",
+                "questionType": "KYCTextInput",
+                "locale": "en"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": "2.3",
+      "screen": "kyc_step",
+      "ttl": 0,
+      "metadata": {
+        "sessionId": "kyc-7ae8c75e",
+        "stepId": "step-004",
+        "stepIndex": 4,
+        "totalSteps": 11,
+        "sectionTitle": "Upload Identity Document",
+        "platform": "android",
+        "locale": "en",
+        "textDir": "ltr",
+        "channel": "SDUI",
+        "a11y": {
+          "reduceMotion": false,
+          "highContrast": false,
+          "largeText": false,
+          "voiceOver": false,
+          "talkBack": false,
+          "screenReader": false
+        }
+      },
+      "layout": {
+        "type": "KYCScrollContainer",
+        "id": "root-step-004",
+        "props": {
+          "platform": "android",
+          "dir": "ltr"
+        },
+        "children": [
+          {
+            "type": "KYCDocUpload",
+            "id": "q_hkid_front",
+            "props": {
+              "questionId": "q_hkid_front",
+              "label": "HKID — Front side",
+              "helpText": "Take a clear photo or upload a scan. File must be under 10MB.",
+              "savedValue": null,
+              "a11yLabel": "HKID — Front side",
+              "a11yHint": "Take a clear photo or upload a scan. File must be under 10MB.",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "q_hkid_front",
+              "customProperties": {
+                "section": "identity_upload",
+                "questionType": "KYCDocUpload",
+                "locale": "en"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": "2.3",
+      "screen": "kyc_step",
+      "ttl": 0,
+      "metadata": {
+        "sessionId": "kyc-7ae8c75e",
+        "stepId": "step-005",
+        "stepIndex": 5,
+        "totalSteps": 11,
+        "sectionTitle": "Contact Details",
+        "platform": "android",
+        "locale": "en",
+        "textDir": "ltr",
+        "channel": "SDUI",
+        "a11y": {
+          "reduceMotion": false,
+          "highContrast": false,
+          "largeText": false,
+          "voiceOver": false,
+          "talkBack": false,
+          "screenReader": false
+        }
+      },
+      "layout": {
+        "type": "KYCScrollContainer",
+        "id": "root-step-005",
+        "props": {
+          "platform": "android",
+          "dir": "ltr"
+        },
+        "children": [
+          {
+            "type": "KYCTextInput",
+            "id": "q_email",
+            "props": {
+              "questionId": "q_email",
+              "label": "Email address",
+              "placeholder": "name@example.com",
+              "inputType": "email",
+              "validation": {
+                "required": true,
+                "pattern": "^[^@]+@[^@]+\\.[^@]+$",
+                "errorMessage": "Please enter a valid email address"
+              },
+              "savedValue": null,
+              "a11yLabel": "Email address",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "q_email",
+              "customProperties": {
+                "section": "contact_details",
+                "questionType": "KYCTextInput",
+                "locale": "en"
+              }
+            }
+          },
+          {
+            "type": "KYCTextInput",
+            "id": "q_phone",
+            "props": {
+              "questionId": "q_phone",
+              "label": "Mobile number (Hong Kong)",
+              "placeholder": "91234567",
+              "helpText": "We will send a verification code to this number",
+              "inputType": "tel",
+              "validation": {
+                "required": true,
+                "pattern": "^[4-9][0-9]{7}$",
+                "errorMessage": "Please enter a valid 8-digit HK mobile number"
+              },
+              "savedValue": null,
+              "a11yLabel": "Mobile number (Hong Kong)",
+              "a11yHint": "We will send a verification code to this number",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "q_phone",
+              "customProperties": {
+                "section": "contact_details",
+                "questionType": "KYCTextInput",
+                "locale": "en"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": "2.3",
+      "screen": "kyc_step",
+      "ttl": 0,
+      "metadata": {
+        "sessionId": "kyc-7ae8c75e",
+        "stepId": "step-006",
+        "stepIndex": 6,
+        "totalSteps": 11,
+        "sectionTitle": "Residential Address",
+        "platform": "android",
+        "locale": "en",
+        "textDir": "ltr",
+        "channel": "SDUI",
+        "a11y": {
+          "reduceMotion": false,
+          "highContrast": false,
+          "largeText": false,
+          "voiceOver": false,
+          "talkBack": false,
+          "screenReader": false
+        }
+      },
+      "layout": {
+        "type": "KYCScrollContainer",
+        "id": "root-step-006",
+        "props": {
+          "platform": "android",
+          "dir": "ltr"
+        },
+        "children": [
+          {
+            "type": "KYCTextInput",
+            "id": "q_addr_line1",
+            "props": {
+              "questionId": "q_addr_line1",
+              "label": "Address line 1",
+              "placeholder": "Flat / Floor / Block",
+              "validation": {
+                "required": true
+              },
+              "savedValue": null,
+              "a11yLabel": "Address line 1",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "q_addr_line1",
+              "customProperties": {
+                "section": "residential_address",
+                "questionType": "KYCTextInput",
+                "locale": "en"
+              }
+            }
+          },
+          {
+            "type": "KYCTextInput",
+            "id": "q_addr_line2",
+            "props": {
+              "questionId": "q_addr_line2",
+              "label": "Address line 2",
+              "placeholder": "Building name / Estate",
+              "validation": {
+                "required": false
+              },
+              "savedValue": null,
+              "a11yLabel": "Address line 2",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "q_addr_line2",
+              "customProperties": {
+                "section": "residential_address",
+                "questionType": "KYCTextInput",
+                "locale": "en"
+              }
+            }
+          },
+          {
+            "type": "KYCSingleSelect",
+            "id": "q_addr_district",
+            "props": {
+              "questionId": "q_addr_district",
+              "label": "District",
+              "options": [
+                {
+                  "value": "central_western",
+                  "label": "Central & Western"
+                },
+                {
+                  "value": "eastern",
+                  "label": "Eastern"
+                },
+                {
+                  "value": "southern",
+                  "label": "Southern"
+                },
+                {
+                  "value": "wan_chai",
+                  "label": "Wan Chai"
+                },
+                {
+                  "value": "kowloon_city",
+                  "label": "Kowloon City"
+                },
+                {
+                  "value": "kwun_tong",
+                  "label": "Kwun Tong"
+                },
+                {
+                  "value": "wong_tai_sin",
+                  "label": "Wong Tai Sin"
+                },
+                {
+                  "value": "yau_tsim_mong",
+                  "label": "Yau Tsim Mong"
+                },
+                {
+                  "value": "sham_shui_po",
+                  "label": "Sham Shui Po"
+                },
+                {
+                  "value": "sha_tin",
+                  "label": "Sha Tin"
+                },
+                {
+                  "value": "tai_po",
+                  "label": "Tai Po"
+                },
+                {
+                  "value": "north",
+                  "label": "North"
+                },
+                {
+                  "value": "islands",
+                  "label": "Islands"
+                }
+              ],
+              "validation": {
+                "required": true
+              },
+              "savedValue": null,
+              "a11yLabel": "District",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "q_addr_district",
+              "customProperties": {
+                "section": "residential_address",
+                "questionType": "KYCSingleSelect",
+                "locale": "en"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": "2.3",
+      "screen": "kyc_step",
+      "ttl": 0,
+      "metadata": {
+        "sessionId": "kyc-7ae8c75e",
+        "stepId": "step-007",
+        "stepIndex": 7,
+        "totalSteps": 11,
+        "sectionTitle": "Employment & Income",
+        "platform": "android",
+        "locale": "en",
+        "textDir": "ltr",
+        "channel": "SDUI",
+        "a11y": {
+          "reduceMotion": false,
+          "highContrast": false,
+          "largeText": false,
+          "voiceOver": false,
+          "talkBack": false,
+          "screenReader": false
+        }
+      },
+      "layout": {
+        "type": "KYCScrollContainer",
+        "id": "root-step-007",
+        "props": {
+          "platform": "android",
+          "dir": "ltr"
+        },
+        "children": [
+          {
+            "type": "KYCSingleSelect",
+            "id": "q_employment_status",
+            "props": {
+              "questionId": "q_employment_status",
+              "label": "Employment status",
+              "options": [
+                {
+                  "value": "EMPLOYED",
+                  "label": "Employed (full-time or part-time)"
+                },
+                {
+                  "value": "SELF_EMPLOYED",
+                  "label": "Self-employed"
+                },
+                {
+                  "value": "BUSINESS_OWNER",
+                  "label": "Business owner"
+                },
+                {
+                  "value": "RETIRED",
+                  "label": "Retired"
+                },
+                {
+                  "value": "STUDENT",
+                  "label": "Student"
+                },
+                {
+                  "value": "HOMEMAKER",
+                  "label": "Homemaker"
+                },
+                {
+                  "value": "UNEMPLOYED",
+                  "label": "Unemployed"
+                }
+              ],
+              "validation": {
+                "required": true
+              },
+              "savedValue": null,
+              "a11yLabel": "Employment status",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "q_employment_status",
+              "customProperties": {
+                "section": "employment",
+                "questionType": "KYCSingleSelect",
+                "locale": "en"
+              }
+            }
+          },
+          {
+            "type": "KYCSingleSelect",
+            "id": "q_annual_income",
+            "props": {
+              "questionId": "q_annual_income",
+              "label": "Annual income (HKD)",
+              "options": [
+                {
+                  "value": "below_100k",
+                  "label": "Below HKD 100,000"
+                },
+                {
+                  "value": "100k_300k",
+                  "label": "HKD 100,000 – 300,000"
+                },
+                {
+                  "value": "300k_600k",
+                  "label": "HKD 300,000 – 600,000"
+                },
+                {
+                  "value": "600k_1m",
+                  "label": "HKD 600,000 – 1,000,000"
+                },
+                {
+                  "value": "above_1m",
+                  "label": "Above HKD 1,000,000"
+                },
+                {
+                  "value": "prefer_not",
+                  "label": "Prefer not to say"
+                }
+              ],
+              "validation": {
+                "required": true
+              },
+              "savedValue": null,
+              "a11yLabel": "Annual income (HKD)",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "q_annual_income",
+              "customProperties": {
+                "section": "employment",
+                "questionType": "KYCSingleSelect",
+                "locale": "en"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": "2.3",
+      "screen": "kyc_step",
+      "ttl": 0,
+      "metadata": {
+        "sessionId": "kyc-7ae8c75e",
+        "stepId": "step-008",
+        "stepIndex": 8,
+        "totalSteps": 11,
+        "sectionTitle": "Source of Funds",
+        "platform": "android",
+        "locale": "en",
+        "textDir": "ltr",
+        "channel": "SDUI",
+        "a11y": {
+          "reduceMotion": false,
+          "highContrast": false,
+          "largeText": false,
+          "voiceOver": false,
+          "talkBack": false,
+          "screenReader": false
+        }
+      },
+      "layout": {
+        "type": "KYCScrollContainer",
+        "id": "root-step-008",
+        "props": {
+          "platform": "android",
+          "dir": "ltr"
+        },
+        "children": [
+          {
+            "type": "KYCSingleSelect",
+            "id": "q_source_of_funds",
+            "props": {
+              "questionId": "q_source_of_funds",
+              "label": "Primary source of funds",
+              "options": [
+                {
+                  "value": "EMPLOYMENT",
+                  "label": "Employment / Salary"
+                },
+                {
+                  "value": "BUSINESS",
+                  "label": "Business Income"
+                },
+                {
+                  "value": "INVESTMENT",
+                  "label": "Investment Returns"
+                },
+                {
+                  "value": "INHERITANCE",
+                  "label": "Inheritance / Gift"
+                },
+                {
+                  "value": "PROPERTY",
+                  "label": "Property Sale"
+                },
+                {
+                  "value": "PENSION",
+                  "label": "Pension / Retirement Fund"
+                },
+                {
+                  "value": "SAVINGS",
+                  "label": "Accumulated Savings"
+                },
+                {
+                  "value": "OTHER",
+                  "label": "Other"
+                }
+              ],
+              "validation": {
+                "required": true
+              },
+              "savedValue": null,
+              "a11yLabel": "Primary source of funds",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "q_source_of_funds",
+              "customProperties": {
+                "section": "source_of_funds",
+                "questionType": "KYCSingleSelect",
+                "locale": "en"
+              }
+            }
+          },
+          {
+            "type": "KYCSingleSelect",
+            "id": "q_account_purpose",
+            "props": {
+              "questionId": "q_account_purpose",
+              "label": "Purpose of account",
+              "options": [
+                {
+                  "value": "EVERYDAY_BANKING",
+                  "label": "Everyday banking & payments"
+                },
+                {
+                  "value": "SAVINGS",
+                  "label": "Savings & deposits"
+                },
+                {
+                  "value": "INVESTMENT",
+                  "label": "Investment & wealth management"
+                },
+                {
+                  "value": "SALARY_RECEIPT",
+                  "label": "Salary / income receipt"
+                },
+                {
+                  "value": "INTERNATIONAL_TRANSFER",
+                  "label": "International money transfers"
+                },
+                {
+                  "value": "MORTGAGE",
+                  "label": "Mortgage repayments"
+                }
+              ],
+              "validation": {
+                "required": true
+              },
+              "savedValue": null,
+              "a11yLabel": "Purpose of account",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "q_account_purpose",
+              "customProperties": {
+                "section": "source_of_funds",
+                "questionType": "KYCSingleSelect",
+                "locale": "en"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": "2.3",
+      "screen": "kyc_step",
+      "ttl": 0,
+      "metadata": {
+        "sessionId": "kyc-7ae8c75e",
+        "stepId": "step-009",
+        "stepIndex": 9,
+        "totalSteps": 11,
+        "sectionTitle": "Selfie & Liveness Check",
+        "platform": "android",
+        "locale": "en",
+        "textDir": "ltr",
+        "channel": "SDUI",
+        "a11y": {
+          "reduceMotion": false,
+          "highContrast": false,
+          "largeText": false,
+          "voiceOver": false,
+          "talkBack": false,
+          "screenReader": false
+        }
+      },
+      "layout": {
+        "type": "KYCScrollContainer",
+        "id": "root-step-009",
+        "props": {
+          "platform": "android",
+          "dir": "ltr"
+        },
+        "children": [
+          {
+            "type": "KYCLiveness",
+            "id": "q_liveness",
+            "props": {
+              "questionId": "q_liveness",
+              "label": "Liveness verification",
+              "helpText": "Verify you are a real person and match your ID document",
+              "savedValue": null,
+              "a11yLabel": "Liveness verification",
+              "a11yHint": "Verify you are a real person and match your ID document",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "q_liveness",
+              "customProperties": {
+                "section": "liveness_check",
+                "questionType": "KYCLiveness",
+                "locale": "en"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": "2.3",
+      "screen": "kyc_step",
+      "ttl": 0,
+      "metadata": {
+        "sessionId": "kyc-7ae8c75e",
+        "stepId": "step-010",
+        "stepIndex": 10,
+        "totalSteps": 11,
+        "sectionTitle": "Connect Your Bank",
+        "platform": "android",
+        "locale": "en",
+        "textDir": "ltr",
+        "channel": "SDUI",
+        "a11y": {
+          "reduceMotion": false,
+          "highContrast": false,
+          "largeText": false,
+          "voiceOver": false,
+          "talkBack": false,
+          "screenReader": false
+        }
+      },
+      "layout": {
+        "type": "KYCScrollContainer",
+        "id": "root-step-010",
+        "props": {
+          "platform": "android",
+          "dir": "ltr"
+        },
+        "children": [
+          {
+            "type": "KYCOpenBanking",
+            "id": "q_ob_consent",
+            "props": {
+              "questionId": "q_ob_consent",
+              "label": "Open Banking consent",
+              "helpText": "Connect your bank to verify account ownership via Open Banking",
+              "savedValue": null,
+              "a11yLabel": "Open Banking consent",
+              "a11yHint": "Connect your bank to verify account ownership via Open Banking",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "q_ob_consent",
+              "customProperties": {
+                "section": "open_banking",
+                "questionType": "KYCOpenBanking",
+                "locale": "en"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": "2.3",
+      "screen": "kyc_step",
+      "ttl": 0,
+      "metadata": {
+        "sessionId": "kyc-7ae8c75e",
+        "stepId": "step-011",
+        "stepIndex": 11,
+        "totalSteps": 11,
+        "sectionTitle": "Legal Declarations",
+        "platform": "android",
+        "locale": "en",
+        "textDir": "ltr",
+        "channel": "SDUI",
+        "a11y": {
+          "reduceMotion": false,
+          "highContrast": false,
+          "largeText": false,
+          "voiceOver": false,
+          "talkBack": false,
+          "screenReader": false
+        }
+      },
+      "layout": {
+        "type": "KYCScrollContainer",
+        "id": "root-step-011",
+        "props": {
+          "platform": "android",
+          "dir": "ltr"
+        },
+        "children": [
+          {
+            "type": "KYCDeclaration",
+            "id": "q_pep_status",
+            "props": {
+              "questionId": "q_pep_status",
+              "label": "PEP Status",
+              "validation": {
+                "required": true
+              },
+              "savedValue": null,
+              "a11yLabel": "PEP Status",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "q_pep_status",
+              "customProperties": {
+                "section": "declarations",
+                "questionType": "KYCDeclaration",
+                "locale": "en"
+              }
+            }
+          },
+          {
+            "type": "KYCDeclaration",
+            "id": "decl_truthful",
+            "props": {
+              "questionId": "decl_truthful",
+              "label": "Truthfulness declaration",
+              "savedValue": null,
+              "a11yLabel": "Truthfulness declaration",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "decl_truthful",
+              "customProperties": {
+                "section": "declarations",
+                "questionType": "KYCDeclaration",
+                "locale": "en"
+              }
+            }
+          },
+          {
+            "type": "KYCDeclaration",
+            "id": "decl_fatca",
+            "props": {
+              "questionId": "decl_fatca",
+              "label": "FATCA declaration",
+              "savedValue": null,
+              "a11yLabel": "FATCA declaration",
+              "a11yLargeText": false,
+              "a11yHighContrast": false
+            },
+            "analytics": {
+              "impressionEvent": "kyc_question_viewed",
+              "componentId": "decl_fatca",
+              "customProperties": {
+                "section": "declarations",
+                "questionType": "KYCDeclaration",
+                "locale": "en"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
