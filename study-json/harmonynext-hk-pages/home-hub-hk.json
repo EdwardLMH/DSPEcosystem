@@ -9,11 +9,16 @@
     "pageType": "HOME_HUB",
     "locale": "en",
     "textDir": "ltr",
-    "platform": "all",
+    "platform": "harmonynext",
     "channel": "SDUI",
     "version": 3,
-    "publishedAt": "2026-03-22T15:27:58.089Z",
-    "generatedAt": "2026-05-17T16:13:11.686Z",
+    "publishedAt": "2026-03-23T08:23:32.881Z",
+    "generatedAt": "2026-05-18T08:23:33.065Z",
+    "supportedLocales": [
+      "en",
+      "zh-HK",
+      "zh-CN"
+    ],
     "a11y": {
       "reduceMotion": false,
       "highContrast": false,
@@ -21,7 +26,10 @@
       "voiceOver": false,
       "talkBack": false,
       "screenReader": false
-    }
+    },
+    "nativeTargets": [
+      "harmonynext"
+    ]
   },
   "layout": {
     "type": "SCROLL",
@@ -260,7 +268,7 @@
               "title": "Navigating Markets in 2026",
               "ctaLabel": "Register for live stream",
               "imageColor": "#1A1A2E",
-              "videoUrl": "http://127.0.0.1:4000/media/Wealth1.mp4"
+              "videoUrl": "http://127.0.0.1:4100/media/Wealth1.mp4"
             },
             {
               "id": "ws-2",
@@ -268,7 +276,7 @@
               "title": "Gold & Alternative Assets",
               "ctaLabel": "Watch now",
               "imageColor": "#0F2040",
-              "videoUrl": "http://127.0.0.1:4000/media/Wealth2.mp4"
+              "videoUrl": "http://127.0.0.1:4100/media/Wealth2.mp4"
             }
           ]
         }

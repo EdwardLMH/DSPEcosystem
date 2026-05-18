@@ -284,7 +284,7 @@ function TemplateDetail({ template, onDeleted }: { template: PageTemplate; onDel
           {isTranslating ? (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <div style={{ fontSize: 9, fontWeight: 700, color: '#4338CA', textTransform: 'uppercase', flex: 1 }}>🌐 {activeLocale} Translation</div>
+                <div style={{ fontSize: 9, fontWeight: 700, color: '#4338CA', textTransform: 'uppercase', flex: 1 }}>🌐 Editing {activeLocale} copy</div>
                 <button
                   onClick={() => dispatch({ type: 'TRANSLATE_TEMPLATE', templateId: template.templateId, locale: activeLocale })}
                   style={{

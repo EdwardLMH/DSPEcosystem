@@ -492,10 +492,10 @@ function TemplateEditorInner({ template }: { template: PageTemplate }) {
             </div>
 
             {activeLocale !== primaryLocale ? (
-              // Translation editing mode
+              // Secondary locale copy editing mode
               <div style={{ background: '#EEF2FF', border: '1px solid #C7D2FE', borderRadius: 6, padding: '8px 10px', marginBottom: 8, display: 'flex', flexDirection: 'column', gap: 7 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: '#4338CA', textTransform: 'uppercase', flex: 1 }}>🌐 {activeLocale} Translation</div>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: '#4338CA', textTransform: 'uppercase', flex: 1 }}>🌐 Editing {activeLocale} copy</div>
                   <button
                     onClick={() => dispatch({ type: 'TRANSLATE_TEMPLATE', templateId: template.templateId, locale: activeLocale })}
                     style={{

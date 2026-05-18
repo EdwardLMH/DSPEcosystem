@@ -43,6 +43,26 @@ interface ScoredLocalSearchEntry {
   score: number
 }
 
+interface A2UIAction {
+  type?: string
+  url?: string
+}
+
+interface A2UIContent {
+  title?: string
+  description?: string
+  icon?: string
+  category?: string
+  score?: number
+}
+
+interface A2UIComponent {
+  id: string
+  type: string
+  content: A2UIContent
+  action?: A2UIAction
+}
+
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
 const BFF_BASE = 'http://localhost:4000'
@@ -190,7 +210,7 @@ export struct AISearchPage {
     SensorDataClient.track('ai_search_query', 'Search', 'search_submitted', q,
       'ai_search', 'home_hub')
 
-    const reqBody = JSON.stringify({ query: q, limit: 10 })
+    const reqBody = JSON.stringify({ query: q, limit: 10, appId: 'harmony', responseMode: 'a2ui' })
     const httpReq = http.createHttp()
 
     httpReq.request(`${BFF_BASE}/api/v1/search`, {
@@ -211,20 +231,9 @@ export struct AISearchPage {
       }
       try {
         const parsed: Record<string, ESObject> = JSON.parse(data.result as string) as Record<string, ESObject>
-        const arr: ESObject[] = parsed['results'] as ESObject[]
-        const items: SearchResultItem[] = (arr as Array<Record<string, ESObject>>).map(
-          (o: Record<string, ESObject>) => ({
-            id:          o['id'] as string,
-            type:        o['type'] as string,
-            title:       o['title'] as string,
-            description: o['description'] as string,
-            icon:        o['icon'] as string,
-            category:    o['category'] as string,
-            deepLink:    o['deepLink'] as string,
-            score:       o['score'] as number,
-          } as SearchResultItem)
-        )
-        const resolvedItems = items.length > 0 ? items : this.localSearch(q)
+        const items: SearchResultItem[] = this.parseA2UIResults(parsed)
+        const legacyItems: SearchResultItem[] = items.length > 0 ? items : this.parseLegacyResults(parsed)
+        const resolvedItems = legacyItems.length > 0 ? legacyItems : this.localSearch(q)
         this.results = resolvedItems
         this.grouped = this.buildGroups(resolvedItems)
         this.hasSearched = true
@@ -236,6 +245,44 @@ export struct AISearchPage {
         this.hasSearched = true
       }
     })
+  }
+
+  private parseLegacyResults(parsed: Record<string, ESObject>): SearchResultItem[] {
+    const arr: ESObject[] = parsed['results'] as ESObject[]
+    if (!arr) return []
+    return (arr as Array<Record<string, ESObject>>).map(
+      (o: Record<string, ESObject>) => ({
+        id:          o['id'] as string,
+        type:        o['type'] as string,
+        title:       o['title'] as string,
+        description: o['description'] as string,
+        icon:        o['icon'] as string,
+        category:    o['category'] as string,
+        deepLink:    o['deepLink'] as string,
+        score:       o['score'] as number,
+      } as SearchResultItem)
+    ).filter((item: SearchResultItem) => item.title.length > 0 && item.deepLink.length > 0)
+  }
+
+  private parseA2UIResults(parsed: Record<string, ESObject>): SearchResultItem[] {
+    const a2ui = parsed['a2ui'] as Record<string, ESObject>
+    if (!a2ui) return []
+    const components = a2ui['components'] as A2UIComponent[]
+    if (!components) return []
+    return components.map((component: A2UIComponent) => {
+      const content = component.content
+      const action = component.action
+      return {
+        id: component.id,
+        type: component.type,
+        title: content.title || '',
+        description: content.description || '',
+        icon: content.icon || '',
+        category: content.category || '功能入口',
+        deepLink: action?.url || '',
+        score: content.score || 0,
+      } as SearchResultItem
+    }).filter((item: SearchResultItem) => item.title.length > 0 && item.deepLink.length > 0)
   }
 
   private localSearch(q: string): SearchResultItem[] {

@@ -7,11 +7,11 @@
     "pageId": "fx-viewpoint-hk",
     "locale": "en",
     "textDir": "ltr",
-    "platform": "harmonynext",
+    "platform": "all",
     "channel": "SDUI",
     "version": 1,
-    "publishedAt": "2026-05-16T16:13:11.689Z",
-    "generatedAt": "2026-05-17T16:13:11.689Z",
+    "publishedAt": "2026-05-17T08:23:33.069Z",
+    "generatedAt": "2026-05-18T08:23:33.069Z",
     "a11y": {
       "reduceMotion": false,
       "highContrast": false,
@@ -19,7 +19,12 @@
       "voiceOver": false,
       "talkBack": false,
       "screenReader": false
-    }
+    },
+    "nativeTargets": [
+      "ios",
+      "android",
+      "harmonynext"
+    ]
   },
   "layout": {
     "type": "SCROLL",
@@ -44,8 +49,8 @@
         "props": {
           "ucpAssetId": "asset-008",
           "title": "FX Viewpoint — EUR & GBP Market Insights (May 2026)",
-          "thumbnailUrl": "http://127.0.0.1:4000/media/fx-viewpoint-thumbnail.jpg",
-          "videoUrl": "http://127.0.0.1:4000/media/fx-viewpoint.mp4",
+          "thumbnailUrl": "http://127.0.0.1:4100/media/fx-viewpoint-thumbnail.jpg",
+          "videoUrl": "http://127.0.0.1:4100/media/fx-viewpoint.mp4",
           "presenterName": "Jackie Wong",
           "presenterTitle": "FX Strategist, HSBC Global Research",
           "autoplay": false,

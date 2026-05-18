@@ -112,7 +112,7 @@ export interface PageLayout {
   platform: 'ios' | 'android' | 'web' | 'all';
   locale: string;
   supportedLocales?: string[];
-  translations?: Record<string, Record<string, Record<string, string>>>;
+  translations?: Record<string, Record<string, Record<string, unknown>>>;
   slices: CanvasSlice[];
   thumbnail?: string;
   tags?: string[];

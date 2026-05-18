@@ -9,7 +9,7 @@ export interface LocaleInfo {
 
 export const SUPPORTED_LOCALES: LocaleInfo[] = [
   { code: 'en',    label: 'English',   dir: 'ltr', lang: 'en'      },
-  { code: 'zh-TW', label: '繁體中文',  dir: 'ltr', lang: 'zh-Hant' },
+  { code: 'zh-HK', label: '繁體中文（香港）',  dir: 'ltr', lang: 'zh-Hant-HK' },
   { code: 'zh-CN', label: '简体中文',  dir: 'ltr', lang: 'zh-Hans' },
   { code: 'ar',    label: 'العربية',  dir: 'rtl', lang: 'ar'      },
   { code: 'es',    label: 'Español',   dir: 'ltr', lang: 'es'      },
@@ -22,9 +22,9 @@ export function getLocaleInfo(code: string): LocaleInfo {
 export function toLangCode(bcp47: string): string {
   if (!bcp47) return 'en';
   const lower = bcp47.toLowerCase();
-  if (lower.startsWith('zh-hant') || lower === 'zh-hk' || lower === 'zh-tw') return 'zh-TW';
+  if (lower.startsWith('zh-hant') || lower === 'zh-hk' || lower === 'zh-tw') return 'zh-HK';
   if (lower.startsWith('zh-hans') || lower === 'zh-cn' || lower === 'zh-sg') return 'zh-CN';
-  if (lower.startsWith('zh')) return 'zh-TW';
+  if (lower.startsWith('zh')) return 'zh-HK';
   if (lower.startsWith('ar'))  return 'ar';
   if (lower.startsWith('es'))  return 'es';
   return 'en';

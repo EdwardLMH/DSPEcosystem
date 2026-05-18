@@ -626,7 +626,7 @@ export function ContentEditorPanel() {
           />
           {isTranslating && (
             <div style={{ fontSize: 10, color: '#6366F1', marginTop: 6, fontStyle: 'italic' }}>
-              Viewing {activeAssetLocale} translation. Edit in the edit panel to update translations.
+              Viewing {activeAssetLocale} copy. Use Translate to fill empty fields.
             </div>
           )}
         </div>
@@ -1005,7 +1005,7 @@ export function ContentEditorPanel() {
                   <div style={{ marginBottom: 12, padding: '10px 12px', background: '#EEF2FF', border: '1px solid #C7D2FE', borderRadius: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ fontSize: 10, fontWeight: 700, color: '#4338CA', textTransform: 'uppercase', flex: 1 }}>
-                        🌐 {activeAssetLocale} Translation
+                        🌐 Editing {activeAssetLocale} copy
                       </div>
                       <button
                         onClick={() => dispatch({ type: 'TRANSLATE_ASSET', assetId: selected.assetId, locale: activeAssetLocale })}

@@ -5,9 +5,10 @@
   "ttl": 300,
   "metadata": {
     "pageId": "deposit-campaign-cn",
+    "pageName": "deposit-campaign-cn",
     "locale": "zh-CN",
     "textDir": "ltr",
-    "platform": "all",
+    "platform": "web",
     "channel": "WEB_STANDARD",
     "supportedLocales": [
       "zh-CN",
@@ -28,8 +29,8 @@
       ]
     },
     "version": 1,
-    "publishedAt": "2026-05-16T16:13:11.695Z",
-    "generatedAt": "2026-05-17T16:13:11.695Z",
+    "publishedAt": "2026-05-17T08:23:33.082Z",
+    "generatedAt": "2026-05-18T08:23:33.082Z",
     "a11y": {
       "reduceMotion": false,
       "highContrast": false,
@@ -60,7 +61,7 @@
         "visible": true,
         "locked": false,
         "props": {
-          "imageUrl": "http://127.0.0.1:4000/media/deposit-campaign-banner.jpg",
+          "imageUrl": "http://127.0.0.1:4100/media/deposit-campaign-banner.jpg",
           "ucpAssetId": "asset-009",
           "backgroundColor": "#FFFFFF"
         }
@@ -122,6 +123,8 @@
         "locked": false,
         "props": {
           "label": "立即开立存款",
+          "backgroundColor": "#C41E3A",
+          "textColor": "#FFFFFF",
           "deepLink": "hsbc-cn://deposit/open?currency=CNY&campaign=new-fund",
           "fallback": {
             "ios": "https://apps.apple.com/cn/app/hsbc-china/id1467398731",
@@ -141,9 +144,7 @@
               "click_rate",
               "conversion_rate"
             ]
-          },
-          "backgroundColor": "#C41E3A",
-          "textColor": "#FFFFFF"
+          }
         }
       },
       {
@@ -193,7 +194,7 @@
         "locked": false,
         "props": {
           "title": "存款保险",
-          "logoUrl": "http://127.0.0.1:4000/media/deposit-insurance-logo.jpg",
+          "logoUrl": "http://127.0.0.1:4100/media/deposit-insurance-logo.jpg",
           "altText": "存款保险标识",
           "linkUrl": "https://www.hsbc.com.cn/content/dam/hsbc/cn/docs/insurance/insurance-prodcut-electronic-notice.pdf"
         }

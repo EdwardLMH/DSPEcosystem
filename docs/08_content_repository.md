@@ -114,9 +114,9 @@ SDUI JSON — content reference example:
     "global-hsbc-disclaimer-investment"
   ],
   "locale": ["en-HK", "zh-HK"],
-  "supportedLocales": ["en", "zh-TW", "zh-CN", "ar", "es"],
+  "supportedLocales": ["en", "zh-HK", "zh-CN", "ar", "es"],
   "translations": {
-    "zh-TW": {
+    "zh-HK": {
       "jade-banner-q2": {
         "title": "晉升至滙豐翡翠",
         "subtitle": "為卓越理財客戶提供的尊享禮遇",
@@ -194,7 +194,7 @@ CREATE TABLE content_versions (
     content_s3_key    VARCHAR(512) NOT NULL,    -- pointer to S3 object
     fields_snapshot   JSONB NOT NULL,           -- full content fields at this version
     translations      JSONB,                    -- {locale: {instanceId: {propKey: value}}}
-    supported_locales TEXT[],                   -- e.g. {en,zh-TW,zh-CN,ar,es}
+    supported_locales TEXT[],                   -- e.g. {en,zh-HK,zh-CN,ar,es}
     author_id         VARCHAR(255) NOT NULL,
     checker_id        VARCHAR(255),
     submitted_at      TIMESTAMPTZ,

@@ -27,9 +27,16 @@ const express = require('express');
 const cors    = require('cors');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
+const {
+  SDUI_V2_SCHEMA,
+  legacyPayloadToV2,
+  v2PayloadToLegacy,
+  searchResultsToA2UI,
+  a2uiToSDUIV2,
+} = require('./sdui-v2');
 
 const app  = express();
-const PORT = 4000;
+const PORT = Number(process.env.PORT || 4000);
 const MEDIA_DIR = path.join(__dirname, 'public/media');
 
 app.use(cors());
@@ -43,6 +50,32 @@ app.get('/media/:name(fx-viewpoint-thumbnail|announcement-envelope|announcement-
   res.sendFile(path.join(MEDIA_DIR, 'deposit-campaign-banner.jpg'));
 });
 app.use('/media', express.static(MEDIA_DIR));
+
+function wantsSDUIV2(req) {
+  return String(req.headers['x-sdui-schema'] || req.query.schema || '').toLowerCase() === 'v2';
+}
+
+function respondWithNegotiatedSDUI(req, res, legacyPayload) {
+  const v2Payload = legacyPayloadToV2(legacyPayload, {
+    locale: legacyPayload.metadata?.locale,
+    textDir: legacyPayload.metadata?.textDir,
+    platform: legacyPayload.metadata?.platform,
+    channel: legacyPayload.metadata?.channel,
+  });
+
+  if (wantsSDUIV2(req)) {
+    res.setHeader('x-sdui-schema-version', '2.0');
+    return res.json(v2Payload);
+  }
+
+  res.setHeader('x-sdui-schema-version', legacyPayload.schemaVersion || '3.0');
+  res.setHeader('x-sdui-v2-available', 'true');
+  return res.json(v2PayloadToLegacy(v2Payload));
+}
+
+app.get('/api/v2/sdui/schema', (req, res) => {
+  res.json(SDUI_V2_SCHEMA);
+});
 
 // ─── Media URL helper ─────────────────────────────────────────────────────────
 // Returns an absolute media URL derived from the *incoming* request host.
@@ -89,11 +122,11 @@ function resolveSliceMediaUrls(req, slice) {
 // ─── i18n / Locale resolution ─────────────────────────────────────────────────
 // Priority: x-locale header → Accept-Language → default 'en-HK'
 // Maps country+language BCP-47 tags to the 5 supported authoring locales.
-const SUPPORTED_LOCALES = ['en', 'zh-TW', 'zh-CN', 'ar', 'es'];
+const SUPPORTED_LOCALES = ['en', 'zh-HK', 'zh-CN', 'ar', 'es'];
 const RTL_LOCALES        = new Set(['ar']);
 
 const LOCALE_DICT = {
-  'zh-TW': {
+  'zh-HK': {
     'First name': '名字', 'Last name': '姓氏', 'Date of birth': '出生日期',
     'Nationality': '國籍', 'Phone number': '電話號碼', 'Email address': '電子郵件',
     'Residential address': '住宅地址', 'HKID number': '香港身份證號碼',
@@ -135,9 +168,9 @@ function resolveLocale(req) {
   const raw = req.headers['x-locale'] || req.headers['accept-language'] || 'en-HK';
   const tag  = raw.split(',')[0].trim().split(';')[0].trim();
   const lower = tag.toLowerCase();
-  if (lower.startsWith('zh-hant') || lower === 'zh-hk' || lower === 'zh-tw') return 'zh-TW';
+  if (lower.startsWith('zh-hant') || lower === 'zh-hk' || lower === 'zh-tw') return 'zh-HK';
   if (lower.startsWith('zh-hans') || lower === 'zh-cn' || lower === 'zh-sg') return 'zh-CN';
-  if (lower.startsWith('zh')) return 'zh-TW';
+  if (lower.startsWith('zh')) return 'zh-HK';
   if (lower.startsWith('ar'))  return 'ar';
   if (lower.startsWith('es'))  return 'es';
   return 'en';
@@ -861,7 +894,9 @@ ucpPages.set('home-hub-hk', {
   platform: 'all',
   nativeTargets: ['ios', 'android', 'harmonynext', 'web'],
   webSlug: '/home',
-  locale: 'zh-HK',
+  locale: 'en',
+  supportedLocales: ['en', 'zh-HK', 'zh-CN'],
+  translations: {},
   status: 'LIVE',
   version: 3,
   publishedAt: new Date(Date.now() - 86400000 * 56).toISOString(), // ~8 weeks ago
@@ -1123,7 +1158,9 @@ ucpPages.set('fx-viewpoint-hk', {
   pageId: 'fx-viewpoint-hk',
   name: 'FX Viewpoint — EUR & GBP (HK)',
   platform: 'all',
-  locale: 'en-HK',
+  locale: 'en',
+  supportedLocales: ['en', 'zh-HK', 'zh-CN'],
+  translations: {},
   status: 'LIVE',
   version: 1,
   publishedAt: new Date(Date.now() - 86400000).toISOString(),
@@ -1766,12 +1803,12 @@ app.get('/api/v1/funds/feature-products', (req, res) => {
 
 function sendHomeHubPage(req, res) {
   const page    = ucpPages.get('home-hub-hk');
-  const locale  = resolveLocale(req);
   const a11y    = resolveA11yFlags(req);
   const channel = resolveChannel(req);
   if (!page || page.status !== 'LIVE') {
     return res.status(404).json({ error: 'NO_LIVE_PAGE', message: 'No live home page published yet' });
   }
+  const locale  = req.headers['x-locale'] || req.headers['accept-language'] ? resolveLocale(req) : page.locale;
   res.json({
     schemaVersion: '3.0',
     pageId: page.pageId,
@@ -1783,6 +1820,7 @@ function sendHomeHubPage(req, res) {
       platform: page.platform, channel,
       version: page.version, publishedAt: page.publishedAt,
       generatedAt: new Date().toISOString(),
+      supportedLocales: ['en', 'zh-HK', 'zh-CN'],
       a11y,
     },
     layout: { type: 'SCROLL', children: page.slices.map(s => resolveSliceMediaUrls(req, JSON.parse(JSON.stringify(s)))) },
@@ -1856,12 +1894,13 @@ function announcementPayload(req, pageId, screen, props) {
   const locale = resolveLocale(req);
   const a11y = resolveA11yFlags(req);
   const channel = resolveChannel(req);
+  const localizedProps = localizeAnnouncementProps(props, locale);
   const overlaySlice = resolveSliceMediaUrls(req, {
     instanceId: 'ann-overlay',
     type: 'ANNOUNCEMENT_OVERLAY',
     visible: true,
     locked: false,
-    props: JSON.parse(JSON.stringify(props)),
+    props: localizedProps,
   });
   return {
     schemaVersion: '3.0',
@@ -1879,6 +1918,7 @@ function announcementPayload(req, pageId, screen, props) {
       generatedAt: new Date().toISOString(),
       marketTimeZone: 'Asia/Hong_Kong',
       nativeTargets: ['ios', 'android', 'harmonynext'],
+      supportedLocales: ['en', 'zh-HK', 'zh-CN'],
       a11y,
     },
     layout: {
@@ -1886,6 +1926,64 @@ function announcementPayload(req, pageId, screen, props) {
       children: [overlaySlice],
     },
   };
+}
+
+const ANNOUNCEMENT_TRANSLATIONS = {
+  'zh-HK': {
+    'Special announcement': '特別通知',
+    'HSBC special announcement envelope illustration': '滙豐特別通知信封插圖',
+    "Your well-being is our priority. We're committed to supporting our customers affected by the Tai Po fire incident.": '您的安康是我們的首要考慮。我們致力支援受大埔火災事故影響的客戶。',
+    'If you need urgent assistance, please contact the following dedicated hotlines:': '如您需要緊急協助，請致電以下專線：',
+    'HSBC Banking Services / HSBC Life Insurance': '滙豐銀行服務 / 滙豐人壽保險',
+    'HSBC General Insurance (operated by AXA)': '滙豐一般保險（由安盛承保）',
+    "Don't show this message again": '不再顯示此訊息',
+    'Close': '關閉',
+    'HSBC Website': '滙豐網站',
+    'The Hongkong and Shanghai Banking Corporation Limited': '香港上海滙豐銀行有限公司',
+    'Get ready for eLaisee': '準備使用 eLaisee',
+    'eLaisee feature artwork': 'eLaisee 功能插圖',
+    'Enjoy Chinese New Year by sending eLaisee money with customised messages, 24 hours a day, in an eco-friendlier way.': '透過 eLaisee 送出自訂祝福訊息及利是，全天候以更環保方式歡度農曆新年。',
+    'Make sure your app is up to date to use the new feature.': '請確保您的應用程式已更新，以使用此新功能。',
+    'Update now': '立即更新',
+  },
+  'zh-CN': {
+    'Special announcement': '特别通知',
+    'HSBC special announcement envelope illustration': '汇丰特别通知信封插图',
+    "Your well-being is our priority. We're committed to supporting our customers affected by the Tai Po fire incident.": '您的安康是我们的首要考虑。我们致力于支持受大埔火灾事故影响的客户。',
+    'If you need urgent assistance, please contact the following dedicated hotlines:': '如您需要紧急协助，请联系以下专线：',
+    'HSBC Banking Services / HSBC Life Insurance': '汇丰银行服务 / 汇丰人寿保险',
+    'HSBC General Insurance (operated by AXA)': '汇丰一般保险（由安盛承保）',
+    "Don't show this message again": '不再显示此消息',
+    'Close': '关闭',
+    'HSBC Website': '汇丰网站',
+    'The Hongkong and Shanghai Banking Corporation Limited': '香港上海汇丰银行有限公司',
+    'Get ready for eLaisee': '准备使用 eLaisee',
+    'eLaisee feature artwork': 'eLaisee 功能插图',
+    'Enjoy Chinese New Year by sending eLaisee money with customised messages, 24 hours a day, in an eco-friendlier way.': '通过 eLaisee 发送带有自定义祝福的电子利是，全天候以更环保的方式欢度农历新年。',
+    'Make sure your app is up to date to use the new feature.': '请确保您的应用程序已更新，以使用此新功能。',
+    'Update now': '立即更新',
+  },
+};
+
+function localizeAnnouncementText(value, locale) {
+  if (locale === 'en') return value;
+  return ANNOUNCEMENT_TRANSLATIONS[locale]?.[value] || value;
+}
+
+function localizeAnnouncementProps(props, locale) {
+  const copy = JSON.parse(JSON.stringify(props));
+  copy.title = localizeAnnouncementText(copy.title, locale);
+  copy.legalEntityText = localizeAnnouncementText(copy.legalEntityText, locale);
+  if (copy.visual?.altText) copy.visual.altText = localizeAnnouncementText(copy.visual.altText, locale);
+  if (Array.isArray(copy.body)) copy.body = copy.body.map(text => localizeAnnouncementText(text, locale));
+  if (Array.isArray(copy.hotlines)) {
+    copy.hotlines = copy.hotlines.map(item => ({ ...item, label: localizeAnnouncementText(item.label, locale) }));
+  }
+  if (copy.dontShowAgain?.label) copy.dontShowAgain.label = localizeAnnouncementText(copy.dontShowAgain.label, locale);
+  if (Array.isArray(copy.actions)) {
+    copy.actions = copy.actions.map(item => ({ ...item, label: localizeAnnouncementText(item.label, locale) }));
+  }
+  return copy;
 }
 
 app.get('/api/v1/screen/announcement-overlay-hk', (req, res) => {
@@ -1910,12 +2008,56 @@ app.get('/api/v1/screen/announcement-force-update-hk', (req, res) => {
 // Zone 1 public endpoint — delivers the FX Viewpoint market insight page as SDUI JSON.
 // The page contains a content header, MARKET_BRIEFING_TEXT and CONTACT_RM_CTA slices.
 // The FX Viewpoint video was replaced by the rich UCP content entry "FX Viewpoint — EUR & GBP Market Insights (May 2026)".
+const FX_VIEWPOINT_TRANSLATIONS = {
+  'zh-HK': {
+    'FX Viewpoint': '外匯觀點',
+    'FX Viewpoint — EUR & GBP Market Insights (May 2026)': '外匯觀點 — 歐元及英鎊市場洞察（2026年5月）',
+    'FX Strategist, HSBC Global Research': '滙豐環球研究外匯策略師',
+    'Key takeaways': '要點',
+    'A weak USD is likely to persist into 2026, providing temporary support for the EUR and GBP.': '美元偏弱的走勢可能延續至2026年，為歐元及英鎊提供短暫支持。',
+    'With the ECB expected to maintain its policy rate in 2026, the EUR should remain broadly stable.': '由於市場預期歐洲央行於2026年維持政策利率，歐元應會大致保持穩定。',
+    'BoE delivered a 25 bps cut in May 2026 — further easing is data-dependent and market pricing appears stretched.': '英倫銀行於2026年5月減息25個基點，後續寬鬆將取決於數據，而市場定價看來偏高。',
+    'GBP/USD faces near-term resistance at 1.3200 amid mixed UK growth signals.': '在英國增長訊號好壞參半下，英鎊兌美元短期於1.3200附近面臨阻力。',
+    'Investors should consider diversified FX exposure to manage downside risk against a volatile USD backdrop.': '在美元波動的背景下，投資者可考慮分散外匯配置，以管理下行風險。',
+    'This material is issued by HSBC and is for information purposes only. It does not constitute investment advice or a recommendation to buy or sell any financial instrument.': '本資料由滙豐發出，僅供參考，並不構成投資建議或買賣任何金融工具的推薦。',
+    'Contact Your RM': '聯絡您的客戶經理',
+    'Speak to your Relationship Manager about FX opportunities': '向您的客戶經理了解外匯機會',
+  },
+  'zh-CN': {
+    'FX Viewpoint': '外汇观点',
+    'FX Viewpoint — EUR & GBP Market Insights (May 2026)': '外汇观点 — 欧元及英镑市场洞察（2026年5月）',
+    'FX Strategist, HSBC Global Research': '汇丰环球研究外汇策略师',
+    'Key takeaways': '要点',
+    'A weak USD is likely to persist into 2026, providing temporary support for the EUR and GBP.': '美元偏弱的走势可能延续至2026年，为欧元及英镑提供短期支持。',
+    'With the ECB expected to maintain its policy rate in 2026, the EUR should remain broadly stable.': '由于市场预期欧洲央行将在2026年维持政策利率，欧元应会大致保持稳定。',
+    'BoE delivered a 25 bps cut in May 2026 — further easing is data-dependent and market pricing appears stretched.': '英格兰银行于2026年5月降息25个基点，后续宽松将取决于数据，而市场定价看起来偏高。',
+    'GBP/USD faces near-term resistance at 1.3200 amid mixed UK growth signals.': '在英国增长信号好坏参半的情况下，英镑兑美元短期在1.3200附近面临阻力。',
+    'Investors should consider diversified FX exposure to manage downside risk against a volatile USD backdrop.': '在美元波动的背景下，投资者可考虑分散外汇配置，以管理下行风险。',
+    'This material is issued by HSBC and is for information purposes only. It does not constitute investment advice or a recommendation to buy or sell any financial instrument.': '本资料由汇丰发布，仅供参考，并不构成投资建议或买卖任何金融工具的推荐。',
+    'Contact Your RM': '联系您的客户经理',
+    'Speak to your Relationship Manager about FX opportunities': '向您的客户经理了解外汇机会',
+  },
+};
+
+function localizeFxText(value, locale) {
+  return FX_VIEWPOINT_TRANSLATIONS[locale]?.[value] || value;
+}
+
+function localizeFxPayload(value, locale) {
+  if (typeof value === 'string') return localizeFxText(value, locale);
+  if (Array.isArray(value)) return value.map(item => localizeFxPayload(item, locale));
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, nestedValue]) => [key, localizeFxPayload(nestedValue, locale)]));
+  }
+  return value;
+}
+
 app.get('/api/v1/screen/fx-viewpoint-hk', (req, res) => {
   const publishedAt = new Date(Date.now() - 86400000).toISOString();
   const locale  = resolveLocale(req);
   const a11y    = resolveA11yFlags(req);
   const channel = resolveChannel(req);
-  res.json({
+  const payload = {
     schemaVersion: '3.0',
     pageId: 'fx-viewpoint-hk',
     screen: 'fx_viewpoint',
@@ -1996,7 +2138,8 @@ app.get('/api/v1/screen/fx-viewpoint-hk', (req, res) => {
         },
       ],
     },
-  });
+  };
+  res.json(localizeFxPayload(payload, locale));
 });
 
 // ─── GET /api/v1/screen/deposit-campaign-cn  — Deposit Campaign SDUI delivery ─
@@ -2142,7 +2285,7 @@ app.get('/api/v1/screen/deposit-campaign-cn', (req, res) => {
           props: { ...DEPOSIT_LEGAL_PROPS, hidden: true, webOnly: true, outputChannels: ['WEB_STANDARD', 'web-sdui'] },
         }] : []),
       ];
-  res.json({
+  const payload = {
     schemaVersion: '3.0',
     pageId: 'deposit-campaign-cn',
     screen: 'deposit_campaign',
@@ -2168,7 +2311,9 @@ app.get('/api/v1/screen/deposit-campaign-cn', (req, res) => {
       type: 'SCROLL',
       children,
     },
-  });
+  };
+
+  respondWithNegotiatedSDUI(req, res, payload);
 });
 
 // ─── GET /api/v1/ucp/audit-log  — full audit trail (AUDITOR + ADMIN only) ─────
@@ -2523,7 +2668,7 @@ function scoreEntry(entry, queryTokens, queryFreq) {
 
 // ─── POST /api/v1/search — semantic search (Zone 1 public) ────────────────────
 app.post('/api/v1/search', (req, res) => {
-  const { query = '', limit = 8, types, appId } = req.body;
+  const { query = '', limit = 8, types, appId, responseMode } = req.body;
   const q = String(query).trim();
 
   if (!q) {
@@ -2553,19 +2698,53 @@ app.post('/api/v1/search', (req, res) => {
 
   console.log(`[SEARCH] query="${q}" appId=${appId ?? 'global'} → ${scored.length} result(s)`);
 
+  const results = scored.map(e => ({
+    id:          e.id,
+    type:        e.type,
+    title:       e.title,
+    description: e.description,
+    icon:        e.icon,
+    category:    e.category,
+    deepLink:    e.deepLink,
+    score:       parseFloat(e.score.toFixed(4)),
+  }));
+
+  const wantsAgentUI = responseMode === 'a2ui' || responseMode === 'sdui-v2' || wantsSDUIV2(req);
+  if (wantsAgentUI) {
+    const a2ui = searchResultsToA2UI(q, results);
+    const sduiV2 = a2uiToSDUIV2(a2ui, {
+      pageId: 'ai-search-results',
+      pageName: 'AI Search Results',
+      screen: 'ai_search_results',
+      locale: resolveLocale(req),
+      textDir: resolveTextDir(resolveLocale(req)),
+      platform: req.headers['x-platform'] || appId || 'all',
+      channel: resolveChannel(req),
+      ttl: 60,
+      analytics: {
+        provider: 'default',
+        events: ['ai_search_viewed', 'ai_search_result_tapped'],
+      },
+    });
+
+    if (responseMode === 'a2ui') {
+      return res.json({
+        query: q,
+        totalMatched: results.length,
+        a2ui,
+      });
+    }
+
+    if (wantsSDUIV2(req) || responseMode === 'sdui-v2') {
+      res.setHeader('x-sdui-schema-version', '2.0');
+      return res.json(sduiV2);
+    }
+  }
+
   res.json({
     query: q,
-    totalMatched: scored.length,
-    results: scored.map(e => ({
-      id:          e.id,
-      type:        e.type,
-      title:       e.title,
-      description: e.description,
-      icon:        e.icon,
-      category:    e.category,
-      deepLink:    e.deepLink,
-      score:       parseFloat(e.score.toFixed(4)),
-    })),
+    totalMatched: results.length,
+    results,
   });
 });
 

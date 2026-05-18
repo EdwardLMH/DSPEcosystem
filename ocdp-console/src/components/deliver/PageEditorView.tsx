@@ -3542,7 +3542,7 @@ function SlicePropEditor({ slice, readOnly, onPropChange, onPropsPatch, onDesele
         )}
         {isTranslating && (
           <div style={{ marginTop: 6, padding: '4px 8px', background: '#EEF2FF', border: '1px solid #C7D2FE', borderRadius: 5, fontSize: 10, color: '#4338CA', fontWeight: 600 }}>
-            🌐 Editing {activeLocale} translation — text fields only
+            🌐 Editing {activeLocale} copy — press Translate to fill empty fields
           </div>
         )}
       </div>
@@ -4972,7 +4972,8 @@ export function PageEditorView() {
   function updateSliceProp(instanceId: string, key: string, value: unknown) {
     // When editing in a non-primary locale, write to translation map instead of primary props
     const textKeys = selectedSlice ? (TRANSLATABLE_PROP_KEYS[selectedSlice.type] ?? []) : [];
-    if (activeEditorLocale !== page!.locale && textKeys.includes(key) && typeof value === 'string') {
+    const isTextKey = textKeys.includes(key) || textKeys.some(k => k.startsWith(`${key}.`));
+    if (activeEditorLocale !== page!.locale && isTextKey) {
       dispatch({ type: 'SET_PAGE_TRANSLATION', pageId, locale: activeEditorLocale, instanceId, propKey: key, value });
       return;
     }
@@ -4987,6 +4988,24 @@ export function PageEditorView() {
   }
 
   function updateSliceProps(instanceId: string, patch: Record<string, unknown>) {
+    if (activeEditorLocale !== page!.locale) {
+      const slice = slices.find(s => s.instanceId === instanceId);
+      const textKeys = slice ? (TRANSLATABLE_PROP_KEYS[slice.type] ?? []) : [];
+      const primaryPatch: Record<string, unknown> = {};
+
+      Object.entries(patch).forEach(([key, value]) => {
+        const isTextKey = textKeys.includes(key) || textKeys.some(k => k.startsWith(`${key}.`));
+        if (isTextKey) {
+          dispatch({ type: 'SET_PAGE_TRANSLATION', pageId, locale: activeEditorLocale, instanceId, propKey: key, value });
+        } else {
+          primaryPatch[key] = value;
+        }
+      });
+
+      if (Object.keys(primaryPatch).length === 0) return;
+      patch = primaryPatch;
+    }
+
     const updated = slices.map(s =>
       s.instanceId !== instanceId ? s : { ...s, props: { ...s.props, ...patch } }
     );
@@ -4999,6 +5018,15 @@ export function PageEditorView() {
 
   function saveChanges(name: string, description: string) {
     const reviewedSlices = withCurrentReviewDateForDepositCampaign(slices, pageId);
+    const primaryLocale = page!.locale;
+    if (activeEditorLocale !== primaryLocale) {
+      if (!isJourneyPage) {
+        dispatch({ type: 'EDIT_PAGE', pageId, updates: { slices: reviewedSlices } });
+      }
+      dispatch({ type: 'SHOW_TOAST', message: `${activeEditorLocale} copy saved. Primary ${primaryLocale} copy unchanged.`, toastType: 'success' });
+      return;
+    }
+
     if (isJourneyPage) {
       dispatch({ type: 'EDIT_JOURNEY_PAGE', pageId, updates: { name, description } });
     } else {
@@ -5089,7 +5117,7 @@ export function PageEditorView() {
         {activeEditorLocale !== page.locale && (
           <>
             <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 4, background: '#6366F1', color: '#fff', fontWeight: 700, flexShrink: 0 }}>
-              Translating
+              Editing {activeEditorLocale} copy
             </span>
             {!editorReadOnly && (
               <button
@@ -5101,7 +5129,7 @@ export function PageEditorView() {
                   cursor: 'pointer', flexShrink: 0, letterSpacing: '0.02em',
                   fontFamily: 'var(--font-family)',
                 }}
-                title={`Auto-translate all text fields to ${activeEditorLocale}`}
+                title={`Translate empty text fields to ${activeEditorLocale}`}
               >
                 🌐 Translate
               </button>

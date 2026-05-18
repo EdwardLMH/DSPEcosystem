@@ -22,7 +22,7 @@ const DEFAULT_CTX: SDUIContextValue = {
   a11y: { reduceMotion: false, highContrast: false, screenReader: false },
   config: null,
   featureFlags: {},
-  bffHeaders: { 'x-platform': 'web', 'x-locale': 'en', 'x-a11y-flags': '', 'x-channel': 'SDUI' },
+  bffHeaders: { 'x-platform': 'web', 'x-locale': 'en', 'x-a11y-flags': '', 'x-channel': 'SDUI', 'x-sdui-schema': 'v2' },
 };
 
 export const SDUIContext = createContext<SDUIContextValue>(DEFAULT_CTX);
@@ -53,6 +53,7 @@ export function SDUIProvider({ channel = 'SDUI', children }: Props) {
         'x-locale': locale,
         'x-a11y-flags': a11yFlagsHeader(a11y),
         'x-channel': channel,
+        'x-sdui-schema': 'v2',
         'Accept-Language': info.lang,
       },
     };
@@ -66,6 +67,7 @@ export function SDUIProvider({ channel = 'SDUI', children }: Props) {
       'x-locale': locale,
       'x-a11y-flags': a11yFlagsHeader(a11y),
       'x-channel': channel,
+      'x-sdui-schema': 'v2',
     };
     fetch('/api/v1/config', { headers })
       .then(r => r.ok ? r.json() as Promise<BFFConfig> : Promise.reject())
@@ -83,6 +85,7 @@ export function SDUIProvider({ channel = 'SDUI', children }: Props) {
             'x-locale': cfg.locale,
             'x-a11y-flags': a11yFlagsHeader(a11y),
             'x-channel': cfg.channel,
+            'x-sdui-schema': 'v2',
             'Accept-Language': info.lang,
           },
         });

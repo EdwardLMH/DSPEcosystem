@@ -52,7 +52,7 @@ struct IOSLocaleContext {
         let lang = Locale.current.language.languageCode?.identifier ?? "en"
         let region = Locale.current.region?.identifier ?? ""
         if lang == "zh" {
-            return region == "CN" || region == "SG" ? "zh-CN" : "zh-TW"
+            return region == "CN" || region == "SG" ? "zh-CN" : "zh-HK"
         }
         return lang
     }

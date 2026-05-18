@@ -34,6 +34,7 @@ import androidx.lifecycle.viewModelScope
 import com.hsbc.sdui.analytics.TealiumClient
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URL
 
@@ -204,7 +205,10 @@ class AISearchViewModel : ViewModel() {
             )
             try {
                 val body = JSONObject().apply {
-                    put("query", q); put("limit", 10)
+                    put("query", q)
+                    put("limit", 10)
+                    put("appId", "android")
+                    put("responseMode", "a2ui")
                 }.toString()
                 val conn = URL("$bffBase/api/v1/search").openConnection() as java.net.HttpURLConnection
                 conn.apply {
@@ -216,20 +220,7 @@ class AISearchViewModel : ViewModel() {
                 }
                 val responseBody = conn.inputStream.bufferedReader().readText()
                 val json = JSONObject(responseBody)
-                val arr = json.getJSONArray("results")
-                val items = (0 until arr.length()).map { i ->
-                    val o = arr.getJSONObject(i)
-                    SearchResult(
-                        id = o.getString("id"),
-                        type = o.getString("type"),
-                        title = o.getString("title"),
-                        description = o.getString("description"),
-                        icon = o.getString("icon"),
-                        category = o.getString("category"),
-                        deepLink = o.getString("deepLink"),
-                        score = o.getDouble("score")
-                    )
-                }
+                val items = parseA2UIResults(json).ifEmpty { parseLegacyResults(json) }
                 _results.value = items.ifEmpty { localSearch(q) }
                 _hasSearched.value = true
             } catch (e: Exception) {
@@ -241,6 +232,42 @@ class AISearchViewModel : ViewModel() {
                 _isLoading.value = false
             }
         }
+    }
+
+    private fun parseLegacyResults(json: JSONObject): List<SearchResult> {
+        val arr = json.optJSONArray("results") ?: JSONArray()
+        return (0 until arr.length()).map { i ->
+            val o = arr.getJSONObject(i)
+            SearchResult(
+                id = o.optString("id"),
+                type = o.optString("type"),
+                title = o.optString("title"),
+                description = o.optString("description"),
+                icon = o.optString("icon"),
+                category = o.optString("category", "功能入口"),
+                deepLink = o.optString("deepLink"),
+                score = o.optDouble("score", 0.0)
+            )
+        }.filter { it.title.isNotBlank() && it.deepLink.isNotBlank() }
+    }
+
+    private fun parseA2UIResults(json: JSONObject): List<SearchResult> {
+        val arr = json.optJSONObject("a2ui")?.optJSONArray("components") ?: return emptyList()
+        return (0 until arr.length()).map { i ->
+            val component = arr.getJSONObject(i)
+            val content = component.optJSONObject("content") ?: JSONObject()
+            val action = component.optJSONObject("action") ?: JSONObject()
+            SearchResult(
+                id = component.optString("id", "a2ui-result-$i"),
+                type = component.optString("type", "function"),
+                title = content.optString("title"),
+                description = content.optString("description"),
+                icon = content.optString("icon"),
+                category = content.optString("category", "功能入口"),
+                deepLink = action.optString("url"),
+                score = content.optDouble("score", 0.0)
+            )
+        }.filter { it.title.isNotBlank() && it.deepLink.isNotBlank() }
     }
 
     private fun localSearch(q: String): List<SearchResult> {

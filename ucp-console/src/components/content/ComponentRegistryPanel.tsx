@@ -918,7 +918,7 @@ export function ComponentRegistryPanel() {
             {isTranslating && (
               <div style={{ padding: '10px 18px', background: '#EEF2FF', borderBottom: '1px solid #C7D2FE', display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: '#4338CA', textTransform: 'uppercase', flex: 1 }}>🌐 {activeCompLocale} Translation</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: '#4338CA', textTransform: 'uppercase', flex: 1 }}>🌐 Editing {activeCompLocale} copy</div>
                   <button
                     onClick={() => dispatch({ type: 'TRANSLATE_COMPONENT', componentId: selected.componentId, locale: activeCompLocale })}
                     style={{

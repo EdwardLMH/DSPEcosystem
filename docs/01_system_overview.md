@@ -312,7 +312,7 @@ UCP stores the reusable content as structured entries so page authors can select
   "scenario": "MAINTENANCE_NOTICE",
   "styleVariant": "NOTICE_CARD",
   "market": "HK",
-  "supportedLocales": ["en", "zh-TW", "zh-CN"],
+  "supportedLocales": ["en", "zh-HK", "zh-CN"],
   "fields": {
     "title": "Our maintenance schedule",
     "paragraphs": [
@@ -495,7 +495,7 @@ Client renderer shows overlay above current screen
 | RBAC BizLineAccessGuard | Platform | Enforces AUTHOR/APPROVER/AUDITOR/ADMIN roles + biz-line content isolation + Maker-Checker constraint | Security Engineering |
 | Immutable Audit Logger | Platform | PostgreSQL hash-chain audit log; UPDATE/DELETE revoked at DB level; `verify_ucp_audit_chain()` integrity function | Security Engineering |
 | Redis Cache | Platform | Caches SDUI JSON per screen+user+variant, TTL invalidation on CMS publish | Platform Engineering |
-| i18n / Translation Engine | Platform | Locale-aware slice prop merging via `translations[locale][instanceId][propKey]`; `getSliceProps()` helper; supported locales: `en`, `zh-TW`, `zh-CN`, `ar` (RTL), `es`; RTL dir attribute applied automatically | Content Engineering |
+| i18n / Translation Engine | Platform | Locale-aware slice prop merging via `translations[locale][instanceId][propKey]`; `getSliceProps()` helper; supported locales: `en`, `zh-HK`, `zh-CN`, `ar` (RTL), `es`; RTL dir attribute applied automatically | Content Engineering |
 | SDUI Static Distribution Manager | Platform | On OCDP publish: uploads canonical SDUI JSON per screen+platform to S3/OSS and regenerates `manifest.json`; invalidates CloudFront/Tencent CDN; runs in parallel with existing BFF Redis flush webhook | Platform Engineering |
 | AI Search Engine | Platform | Semantic search for HSBC mobile apps and web; per-app corpus configured in OCDP Admin (content sources: OCDP pages + AEM URLs; quick-access entry points via remote URL or inline JSON); corpus rebuilt on demand or scheduled (hourly/daily); BFF endpoint `POST /api/v1/search` ranks results via TF-IDF + keyword-overlap scoring; `GET /api/v1/search/corpus` for client-side corpus caching; `AI_SEARCH_BAR` / `HOME_SEARCH_HEADER` SDUI slice types deliver search to iOS, Android, HarmonyOS NEXT, and Web | Platform Engineering |
 | Web SDUI Renderer | Presentation | Parses JSON, resolves 24 React components, binds props, handles actions, fires Tealium analytics; implements 3-tier resolution chain (CDN manifest → local storage → bundled baseline); merges self-pick preferences for `SELF_PICK_ENTRY_POINTS` slices; honours `selfPickForceUpdate` flag | Web Engineering |
@@ -555,7 +555,7 @@ Client renderer shows overlay above current screen
 | Attribute | Detail |
 |-----------|--------|
 | Translation model | Primary-language copy lives in `slice.props`; translations for all other locales stored in `page.translations[locale][instanceId][propKey]` |
-| Supported locales | `en` (English), `zh-TW` (Traditional Chinese), `zh-CN` (Simplified Chinese), `ar` (Arabic — RTL), `es` (Spanish) |
+| Supported locales | `en` (English), `zh-HK` (Traditional Chinese), `zh-CN` (Simplified Chinese), `ar` (Arabic — RTL), `es` (Spanish) |
 | Helper | `getSliceProps(slice, locale, translations)` in `src/utils/i18n.ts` merges locale-specific overrides onto the base props at render time |
 | RTL support | When `ar` locale is active, `dir="rtl"` is set on the slice canvas; CSS `[dir="rtl"]` rules in `global.css` flip layout automatically |
 | Locale selector | Language selector dropdown in both OCDP and UCP console headers; locale pill bar inside the page editor canvas; per-slice prop editor becomes locale-aware when a non-primary locale is selected |

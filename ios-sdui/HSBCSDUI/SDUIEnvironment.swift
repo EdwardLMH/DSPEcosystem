@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - Supported locales (mirrors OCDP/UCP SUPPORTED_LOCALES)
 
 struct LocaleInfo: Identifiable {
-    let id: String       // authoring code, e.g. "zh-TW"
+    let id: String       // authoring code, e.g. "zh-HK"
     let label: String
     let bcp47: String    // HTML lang attribute value
     let isRTL: Bool
@@ -11,7 +11,7 @@ struct LocaleInfo: Identifiable {
 
 let SUPPORTED_LOCALES: [LocaleInfo] = [
     LocaleInfo(id: "en",    label: "English",   bcp47: "en",      isRTL: false),
-    LocaleInfo(id: "zh-TW", label: "繁體中文",  bcp47: "zh-Hant", isRTL: false),
+    LocaleInfo(id: "zh-HK", label: "繁體中文（香港）",  bcp47: "zh-Hant-HK", isRTL: false),
     LocaleInfo(id: "zh-CN", label: "简体中文",  bcp47: "zh-Hans", isRTL: false),
     LocaleInfo(id: "ar",    label: "العربية",  bcp47: "ar",      isRTL: true),
     LocaleInfo(id: "es",    label: "Español",   bcp47: "es",      isRTL: false),

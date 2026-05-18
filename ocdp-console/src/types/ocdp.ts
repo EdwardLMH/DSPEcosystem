@@ -272,7 +272,7 @@ export interface PageLayout {
   locale: string;
   // Multi-language support
   supportedLocales: string[];  // locales this page is authored in; first entry = primary (same as locale)
-  translations: Record<string, Record<string, Record<string, string>>>;  // locale → instanceId → propKey → value
+  translations: Record<string, Record<string, Record<string, unknown>>>;  // locale → instanceId → propKey → value
   thumbnail: string;
   tags: string[];
   channel: Channel;

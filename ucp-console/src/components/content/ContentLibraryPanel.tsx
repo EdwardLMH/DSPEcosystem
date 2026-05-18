@@ -470,14 +470,15 @@ export function ContentLibraryPanel() {
                   {isTranslating && (
                     <div style={{ padding: '10px 12px', background: '#EEF2FF', border: '1px solid #C7D2FE', borderRadius: 8 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                        <div style={{ fontSize: 9, fontWeight: 700, color: '#4338CA', textTransform: 'uppercase', flex: 1 }}>🌐 {activeAssetLocale} Translation</div>
+                        <div style={{ fontSize: 9, fontWeight: 700, color: '#4338CA', textTransform: 'uppercase', flex: 1 }}>🌐 Editing {activeAssetLocale} copy</div>
                         <button
                           onClick={() => {
+                            const existing = selected.translations?.[activeAssetLocale] ?? {};
                             const translated = {
-                              name: mockTranslate(selected.name, activeAssetLocale),
-                              ...(selected.altText ? { altText: mockTranslate(selected.altText, activeAssetLocale) } : {}),
+                              name: existing.name || mockTranslate(selected.name, activeAssetLocale),
+                              ...(selected.altText ? { altText: existing.altText || mockTranslate(selected.altText, activeAssetLocale) } : {}),
                             };
-                            const updated = { ...selected, translations: { ...selected.translations, [activeAssetLocale]: translated } };
+                            const updated = { ...selected, translations: { ...selected.translations, [activeAssetLocale]: { ...translated, ...existing } } };
                             setAssets(prev => prev.map(a => a.assetId === selected.assetId ? updated : a));
                             setSelected(updated);
                           }}

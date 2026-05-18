@@ -206,6 +206,137 @@ x-locale: "zh-HK"
 
 The `AI_SEARCH_BAR` and `HOME_SEARCH_HEADER` SDUI slice types deliver in-app semantic search on iOS, Android, HarmonyOS NEXT, and Web. The search corpus is operator-configured in the OCDP Admin console and served by the BFF search endpoint.
 
+#### Agent-to-UI Adapter Path
+
+The target architecture supports agent-generated interfaces without replacing the
+governed SDUI renderer contract:
+
+```
+Agent / AI Search
+  -> A2UI-like schema
+  -> BFF validation and allow-list mapping
+  -> canonical SDUI v2 JSON
+  -> legacy-compatible SDUI JSON when required
+  -> iOS / Android / HarmonyNext / Web renderers
+```
+
+The agent is allowed to describe intent, content, actions and suggested UI
+components. The BFF remains the control point: it validates component types,
+normalises actions, injects analytics/governance metadata, strips unsupported
+fields and maps only approved components into SDUI.
+
+Current mock BFF support:
+
+| Capability | Endpoint / Switch | Output |
+|------------|-------------------|--------|
+| SDUI v2 schema contract | `GET /api/v2/sdui/schema` | Canonical v2 schema description |
+| Existing screen, old renderer shape | `GET /api/v1/screen/deposit-campaign-cn` | Existing `layout.children` JSON |
+| Existing screen, v2 shape | `GET /api/v1/screen/deposit-campaign-cn?schema=v2` or `x-sdui-schema: v2` | Canonical SDUI v2 |
+| AI search, existing result list | `POST /api/v1/search` | Existing `{ results: [...] }` |
+| AI search, A2UI-like shape | `POST /api/v1/search` with `{ "responseMode": "a2ui" }` | Agent UI proposal |
+| AI search, SDUI v2 shape | `POST /api/v1/search` with `{ "responseMode": "sdui-v2" }` | Validated SDUI v2 |
+
+This lets the current native/web apps keep working while new clients can opt in
+to v2 screen delivery.
+
+### 3.6 Canonical SDUI v2 Schema
+
+SDUI v2 separates what a component says, does, measures and how it is governed.
+This makes the schema easier for CMS, BFF, analytics and AI agents to share.
+
+```json
+{
+  "schemaVersion": "2.0",
+  "contract": "HSBC_SDUI_V2",
+  "page": {
+    "pageId": "deposit-campaign-cn",
+    "pageName": "New Fund Deposit Campaign (CN)",
+    "screen": "deposit_campaign",
+    "market": "CN",
+    "supportedLocales": ["zh-CN", "en"]
+  },
+  "runtime": {
+    "locale": "zh-CN",
+    "platform": "ios",
+    "channel": "SDUI",
+    "ttl": 300,
+    "analytics": {
+      "provider": "SensorsData",
+      "events": [
+        "sensorsdata_page_view",
+        "sensorsdata_deposit_open_click",
+        "sensorsdata_deposit_open_conversion"
+      ]
+    }
+  },
+  "layout": {
+    "layoutType": "SCROLL",
+    "slots": [
+      { "slotId": "main", "role": "body", "children": ["dep-open-cta"] }
+    ]
+  },
+  "components": [
+    {
+      "componentId": "dep-open-cta",
+      "componentType": "DEPOSIT_OPEN_CTA",
+      "content": { "label": "立即开立存款" },
+      "action": {
+        "type": "DEEPLINK",
+        "url": "hsbc-cn://deposit/open?currency=CNY&campaign=new-fund",
+        "fallback": {
+          "ios": "https://apps.apple.com/cn/app/hsbc-china/id1467398731",
+          "android": "https://www.hsbc.com.cn/mobile-banking/"
+        }
+      },
+      "analytics": {
+        "provider": "SensorsData",
+        "events": ["deposit_open_click", "deposit_open_conversion"]
+      },
+      "appearance": {
+        "backgroundColor": "#C41E3A",
+        "textColor": "#FFFFFF"
+      },
+      "visibility": {
+        "visible": true,
+        "hiddenInOutput": false,
+        "channels": ["SDUI", "WEB_STANDARD", "WEB_WECHAT"]
+      },
+      "governance": {
+        "locked": false,
+        "sourceSchemaVersion": "3.0",
+        "sourceInstanceId": "dep-open-cta"
+      }
+    }
+  ]
+}
+```
+
+Migration rules:
+
+1. Existing CMS pages remain authorable as today.
+2. BFF transforms legacy `layout.children[]` or `slices[]` into SDUI v2.
+3. Existing renderers receive a backward-compatible `layout.children[]`
+   response until they opt in with `x-sdui-schema: v2`.
+4. New agent flows map from A2UI-like proposals into SDUI v2 first, then
+   downgrade to old JSON only if a renderer still needs it.
+5. Production validation should enforce an allow-list of component types,
+   action types, URL schemes, analytics providers and visibility channels.
+
+Renderer adoption status in the mock project:
+
+| Surface | A2UI support | SDUI v2 screen support |
+|---------|--------------|------------------------|
+| iOS SDUI | AI Search requests `responseMode: "a2ui"` and maps `QUICK_ACCESS_ENTRY` components to existing search rows | Existing screen renderer remains legacy-compatible |
+| Android SDUI | AI Search requests `responseMode: "a2ui"` and maps `QUICK_ACCESS_ENTRY` components to existing search rows | Existing screen renderer remains legacy-compatible |
+| HarmonyNext SDUI | AI Search requests `responseMode: "a2ui"` and maps `QUICK_ACCESS_ENTRY` components to existing search rows | Existing screen renderer remains legacy-compatible |
+| Web SDUI | AI Search requests `responseMode: "a2ui"`; screen fetches request `x-sdui-schema: v2` and normalize to existing nodes | Enabled through edge normalizer |
+| Web Standard | Uses the same web v2 normalizer, with `x-channel: WEB_STANDARD` | Enabled through edge normalizer and hidden JSON-LD output |
+| WeChat Web | Uses the same web v2 normalizer, with `x-channel: WEB_WECHAT` | Enabled through edge normalizer |
+
+This is intentionally an edge-adapter rollout. It gives all channels A2UI/v2
+delivery now, while avoiding a risky rewrite of every native component registry
+before production.
+
 #### Slice Types
 
 | Slice Type | Description | Key Props |

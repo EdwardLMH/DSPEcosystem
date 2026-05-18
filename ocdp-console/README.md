@@ -16,7 +16,7 @@ The OCDP Console is a React 18 + TypeScript + Vite single-page application that 
 - **Assess AEO/SEO quality** — automatic 100-point scoring modal on submit for Web Standard pages
 - **Monitor analytics** — AEO panel (citation share, grade), statistics dashboard (usage, CPS bands)
 - **Configure AI Search** — Admin panel to manage per-app semantic search corpora; content sources include OCDP pages and AEM URLs (both providers); corpus rebuild triggers `POST /api/v1/search/config/{id}/rebuild` on the BFF
-- **Author in multiple languages** — locale pill bar lets authors view and edit translated copy per slice; supports en, zh-TW, zh-CN, ar (RTL), es
+- **Author in multiple languages** — locale pill bar lets authors view and edit translated copy per slice; supports en, zh-HK, zh-CN, ar (RTL), es
 - **Accessible to all users** — WCAG 2.1 AA compliant: skip links, keyboard navigation, screen-reader live regions, visible focus rings, colour-plus-text status labels
 
 ---
@@ -55,7 +55,7 @@ OCDP (:3002) → /aem-api → mock-BFF (:4000) → /aem/** (simulated AEM Conten
   - **UCP** tab: browse the UCP content library (assets, components, templates) and drag items onto slices
   - **AEM** tab: browse HSBC AEM content fragments, experience fragments, and assets via the AEM Content Delivery API; drag items onto slices
   - Selected item stored as `contentRef: { source: "UCP" | "AEM", id: "..." }` in the slice definition
-- **Locale pill bar** — switch between supported locales (en, zh-TW, zh-CN, ar, es); translatable props (title, subtitle, ctaText, altText, body) become locale-editable; RTL canvas layout activates for Arabic
+- **Locale pill bar** — switch between supported locales (en, zh-HK, zh-CN, ar, es); translatable props (title, subtitle, ctaText, altText, body) become locale-editable; RTL canvas layout activates for Arabic
 - Channel selector: SDUI (iOS / Android / HarmonyNext / Web), WEB_STANDARD, WEB_WECHAT
 - AEO metadata fields for Web Standard (title, description, slug)
 - Submit for Approval → triggers AEO Assessment modal for Web Standard pages
@@ -114,7 +114,7 @@ The page editor and journey editor both support multi-locale authoring:
 | Locale | Language | Notes |
 |--------|----------|-------|
 | `en` | English | Primary authoring locale |
-| `zh-TW` | Traditional Chinese | HK, TW markets |
+| `zh-HK` | Traditional Chinese | HK market |
 | `zh-CN` | Simplified Chinese | Mainland China |
 | `ar` | Arabic | RTL layout auto-applied to canvas |
 | `es` | Spanish | LATAM markets |

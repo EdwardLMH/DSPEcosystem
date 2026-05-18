@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { a2uiToSearchResults, SearchResult } from '../utils/a2ui';
 
 interface AISearchBarProps {
   placeholder?: string;
@@ -8,17 +9,6 @@ interface AISearchBarProps {
   enableMessageInbox?: boolean;
   searchApiEndpoint?: string;
   id?: string;
-}
-
-interface SearchResult {
-  id: string;
-  type: string;
-  title: string;
-  description: string;
-  icon: string;
-  category: string;
-  deepLink: string;
-  score: number;
 }
 
 const RED = '#DB0011';
@@ -61,11 +51,11 @@ export default function AISearchBar({
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: q, limit: 8 }),
+        body: JSON.stringify({ query: q, limit: 8, responseMode: 'a2ui', appId: 'web' }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json() as { results: SearchResult[] };
-      setResults(data.results ?? []);
+      const data = await res.json() as { results?: SearchResult[] };
+      setResults(a2uiToSearchResults(data).length > 0 ? a2uiToSearchResults(data) : data.results ?? []);
     } catch {
       setError('搜尋服務暫時不可用，請稍後重試。');
       setResults([]);

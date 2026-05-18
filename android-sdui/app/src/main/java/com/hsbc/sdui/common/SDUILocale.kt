@@ -20,7 +20,7 @@ object SDUILocale {
         val country = locale.country  // e.g. "HK", "CN", "TW"
         return when {
             lang == "zh" && (country == "CN" || country == "SG") -> "zh-CN"
-            lang == "zh" -> "zh-TW"
+            lang == "zh" -> "zh-HK"
             lang == "ar" -> "ar"
             lang == "es" -> "es"
             else -> "en"
@@ -38,7 +38,7 @@ data class LocaleInfo(val code: String, val label: String, val bcp47: String, va
 
 val SUPPORTED_LOCALES = listOf(
     LocaleInfo("en",    "English",   "en",      false),
-    LocaleInfo("zh-TW", "繁體中文",  "zh-Hant", false),
+    LocaleInfo("zh-HK", "繁體中文（香港）",  "zh-Hant-HK", false),
     LocaleInfo("zh-CN", "简体中文",  "zh-Hans", false),
     LocaleInfo("ar",    "العربية",  "ar",      true),
     LocaleInfo("es",    "Español",   "es",      false),

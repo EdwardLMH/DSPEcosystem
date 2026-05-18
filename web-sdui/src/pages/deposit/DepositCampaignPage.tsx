@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSDUIContext } from '../../context/SDUIContext';
 import { useChannelMeta } from '../../hooks/useChannelMeta';
 import { analyticsClient } from '../../analytics/AnalyticsClient';
+import { sduiV2ToLegacyScreen } from '../../utils/a2ui';
 
 // ─── BFF base URL ─────────────────────────────────────────────────────────────
 
@@ -49,11 +50,12 @@ export function DepositCampaignPage() {
 
   useEffect(() => {
     fetch(`${BFF_BASE}/screen/deposit-campaign-cn`, {
-      headers: { ...bffHeaders, 'x-platform': 'web', Accept: 'application/json' },
+      headers: { ...bffHeaders, 'x-platform': 'web', 'x-sdui-schema': 'v2', Accept: 'application/json' },
     })
       .then(r => r.json())
       .then(data => {
-        const children: DepositSlice[] = data?.layout?.children ?? [];
+        const normalized = sduiV2ToLegacyScreen(data);
+        const children: DepositSlice[] = (normalized?.layout?.children ?? []) as DepositSlice[];
         setSlices(children);
       })
       .catch(() => setError(true));

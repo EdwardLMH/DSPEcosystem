@@ -20,6 +20,36 @@ struct SearchResponse: Decodable {
     let results: [SearchResult]
 }
 
+struct A2UISearchResponse: Decodable {
+    let query: String?
+    let totalMatched: Int?
+    let a2ui: A2UIPayload?
+}
+
+struct A2UIPayload: Decodable {
+    let components: [A2UIComponent]
+}
+
+struct A2UIComponent: Decodable {
+    let id: String
+    let type: String
+    let content: A2UIContent
+    let action: A2UIAction?
+}
+
+struct A2UIContent: Decodable {
+    let title: String?
+    let description: String?
+    let icon: String?
+    let category: String?
+    let score: Double?
+}
+
+struct A2UIAction: Decodable {
+    let type: String?
+    let url: String?
+}
+
 private struct LocalSearchEntry {
     let id: String
     let type: String
@@ -172,15 +202,17 @@ final class AISearchViewModel: ObservableObject {
 
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: [
-                "query": query, "limit": 10, "appId": "ios"
+                "query": query, "limit": 10, "appId": "ios", "responseMode": "a2ui"
             ])
             let (data, urlResponse) = try await URLSession.shared.data(for: request)
             if let httpResponse = urlResponse as? HTTPURLResponse,
                !(200...299).contains(httpResponse.statusCode) {
                 throw URLError(.badServerResponse)
             }
-            let searchResponse = try JSONDecoder().decode(SearchResponse.self, from: data)
-            let resolvedResults = searchResponse.results.isEmpty ? localSearch(query) : searchResponse.results
+            let a2uiResults = decodeA2UIResults(from: data)
+            let legacyResults = (try? JSONDecoder().decode(SearchResponse.self, from: data).results) ?? []
+            let remoteResults = a2uiResults.isEmpty ? legacyResults : a2uiResults
+            let resolvedResults = remoteResults.isEmpty ? localSearch(query) : remoteResults
             hasSearched = true
             results = resolvedResults
             groupedResults = buildGroups(resolvedResults)
@@ -190,6 +222,29 @@ final class AISearchViewModel: ObservableObject {
             hasSearched = true
             results = fallback
             groupedResults = buildGroups(fallback)
+        }
+    }
+
+    private func decodeA2UIResults(from data: Data) -> [SearchResult] {
+        guard let response = try? JSONDecoder().decode(A2UISearchResponse.self, from: data),
+              let components = response.a2ui?.components else {
+            return []
+        }
+        return components.compactMap { component in
+            guard let title = component.content.title,
+                  let url = component.action?.url else {
+                return nil
+            }
+            return SearchResult(
+                id: component.id,
+                type: component.type,
+                title: title,
+                description: component.content.description ?? "",
+                icon: component.content.icon ?? "",
+                category: component.content.category ?? "功能入口",
+                deepLink: url,
+                score: component.content.score ?? 0
+            )
         }
     }
 
@@ -237,7 +292,6 @@ final class AISearchViewModel: ObservableObject {
 struct AISearchView: View {
     @StateObject private var vm = AISearchViewModel()
     @Binding var isPresented: Bool
-    @FocusState private var fieldFocused: Bool
 
     var body: some View {
         NavigationView {
@@ -253,7 +307,6 @@ struct AISearchView: View {
             .navigationBarHidden(true)
         }
         .onAppear {
-            fieldFocused = true
             TealiumClient.track(event: "ai_search_opened", category: "Search",
                 action: "search_screen_viewed", screen: "ai_search", journey: "home_hub")
         }
@@ -277,7 +330,6 @@ struct AISearchView: View {
                     .font(.system(size: 14))
                     .foregroundColor(Hive.Color.n900)
                     .textFieldStyle(.plain)
-                    .focused($fieldFocused)
                     .submitLabel(.search)
                     .onSubmit {
                         guard !vm.query.trimmingCharacters(in: .whitespaces).isEmpty else { return }

@@ -167,7 +167,7 @@ This ensures **segregation of duties** — a core HKMA and internal audit requir
 │                                                                           │
 │  AEO Score: 82/100 (Grade A) ✅         Last Reviewed: 2026-04-15       │
 │                                                                           │
-│  Supported Locales: en · zh-TW · zh-CN · ar · es                        │
+│  Supported Locales: en · zh-HK · zh-CN · ar · es                        │
 │  [Manage Translations →]  (opens per-locale translation editor)          │
 │                                                                           │
 │  ⓘ Accessibility: all form fields have visible labels; keyboard          │
@@ -320,7 +320,7 @@ Content in the OCDP and UCP editors is authored in a **primary locale** (typical
 | Supported Locale | Language | Notes |
 |-----------------|----------|-------|
 | `en` | English | Primary authoring locale |
-| `zh-TW` | Traditional Chinese | HK, TW markets |
+| `zh-HK` | Traditional Chinese | HK, TW markets |
 | `zh-CN` | Simplified Chinese | Mainland China market |
 | `ar` | Arabic | RTL layout auto-applied |
 | `es` | Spanish | LATAM markets |

@@ -109,12 +109,12 @@ export const WECHAT_TEMPLATES: WeChatMessageTemplate[] = [
 export const PAGE_HOME_HUB: PageLayout = {
   pageId: 'home-hub-hk', name: 'Home Hub (HK)',
   pageType: 'HOME_HUB', description: 'Main Home Hub page for HK market',
-  nativeTargets: ['ios', 'android', 'harmonynext', 'web'], locale: 'zh-TW', thumbnail: '💰', tags: ['wealth', 'home', 'hk'],
+  nativeTargets: ['ios', 'android', 'harmonynext', 'web'], locale: 'en', thumbnail: '💰', tags: ['wealth', 'home', 'hk'],
   channel: 'SDUI', scope: 'MARKET', marketId: 'HK',
   releaseMarketIds: ['HK'], bizLineId: 'WEALTH', groupId: 'HK-WEALTH-AD',
   webSlug: '/home',
   authoringStatus: 'APPROVED',
-  supportedLocales: ['zh-TW', 'en'],
+  supportedLocales: ['en', 'zh-HK', 'zh-CN'],
   translations: {},
   slices: [
     {
@@ -346,11 +346,11 @@ export const PAGE_JADE_CAMPAIGN: PageLayout = {
   pageId: 'jade-upgrade-hk', name: 'Elite Upgrade Campaign (HK)',
   pageType: 'CAMPAIGN', pageTemplateId: 'tpl-segment-upgrade-campaign',
   description: 'Elite upgrade invitation page for Premier customers with curated wealth and lifestyle privileges',
-  nativeTargets: ['ios', 'android', 'harmonynext'], locale: 'zh-TW', thumbnail: '💎', tags: ['elite', 'wealth', 'campaign', 'wechat'],
+  nativeTargets: ['ios', 'android', 'harmonynext'], locale: 'zh-HK', thumbnail: '💎', tags: ['elite', 'wealth', 'campaign', 'wechat'],
   channel: 'WEB_WECHAT', scope: 'MARKET', marketId: 'HK',
   releaseMarketIds: ['HK'], bizLineId: 'WEALTH', groupId: 'HK-WEALTH-AD',
   authoringStatus: 'APPROVED',
-  supportedLocales: ['zh-TW', 'en'],
+  supportedLocales: ['zh-HK', 'en'],
   translations: {},
   wechatPageUrl: 'https://wechat.hsbc.com.hk/pages/elite-upgrade',
   wechatShareTitle: '您的HSBC Elite升級邀請', wechatShareDesc: '尊享財富策劃、環球禮遇及限時升級優惠',
@@ -442,7 +442,7 @@ export const PAGE_VISA_CAMPAIGN: PageLayout = {
   channel: 'WEB_STANDARD', scope: 'GLOBAL', marketId: 'GLOBAL',
   releaseMarketIds: ['GLOBAL', 'HK', 'SG'], bizLineId: 'PAYMENT', groupId: 'GLOBAL-WEALTH-AD',
   authoringStatus: 'DRAFT',
-  supportedLocales: ['en', 'zh-TW', 'zh-CN'],
+  supportedLocales: ['en', 'zh-HK', 'zh-CN'],
   translations: {},
   isPublic: true,
   webSlug: '/credit-cards/visa-platinum-q3',
@@ -518,7 +518,7 @@ export const PAGE_FX_VIEWPOINT: PageLayout = {
   channel: 'SDUI', scope: 'MARKET', marketId: 'HK',
   releaseMarketIds: ['HK'], bizLineId: 'WEALTH', groupId: 'HK-WEALTH-AD',
   authoringStatus: 'APPROVED',
-  supportedLocales: ['en', 'zh-TW'],
+  supportedLocales: ['en', 'zh-HK', 'zh-CN'],
   translations: {},
   slices: [
     {
@@ -857,7 +857,7 @@ function announcementPage(pageId: string, name: string, description: string, pro
     releaseMarketIds: ['HK'], bizLineId: 'MARKETING', groupId: 'HK-MARKETING-AD',
     authoringStatus: 'DRAFT',
     campaignSchedule: expiry ? { publishAt: '2026-05-15T01:00:00.000Z', takedownAt: expiry, timezone: 'Asia/Hong_Kong' } : undefined,
-    supportedLocales: ['en', 'zh-TW', 'zh-CN'],
+    supportedLocales: ['en', 'zh-HK', 'zh-CN'],
     translations: {},
     slices: [{ instanceId: 'ann-overlay', type: 'ANNOUNCEMENT_OVERLAY', visible: true, locked: false, props }],
   };
@@ -872,7 +872,7 @@ export const PAGE_ANNOUNCEMENT_OVERLAY: PageLayout = {
   releaseMarketIds: ['HK'], bizLineId: 'MARKETING', groupId: 'HK-MARKETING-AD',
   authoringStatus: 'DRAFT',
   campaignSchedule: { publishAt: '2026-05-15T01:00:00.000Z', takedownAt: '2026-06-30T15:59:59.000Z', timezone: 'Asia/Hong_Kong' },
-  supportedLocales: ['en', 'zh-TW', 'zh-CN'],
+  supportedLocales: ['en', 'zh-HK', 'zh-CN'],
   translations: {},
   slices: [
     {
@@ -936,9 +936,9 @@ export const MOCK_JOURNEYS: Journey[] = [
     description: '11-step open banking KYC flow regulated by HKMA',
     channel: 'SDUI', nativeTargets: ['ios', 'android', 'harmonynext', 'web'], marketId: 'HK', bizLineId: 'WEB_ENABLER', status: 'LIVE',
     isPublic: true,
-    supportedLocales: ['en', 'zh-TW'],
+    supportedLocales: ['en', 'zh-HK'],
     translations: {
-      'zh-TW': {
+      'zh-HK': {
         name: '開放銀行KYC開戶',
         description: '香港金融管理局監管的11步開放銀行KYC流程',
         step001Label: '個人資料',        step001Desc: '法定全名及出生日期',
@@ -990,9 +990,9 @@ export const MOCK_JOURNEYS: Journey[] = [
     name: 'Wealth Discovery Journey',
     description: 'Guided wealth product selection flow',
     channel: 'SDUI', nativeTargets: ['ios', 'android', 'harmonynext', 'web'], marketId: 'HK', bizLineId: 'WEALTH', status: 'DRAFT',
-    supportedLocales: ['en', 'zh-TW'],
+    supportedLocales: ['en', 'zh-HK'],
     translations: {
-      'zh-TW': {
+      'zh-HK': {
         name: '財富探索旅程',
         description: '引導式財富產品選擇流程',
         w1Label: '風險評估', w1Desc: '投資者風險評估',

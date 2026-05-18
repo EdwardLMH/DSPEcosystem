@@ -245,7 +245,7 @@ function reducer(state: UCPState, action: Action): UCPState {
         ...(asset.altText ? { altText: existing.altText || mockTranslate(asset.altText, action.locale) } : {}),
       };
       return { ...state, contentAssets: state.contentAssets.map(a => a.assetId !== action.assetId ? a :
-        { ...a, translations: { ...a.translations, [action.locale]: translated } }
+        { ...a, translations: { ...a.translations, [action.locale]: { ...translated, ...existing } } }
       ) };
     }
 
@@ -278,7 +278,7 @@ function reducer(state: UCPState, action: Action): UCPState {
         description: existing.description || mockTranslate(comp.description, action.locale),
       };
       return { ...state, uiComponents: state.uiComponents.map(c => c.componentId !== action.componentId ? c :
-        { ...c, translations: { ...c.translations, [action.locale]: translated } }
+        { ...c, translations: { ...c.translations, [action.locale]: { ...translated, ...existing } } }
       ) };
     }
 
@@ -311,7 +311,7 @@ function reducer(state: UCPState, action: Action): UCPState {
         description: existing.description || mockTranslate(tmpl.description, action.locale),
       };
       return { ...state, pageTemplates: state.pageTemplates.map(t => t.templateId !== action.templateId ? t :
-        { ...t, translations: { ...t.translations, [action.locale]: translated } }
+        { ...t, translations: { ...t.translations, [action.locale]: { ...translated, ...existing } } }
       ) };
     }
 

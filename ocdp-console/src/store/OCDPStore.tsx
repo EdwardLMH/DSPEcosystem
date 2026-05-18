@@ -180,7 +180,7 @@ type Action =
   | { type: 'SET_STEP_RULE'; journeyId: string; stepId: string; rule: VisibilityRule | undefined }
   // Multi-language
   | { type: 'SET_PAGE_LOCALES'; pageId: string; locales: string[] }
-  | { type: 'SET_PAGE_TRANSLATION'; pageId: string; locale: string; instanceId: string; propKey: string; value: string }
+  | { type: 'SET_PAGE_TRANSLATION'; pageId: string; locale: string; instanceId: string; propKey: string; value: unknown }
   | { type: 'TRANSLATE_PAGE'; pageId: string; locale: string }
   | { type: 'SET_JOURNEY_LOCALES'; journeyId: string; locales: string[] }
   | { type: 'SET_JOURNEY_TRANSLATION'; journeyId: string; locale: string; field: string; value: string }
@@ -752,13 +752,16 @@ function reducer(state: OCDPState, action: Action): OCDPState {
       const page = state.pages.find(p => p.pageId === action.pageId)
         ?? state.journeyPages.find(jp => jp.page.pageId === action.pageId)?.page;
       if (!page) return state;
-      const localeTranslations: Record<string, Record<string, string>> = {};
+      const localeTranslations: Record<string, Record<string, unknown>> = {};
+      const existingLocaleMap = page.translations[action.locale] ?? {};
       for (const slice of page.slices) {
         const textKeys = TRANSLATABLE_PROP_KEYS[slice.type] ?? [];
         const translated = translateSliceProps(slice.props, textKeys, action.locale);
-        if (Object.keys(translated).length > 0) localeTranslations[slice.instanceId] = translated;
+        const existingSliceMap = existingLocaleMap[slice.instanceId] ?? {};
+        const merged = { ...translated, ...existingSliceMap };
+        if (Object.keys(merged).length > 0) localeTranslations[slice.instanceId] = merged;
       }
-      const translations = { ...page.translations, [action.locale]: { ...(page.translations[action.locale] ?? {}), ...localeTranslations } };
+      const translations = { ...page.translations, [action.locale]: { ...existingLocaleMap, ...localeTranslations } };
       const updatePage = (p: PageLayout) =>
         p.pageId === action.pageId ? { ...p, translations } : p;
       return {

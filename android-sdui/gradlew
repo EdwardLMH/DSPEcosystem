@@ -8,6 +8,11 @@ WRAPPER_JAR="$SCRIPT_DIR/gradle/wrapper/gradle-wrapper.jar"
 if [ -f "$WRAPPER_JAR" ]; then
   exec java -jar "$WRAPPER_JAR" "$@"
 else
+  LOCAL_GRADLE="$HOME/.gradle/wrapper/dists/gradle-9.4.1-bin/arn2x92ynaizyzdaamcbpbhtj/gradle-9.4.1/bin/gradle"
+  if [ -x "$LOCAL_GRADLE" ]; then
+    echo "⚠️  gradle-wrapper.jar not found — using local Gradle 9.4.1 distribution"
+    exec "$LOCAL_GRADLE" "$@"
+  fi
   echo "⚠️  gradle-wrapper.jar not found — using system Gradle"
   exec gradle "$@"
 fi

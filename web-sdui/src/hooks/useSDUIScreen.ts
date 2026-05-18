@@ -8,6 +8,7 @@ import {
   saveCustomerSelfPick,
 } from '../engine/SDUIStaticDistribution';
 import { useSDUIContext } from '../context/SDUIContext';
+import { sduiV2ToLegacyScreen } from '../utils/a2ui';
 
 const BFF_BASE          = '/api/v1';
 const REQUEST_TIMEOUT_MS = 3000;
@@ -105,7 +106,7 @@ export function useSDUIScreen(
           signal: controller.signal,
         });
         if (!res.ok) throw new Error(`BFF returned ${res.status}`);
-        const data = (await res.json()) as ScreenPayload;
+        const data = sduiV2ToLegacyScreen(await res.json());
         cacheScreen(screenId, data);
         if (!cancelled) {
           await applyPayload(data, false, forceUpdate);
