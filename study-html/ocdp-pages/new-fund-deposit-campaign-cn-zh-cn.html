@@ -28,10 +28,116 @@
       <img class="hero" src="../../mock-bff/public/media/deposit-campaign-banner.jpg" alt="Deposit campaign banner" />
       <section class="callout"><span class="badge">仅限新资金</span><div class="callout-title">年化利率最高 1.15%</div><div class="callout-copy">3个月人民币新资金可转让存单优惠，适用于符合条件的新转入资金。把握限时机会，让闲置资金更有效运用。</div></section>
       <section class="rate-table"><div class="rate-table-head"><div class="section-title">定期存款利率</div><div class="as-at">截至 2025/05/22</div></div><div class="rate-columns"><span>存期</span><span>年利率</span></div><div class="rate-row"><span>3个月定期存款</span><span class="rate-value">0.65%</span></div><div class="rate-row"><span>6个月定期存款</span><span class="rate-value">0.85%</span></div><div class="rate-row"><span>12个月定期存款</span><span class="rate-value">0.95%</span></div><div class="rate-row"><span>24个月定期存款</span><span class="rate-value">1.05%</span></div><div class="rate-row"><span>36个月定期存款</span><span class="rate-value">1.25%</span></div><div class="rate-row"><span>60个月定期存款</span><span class="rate-value">1.30%</span></div><div class="footnote">个人银行客户定期存款起存金额为人民币50元。新资金指符合条件的新转入汇丰中国资金。利率仅供参考，并可能不时调整。</div></section>
-      <section class="cta-wrap"><button class="cta" type="button" data-deeplink="hsbc-cn://deposit/open?currency=CNY&amp;campaign=new-fund" data-ios="https://apps.apple.com/cn/app/hsbc-china/id1467398731" data-android="https://www.hsbc.com.cn/mobile-banking/" data-huawei="appmarket://details?id=cn.com.hsbc.hsbcchina" data-xiaomi="mimarket://details?id=cn.com.hsbc.hsbcchina">立即开立存款</button><div class="cta-note">Deep link：打开汇丰中国手机银行存款模块；如未安装手机银行，将按 iOS、Android、华为、小米等渠道跳转下载。</div></section>
+      <section class="cta-wrap"><button class="cta" type="button" data-component-id="DEPOSIT_OPEN_CTA" data-sensors-event="sensorsdata_deposit_open_click" data-deeplink="hsbc-cn://deposit/open?currency=CNY&amp;campaign=new-fund" data-ios="https://apps.apple.com/cn/app/hsbc-china/id1467398731" data-android="https://www.hsbc.com.cn/mobile-banking/" data-huawei="appmarket://details?id=cn.com.hsbc.hsbcchina" data-xiaomi="mimarket://details?id=cn.com.hsbc.hsbcchina">立即开立存款</button><div class="cta-note">Deep link：打开汇丰中国手机银行存款模块；如未安装手机银行，将按 iOS、Android、华为、小米等渠道跳转下载。</div></section>
       <div class="spacer"></div><section class="faq"><div class="faq-title">常见问题</div><details open><summary>定期存款到期前可以提前支取吗？</summary><div class="answer">可以。提前支取可能无法享受原定利率，利息可能减少或为零，并可能产生相关费用。具体规则以汇丰中国实际办理要求为准。</div></details><details ><summary>到期后没有支取会怎样？</summary><div class="answer">您可在办理时选择到期处理方式，例如到期支取或自动续存。自动续存时通常将按续存当日适用利率执行。</div></details><details ><summary>可选择哪些存期？</summary><div class="answer">常见存期包括3个月、6个月、12个月、24个月、36个月及60个月。不同存期对应不同利率，您可根据资金安排选择。</div></details><details ><summary>为什么定期存款利率通常高于活期存款？</summary><div class="answer">定期存款在约定期限内保持资金稳定，因此银行通常可提供高于活期存款的利率。实际利率以办理时页面或网点公示为准。</div></details></section>
-      <section class="insurance" aria-label="存款保险"><a href="https://www.hsbc.com.cn/content/dam/hsbc/cn/docs/insurance/insurance-prodcut-electronic-notice.pdf" target="_blank" rel="noreferrer"><img src="../../mock-bff/public/media/deposit-insurance-logo.jpg" alt="存款保险标识" /></a></section>
+      <section class="insurance" aria-label="存款保险"><a href="https://www.hsbc.com.cn/content/dam/hsbc/cn/docs/insurance/insurance-prodcut-electronic-notice.pdf" target="_blank" rel="noreferrer" data-component-id="DEPOSIT_INSURANCE" data-sensors-event="sensorsdata_deposit_insurance_click"><img src="../../mock-bff/public/media/deposit-insurance-logo.jpg" alt="存款保险标识" /></a></section>
     </article>
   </main>
+  <script>
+    (function () {
+      var PAGE = {
+        page_id: "deposit-campaign-cn",
+        page_name: "新资金定期存款推广（中国）",
+        market: "CN",
+        language: "zh-CN",
+        channel: "web_sdui_static_html",
+        analytics_provider: "sensordata",
+        campaign: "new-fund",
+        product: "time_deposit"
+      };
+      var STORAGE_KEY = "study_html_sensorsdata_events";
+
+      function deviceChannel() {
+        var ua = navigator.userAgent || "";
+        if (/huawei|honor/i.test(ua)) return "huawei";
+        if (/miuibrowser|xiaomi|redmi/i.test(ua)) return "xiaomi";
+        if (/iphone|ipad|ipod/i.test(ua)) return "ios";
+        if (/android/i.test(ua)) return "android";
+        return "web";
+      }
+
+      function realSensors() {
+        if (window.sensors && typeof window.sensors.track === "function") return window.sensors;
+        if (window.sensorsDataAnalytic201505 && typeof window.sensorsDataAnalytic201505.track === "function") return window.sensorsDataAnalytic201505;
+        return null;
+      }
+
+      function track(eventName, props) {
+        var payload = Object.assign({}, PAGE, props || {}, {
+          event_name: eventName,
+          device_channel: deviceChannel(),
+          url: window.location.href,
+          timestamp: new Date().toISOString()
+        });
+        var sensors = realSensors();
+        if (sensors) sensors.track(eventName, payload);
+        window.__studySensorsDataEvents = window.__studySensorsDataEvents || [];
+        window.__studySensorsDataEvents.push(payload);
+        try {
+          var saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+          saved.push(payload);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(saved.slice(-100)));
+        } catch (error) {}
+        if (window.console && console.info) console.info("[SensorsData]", eventName, payload);
+      }
+
+      function fallbackUrl(button) {
+        var channel = deviceChannel();
+        if (channel === "ios") return button.dataset.ios;
+        if (channel === "huawei") return button.dataset.huawei || button.dataset.android;
+        if (channel === "xiaomi") return button.dataset.xiaomi || button.dataset.android;
+        return button.dataset.android || button.dataset.ios;
+      }
+
+      function openDeposit(button) {
+        var deeplink = button.dataset.deeplink;
+        var fallback = fallbackUrl(button);
+        track(button.dataset.sensorsEvent || "sensorsdata_deposit_open_click", {
+          component_id: button.dataset.componentId || "DEPOSIT_OPEN_CTA",
+          cta_name: button.textContent.trim(),
+          deeplink: deeplink,
+          fallback_url: fallback
+        });
+        sessionStorage.setItem("deposit_open_click_pending", "1");
+        window.location.href = deeplink;
+        window.setTimeout(function () {
+          if (document.visibilityState === "visible") window.location.href = fallback;
+        }, 1200);
+      }
+
+      track("sensorsdata_page_view", {
+        metric_scope: "dau_mau",
+        referrer: document.referrer || ""
+      });
+
+      document.querySelectorAll("[data-sensors-event]").forEach(function (element) {
+        element.addEventListener("click", function (event) {
+          if (element.dataset.componentId === "DEPOSIT_OPEN_CTA") {
+            event.preventDefault();
+            openDeposit(element);
+            return;
+          }
+          track(element.dataset.sensorsEvent, {
+            component_id: element.dataset.componentId || "",
+            target_url: element.href || ""
+          });
+        });
+      });
+
+      function trackConversion() {
+        if (sessionStorage.getItem("deposit_open_click_pending") !== "1") return;
+        sessionStorage.removeItem("deposit_open_click_pending");
+        track("sensorsdata_deposit_open_conversion", {
+          component_id: "DEPOSIT_OPEN_CTA",
+          conversion_type: "deeplink_attempt"
+        });
+      }
+
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "hidden") trackConversion();
+      });
+      window.addEventListener("pagehide", trackConversion);
+    })();
+  </script>
 </body>
 </html>
