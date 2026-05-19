@@ -16,14 +16,27 @@ import com.hsbc.sdui.deposit.DepositCampaignScreen
 import com.hsbc.sdui.fxviewpoint.FXViewpointScreen
 import com.hsbc.sdui.kyc.KYCRootScreen
 import com.hsbc.sdui.home.HomePageScreen
+import com.hsbc.sdui.analytics.ObservabilityClient
 
 class MainActivity : ComponentActivity() {
+    private var hasStartedOnce = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        ObservabilityClient.markAppCreate()
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
                 HSBCTestApp()
             }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (hasStartedOnce) {
+            ObservabilityClient.markForeground()
+        } else {
+            hasStartedOnce = true
         }
     }
 }

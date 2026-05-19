@@ -10,6 +10,7 @@
 		AA01000000000000000001BF /* HSBCSduiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01000000000000000001F5 /* HSBCSduiApp.swift */; };
 		AA02000000000000000001BF /* HiveTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02000000000000000001F5 /* HiveTokens.swift */; };
 		AA03000000000000000001BF /* TealiumClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA03000000000000000001F5 /* TealiumClient.swift */; };
+		AA03100000000000000001BF /* ObservabilityClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA03100000000000000001F5 /* ObservabilityClient.swift */; };
 		AA04000000000000000001BF /* AppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA04000000000000000001F5 /* AppStore.swift */; };
 		AA05000000000000000001BF /* KYCNetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA05000000000000000001F5 /* KYCNetworkService.swift */; };
 		AA06000000000000000001BF /* SDUIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA06000000000000000001F5 /* SDUIModels.swift */; };
@@ -29,6 +30,7 @@
 		AA01000000000000000001F5 /* HSBCSduiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HSBCSduiApp.swift; sourceTree = "<group>"; };
 		AA02000000000000000001F5 /* HiveTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HiveTokens.swift; sourceTree = "<group>"; };
 		AA03000000000000000001F5 /* TealiumClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TealiumClient.swift; sourceTree = "<group>"; };
+		AA03100000000000000001F5 /* ObservabilityClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservabilityClient.swift; sourceTree = "<group>"; };
 		AA04000000000000000001F5 /* AppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStore.swift; sourceTree = "<group>"; };
 		AA05000000000000000001F5 /* KYCNetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KYCNetworkService.swift; sourceTree = "<group>"; };
 		AA06000000000000000001F5 /* SDUIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDUIModels.swift; sourceTree = "<group>"; };
@@ -122,6 +124,7 @@
 			isa = PBXGroup;
 			children = (
 				AA03000000000000000001F5 /* TealiumClient.swift */,
+				AA03100000000000000001F5 /* ObservabilityClient.swift */,
 			);
 			path = Analytics;
 			sourceTree = "<group>";
@@ -273,6 +276,7 @@
 				AA01000000000000000001BF /* HSBCSduiApp.swift in Sources */,
 				AA02000000000000000001BF /* HiveTokens.swift in Sources */,
 				AA03000000000000000001BF /* TealiumClient.swift in Sources */,
+				AA03100000000000000001BF /* ObservabilityClient.swift in Sources */,
 				AA04000000000000000001BF /* AppStore.swift in Sources */,
 				AA05000000000000000001BF /* KYCNetworkService.swift in Sources */,
 				AA06000000000000000001BF /* SDUIModels.swift in Sources */,

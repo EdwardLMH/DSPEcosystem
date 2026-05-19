@@ -11,7 +11,7 @@
     "channel": "SDUI",
     "version": 1,
     "publishedAt": "2026-05-15T01:00:00.000Z",
-    "generatedAt": "2026-05-18T11:04:25.821Z",
+    "generatedAt": "2026-05-19T17:41:18.033Z",
     "marketTimeZone": "Asia/Hong_Kong",
     "nativeTargets": [
       "ios",
@@ -30,6 +30,57 @@
       "voiceOver": false,
       "talkBack": false,
       "screenReader": false
+    },
+    "observability": {
+      "standard": "OpenTelemetry / W3C Trace Context",
+      "tracePropagation": {
+        "requiredHeaders": [
+          "traceparent",
+          "x-request-id",
+          "x-platform",
+          "x-market"
+        ],
+        "piiRule": "Do not place customer identifiers, account numbers, tokens, or raw free-text PII in span names or high-cardinality attributes."
+      },
+      "clientSpans": [
+        "sdui.bootstrap",
+        "sdui.manifest.fetch",
+        "sdui.screen.fetch",
+        "sdui.screen.parse",
+        "sdui.component.render"
+      ],
+      "backendPath": [
+        "CloudFront/WAF",
+        "Kong external",
+        "BFF / SDUI API",
+        "Redis cache",
+        "database/search/object storage",
+        "DAP event ingestion"
+      ],
+      "dataResidency": "Region-local telemetry with PII-free, low-cardinality trace attributes."
+    },
+    "operationalSlo": {
+      "availabilityMonthly": "99.9%",
+      "apiLatencyP95Ms": 600,
+      "staticJsonAvailabilityTarget": "99.99%",
+      "publishCompletionP95Seconds": 60,
+      "syntheticCheck": "syn-announcement-force-update-hk"
+    },
+    "cicd": {
+      "pipeline": "Jenkins",
+      "deploymentPlane": "aws-overseas",
+      "supportedActions": [
+        "build-only",
+        "deploy",
+        "restart",
+        "site-switch"
+      ],
+      "deployMarkerAttributes": [
+        "release.tag",
+        "deployment.environment",
+        "deployment.platform",
+        "deployment.action"
+      ]
     }
   },
   "layout": {

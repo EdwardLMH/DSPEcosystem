@@ -12,8 +12,8 @@
     "platform": "harmonynext",
     "channel": "SDUI",
     "version": 3,
-    "publishedAt": "2026-03-23T11:04:25.613Z",
-    "generatedAt": "2026-05-18T11:04:25.807Z",
+    "publishedAt": "2026-03-24T17:41:17.832Z",
+    "generatedAt": "2026-05-19T17:41:18.022Z",
     "supportedLocales": [
       "en",
       "zh-HK",
@@ -29,7 +29,63 @@
     },
     "nativeTargets": [
       "harmonynext"
-    ]
+    ],
+    "observability": {
+      "standard": "OpenTelemetry / W3C Trace Context",
+      "tracePropagation": {
+        "requiredHeaders": [
+          "traceparent",
+          "x-request-id",
+          "x-platform",
+          "x-market"
+        ],
+        "piiRule": "Do not place customer identifiers, account numbers, tokens, or raw free-text PII in span names or high-cardinality attributes."
+      },
+      "clientSpans": [
+        "sdui.bootstrap",
+        "sdui.manifest.fetch",
+        "sdui.screen.fetch",
+        "sdui.screen.parse",
+        "sdui.component.render"
+      ],
+      "backendPath": [
+        "CloudFront/WAF",
+        "Kong external",
+        "BFF / SDUI API",
+        "Redis cache",
+        "database/search/object storage",
+        "DAP event ingestion"
+      ],
+      "dataResidency": "Region-local telemetry with PII-free, low-cardinality trace attributes."
+    },
+    "startupSlo": {
+      "coldStartupP95Ms": 3500,
+      "warmStartupP95Ms": 1400,
+      "homeInteractiveP95Ms": 2800
+    },
+    "operationalSlo": {
+      "availabilityMonthly": "99.95%",
+      "apiLatencyP95Ms": 500,
+      "staticJsonAvailabilityTarget": "99.99%",
+      "publishCompletionP95Seconds": 60,
+      "syntheticCheck": "syn-home-hub-json"
+    },
+    "cicd": {
+      "pipeline": "Jenkins",
+      "deploymentPlane": "aws-overseas-or-mainland-china",
+      "supportedActions": [
+        "build-only",
+        "deploy",
+        "restart",
+        "site-switch"
+      ],
+      "deployMarkerAttributes": [
+        "release.tag",
+        "deployment.environment",
+        "deployment.platform",
+        "deployment.action"
+      ]
+    }
   },
   "layout": {
     "type": "SCROLL",

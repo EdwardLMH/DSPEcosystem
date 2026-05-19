@@ -643,6 +643,8 @@ Recommended initial SLOs:
 | DAP ingestion | 99.9% | buffer client events and use Kinesis retry |
 | DAP reporting | 99.0% | batch reporting can tolerate delay |
 
+These SLOs are part of the DSPE architecture principles, not only infrastructure targets. High availability, end-to-end OpenTelemetry tracing, app startup performance monitoring and safe Jenkins CI/CD are ecosystem highlights used to prove production readiness. The same principles apply to mainland China through IKP runtime, Alicloud private authoring, Tencent COS/CDN and China-resident observability, with only approved aggregate SLOs crossing regional boundaries.
+
 ---
 
 ## 12. Security Architecture
@@ -811,6 +813,8 @@ Use IAM Roles for Service Accounts so pods do not need long-lived AWS keys.
 | Synthetic checks | CloudWatch Synthetics for Kong `/status`, BFF `/health`, `/api/v1/screen/home-hub-hk`, `manifest.json` |
 | Alarms | CloudWatch Alarms + SNS / PagerDuty |
 | Audit | CloudTrail, Aurora audit table, application maker-checker log |
+
+Use `docs/19_observability_monitoring.md` as the detailed OpenTelemetry runbook. It defines the end-to-end trace model from mobile/web clients through CloudFront, Kong, BFF, Redis, Aurora, OpenSearch, S3 and DAP ingestion; it also defines the monitoring matrix, dashboards, synthetic checks and alert policy.
 
 Critical alarms:
 

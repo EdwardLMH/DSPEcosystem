@@ -46,6 +46,8 @@
 
 - **Mobile Intelligence Operations** — miPaaS (Mobile Intelligence PaaS) provides business and IT operators with unified visibility into mobile app performance (MAU/DAU, journey conversion, customer feedback) and full governance over the plugin and journey lifecycle within the PlatformHub mobile apps — without requiring app store releases.
 
+- **Operational Excellence as a Selling Point** — DSPE is designed to be observable, resilient, and continuously deployable from day one. OpenTelemetry traces connect mobile/web startup, SDUI fetch, BFF/API, cache, search and database calls; Jenkins pipelines support validation, deployment, restart and site switch across AWS overseas and mainland China IKP/Alicloud/Tencent environments; and SLO dashboards make availability, latency and error-budget health visible to operators and stakeholders.
+
 ---
 
 ## 2. System Context Diagram
@@ -614,9 +616,26 @@ OCDP operators create one `AISearchConfig` per app platform (`ios | android | ha
 | Field | Description |
 |-------|-------------|
 | `quickAccessSource` | Entry-point functions (quick-access buttons). Provided either as a remote URL (BFF fetches + parses JSON at rebuild time) or as inline JSON pasted by the operator |
-| `contentSources` | List of content pages to include in the search corpus. Each source is either an `ocdp_page` (references a live OCDP page by `pageId`) or an `aem_url` (references an AEM page URL) |
+| `contentSources` | List of content pages to include in the search corpus. Each source is either an `ocdp_page` (references a live OCDP page by `pageId`) or an `aem_url` (references an AEM page URL); sources can carry OCDP page-editor visibility rules |
+| `assetSources` | Optional governed video, image and file sources. Operators can configure either an exact URL or parent folder URL and attach audience rules by customer segment, account type and location |
+| `entryPointRules` | Optional app entry-point visibility rules. These reuse the OCDP page-editor rule model so Premier-only, Elite-only, account-type-only or location-only entry points do not appear in search for ineligible users |
 | `refreshSchedule` | `manual` / `hourly` / `daily` — controls automatic corpus rebuild frequency |
 | `searchEndpointOverride` | Optional custom BFF search URL; defaults to `POST /api/v1/search` |
+
+**Sample: HK HarmonyNext App Semantic Search**
+
+The OCDP sample config `ai-search-hk-harmonynext-sample` targets the HK HarmonyNext app. It indexes:
+
+- HarmonyNext entry points from inline JSON, including Account overview, Premier Elite Wealth Studio, FX Viewpoint and Credit card rewards.
+- OCDP pages `home-hub-hk` and `fx-viewpoint-hk`, plus an AEM FX article URL.
+- Video, image and file URLs such as a Premier Elite Wealth Studio video folder, an FX Viewpoint MP4, Premier card images and a wealth factsheet PDF.
+
+The result visibility model is governed before the user sees anything:
+
+- Premier/Elite wealth entry points require `customerSegment in [premier, elite]`, `accountType = wealth_account` and `customerLocation = HK`.
+- FX Viewpoint content and video are visible only to HK Premier/Elite users with `wealth_account` or `time_deposit`.
+- Premier card imagery is visible only to HK Premier customers with `credit_card`.
+- Mass or non-HK profiles can still search generic Home Hub content, but do not receive restricted entry points, video URLs, images or files.
 
 **Corpus Rebuild Pipeline**
 
@@ -633,8 +652,10 @@ POST /api/v1/search/config/{configId}/rebuild
    ├── 2. Content sources (parallel)
    │      type=ocdp_page → extract title/description/keywords from SDUI screen data
    │      type=aem_url   → synthesise corpus entry from AEM page URL + metadata
+   │      assetSources   → index governed video/image/file URLs or parent folders
    │
    ├── 3. Merge + deduplicate → AI_SEARCH_CORPORA[appId]
+   │      result items retain visibility and audience rules
    │
    └── Response: { appId, corpusSize, rebuiltAt }
        → OCDP console updates config card with corpus size + timestamp
@@ -878,6 +899,37 @@ The flag is set to `true` only for the single publish cycle that requires the re
 ---
 
 ## 7. Non-Functional Requirements
+
+### 7.1 Architecture Design Principles
+
+| Principle | Design intent | DSPE implementation |
+|-----------|---------------|---------------------|
+| Operate the experience end to end | Customer-visible health is measured from app/web entry point to API, cache, search, database, object storage and analytics ingestion. | OpenTelemetry `traceparent` propagation from Web, iOS, Android and HarmonyOS NEXT into Kong/BFF/services; executive, journey, service-map and staff-plane dashboards. |
+| Make app performance a first-class product quality | Cold and warm startup are treated as product SLOs, not local client-only diagnostics. | Startup steps capture first frame, Home fetch, JSON parse, registry setup, render and Home interactive timing. |
+| Prefer graceful degradation over blank states | A publish, CDN, API or cache issue should not immediately break customer entry points. | SDUI clients use remote manifest, local storage/cache and bundled baseline fallback; BFF can serve stale cache on upstream content issues. |
+| Deploy safely and visibly | Every production change should be validated, traceable, reversible and visible on dashboards. | Jenkins supports build-only, deploy, restart, site switch, Terraform plan/apply and China runtime/static flows with approval gates and deploy markers. |
+| Design for regional compliance | Overseas and mainland China operations share the same platform principles while respecting residency boundaries. | AWS covers overseas ASP cells; mainland China uses IKP runtime, Alicloud private authoring, Tencent COS/CDN and China-resident telemetry with aggregate-only cross-border reporting. |
+
+### 7.2 Key Operational SLO Summary
+
+| Area | Target |
+|------|--------|
+| Home Hub API availability | 99.95% monthly |
+| AI Search availability | 99.9% monthly |
+| KYC start / step submit availability | 99.9% monthly |
+| Event ingestion availability | 99.9% monthly |
+| OCDP / UCP staff plane availability | 99.5% monthly |
+| Static SDUI JSON availability | 99.99% target through object storage + CDN fallback |
+| Publish completion | p95 < 60 seconds for normal SDUI publish and cache/CDN refresh |
+
+### 7.3 Cold and Warm Startup Matrix
+
+| Platform | Cold startup p95 | Warm startup p95 | Home interactive p95 |
+|----------|------------------|------------------|---------------------|
+| iOS SwiftUI | < 3.0 s | < 1.2 s | < 2.5 s |
+| Android Compose | < 3.5 s | < 1.4 s | < 2.8 s |
+| HarmonyOS NEXT ArkUI | < 3.5 s | < 1.4 s | < 2.8 s |
+| Web / WeChat H5 | n/a | n/a | < 2.5 s on 4G baseline |
 
 | Category | Requirement | Target | Alert Threshold |
 |----------|-------------|--------|-----------------|

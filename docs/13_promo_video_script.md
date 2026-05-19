@@ -1,8 +1,8 @@
 # DSPE Promotional Video — Director's Script
 
-**Duration:** 2:30  
+**Duration:** 2:45  
 **Tone:** Professional, confident, forward-looking  
-**Music:** Upbeat corporate, builds momentum, peaks at Scene 6  
+**Music:** Upbeat corporate, builds momentum, peaks at Scene 6
 
 ---
 
@@ -11,15 +11,17 @@
 **Visual:** Split screen. Left: a marketing team frustrated at a whiteboard with "2-week sprint" crossed out. Right: a customer on phone, searching "best savings account Hong Kong" on ChatGPT — HSBC is NOT in the answer.
 
 **Voiceover:**
+
 > "In banking, every day a campaign waits for an app release is a day your competitor wins the customer. And today, customers don't Google — they ask AI. If your product isn't cited by ChatGPT or DeepSeek, you're invisible."
 
 ---
 
 ## Scene 2 — The Reveal (0:20–0:30)
 
-**Visual:** DSPE logo animates in. Tagline: *"Author Once. Deliver Everywhere. Stay Discoverable."*
+**Visual:** DSPE logo animates in. Tagline: _"Author Once. Deliver Everywhere. Stay Discoverable."_
 
 **Voiceover:**
+
 > "Introducing HSBC Digital Sales Promotion Ecosystem."
 
 ---
@@ -29,6 +31,7 @@
 **Visual:** Screen recording of OCDP Console — editor drags slices onto canvas, fills in promo content, clicks "Submit". Clock animation: 60 seconds. Then the same promo appears live on an iPhone 17, Samsung Z Fold7, Huawei Mate 80, a web browser, and a WeChat Mini Programme — all simultaneously.
 
 **Voiceover:**
+
 > "Your editor authors a campaign once. In under 60 seconds, it's live — across iOS, Android, HarmonyOS NEXT, Web, and WeChat. No app release. No engineering sprint. No waiting."
 
 ---
@@ -38,6 +41,7 @@
 **Visual:** Animation of a customer typing "best wealth product Hong Kong" into ChatGPT, Perplexity, DeepSeek, and Doubao — each returns an answer citing HSBC with a source link. Then cut to the OCDP AEO panel showing Grade A scores and a citation share dashboard trending upward.
 
 **Voiceover:**
+
 > "Every public page is scored for Answer Engine Optimisation before it goes live. Our AI probe monitors daily whether HSBC is cited by ChatGPT, Perplexity, DeepSeek, and Doubao. You don't just publish content — you make sure AI recommends it."
 
 ---
@@ -47,6 +51,7 @@
 **Visual:** Side by side: two customers open the same HSBC app — Premier customer sees Jade upgrade banner, Mass Retail customer sees savings promo. Then data flows into a DAP dashboard: click-through rates, NPS scores, A/B test winner highlighted. An automated recommendation pops up in the editor's screen: "Variant B wins — promote to 100%."
 
 **Voiceover:**
+
 > "Every screen is personalised by segment with built-in A/B testing. Analytics don't sit in a dashboard — they flow back to your editors as clear, actionable recommendations. The loop from publish to optimise closes itself."
 
 ---
@@ -56,6 +61,7 @@
 **Visual:** Quick sequence: Maker creates content → Checker reviews and approves → immutable audit log entry appears with a tamper-proof chain icon. Badges flash: HKMA, GDPR, PIPL.
 
 **Voiceover:**
+
 > "Maker-Checker workflows, business-line access control, and an immutable audit trail — compliance is built in, not bolted on."
 
 ---
@@ -65,31 +71,44 @@
 **Visual:** Animated architecture diagram — icons fly into position: UCP, OCDP, DAP, BFF engine at center, then five client platforms orbit around it. HSBC AEM connects as a content source. Everything pulses as a connected system.
 
 **Voiceover:**
+
 > "UCP for content. OCDP for authoring. DAP for intelligence. A single composition engine delivering to five platforms — with content from your existing AEM, ready from day one."
 
 ---
 
-## Scene 8 — Close (2:15–2:30)
+## Scene 8 — Operational Confidence (2:15–2:30)
+
+**Visual:** The architecture diagram zooms into an operations dashboard: green SLO tiles for Home Hub 99.95%, cold and warm startup charts, synthetic probes, and a Jenkins deployment marker.
+
+**Voiceover:**
+
+> "And DSPE is built to run. End-to-end OpenTelemetry traces follow every journey from mobile startup to API, cache and database.Pipelines deploy, restart and switch sites safely — with SLOs visible before customers feel an issue."
+
+---
+
+## Scene 9 — Close (2:30–2:45)
 
 **Visual:** DSPE logo centered. Tagline below. Contact details.
 
 **Text on screen:**
-> *Author Once. Deliver Everywhere. Stay Discoverable.*
+
+> _Author Once. Deliver Everywhere. Stay Discoverable._
 >
-> *HSBC Digital Sales Promotion Ecosystem*
+> _HSBC Digital Sales Promotion Ecosystem_
 
 **Voiceover:**
+
 > "Your customers have already moved to AI search. Your campaigns shouldn't wait for app releases. DSPE — publish in seconds, discover everywhere."
 
 ---
 
 ## Production Notes
 
-| Item | Detail |
-|------|--------|
-| Screen recordings needed | OCDP page editor, AEO panel, DAP dashboard |
-| Device mockups | iPhone 17, Samsung Z Fold7, Huawei Mate 80 (HarmonyOS NEXT), MacBook browser, WeChat on phone |
-| AI engine logos | ChatGPT, Perplexity, DeepSeek, Doubao (get clearance for logo usage) |
-| Compliance badges | HKMA, GDPR, PIPL icons |
-| Architecture animation | Simplified version of the Layer 2 diagram from docs |
-| Music licensing | Royalty-free corporate upbeat, 120-130 BPM |
+| Item                     | Detail                                                                                         |
+| ------------------------ | ---------------------------------------------------------------------------------------------- |
+| Screen recordings needed | OCDP page editor, AEO panel, DAP dashboard, observability SLO dashboard, Jenkins deploy marker |
+| Device mockups           | iPhone 17, Samsung Z Fold7, Huawei Mate 80 (HarmonyOS NEXT), MacBook browser, WeChat on phone  |
+| AI engine logos          | ChatGPT, Perplexity, DeepSeek, Doubao (get clearance for logo usage)                           |
+| Compliance badges        | HKMA, GDPR, PIPL icons                                                                         |
+| Architecture animation   | Simplified version of the Layer 2 diagram from docs                                            |
+| Music licensing          | Royalty-free corporate upbeat, 120-130 BPM                                                     |

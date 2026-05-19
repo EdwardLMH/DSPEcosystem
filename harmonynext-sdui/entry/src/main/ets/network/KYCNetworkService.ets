@@ -4,6 +4,7 @@
 import http from '@ohos.net.http'
 import i18n from '@ohos.i18n'
 import { StartSessionResponse, SDUIScreenPayload, SubmitRequest, SubmitResponse, BFFConfig } from '../models/SDUIModels'
+import { ObservabilityClient } from './ObservabilityClient'
 
 // DevEco emulator: 10.0.2.2 is the host loopback
 // Physical device: use your Mac's LAN IP (10.81.103.103)
@@ -46,6 +47,7 @@ async function doRequest<T>(
     'x-locale': resolveHarmonyLocale(),
     'x-a11y-flags': resolveA11yFlags(),
     'x-channel': 'SDUI',
+    'traceparent': ObservabilityClient.currentTraceparent(),
   }
   // FIX: 'for...in' is forbidden in ArkTS (arkts-no-for-in).
   // Object.keys() returns string[] and is legal on a typed Record parameter.
@@ -53,18 +55,30 @@ async function doRequest<T>(
     mergedHeaders[k] = headers[k]
   })
 
-  const resp = await client.request(BASE_URL + path, {
-    method,
-    header: mergedHeaders,
-    extraData: body
-  })
-  client.destroy()
-  if (typeof resp.result === 'string') {
-    // FIX: 'as T' on a generic type-param is allowed in ArkTS when the source is ESObject/string.
-    // JSON.parse returns ESObject in ArkTS; the cast is valid.
-    return JSON.parse(resp.result) as T
+  const started = Date.now()
+  let recorded = false
+  try {
+    const resp = await client.request(BASE_URL + path, {
+      method,
+      header: mergedHeaders,
+      extraData: body
+    })
+    ObservabilityClient.recordNetworkStep('bff_request', Date.now() - started, path, resp.responseCode >= 200 && resp.responseCode < 400)
+    recorded = true
+    if (typeof resp.result === 'string') {
+      // FIX: 'as T' on a generic type-param is allowed in ArkTS when the source is ESObject/string.
+      // JSON.parse returns ESObject in ArkTS; the cast is valid.
+      return JSON.parse(resp.result) as T
+    }
+    throw new Error(`HTTP ${resp.responseCode}: unexpected response`)
+  } catch (e) {
+    if (!recorded) {
+      ObservabilityClient.recordNetworkStep('bff_request', Date.now() - started, path, false)
+    }
+    throw e
+  } finally {
+    client.destroy()
   }
-  throw new Error(`HTTP ${resp.responseCode}: unexpected response`)
 }
 
 // ─── Config bootstrap ─────────────────────────────────────────────────────────
@@ -141,20 +155,33 @@ export type HomeScreenPayload = ScreenPayload
 
 export async function fetchHomeScreen(): Promise<HomeScreenPayload> {
   const client = http.createHttp()
-  const resp = await client.request(BASE_URL + '/screen/home-hub-hk', {
-    method: http.RequestMethod.GET,
-    header: { 'Accept': 'application/json' },
-    connectTimeout: 8000,
-    readTimeout: 8000
-  })
-  client.destroy()
-  if (resp.responseCode !== 200) {
-    throw new Error(`fetchHomeScreen: HTTP ${resp.responseCode}`)
+  const path = '/screen/home-hub-hk'
+  const started = Date.now()
+  let recorded = false
+  try {
+    const resp = await client.request(BASE_URL + path, {
+      method: http.RequestMethod.GET,
+      header: { 'Accept': 'application/json', 'x-platform': 'harmonynext', 'traceparent': ObservabilityClient.currentTraceparent() },
+      connectTimeout: 8000,
+      readTimeout: 8000
+    })
+    ObservabilityClient.recordNetworkStep('sdui_screen_fetch', Date.now() - started, path, resp.responseCode === 200)
+    recorded = true
+    if (resp.responseCode !== 200) {
+      throw new Error(`fetchHomeScreen: HTTP ${resp.responseCode}`)
+    }
+    if (typeof resp.result === 'string') {
+      return JSON.parse(resp.result) as HomeScreenPayload
+    }
+    throw new Error(`fetchHomeScreen: unexpected response type`)
+  } catch (e) {
+    if (!recorded) {
+      ObservabilityClient.recordNetworkStep('sdui_screen_fetch', Date.now() - started, path, false)
+    }
+    throw e
+  } finally {
+    client.destroy()
   }
-  if (typeof resp.result === 'string') {
-    return JSON.parse(resp.result) as HomeScreenPayload
-  }
-  throw new Error(`fetchHomeScreen: unexpected response type`)
 }
 
 // ─── FX Viewpoint SDUI delivery ───────────────────────────────────────────────
@@ -165,7 +192,7 @@ export async function fetchFXViewpointScreen(): Promise<ScreenPayload> {
   const client = http.createHttp()
   const resp = await client.request(BASE_URL + '/screen/fx-viewpoint-hk', {
     method: http.RequestMethod.GET,
-    header: { 'Accept': 'application/json', 'x-platform': 'harmonynext' },
+    header: { 'Accept': 'application/json', 'x-platform': 'harmonynext', 'traceparent': ObservabilityClient.currentTraceparent() },
     connectTimeout: 8000,
     readTimeout: 8000
   })
@@ -187,7 +214,7 @@ export async function fetchDepositCampaignScreen(): Promise<ScreenPayload> {
   const client = http.createHttp()
   const resp = await client.request(BASE_URL + '/screen/deposit-campaign-cn', {
     method: http.RequestMethod.GET,
-    header: { 'Accept': 'application/json', 'x-platform': 'harmonynext' },
+    header: { 'Accept': 'application/json', 'x-platform': 'harmonynext', 'traceparent': ObservabilityClient.currentTraceparent() },
     connectTimeout: 8000,
     readTimeout: 8000
   })
@@ -208,7 +235,7 @@ export async function fetchAnnouncementScreen(screenId: string): Promise<ScreenP
   const client = http.createHttp()
   const resp = await client.request(BASE_URL + '/screen/' + screenId, {
     method: http.RequestMethod.GET,
-    header: { 'Accept': 'application/json', 'x-platform': 'harmonynext' },
+    header: { 'Accept': 'application/json', 'x-platform': 'harmonynext', 'traceparent': ObservabilityClient.currentTraceparent() },
     connectTimeout: 8000,
     readTimeout: 8000
   })

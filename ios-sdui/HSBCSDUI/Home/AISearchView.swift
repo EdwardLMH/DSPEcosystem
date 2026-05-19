@@ -11,6 +11,8 @@ struct SearchResult: Identifiable, Decodable {
     let icon: String
     let category: String
     let deepLink: String
+    let assetUrl: String?
+    let assetType: String?
     let score: Double
 }
 
@@ -42,6 +44,9 @@ struct A2UIContent: Decodable {
     let description: String?
     let icon: String?
     let category: String?
+    let resultType: String?
+    let assetUrl: String?
+    let assetType: String?
     let score: Double?
 }
 
@@ -161,6 +166,11 @@ final class AISearchViewModel: ObservableObject {
 
     private var debounceTask: Task<Void, Never>?
     private let bffBase = "http://127.0.0.1:4000"
+    private let searchAudience: [String: String] = [
+        "customerSegment": "premier",
+        "accountType": "wealth_account",
+        "customerLocation": "HK"
+    ]
 
     // Suggested quick searches shown before user types
     let suggestions: [(icon: String, label: String)] = [
@@ -198,13 +208,25 @@ final class AISearchViewModel: ObservableObject {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("ios", forHTTPHeaderField: "x-platform")
+        request.setValue(ObservabilityClient.shared.traceparent(), forHTTPHeaderField: "traceparent")
         request.timeoutInterval = 8
+        let started = Date()
 
         do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: [
+            var body: [String: Any] = [
                 "query": query, "limit": 10, "appId": "ios", "responseMode": "a2ui"
-            ])
+            ]
+            searchAudience.forEach { body[$0.key] = $0.value }
+            request.httpBody = try JSONSerialization.data(withJSONObject: body)
             let (data, urlResponse) = try await URLSession.shared.data(for: request)
+            let ok = (urlResponse as? HTTPURLResponse).map { (200...299).contains($0.statusCode) } ?? false
+            ObservabilityClient.shared.recordNetworkStep(
+                "ai_search_query",
+                durationMs: Int(Date().timeIntervalSince(started) * 1000),
+                path: "/api/v1/search",
+                success: ok
+            )
             if let httpResponse = urlResponse as? HTTPURLResponse,
                !(200...299).contains(httpResponse.statusCode) {
                 throw URLError(.badServerResponse)
@@ -217,6 +239,12 @@ final class AISearchViewModel: ObservableObject {
             results = resolvedResults
             groupedResults = buildGroups(resolvedResults)
         } catch {
+            ObservabilityClient.shared.recordNetworkStep(
+                "ai_search_query",
+                durationMs: Int(Date().timeIntervalSince(started) * 1000),
+                path: "/api/v1/search",
+                success: false
+            )
             let fallback = localSearch(query)
             errorMessage = fallback.isEmpty ? "搜尋服務暫時不可用，請稍後重試。" : nil
             hasSearched = true
@@ -237,12 +265,14 @@ final class AISearchViewModel: ObservableObject {
             }
             return SearchResult(
                 id: component.id,
-                type: component.type,
+                type: component.content.resultType ?? component.type,
                 title: title,
                 description: component.content.description ?? "",
                 icon: component.content.icon ?? "",
                 category: component.content.category ?? "功能入口",
                 deepLink: url,
+                assetUrl: component.content.assetUrl,
+                assetType: component.content.assetType,
                 score: component.content.score ?? 0
             )
         }
@@ -270,6 +300,8 @@ final class AISearchViewModel: ObservableObject {
                     icon: item.icon,
                     category: item.category,
                     deepLink: item.deepLink,
+                    assetUrl: nil,
+                    assetType: nil,
                     score: score
                 )
             }
@@ -483,10 +515,12 @@ struct AISearchView: View {
             action: "result_selected", label: result.title,
             screen: "ai_search", journey: "home_hub",
             custom: ["result_id": result.id, "result_type": result.type,
-                     "deep_link": result.deepLink, "search_query": vm.query])
+                     "deep_link": result.assetUrl ?? result.deepLink,
+                     "asset_type": result.assetType ?? "",
+                     "search_query": vm.query])
         isPresented = false
         // Deep link routing — host app intercepts hsbc:// scheme
-        if let url = URL(string: result.deepLink) {
+        if let url = URL(string: result.assetUrl ?? result.deepLink) {
             UIApplication.shared.open(url)
         }
     }
@@ -516,10 +550,15 @@ private struct SearchResultRow: View {
                         .font(.system(size: 11))
                         .foregroundColor(Hive.Color.n500)
                         .lineLimit(2)
+                    if let assetType = result.assetType {
+                        Text("Governed \(assetType.lowercased()) URL")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(Hive.Color.brandPrimary)
+                    }
                 }
                 Spacer()
 
-                typeBadge(result.type)
+                typeBadge(result.assetType ?? result.type)
             }
             .padding(.horizontal, 16).padding(.vertical, 10)
             .background(Hive.Color.brandWhite)

@@ -5,6 +5,7 @@ import AbilityConstant from '@ohos.app.ability.AbilityConstant'
 import Want from '@ohos.app.ability.Want'
 import window from '@ohos.window'
 import hilog from '@ohos.hilog'
+import { ObservabilityClient } from '../network/ObservabilityClient'
 
 const TAG = 'EntryAbility'
 const DOMAIN = 0x0001
@@ -12,6 +13,7 @@ const DOMAIN = 0x0001
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
     hilog.info(DOMAIN, TAG, 'onCreate')
+    ObservabilityClient.markAppCreate()
   }
 
   onDestroy(): void {
@@ -20,6 +22,7 @@ export default class EntryAbility extends UIAbility {
 
   onWindowStageCreate(windowStage: window.WindowStage): void {
     hilog.info(DOMAIN, TAG, 'onWindowStageCreate')
+    ObservabilityClient.markWindowStageCreate()
     // FIX: was (err) => — unannotated callback parameter, which ArkTS forbids
     // (every parameter must have an explicit type annotation — arkts-no-implicit-any).
     // The correct type for the loadContent callback error is BusinessError from @ohos.base.
@@ -38,6 +41,7 @@ export default class EntryAbility extends UIAbility {
 
   onForeground(): void {
     hilog.info(DOMAIN, TAG, 'onForeground')
+    ObservabilityClient.markForeground()
   }
 
   onBackground(): void {

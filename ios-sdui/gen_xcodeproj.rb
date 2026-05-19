@@ -1,8 +1,8 @@
 require 'xcodeproj'
 
 PROJ_ROOT = File.expand_path('.')
-PROJ_NAME = 'HSBCKyc'
-BUNDLE_ID = 'com.hsbc.obkyc'
+PROJ_NAME = 'HSBCSDUI'
+BUNDLE_ID = 'com.hsbc.sdui'
 TEAM_ID   = ''  # leave blank for simulator builds
 
 proj = Xcodeproj::Project.new("#{PROJ_NAME}.xcodeproj")
@@ -14,7 +14,7 @@ src_group  = main_group.new_group(PROJ_NAME, PROJ_NAME)
 # Add all Swift files
 swift_files = Dir.glob("#{PROJ_NAME}/**/*.swift").sort
 file_refs = swift_files.map do |f|
-  parts  = f.split('/')[1..]  # drop leading HSBCKyc/
+  parts  = f.split('/')[1..]  # drop leading HSBCSDUI/
   parent = parts[0..-2].reduce(src_group) do |g, part|
     g[part] || g.new_group(part, part)
   end

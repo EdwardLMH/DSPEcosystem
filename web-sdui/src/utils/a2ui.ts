@@ -8,6 +8,8 @@ export interface SearchResult {
   icon: string;
   category: string;
   deepLink: string;
+  assetUrl?: string;
+  assetType?: string;
   score: number;
 }
 
@@ -38,12 +40,14 @@ export function a2uiToSearchResults(payload: unknown): SearchResult[] {
     const content = component.content ?? {};
     return {
       id: String(component.id ?? `a2ui-result-${index + 1}`),
-      type: String(component.type ?? 'function'),
+      type: String(content.resultType ?? component.type ?? 'function'),
       title: String(content.title ?? ''),
       description: String(content.description ?? ''),
       icon: String(content.icon ?? ''),
       category: String(content.category ?? '功能入口'),
       deepLink: String(component.action?.url ?? ''),
+      assetUrl: content.assetUrl ? String(content.assetUrl) : undefined,
+      assetType: content.assetType ? String(content.assetType) : undefined,
       score: Number(content.score ?? 0),
     };
   }).filter(result => result.title && result.deepLink);

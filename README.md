@@ -4,6 +4,8 @@
 
 The DSP Ecosystem is a content orchestration platform for publishing, personalising, and measuring HSBC promotional experiences across native mobile, web, and WeChat channels without app releases for content changes.
 
+Its architecture highlights are rapid SDUI publishing, AI discoverability, governed personalisation, end-to-end observability, app performance monitoring, high availability, and safe CI/CD across overseas AWS and mainland China IKP/Alicloud/Tencent deployment planes.
+
 This repository contains runnable prototypes and reference implementations for the staff consoles, local mock BFF, web SDUI renderer, native SDUI renderers, design tokens, analytics workers, and Java BFF modules.
 
 ---
@@ -15,11 +17,28 @@ The current repository state is summarised in [IMPLEMENTATION_SUMMARY.md](IMPLEM
 - **Home Hub (HK)**: `home-hub-hk`, a 9-slice SDUI page implemented across Web, iOS, Android, and HarmonyOS NEXT. The display name is "Home Hub (HK)"; `home-hub-hk` remains the stable technical page ID and API path.
 - **FX Viewpoint**: `fx-viewpoint-hk`, a market insight SDUI page with inline video and RM contact CTA.
 - **OBKYC journey**: KYC orchestration and SDUI step rendering across web and native clients.
+- **iOS SwiftUI app**: `ios-sdui/HSBCSDUI.xcodeproj` is the active Swift project; `HSBCSduiApp.swift` is the SwiftUI `@main` entry point.
 - **OCDP Console**: page authoring, journey builder, maker-checker workflow, AEO assessment, AI Search admin, WeChat composer, usage statistics, audit panels.
+- **AI Search sample**: OCDP now seeds a detailed `HK HarmonyNext App Semantic Search` config with multiple entry-point/content configuration sources, governed video/image/file URL sources, and customer-segment/account/location access rules.
 - **UCP Console**: content asset library, component registry, workflow, media assets, local database sync.
 - **mock-BFF**: local Express server for SDUI screens, KYC sessions, semantic search, CMS APIs, preview, workflow, and audit.
 - **Java BFF modules**: SDUI composition, KYC routing, personalisation, A/B allocation, preview, workflow, RBAC, audit, and content repository services.
 - **DAP workers**: Python services for AEO probes, content scoring, feedback loop, app-store harvesting, surveys, and archive lifecycle.
+- **Jenkins CI/CD**: root `Jenkinsfile` plus AWS/EKS/S3/Route53 and mainland China IKP/Alicloud/Tencent helper flows for validation, deploy, restart, static publish and site switch.
+- **OpenTelemetry observability**: monitoring matrix, dashboards, synthetics and mobile/web startup traces for end-to-end API/cache/DB availability across AWS and mainland China.
+
+### Ecosystem Operational Highlights
+
+| Highlight | Target / proof point |
+|-----------|----------------------|
+| Home Hub availability | 99.95% monthly API availability |
+| AI Search and KYC availability | 99.9% monthly availability |
+| Staff authoring availability | 99.5% monthly for OCDP/UCP |
+| Static SDUI JSON | 99.99% target through object storage + CDN fallback |
+| Publish speed | p95 < 60 seconds for normal SDUI publish |
+| Startup performance | iOS cold p95 < 3.0 s; Android/HarmonyNext cold p95 < 3.5 s; warm p95 < 1.2-1.4 s |
+| Traceability | W3C `traceparent` from client startup/search/KYC to gateway, BFF, cache, DB/search and analytics ingestion |
+| CI/CD safety | Jenkins validation, deployment, restart, site switch, approval gates and dashboard deploy markers |
 
 ---
 
@@ -71,6 +90,7 @@ The current repository state is summarised in [IMPLEMENTATION_SUMMARY.md](IMPLEM
 - Page editor, journey builder, pending approvals, audit log, statistics, AEO panel, AI Search admin, WeChat composer, and admin panels.
 - Web Standard submission runs the implemented AEO calculator and stores scores with `SAVE_AEO_SCORE`.
 - The authoring model treats UCP and HSBC AEM as peer content providers through `contentRef` and corpus source configuration.
+- AI Search Admin includes the HK HarmonyNext sample by default, so the AI Search tab is not empty on a clean local database. Editors can review, edit and delete content sources, quick-access entry-point configuration, and governed media/file URL sources. Runtime visibility follows the same customer segment, account type and location model as the OCDP page editor.
 
 ### Backend
 
@@ -79,6 +99,7 @@ The current repository state is summarised in [IMPLEMENTATION_SUMMARY.md](IMPLEM
 - Node.js/Express local development server on port `4000`.
 - Serves public Zone 1 APIs for SDUI screens, KYC sessions, analytics events, and semantic search.
 - Serves internal Zone 2 APIs for content, workflow, UCP pages, preview, audit, and AI Search corpus rebuilds.
+- Rebuilds per-app AI Search corpora from quick-access JSON/URLs, OCDP pages, AEM URLs, and governed video/image/file URLs. Search requests accept audience context (`customerSegment`, `accountType`, `customerLocation`) and filter results before ranking.
 - Uses in-memory state and `x-mock-staff-role` headers instead of production IAM.
 
 **Java BFF** (`bff-java`)
@@ -91,9 +112,31 @@ The current repository state is summarised in [IMPLEMENTATION_SUMMARY.md](IMPLEM
 | Platform | Location | Notes |
 |----------|----------|-------|
 | Web | `web-sdui` | React 18 + TypeScript. Home Hub, FX Viewpoint, deposit campaign, KYC demo, analytics, cache, action handling. Dev port is `3000`. |
-| iOS | `ios-sdui/HSBCSDUI` | SwiftUI renderer with Wealth, FX, Deposit, KYC, Tealium, HIVE tokens, and inline video fixes. |
-| Android | `android-sdui/app/src/main/java/com/hsbc/sdui` | Jetpack Compose renderer with Wealth, FX, Deposit, KYC, Tealium, HIVE tokens, locale helpers. |
-| HarmonyOS NEXT | `harmonynext-sdui` | ArkTS/ArkUI renderer with SensorData analytics and platform-specific SDUI constraints. |
+| iOS | `ios-sdui/HSBCSDUI.xcodeproj` / `ios-sdui/HSBCSDUI` | SwiftUI renderer with Wealth, FX, Deposit, KYC, Tealium, HIVE tokens, inline video fixes, AI Search governed asset results, and startup/network observability. |
+| Android | `android-sdui/app/src/main/java/com/hsbc/sdui` | Jetpack Compose renderer with Wealth, FX, Deposit, KYC, Tealium, HIVE tokens, locale helpers, AI Search governed asset results, and startup/network observability. |
+| HarmonyOS NEXT | `harmonynext-sdui` | ArkTS/ArkUI renderer with SensorData analytics, platform-specific SDUI constraints, and startup/network observability. |
+
+### Current AI Search Design
+
+OCDP manages one `AISearchConfig` per platform (`ios`, `android`, `harmonynext`, `web`). The seeded HK HarmonyNext sample demonstrates the production contract:
+
+- `quickAccessSource`: app entry-point configuration, provided by URL or inline JSON.
+- `contentSources`: OCDP pages and AEM URLs included in the semantic corpus.
+- `assetSources`: exact URLs or parent folders for governed videos, images and files.
+- `entryPointRules` and source visibility rules: reuse the page-editor rule model for customer segment, account type and location targeting.
+
+The clients call `POST /api/v1/search` with `responseMode: "a2ui"` and their platform `appId`. iOS, Android and Web now also send audience context and preserve governed `assetUrl` / `assetType` metadata in result rows.
+
+### Current Observability Design
+
+The client prototypes include lightweight observability bridges:
+
+- Web: `web-sdui/src/analytics/ObservabilityClient.ts`
+- iOS: `ios-sdui/HSBCSDUI/Analytics/ObservabilityClient.swift`
+- Android: `android-sdui/app/src/main/java/com/hsbc/sdui/analytics/ObservabilityClient.kt`
+- HarmonyNext: `harmonynext-sdui/entry/src/main/ets/network/ObservabilityClient.ets`
+
+They generate `traceparent`, time Home Hub startup steps, and emit Home/API/Search network timing events through the current analytics path. The production monitoring matrix is in `docs/19_observability_monitoring.md`.
 
 ### Intelligence and Design System
 
@@ -156,6 +199,9 @@ Native clients should point to the mock-BFF:
 - Physical devices: the machine LAN IP on port `4000`
 
 See [docs/12_local_dev_environment.md](docs/12_local_dev_environment.md) for the detailed local setup and API surface.
+For a start-to-finish service runbook, see [docs/17_service_cookbook.md](docs/17_service_cookbook.md).
+For Jenkins deployment operations, see [docs/18_jenkins_cicd_cookbook.md](docs/18_jenkins_cicd_cookbook.md).
+For OpenTelemetry monitoring and synthetic checks, see [docs/19_observability_monitoring.md](docs/19_observability_monitoring.md).
 
 ---
 
@@ -175,6 +221,9 @@ See [docs/12_local_dev_environment.md](docs/12_local_dev_environment.md) for the
 - [AD/RBAC Design](docs/11_ad_rbac_design.md)
 - [Local Development](docs/12_local_dev_environment.md)
 - [miPaaS Architecture](docs/14_mipaaS_architecture.md)
+- [Service Cookbook](docs/17_service_cookbook.md)
+- [Jenkins CI/CD Cookbook](docs/18_jenkins_cicd_cookbook.md)
+- [Observability and Monitoring](docs/19_observability_monitoring.md)
 
 ---
 

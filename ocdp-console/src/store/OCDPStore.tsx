@@ -13,7 +13,7 @@ export type { CustomerSegment, VisibilityRule, PreviewContext };import {
   MOCK_AEO_SCORES, MOCK_USAGE_STATS, MOCK_JOURNEY_STATS, MOCK_JOURNEYS, MOCK_JOURNEY_PAGES, MOCK_JOURNEY_PAGES_WEB,
   MARKETS, RELEASE_TARGETS, BIZ_LINES, AD_GROUPS, APPROVAL_FLOWS,
   WECHAT_ACCOUNTS, WECHAT_TEMPLATES, PAGE_TEMPLATES,
-  CUSTOMER_SEGMENT_DEFS, ACCOUNT_TYPE_DEFS, LOCATION_DEFS,
+  CUSTOMER_SEGMENT_DEFS, ACCOUNT_TYPE_DEFS, LOCATION_DEFS, AI_SEARCH_CONFIGS,
 } from './mockData';
 import type { Journey, JourneyStep, JourneyPage } from './mockData';
 export type { JourneyPage };
@@ -207,7 +207,7 @@ function reducer(state: OCDPState, action: Action): OCDPState {
       ...(action.customerSegmentDefs && { customerSegmentDefs: action.customerSegmentDefs }),
       ...(action.accountTypeDefs     && { accountTypeDefs:     action.accountTypeDefs }),
       ...(action.locationDefs        && { locationDefs:        action.locationDefs }),
-      ...(action.aiSearchConfigs     && { aiSearchConfigs:     action.aiSearchConfigs }),
+      ...(action.aiSearchConfigs?.length && { aiSearchConfigs: action.aiSearchConfigs }),
     };
     case 'OPEN_PAGE':    return { ...state, detailPageId: action.pageId, navView: 'pages' };
     case 'OPEN_JOURNEY': return { ...state, detailJourneyId: action.journeyId, navView: 'journeys' };
@@ -871,7 +871,7 @@ export function OCDPProvider({ children }: { children: React.ReactNode }) {
     customerSegmentDefs: CUSTOMER_SEGMENT_DEFS,
     accountTypeDefs: ACCOUNT_TYPE_DEFS,
     locationDefs: LOCATION_DEFS,
-    aiSearchConfigs: [],
+    aiSearchConfigs: AI_SEARCH_CONFIGS,
     pages: ALL_PAGES,
     journeys: MOCK_JOURNEYS,
     journeyPages: [...MOCK_JOURNEY_PAGES, ...MOCK_JOURNEY_PAGES_WEB],

@@ -118,6 +118,122 @@ const htmlArtifacts = [
   },
 ];
 
+const deployMarkerAttributes = [
+  'release.tag',
+  'deployment.environment',
+  'deployment.platform',
+  'deployment.action',
+];
+
+function deploymentPlaneFor(file, platform = '') {
+  if (file.includes('deposit-campaign-cn')) return 'mainland-china';
+  if (platform === 'harmonynext') return 'aws-overseas-or-mainland-china';
+  return 'aws-overseas';
+}
+
+function dataResidencyFor(file) {
+  return file.includes('deposit-campaign-cn')
+    ? 'China-resident telemetry; aggregate SLO/status only may cross regional boundary.'
+    : 'Region-local telemetry with PII-free, low-cardinality trace attributes.';
+}
+
+function startupSloFor(platform) {
+  if (platform === 'ios') {
+    return { coldStartupP95Ms: 3000, warmStartupP95Ms: 1200, homeInteractiveP95Ms: 2500 };
+  }
+  if (platform === 'android' || platform === 'harmonynext') {
+    return { coldStartupP95Ms: 3500, warmStartupP95Ms: 1400, homeInteractiveP95Ms: 2800 };
+  }
+  return { homeInteractiveP95Ms: 2500, baselineNetwork: '4G' };
+}
+
+function applyOperationalMetadata(file, payload) {
+  if (!payload.metadata) return;
+
+  const platform = payload.metadata.platform ?? payload.platform ?? 'all';
+  const pageId = payload.metadata.pageId ?? payload.pageId ?? payload.screen;
+  const market = file.includes('-cn') ? 'CN' : 'HK';
+  const deploymentPlane = deploymentPlaneFor(file, platform);
+
+  payload.metadata.observability = {
+    standard: 'OpenTelemetry / W3C Trace Context',
+    tracePropagation: {
+      requiredHeaders: ['traceparent', 'x-request-id', 'x-platform', 'x-market'],
+      piiRule: 'Do not place customer identifiers, account numbers, tokens, or raw free-text PII in span names or high-cardinality attributes.',
+    },
+    clientSpans: [
+      'sdui.bootstrap',
+      'sdui.manifest.fetch',
+      'sdui.screen.fetch',
+      'sdui.screen.parse',
+      'sdui.component.render',
+    ],
+    backendPath: [
+      deploymentPlane === 'mainland-china' ? 'Tencent CDN/WAF' : 'CloudFront/WAF',
+      'Kong external',
+      'BFF / SDUI API',
+      'Redis cache',
+      'database/search/object storage',
+      market === 'CN' ? 'SensorData operational bridge' : 'DAP event ingestion',
+    ],
+    dataResidency: dataResidencyFor(file),
+  };
+
+  if (pageId === 'home-hub-hk') {
+    payload.metadata.startupSlo = startupSloFor(platform);
+  }
+
+  payload.metadata.operationalSlo = {
+    availabilityMonthly: pageId === 'home-hub-hk' ? '99.95%' : '99.9%',
+    apiLatencyP95Ms: pageId === 'home-hub-hk' ? 500 : 600,
+    staticJsonAvailabilityTarget: '99.99%',
+    publishCompletionP95Seconds: 60,
+    syntheticCheck: pageId === 'home-hub-hk' ? 'syn-home-hub-json' : `syn-${String(pageId).replaceAll('_', '-')}`,
+  };
+
+  payload.metadata.cicd = {
+    pipeline: 'Jenkins',
+    deploymentPlane,
+    supportedActions: ['build-only', 'deploy', 'restart', 'site-switch'],
+    deployMarkerAttributes,
+  };
+}
+
+function applyJourneyOperationalMetadata(file, journey) {
+  const platform = journey.platform;
+  const market = file.includes('harmonynext') ? 'HK' : 'HK';
+  journey.observability = {
+    standard: 'OpenTelemetry / W3C Trace Context',
+    tracePropagation: {
+      requiredHeaders: ['traceparent', 'x-request-id', 'x-platform', 'x-market'],
+      piiRule: 'KYC answers and customer identifiers must not be written into span names or high-cardinality attributes.',
+    },
+    clientSpans: [
+      platform === 'web' ? 'web.app.load' : 'app.start.cold',
+      platform === 'web' ? 'web.app.resume' : 'app.start.warm',
+      'kyc.step.render',
+      'kyc.step.submit',
+      'sdui.screen.parse',
+    ],
+    backendPath: ['Kong external', 'BFF / KYC service', 'Redis journey state', 'database/audit log'],
+    market,
+  };
+  journey.startupSlo = startupSloFor(platform);
+  journey.operationalSlo = {
+    kycStartAvailabilityMonthly: '99.9%',
+    kycStepSubmitAvailabilityMonthly: '99.9%',
+    kycStartLatencyP95Ms: 800,
+    kycStepSubmitLatencyP95Ms: 1000,
+    syntheticCheck: 'syn-kyc-start',
+  };
+  journey.cicd = {
+    pipeline: 'Jenkins',
+    deploymentPlane: deploymentPlaneFor(file, platform),
+    supportedActions: ['build-only', 'deploy', 'restart', 'site-switch'],
+    deployMarkerAttributes,
+  };
+}
+
 function startBff() {
   const child = spawn(process.execPath, ['server.js'], {
     cwd: path.join(ROOT, 'mock-bff'),
@@ -331,6 +447,7 @@ function normalizeStudyMetadata(file, payload) {
   if (file.endsWith('/home-hub-hk.json')) {
     payload.metadata.platform = 'harmonynext';
     payload.metadata.nativeTargets = ['harmonynext'];
+    applyOperationalMetadata(file, payload);
     return;
   }
 
@@ -342,6 +459,8 @@ function normalizeStudyMetadata(file, payload) {
     payload.metadata.platform = 'all';
     payload.metadata.nativeTargets = ['ios', 'android', 'harmonynext'];
   }
+
+  applyOperationalMetadata(file, payload);
 }
 
 async function writeHtmlArtifacts(webPayload) {
@@ -392,6 +511,7 @@ async function writeObkycArtifact(artifact) {
     },
     steps,
   };
+  applyJourneyOperationalMetadata(artifact.file, journey);
 
   const target = path.join(OUT_JSON, artifact.file);
   await mkdir(path.dirname(target), { recursive: true });

@@ -239,6 +239,8 @@ The HSBC mobile native apps follow the **PlatformHub** architecture pattern: a R
 | **Plugin Architecture** | Discrete functional modules (plugins) are registered in the PlatformHub plugin registry at runtime. Each plugin declares its capabilities, routes, and dependencies. |
 | **Journey Engine** | Multi-step journeys (KYC, onboarding, product application) are orchestrated by the Journey Engine, which reads journey definitions from the BFF and maintains step state in the Redux store. |
 | **Separation of Concerns** | Plugin code is isolated. A plugin cannot access another plugin's state directly — only through Redux-dispatched actions and shared selectors. |
+| **Performance and Observability by Design** | iOS, Android and HarmonyOS NEXT emit cold/warm startup, Home Hub fetch/parse/render, network and journey timings with W3C `traceparent` propagation so mobile experience issues can be traced from device to BFF/API/cache/DB. |
+| **Safe Operations and Release Control** | Mobile runtime changes are managed through governed SDUI/plugin configuration, Jenkins deployment markers, synthetic checks and rollback/site-switch procedures across AWS overseas and mainland China IKP/Alicloud/Tencent operations. |
 
 ### 4.2 PlatformHub Architecture
 

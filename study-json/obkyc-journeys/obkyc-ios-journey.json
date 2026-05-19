@@ -2,17 +2,17 @@
   "schemaVersion": "2.3",
   "journeyId": "obkyc-account-opening",
   "journeyName": "OBKYC Account Opening",
-  "sessionId": "kyc-20cf9ef5",
+  "sessionId": "kyc-91c61396",
   "platform": "ios",
   "channel": "SDUI",
   "locale": "en",
   "totalSteps": 11,
-  "generatedAt": "2026-05-18T11:04:25.867Z",
+  "generatedAt": "2026-05-19T17:41:18.063Z",
   "endpoints": {
     "start": "/api/v1/kyc/sessions/start",
-    "resume": "/api/v1/kyc/sessions/kyc-20cf9ef5/resume",
-    "step": "/api/v1/kyc/sessions/kyc-20cf9ef5/steps/{stepId}",
-    "submit": "/api/v1/kyc/sessions/kyc-20cf9ef5/steps/{stepId}/submit"
+    "resume": "/api/v1/kyc/sessions/kyc-91c61396/resume",
+    "step": "/api/v1/kyc/sessions/kyc-91c61396/steps/{stepId}",
+    "submit": "/api/v1/kyc/sessions/kyc-91c61396/steps/{stepId}/submit"
   },
   "steps": [
     {
@@ -20,7 +20,7 @@
       "screen": "kyc_step",
       "ttl": 0,
       "metadata": {
-        "sessionId": "kyc-20cf9ef5",
+        "sessionId": "kyc-91c61396",
         "stepId": "step-001",
         "stepIndex": 1,
         "totalSteps": 11,
@@ -135,7 +135,7 @@
       "screen": "kyc_step",
       "ttl": 0,
       "metadata": {
-        "sessionId": "kyc-20cf9ef5",
+        "sessionId": "kyc-91c61396",
         "stepId": "step-002",
         "stepIndex": 2,
         "totalSteps": 11,
@@ -219,7 +219,7 @@
       "screen": "kyc_step",
       "ttl": 0,
       "metadata": {
-        "sessionId": "kyc-20cf9ef5",
+        "sessionId": "kyc-91c61396",
         "stepId": "step-003",
         "stepIndex": 3,
         "totalSteps": 11,
@@ -306,7 +306,7 @@
       "screen": "kyc_step",
       "ttl": 0,
       "metadata": {
-        "sessionId": "kyc-20cf9ef5",
+        "sessionId": "kyc-91c61396",
         "stepId": "step-004",
         "stepIndex": 4,
         "totalSteps": 11,
@@ -363,7 +363,7 @@
       "screen": "kyc_step",
       "ttl": 0,
       "metadata": {
-        "sessionId": "kyc-20cf9ef5",
+        "sessionId": "kyc-91c61396",
         "stepId": "step-005",
         "stepIndex": 5,
         "totalSteps": 11,
@@ -455,7 +455,7 @@
       "screen": "kyc_step",
       "ttl": 0,
       "metadata": {
-        "sessionId": "kyc-20cf9ef5",
+        "sessionId": "kyc-91c61396",
         "stepId": "step-006",
         "stepIndex": 6,
         "totalSteps": 11,
@@ -617,7 +617,7 @@
       "screen": "kyc_step",
       "ttl": 0,
       "metadata": {
-        "sessionId": "kyc-20cf9ef5",
+        "sessionId": "kyc-91c61396",
         "stepId": "step-007",
         "stepIndex": 7,
         "totalSteps": 11,
@@ -755,7 +755,7 @@
       "screen": "kyc_step",
       "ttl": 0,
       "metadata": {
-        "sessionId": "kyc-20cf9ef5",
+        "sessionId": "kyc-91c61396",
         "stepId": "step-008",
         "stepIndex": 8,
         "totalSteps": 11,
@@ -897,7 +897,7 @@
       "screen": "kyc_step",
       "ttl": 0,
       "metadata": {
-        "sessionId": "kyc-20cf9ef5",
+        "sessionId": "kyc-91c61396",
         "stepId": "step-009",
         "stepIndex": 9,
         "totalSteps": 11,
@@ -954,7 +954,7 @@
       "screen": "kyc_step",
       "ttl": 0,
       "metadata": {
-        "sessionId": "kyc-20cf9ef5",
+        "sessionId": "kyc-91c61396",
         "stepId": "step-010",
         "stepIndex": 10,
         "totalSteps": 11,
@@ -1011,7 +1011,7 @@
       "screen": "kyc_step",
       "ttl": 0,
       "metadata": {
-        "sessionId": "kyc-20cf9ef5",
+        "sessionId": "kyc-91c61396",
         "stepId": "step-011",
         "stepIndex": 11,
         "totalSteps": 11,
@@ -1106,5 +1106,59 @@
         ]
       }
     }
-  ]
+  ],
+  "observability": {
+    "standard": "OpenTelemetry / W3C Trace Context",
+    "tracePropagation": {
+      "requiredHeaders": [
+        "traceparent",
+        "x-request-id",
+        "x-platform",
+        "x-market"
+      ],
+      "piiRule": "KYC answers and customer identifiers must not be written into span names or high-cardinality attributes."
+    },
+    "clientSpans": [
+      "app.start.cold",
+      "app.start.warm",
+      "kyc.step.render",
+      "kyc.step.submit",
+      "sdui.screen.parse"
+    ],
+    "backendPath": [
+      "Kong external",
+      "BFF / KYC service",
+      "Redis journey state",
+      "database/audit log"
+    ],
+    "market": "HK"
+  },
+  "startupSlo": {
+    "coldStartupP95Ms": 3000,
+    "warmStartupP95Ms": 1200,
+    "homeInteractiveP95Ms": 2500
+  },
+  "operationalSlo": {
+    "kycStartAvailabilityMonthly": "99.9%",
+    "kycStepSubmitAvailabilityMonthly": "99.9%",
+    "kycStartLatencyP95Ms": 800,
+    "kycStepSubmitLatencyP95Ms": 1000,
+    "syntheticCheck": "syn-kyc-start"
+  },
+  "cicd": {
+    "pipeline": "Jenkins",
+    "deploymentPlane": "aws-overseas",
+    "supportedActions": [
+      "build-only",
+      "deploy",
+      "restart",
+      "site-switch"
+    ],
+    "deployMarkerAttributes": [
+      "release.tag",
+      "deployment.environment",
+      "deployment.platform",
+      "deployment.action"
+    ]
+  }
 }

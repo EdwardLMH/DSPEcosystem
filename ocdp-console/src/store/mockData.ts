@@ -3,7 +3,7 @@ import type {
   WeChatServiceAccount, WeChatMessageTemplate,
   PageLayout, WorkflowEntry, AuditEntry, StaffUser,
   PageMarketStatus, AEOScore, PageUsageStat, JourneyUsageStat, VisibilityRule,
-  PageTemplate, CustomerSegmentDef, AccountTypeDef, LocationDef,
+  PageTemplate, CustomerSegmentDef, AccountTypeDef, LocationDef, AISearchConfig,
 } from '../types/ocdp';
 
 // ─── Reference data ───────────────────────────────────────────────────────────
@@ -1576,4 +1576,190 @@ export const LOCATION_DEFS: LocationDef[] = [
   { locationId: 'singapore',      displayName: 'Singapore',      description: 'Customers with a Singapore address',                               active: true },
   { locationId: 'uk',             displayName: 'United Kingdom', description: 'Customers with a UK address',                                      active: true },
   { locationId: 'other',          displayName: 'Other',          description: 'All other customer locations not listed above',                    active: true },
+];
+
+export const AI_SEARCH_CONFIGS: AISearchConfig[] = [
+  {
+    configId: 'ai-search-hk-harmonynext-sample',
+    appId: 'harmonynext',
+    displayName: 'HK HarmonyNext App Semantic Search',
+    enabled: true,
+    quickAccessSource: {
+      mode: 'json',
+      json: JSON.stringify([
+        {
+          id: 'account-overview',
+          type: 'function',
+          title: 'Account overview',
+          icon: 'account',
+          deepLink: 'hsbc://accounts',
+          description: 'View balances, recent transactions and account details.',
+          keywords: 'account,balance,transaction,current account,savings'
+        },
+        {
+          id: 'premier-wealth-studio',
+          type: 'function',
+          title: 'Premier Elite Wealth Studio',
+          icon: 'video',
+          deepLink: 'hsbc://wealth/studio',
+          description: 'Curated wealth videos and market insights for Premier and Elite customers.',
+          keywords: 'premier,elite,jade,wealth,studio,investment,video'
+        },
+        {
+          id: 'fx-viewpoint',
+          type: 'function',
+          title: 'FX Viewpoint',
+          icon: 'fx',
+          deepLink: 'hsbc://insights/fx-viewpoint',
+          description: 'Foreign exchange market videos and strategist commentary.',
+          keywords: 'fx,foreign exchange,currency,viewpoint,market'
+        },
+        {
+          id: 'credit-card-rewards',
+          type: 'function',
+          title: 'Credit card rewards',
+          icon: 'card',
+          deepLink: 'hsbc://credit-card/rewards',
+          description: 'Rewards, offers and card benefits available to eligible card customers.',
+          keywords: 'credit card,rewards,offers,cashback,points'
+        }
+      ], null, 2),
+    },
+    contentSources: [
+      {
+        type: 'ocdp_page',
+        ref: 'home-hub-hk',
+        label: 'Home Hub (HK)',
+        visibilityRules: [
+          {
+            ruleId: 'home-hub-hk-visible',
+            label: 'HK customers can search Home Hub',
+            conditions: [{ field: 'customerLocation', operator: 'is', value: 'HK' }],
+            conditionLogic: 'AND',
+            action: 'show',
+          },
+        ],
+      },
+      {
+        type: 'ocdp_page',
+        ref: 'fx-viewpoint-hk',
+        label: 'FX Viewpoint — EUR & GBP (HK)',
+        visibilityRules: [
+          {
+            ruleId: 'fx-viewpoint-wealth-visible',
+            label: 'Premier and Elite wealth customers can search FX Viewpoint',
+            conditions: [
+              { field: 'customerSegment', operator: 'in', value: ['premier', 'elite'] },
+              { field: 'accountType', operator: 'in', value: ['wealth_account', 'time_deposit'] },
+              { field: 'customerLocation', operator: 'is', value: 'HK' },
+            ],
+            conditionLogic: 'AND',
+            action: 'show',
+          },
+        ],
+      },
+      {
+        type: 'aem_url',
+        ref: 'https://www.hsbc.com.hk/wealth/insights/fx-viewpoint/',
+        label: 'AEM FX Viewpoint article',
+        visibilityRules: [
+          {
+            ruleId: 'aem-fx-hk-visible',
+            label: 'HK Premier and Elite customers can search AEM FX article',
+            conditions: [
+              { field: 'customerSegment', operator: 'in', value: ['premier', 'elite'] },
+              { field: 'customerLocation', operator: 'is', value: 'HK' },
+            ],
+            conditionLogic: 'AND',
+            action: 'show',
+          },
+        ],
+      },
+    ],
+    assetSources: [
+      {
+        sourceId: 'wealth-studio-video-folder',
+        type: 'video',
+        label: 'Premier Elite Wealth Studio videos',
+        parentFolderUrl: 'https://cdn.hsbc.com.hk/mobile/harmonynext/wealth-studio/',
+        description: 'Indexed folder for Premier and Elite wealth videos surfaced in HarmonyNext search.',
+        keywords: 'premier,elite,wealth,investment,video,studio',
+        audienceRules: [
+          { ruleId: 'allow-premier-elite-wealth-hk', label: 'Premier and Elite HK wealth customers', customerSegments: ['premier', 'elite'], accountTypes: ['wealth_account'], locations: ['HK'], action: 'allow' },
+        ],
+      },
+      {
+        sourceId: 'fx-viewpoint-video',
+        type: 'video',
+        label: 'FX Viewpoint video',
+        url: 'https://cdn.hsbc.com.hk/mobile/harmonynext/media/fx-viewpoint.mp4',
+        description: 'FX strategist video available to eligible HK wealth customers.',
+        keywords: 'fx,currency,foreign exchange,video,market',
+        audienceRules: [
+          { ruleId: 'allow-fx-premier-elite-hk', label: 'Premier or Elite HK customers with wealth or time deposit accounts', customerSegments: ['premier', 'elite'], accountTypes: ['wealth_account', 'time_deposit'], locations: ['HK'], action: 'allow' },
+        ],
+      },
+      {
+        sourceId: 'premier-card-images',
+        type: 'image',
+        label: 'Premier credit card imagery',
+        parentFolderUrl: 'https://cdn.hsbc.com.hk/mobile/harmonynext/images/cards/premier/',
+        description: 'Premier card imagery indexed for eligible card customers.',
+        keywords: 'premier,credit card,image,card,rewards',
+        audienceRules: [
+          { ruleId: 'allow-premier-credit-card-hk', label: 'Premier HK credit card customers', customerSegments: ['premier'], accountTypes: ['credit_card'], locations: ['HK'], action: 'allow' },
+        ],
+      },
+      {
+        sourceId: 'wealth-factsheet-file',
+        type: 'file',
+        label: 'HK Wealth product factsheet',
+        url: 'https://cdn.hsbc.com.hk/mobile/harmonynext/files/wealth/hk-wealth-factsheet.pdf',
+        description: 'PDF factsheet available to Premier and Elite HK wealth customers.',
+        keywords: 'factsheet,pdf,wealth,investment,premier,elite',
+        audienceRules: [
+          { ruleId: 'allow-wealth-file-premier-elite-hk', label: 'Premier and Elite HK wealth customers', customerSegments: ['premier', 'elite'], accountTypes: ['wealth_account'], locations: ['HK'], action: 'allow' },
+        ],
+      },
+    ],
+    entryPointRules: [
+      {
+        entryPointId: 'premier-wealth-studio',
+        visibilityRules: [
+          {
+            ruleId: 'ep-premier-wealth-studio-visible',
+            label: 'Follow OCDP page-editor rule: Premier and Elite wealth customers only',
+            conditions: [
+              { field: 'customerSegment', operator: 'in', value: ['premier', 'elite'] },
+              { field: 'accountType', operator: 'is', value: 'wealth_account' },
+              { field: 'customerLocation', operator: 'is', value: 'HK' },
+            ],
+            conditionLogic: 'AND',
+            action: 'show',
+          },
+        ],
+      },
+      {
+        entryPointId: 'credit-card-rewards',
+        visibilityRules: [
+          {
+            ruleId: 'ep-card-rewards-visible',
+            label: 'Credit card customers in HK can search card rewards',
+            conditions: [
+              { field: 'accountType', operator: 'is', value: 'credit_card' },
+              { field: 'customerLocation', operator: 'is', value: 'HK' },
+            ],
+            conditionLogic: 'AND',
+            action: 'show',
+          },
+        ],
+      },
+    ],
+    refreshSchedule: 'daily',
+    searchEndpointOverride: '/api/v1/search',
+    lastRebuiltAt: null,
+    corpusSize: 0,
+    createdAt: '2026-05-19T00:00:00.000Z',
+    updatedAt: '2026-05-19T00:00:00.000Z',
+  },
 ];

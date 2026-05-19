@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { a2uiToSearchResults, SearchResult } from '../utils/a2ui';
+import { observability } from '../analytics/ObservabilityClient';
 
 interface AISearchBarProps {
   placeholder?: string;
@@ -12,6 +13,11 @@ interface AISearchBarProps {
 }
 
 const RED = '#DB0011';
+const AI_SEARCH_AUDIENCE = {
+  customerSegment: 'premier',
+  accountType: 'wealth_account',
+  customerLocation: 'HK',
+};
 
 export default function AISearchBar({
   placeholder = '搜尋功能、產品',
@@ -44,19 +50,28 @@ export default function AISearchBar({
     if (!enableSemanticSearch) return;
     setLoading(true);
     setError('');
+    const started = performance.now();
     try {
       const url = bffBase
         ? `${bffBase}/api/v1/search`
         : searchApiEndpoint;
       const res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: q, limit: 8, responseMode: 'a2ui', appId: 'web' }),
+        headers: { 'Content-Type': 'application/json', traceparent: observability.traceparent(), 'x-platform': 'web' },
+        body: JSON.stringify({
+          query: q,
+          limit: 8,
+          responseMode: 'a2ui',
+          appId: 'web',
+          ...AI_SEARCH_AUDIENCE,
+        }),
       });
+      observability.recordNetworkStep('ai_search_query', performance.now() - started, '/api/v1/search', res.ok);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json() as { results?: SearchResult[] };
       setResults(a2uiToSearchResults(data).length > 0 ? a2uiToSearchResults(data) : data.results ?? []);
     } catch {
+      observability.recordNetworkStep('ai_search_query', performance.now() - started, '/api/v1/search', false);
       setError('搜尋服務暫時不可用，請稍後重試。');
       setResults([]);
     } finally {
@@ -190,7 +205,7 @@ export default function AISearchBar({
                 {results.map((r, i) => (
                   <div key={r.id}>
                     <div
-                      onClick={() => { alert(`Navigate → ${r.deepLink}`); setOpen(false); }}
+                      onClick={() => { alert(`Navigate → ${r.assetUrl ?? r.deepLink}`); setOpen(false); }}
                       style={{ padding: '12px 16px', background: '#fff', display: 'flex', gap: 12, alignItems: 'center', cursor: 'pointer' }}
                     >
                       <div style={{ width: 44, height: 44, borderRadius: 10, background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
@@ -199,8 +214,13 @@ export default function AISearchBar({
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontWeight: 600, fontSize: 13, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</div>
                         <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.description}</div>
+                        {r.assetType && (
+                          <div style={{ fontSize: 10, color: RED, marginTop: 2, fontWeight: 600 }}>
+                            Governed {r.assetType.toLowerCase()} URL
+                          </div>
+                        )}
                       </div>
-                      <span style={{ fontSize: 9, fontWeight: 600, padding: '3px 7px', borderRadius: 8, background: '#FEE2E2', color: RED, flexShrink: 0 }}>{r.type}</span>
+                      <span style={{ fontSize: 9, fontWeight: 600, padding: '3px 7px', borderRadius: 8, background: '#FEE2E2', color: RED, flexShrink: 0 }}>{r.assetType ?? r.type}</span>
                     </div>
                     {i < results.length - 1 && <div style={{ height: 1, background: '#F3F4F6', marginLeft: 72 }} />}
                   </div>

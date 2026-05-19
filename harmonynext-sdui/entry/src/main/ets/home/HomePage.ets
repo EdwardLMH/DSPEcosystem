@@ -13,6 +13,7 @@ import { SensorDataClient } from '../network/SensorDataClient'
 import { AISearchPage } from './AISearchPage'
 import { fetchHomeScreen, HomeSlice } from '../network/KYCNetworkService'
 import { SDUIStaticDistribution } from '../network/SDUIStaticDistribution'
+import { ObservabilityClient } from '../network/ObservabilityClient'
 
 // ─── Data models ──────────────────────────────────────────────────────────────
 
@@ -192,6 +193,7 @@ export struct HomePageView {
   private selfPickForceUpdate: boolean = false
 
   aboutToAppear() {
+    ObservabilityClient.recordStartupStep('home_about_to_appear', ObservabilityClient.currentStartupElapsedMs())
     SensorDataClient.homeHubViewed()
     this.loadWithStaticChain()
   }
@@ -200,9 +202,11 @@ export struct HomePageView {
 
   private async loadWithStaticChain(): Promise<void> {
     this.loadState = LOAD_LOADING
+    const loadStarted = Date.now()
 
     try {
       // Step 1 — CDN static distribution (concurrent with BFF call)
+      ObservabilityClient.recordStartupStep('home_fetch_start', ObservabilityClient.currentStartupElapsedMs())
       const staticPromise = this.staticDist.resolve('home-hub-hk')
       const bffPromise    = fetchHomeScreen().catch(() => null)
 
@@ -213,36 +217,45 @@ export struct HomePageView {
 
       if (bffPayload !== null) {
         // BFF success — use personalised payload
+        const parseStarted = Date.now()
         const slices: HomeSlice[] = bffPayload.layout.children.filter(
           (s: HomeSlice) => s.visible !== false
         )
+        ObservabilityClient.recordStartupStep('home_parse_bff', Date.now() - parseStarted)
         await this.mergeSelfPick(slices)
         this.sdui      = slices
         this.loadState = LOAD_DONE
+        ObservabilityClient.recordStartupStep('home_interactive', Date.now() - loadStarted)
         return
       }
 
       if (staticResult.json !== null) {
         // Static / local / bundled baseline
         try {
+          const parseStarted = Date.now()
           const parsed = JSON.parse(staticResult.json) as StaticScreenPayload
           const slices: HomeSlice[] = parsed.layout.children.filter(
             (s: HomeSlice) => s.visible !== false
           )
+          ObservabilityClient.recordStartupStep('home_parse_static', Date.now() - parseStarted)
           await this.mergeSelfPick(slices)
           this.sdui      = slices
           this.loadState = LOAD_DONE
+          ObservabilityClient.recordStartupStep('home_interactive', Date.now() - loadStarted)
         } catch (e) {
           this.loadState = LOAD_ERROR
+          ObservabilityClient.recordStartupStep('home_load_error', Date.now() - loadStarted)
         }
         return
       }
 
       // All tiers exhausted — render hardcoded static fallback
       this.loadState = LOAD_ERROR
+      ObservabilityClient.recordStartupStep('home_load_error', Date.now() - loadStarted)
     } catch (e) {
       // Safety net: any unhandled crash must not leave loadState at LOAD_LOADING
       this.loadState = LOAD_ERROR
+      ObservabilityClient.recordStartupStep('home_load_error', Date.now() - loadStarted)
     }
   }
 

@@ -6,6 +6,7 @@ import { HomePage } from './pages/home/HomePage';
 import { FXViewpointPage } from './pages/fxviewpoint/FXViewpointPage';
 import { DepositCampaignPage } from './pages/deposit/DepositCampaignPage';
 import { SDUIProvider } from './context/SDUIContext';
+import { observability } from './analytics/ObservabilityClient';
 import './tokens/hive-tokens.css';
 
 // Detect channel from query param (?channel=WEB_STANDARD|WEB_WECHAT) or default to SDUI
@@ -13,6 +14,8 @@ const params  = new URLSearchParams(window.location.search);
 const rawChan = (params.get('channel') ?? 'SDUI').toUpperCase();
 const channel = (['SDUI', 'WEB_STANDARD', 'WEB_WECHAT'].includes(rawChan)
   ? rawChan : 'SDUI') as 'SDUI' | 'WEB_STANDARD' | 'WEB_WECHAT';
+
+observability.markAppStart();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

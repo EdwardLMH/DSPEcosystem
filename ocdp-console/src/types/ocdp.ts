@@ -479,6 +479,8 @@ export interface AISearchContentSource {
   ref: string;
   /** Human-readable label for this source (auto-populated from page name or URL). */
   label: string;
+  /** Optional result visibility inherited from OCDP page-editor rules. */
+  visibilityRules?: VisibilityRule[];
 }
 
 export interface AISearchQuickAccessSource {
@@ -487,6 +489,37 @@ export interface AISearchQuickAccessSource {
   mode: 'url' | 'json';
   url?: string;
   json?: string;
+}
+
+export type AISearchAssetType = 'video' | 'image' | 'file';
+
+export interface AISearchAudienceRule {
+  ruleId: string;
+  label: string;
+  customerSegments?: CustomerSegment[];
+  accountTypes?: AccountType[];
+  locations?: CustomerLocation[];
+  action: 'allow' | 'deny';
+}
+
+export interface AISearchAssetSource {
+  sourceId: string;
+  type: AISearchAssetType;
+  label: string;
+  /** Matches one exact asset URL, for example a PDF, image or video URL. */
+  url?: string;
+  /** Matches every asset under this parent folder. */
+  parentFolderUrl?: string;
+  description?: string;
+  keywords?: string;
+  audienceRules: AISearchAudienceRule[];
+}
+
+export interface AISearchEntryPointRuleSet {
+  /** Applies to quick-access IDs emitted by quickAccessSource JSON. */
+  entryPointId: string;
+  visibilityRules: VisibilityRule[];
+  audienceRules?: AISearchAudienceRule[];
 }
 
 export interface AISearchConfig {
@@ -498,6 +531,12 @@ export interface AISearchConfig {
   quickAccessSource: AISearchQuickAccessSource;
 
   contentSources: AISearchContentSource[];
+
+  /** Optional URL/file/video/image sources indexed by AI Search. */
+  assetSources?: AISearchAssetSource[];
+
+  /** Optional app entry-point access rules layered on top of page-editor visibility. */
+  entryPointRules?: AISearchEntryPointRuleSet[];
 
   searchEndpointOverride?: string;
   refreshSchedule: AISearchRefreshSchedule;

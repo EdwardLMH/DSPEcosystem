@@ -29,6 +29,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.hsbc.sdui.analytics.TealiumClient
+import com.hsbc.sdui.analytics.ObservabilityClient
 import kotlinx.coroutines.launch
 
 
@@ -100,14 +101,21 @@ fun HomePageScreen() {
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
+        val loadStarted = System.nanoTime()
+        ObservabilityClient.recordStartupStep("home_fetch_start", ObservabilityClient.startupElapsedMs())
         TealiumClient.homeHubViewed()
         scope.launch {
             loadState = try {
                 val payload = HomeNetworkService.api.fetchHomeScreen()
+                val parseStarted = System.nanoTime()
                 val visible = payload.layout.children.filter { it.visible }
-                if (visible.isEmpty()) HomeLoadState.Fallback
+                ObservabilityClient.recordStartupStep("home_parse_bff", (System.nanoTime() - parseStarted) / 1_000_000)
+                val nextState = if (visible.isEmpty()) HomeLoadState.Fallback
                 else HomeLoadState.Done(visible)
+                ObservabilityClient.recordStartupStep("home_interactive", (System.nanoTime() - loadStarted) / 1_000_000)
+                nextState
             } catch (_: Exception) {
+                ObservabilityClient.recordStartupStep("home_load_error", (System.nanoTime() - loadStarted) / 1_000_000)
                 HomeLoadState.Fallback
             }
         }

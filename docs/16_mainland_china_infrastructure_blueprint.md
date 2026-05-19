@@ -285,6 +285,8 @@ Mainland China behaviour tracking should use SensorData only.
 
 Do not export user-level identifiers or raw behavioural events outside mainland China. Any overseas dashboard should receive only approved aggregated/anonymised metrics.
 
+Operational observability should also stay China-resident. Use OpenTelemetry-compatible collectors on IKP and in the Alicloud private environment, bridge HarmonyNext/mobile/web operational spans into SensorData or the approved local APM backend, and keep only aggregate SLO/status signals available to overseas dashboards. The detailed monitoring matrix, dashboard design, synthetics and mobile startup trace model are defined in `docs/19_observability_monitoring.md`.
+
 ---
 
 ## 9. Security Controls
@@ -363,4 +365,3 @@ The script is intentionally provider-light because IKP and Alicloud private clou
 | COS bucket split | separate buckets for testing and production |
 | Private publish bridge | controlled job from Alicloud private cloud to Tencent COS/CDN with least privilege |
 | Cross-border metrics | aggregate/anonymise only after compliance approval |
-

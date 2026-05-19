@@ -23,6 +23,17 @@ Server Driven UI (SDUI) inverts this model: **the server owns the layout**. The 
 | New market / locale | Code per market | Locale flag in JSON |
 | Fix broken image on one platform | Hot fix release | CMS asset replacement → immediate |
 
+### Operating Principles
+
+SDUI is also an operational architecture, not only a rendering pattern:
+
+| Principle | Runtime expectation |
+|-----------|---------------------|
+| Observable by default | Web, iOS, Android and HarmonyOS NEXT propagate W3C `traceparent` on SDUI, AI Search and journey calls so operators can correlate client startup, gateway, BFF, cache, search and database spans. |
+| Performance as product quality | Cold start, warm start, Home fetch, JSON parse, component registry setup, render and Home interactive timings are measured as customer experience SLOs. |
+| Highly available delivery | Clients use remote manifest, local cache/storage and bundled baseline fallback; the BFF can serve stale cached SDUI when upstream content providers are unavailable. |
+| Release with confidence | Jenkins deploy/restart/site-switch markers are overlaid on observability dashboards so every runtime change can be connected to latency, error rate and synthetic-check outcomes. |
+
 ---
 
 ## 2. SDUI Lifecycle
@@ -365,6 +376,29 @@ interface AISearchConfig {
     type: 'ocdp_page' | 'aem_url';  // AEM is a peer content source
     ref: string;                     // pageId or AEM page URL
     label: string;
+    visibilityRules?: VisibilityRule[];
+  }>;
+  assetSources?: Array<{
+    sourceId: string;
+    type: 'video' | 'image' | 'file';
+    label: string;
+    url?: string;                    // exact URL
+    parentFolderUrl?: string;         // folder prefix
+    description?: string;
+    keywords?: string;
+    audienceRules: Array<{
+      ruleId: string;
+      label: string;
+      customerSegments?: string[];
+      accountTypes?: string[];
+      locations?: string[];
+      action: 'allow' | 'deny';
+    }>;
+  }>;
+  entryPointRules?: Array<{
+    entryPointId: string;             // matches quick-access source item id
+    visibilityRules: VisibilityRule[];
+    audienceRules?: AISearchConfig['assetSources'][number]['audienceRules'];
   }>;
   refreshSchedule: 'manual' | 'hourly' | 'daily';
   searchEndpointOverride?: string;
@@ -372,6 +406,102 @@ interface AISearchConfig {
   corpusSize: number;
 }
 ```
+
+#### Sample — HK HarmonyNext App Semantic Search
+
+The seeded OCDP sample config `ai-search-hk-harmonynext-sample` shows how the HK HarmonyNext app can receive entry-point configuration, OCDP/AEM content, and governed media/file URLs in one corpus.
+
+```json
+{
+  "configId": "ai-search-hk-harmonynext-sample",
+  "appId": "harmonynext",
+  "displayName": "HK HarmonyNext App Semantic Search",
+  "enabled": true,
+  "quickAccessSource": {
+    "mode": "json",
+    "json": "[{\"id\":\"account-overview\",\"title\":\"Account overview\",\"deepLink\":\"hsbc://accounts\"},{\"id\":\"premier-wealth-studio\",\"title\":\"Premier Elite Wealth Studio\",\"deepLink\":\"hsbc://wealth/studio\"}]"
+  },
+  "contentSources": [
+    {
+      "type": "ocdp_page",
+      "ref": "home-hub-hk",
+      "label": "Home Hub (HK)",
+      "visibilityRules": [
+        {
+          "ruleId": "home-hub-hk-visible",
+          "label": "HK customers can search Home Hub",
+          "conditions": [{ "field": "customerLocation", "operator": "is", "value": "HK" }],
+          "conditionLogic": "AND",
+          "action": "show"
+        }
+      ]
+    },
+    {
+      "type": "ocdp_page",
+      "ref": "fx-viewpoint-hk",
+      "label": "FX Viewpoint — EUR & GBP (HK)",
+      "visibilityRules": [
+        {
+          "ruleId": "fx-viewpoint-wealth-visible",
+          "label": "Premier and Elite wealth customers can search FX Viewpoint",
+          "conditions": [
+            { "field": "customerSegment", "operator": "in", "value": ["premier", "elite"] },
+            { "field": "accountType", "operator": "in", "value": ["wealth_account", "time_deposit"] },
+            { "field": "customerLocation", "operator": "is", "value": "HK" }
+          ],
+          "conditionLogic": "AND",
+          "action": "show"
+        }
+      ]
+    }
+  ],
+  "assetSources": [
+    {
+      "sourceId": "wealth-studio-video-folder",
+      "type": "video",
+      "label": "Premier Elite Wealth Studio videos",
+      "parentFolderUrl": "https://cdn.hsbc.com.hk/mobile/harmonynext/wealth-studio/",
+      "audienceRules": [
+        {
+          "ruleId": "allow-premier-elite-wealth-hk",
+          "label": "Premier and Elite HK wealth customers",
+          "customerSegments": ["premier", "elite"],
+          "accountTypes": ["wealth_account"],
+          "locations": ["HK"],
+          "action": "allow"
+        }
+      ]
+    }
+  ],
+  "entryPointRules": [
+    {
+      "entryPointId": "premier-wealth-studio",
+      "visibilityRules": [
+        {
+          "ruleId": "ep-premier-wealth-studio-visible",
+          "label": "Follow OCDP page-editor rule: Premier and Elite wealth customers only",
+          "conditions": [
+            { "field": "customerSegment", "operator": "in", "value": ["premier", "elite"] },
+            { "field": "accountType", "operator": "is", "value": "wealth_account" },
+            { "field": "customerLocation", "operator": "is", "value": "HK" }
+          ],
+          "conditionLogic": "AND",
+          "action": "show"
+        }
+      ]
+    }
+  ],
+  "refreshSchedule": "daily",
+  "searchEndpointOverride": "/api/v1/search"
+}
+```
+
+At rebuild time the BFF indexes only approved source definitions. At search time it applies the same rule model used by the OCDP page editor:
+
+- Entry-point results honour `entryPointRules.visibilityRules`, so Premier/Elite-only app functions are not returned to mass or ineligible account profiles.
+- OCDP and AEM content sources can carry `visibilityRules`, preventing content result leakage across segment, account type or location.
+- `assetSources` can use either an exact `url` or a `parentFolderUrl`; each video, image or file source is governed by `audienceRules`.
+- Runtime calls pass audience context in the body or headers, for example `customerSegment=premier`, `accountType=wealth_account`, `customerLocation=HK`.
 
 #### Corpus Rebuild Pipeline
 
@@ -383,11 +513,13 @@ Step 1 — Quick-access source
                (each must have: id, title, icon, deepLink, description, keywords)
    mode=json → BFF parses inline JSON pasted by operator
 
-Step 2 — Content sources (in parallel)
+Step 2 — Content sources and governed assets (in parallel)
    type=ocdp_page → Extracts title / description / keywords from SDUI screen data
                     for the given pageId (live or approved pages only)
    type=aem_url   → Synthesises a corpus entry from the AEM page URL and metadata
                     (AEM is a peer content provider alongside OCDP pages)
+   assetSources   → Indexes configured video/image/file URLs or parent folders with
+                    their audience access rules
 
 Step 3 — Merge + deduplicate → stored in AI_SEARCH_CORPORA[appId]
 

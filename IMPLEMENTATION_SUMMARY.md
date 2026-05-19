@@ -1,6 +1,6 @@
 # DSP Ecosystem — Implementation Summary
 
-**Last Updated:** 2026-05-12  
+**Last Updated:** 2026-05-20  
 **Classification:** Internal — Confidential
 
 ---
@@ -33,10 +33,12 @@ The canonical "Home Hub (HK)" page (`pageId: home-hub-hk`) is defined in the OCD
 
 | Platform | File | SDUI Path | Static Fallback |
 |----------|------|-----------|-----------------|
-| iOS (SwiftUI) | `ios-sdui/HSBCSDUI/HomePageView.swift` | `HomeSDUIViewModel` async fetch → `SDUISliceView` dispatcher | 9 `WH*` default components |
+| iOS (SwiftUI Xcode project) | `ios-sdui/HSBCSDUI.xcodeproj`, `ios-sdui/HSBCSDUI/HSBCSduiApp.swift`, `ios-sdui/HSBCSDUI/HomePageView.swift` | `@main` SwiftUI `App` → `HomeSDUIViewModel` async fetch → `SDUISliceView` dispatcher | 9 `WH*` default components |
 | Android (Compose) | `android-sdui/…/home/HomePageScreen.kt` | `HomeLoadState.Done` → `SDUISliceView` dispatcher | 9 `WH*` composables |
 | HarmonyOS NEXT (ArkTS) | `harmonynext-sdui/…/home/HomePage.ets` | `LOAD_DONE` → `SDUISliceView.renderSlice()` if/else chain | 9 `SDUI*` components |
 | Web (React/TS) | `web-sdui/src/pages/home/HomePage.tsx` | Fetch → `renderSlice()` switch | 9 inline React components |
+
+The iOS app is a Swift/SwiftUI project, not a storyboard app. The active project is `ios-sdui/HSBCSDUI.xcodeproj`; `HSBCSduiApp.swift` provides the SwiftUI `@main` entry point, and all major screens are SwiftUI views with limited UIKit bridges only where native media playback or accessibility context requires it.
 
 ---
 
@@ -63,7 +65,34 @@ HarmonyOS NEXT routes all analytics to SensorData (神策数据) rather than Tea
 
 ---
 
-## 3. AEO/SEO Assessment Tool (OCDP Console)
+## 3. AI Search — Governed Semantic Search Sample
+
+OCDP now seeds a detailed `HK HarmonyNext App Semantic Search` sample so the AI Search admin tab is not empty on first launch.
+
+| Area | Implemented state |
+|------|-------------------|
+| Configuration sources | Quick-access entry-point JSON, OCDP pages, AEM content URLs |
+| Governed URL sources | Video, image and file URLs, including parent-folder based sources |
+| Targeting model | Customer segment, account type and location visibility rules |
+| Admin actions | Review, edit, add and delete configuration/content/URL sources |
+| Runtime filtering | mock-BFF filters entry points, content and governed assets by audience before ranking |
+| Client support | Web, iOS and Android send audience context and preserve `assetUrl` / `assetType`; HarmonyNext has tracing and search analytics hooks |
+
+Key files:
+
+| File | Role |
+|------|------|
+| `ocdp-console/src/store/mockData.ts` | Seeded HK HarmonyNext AI Search config |
+| `ocdp-console/src/components/admin/AISearchAdminPanel.tsx` | AI Search admin cards and edit drawer |
+| `mock-bff/server.js` | Corpus rebuild, audience filtering and semantic search endpoint |
+| `mock-bff/sdui-v2.js` | A2UI result mapping for app clients |
+| `web-sdui/src/components/AISearchBar.tsx` | Web search UI with governed asset result handling |
+| `ios-sdui/HSBCSDUI/Home/AISearchView.swift` | iOS SwiftUI search UI with governed asset result handling |
+| `android-sdui/app/src/main/java/com/hsbc/sdui/home/AISearchScreen.kt` | Android Compose search UI with governed asset result handling |
+
+---
+
+## 4. AEO/SEO Assessment Tool (OCDP Console)
 
 Integrated into the OCDP submission workflow for Web Standard channel pages and journeys.
 
@@ -91,7 +120,38 @@ SDUI and WeChat channel pages bypass the assessment (no SEO relevance).
 
 ---
 
-## 4. Bug Fixes Applied
+## 5. CI/CD and Deployment Automation
+
+The repository now includes a root Jenkins pipeline and deployment helpers for both overseas AWS and mainland China.
+
+| Area | Implemented state |
+|------|-------------------|
+| Jenkins | Root `Jenkinsfile` with `TARGET_PLATFORM=aws|mainland-china` |
+| AWS | Terraform plan/apply, image build/push hook, EKS rollout/restart, S3/CloudFront static deploy, Route 53 site switch |
+| Mainland China | `scripts/china-deploy.sh` integration for IKP runtime apply and Tencent COS/CDN static publish |
+| Environments | AWS testing/prod regions plus `testing-cn` and `prod-cn` |
+| Runbook | `docs/18_jenkins_cicd_cookbook.md` |
+
+Mainland China authoring remains private in Alicloud, public runtime runs through IKP/Tencent edge, and telemetry/log/event handling must stay China-resident except for approved aggregate SLOs.
+
+---
+
+## 6. Observability — End-to-End Trace and Startup Timing
+
+OpenTelemetry is the common monitoring standard in the design, with lightweight client bridges implemented in the prototypes.
+
+| Platform | File | Implemented observability hooks |
+|----------|------|---------------------------------|
+| Web | `web-sdui/src/analytics/ObservabilityClient.ts` | `traceparent`, Home startup steps, Home fetch timing, AI Search timing |
+| iOS | `ios-sdui/HSBCSDUI/Analytics/ObservabilityClient.swift` | `traceparent`, cold/warm app lifecycle, Home startup steps, Home fetch timing, AI Search timing |
+| Android | `android-sdui/…/analytics/ObservabilityClient.kt` | `traceparent`, cold/warm activity lifecycle, Home startup steps, Home fetch timing, AI Search timing |
+| HarmonyOS NEXT | `harmonynext-sdui/…/network/ObservabilityClient.ets` | SensorData operational events, `traceparent`, Home startup steps, network timing |
+
+Operational events use low-cardinality names such as `operational_startup_step` and `operational_network_step`. The monitoring matrix, dashboards, SLOs, synthetic checks and China deployment boundaries are documented in `docs/19_observability_monitoring.md`.
+
+---
+
+## 7. Bug Fixes Applied
 
 ### iOS — Wealth Studio Carousel: video opened as a separate panel (HomePageView.swift)
 
@@ -147,7 +207,7 @@ VStack {
 
 ---
 
-## 5. Key Platform Constraints Documented
+## 8. Key Platform Constraints Documented
 
 | Platform | Constraint |
 |----------|-----------|
@@ -157,3 +217,4 @@ VStack {
 | Kotlin | `private val` at file top-level and `internal val` in same package both become package-level declarations and conflict |
 | Tealium (iOS/Android/Web) | Overseas markets; `userId` SHA-256 hashed before event send |
 | SensorData (HarmonyNext) | China-resident endpoints; required for PIPL compliance on HarmonyOS NEXT |
+| iOS project | Use `ios-sdui/HSBCSDUI.xcodeproj`; it is a SwiftUI app with `@main` in `HSBCSduiApp.swift` |

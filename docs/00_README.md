@@ -21,7 +21,10 @@ DSPEcosystem/
 │   ├── 13_promo_video_script.md # Demo / promo video script
 │   ├── 14_mipaaS_architecture.md # Mobile Intelligence PaaS architecture
 │   ├── 15_aws_infrastructure_blueprint.md # AWS Testing/Production infrastructure blueprint
-│   └── 16_mainland_china_infrastructure_blueprint.md # Mainland China Tencent/IKP/Alicloud blueprint
+│   ├── 16_mainland_china_infrastructure_blueprint.md # Mainland China Tencent/IKP/Alicloud blueprint
+│   ├── 17_service_cookbook.md # Cookbook for running local services and clients
+│   ├── 18_jenkins_cicd_cookbook.md # Jenkins CI/CD deploy, restart and site switch cookbook
+│   └── 19_observability_monitoring.md # OpenTelemetry monitoring, dashboards and synthetic checks
 │
 ├── mock-bff/                    # Node.js/Express — Local Dev BFF Simulator
 │   └── server.js                # Single-file mock; replaces bff-java locally
@@ -107,12 +110,12 @@ DSPEcosystem/
 
 | System | Purpose |
 |--------|---------|
-| mock-BFF | Node.js local dev simulator for bff-java, OCDP/UCP, and AEM APIs; AI Search corpus rebuild endpoint (`POST /api/v1/search/config/{id}/rebuild`); all state in-memory; port 4000 |
+| mock-BFF | Node.js local dev simulator for bff-java, OCDP/UCP, and AEM APIs; AI Search corpus rebuild endpoint (`POST /api/v1/search/config/{id}/rebuild`); filters search by customer segment, account type and location; all state in-memory; port 4000 |
 | UCP Console | Staff content asset management & component registry UI; multi-locale (i18n) authoring; WCAG 2.1 AA; port 3001 |
-| OCDP Console | Staff CMS for authoring, reviewing & publishing SDUI pages; content sidebar browses content from both UCP and HSBC AEM; AI Search Admin panel (per-app corpus config, rebuild trigger); multi-locale (i18n) authoring; WCAG 2.1 AA; port 5173 by Vite default |
+| OCDP Console | Staff CMS for authoring, reviewing & publishing SDUI pages; content sidebar browses content from both UCP and HSBC AEM; AI Search Admin panel with seeded HK HarmonyNext sample, governed video/image/file URLs and rebuild trigger; multi-locale (i18n) authoring; WCAG 2.1 AA; port 5173 by Vite default |
 | HSBC AEM | Adobe Experience Manager — peer content provider to UCP; OCDP left sidebar queries AEM Content Delivery API alongside UCP; AEM URLs also usable as AI Search corpus content sources |
 | Java BFF | Production SDUI JSON composition, personalisation, A/B routing; fetches from UCP or AEM per `contentRef.source`; serves `POST /api/v1/search` semantic search + `GET /api/v1/search/corpus` |
-| SDUI Clients | Web / iOS / Android / HarmonyOS NEXT render UI from server JSON with static fallbacks; `AI_SEARCH_BAR` and `HOME_SEARCH_HEADER` slice types call the BFF search endpoint |
+| SDUI Clients | Web / iOS / Android / HarmonyOS NEXT render UI from server JSON with static fallbacks; `AI_SEARCH_BAR` and `HOME_SEARCH_HEADER` slice types call the BFF search endpoint with audience context and preserve governed asset URL results |
 | HIVE Tokens | Single design token source-of-truth emitted to CSS / Swift / Kotlin / ArkTS; WCAG 2.1 AA compliant colour palette |
 | DAP | Aggregates all feedback signals into content performance scores |
 | AEO Monitor | Tracks HSBC citation share in ChatGPT, Perplexity, Google AI |
@@ -128,5 +131,7 @@ DSPEcosystem/
 
 ## Quick Start
 
-For local development see `docs/12_local_dev_environment.md`.
+For local development see `docs/12_local_dev_environment.md` and `docs/17_service_cookbook.md`.
+For Jenkins deployment operations across AWS and mainland China see `docs/18_jenkins_cicd_cookbook.md`.
+For OpenTelemetry monitoring, synthetic checks and mobile startup tracing see `docs/19_observability_monitoring.md`.
 Tech leads: start with `docs/01_system_overview.md`.

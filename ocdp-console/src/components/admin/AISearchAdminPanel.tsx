@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useOCDP } from '../../store/OCDPStore';
-import type { AISearchConfig, AISearchAppId, AISearchContentSource, AISearchContentSourceType } from '../../types/ocdp';
+import type { AISearchAssetSource, AISearchConfig, AISearchAppId, AISearchContentSource, AISearchContentSourceType } from '../../types/ocdp';
 import { v4 } from '../../utils/uuid';
 
 const BFF_BASE = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_BFF_BASE_URL ?? 'http://localhost:4000';
@@ -25,6 +25,25 @@ const inp: React.CSSProperties = {
 };
 const sel: React.CSSProperties = { ...inp, cursor: 'pointer' };
 const ta: React.CSSProperties  = { ...inp, resize: 'vertical', minHeight: 90 };
+
+function summarizeRules(config: AISearchConfig) {
+  const assetRules = config.assetSources?.reduce((sum, src) => sum + src.audienceRules.length, 0) ?? 0;
+  const entryRules = config.entryPointRules?.reduce((sum, src) => sum + src.visibilityRules.length + (src.audienceRules?.length ?? 0), 0) ?? 0;
+  const contentRules = config.contentSources.reduce((sum, src) => sum + (src.visibilityRules?.length ?? 0), 0);
+  return assetRules + entryRules + contentRules;
+}
+
+function audienceSummary(src: AISearchAssetSource) {
+  if (src.audienceRules.length === 0) return 'No audience rule';
+  return src.audienceRules.map(rule => {
+    const parts = [
+      rule.customerSegments?.join('/'),
+      rule.accountTypes?.join('/'),
+      rule.locations?.join('/'),
+    ].filter(Boolean);
+    return `${rule.action.toUpperCase()}: ${parts.join(' · ') || 'all profiles'}`;
+  }).join('; ');
+}
 
 // ─── Config card ─────────────────────────────────────────────────────────────
 
@@ -67,6 +86,12 @@ function ConfigCard({
             Content sources: <strong>{config.contentSources.length}</strong>
           </span>
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+            Asset rules: <strong>{config.assetSources?.length ?? 0}</strong>
+          </span>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+            Entry rules: <strong>{config.entryPointRules?.length ?? 0}</strong>
+          </span>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
             Refresh: <strong>{REFRESH_LABELS[config.refreshSchedule]}</strong>
           </span>
         </div>
@@ -74,6 +99,9 @@ function ConfigCard({
         <div style={{ display: 'flex', gap: 16, marginTop: 4, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
             Corpus: <strong>{config.corpusSize} items</strong>
+          </span>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+            Rules: <strong>{summarizeRules(config)}</strong>
           </span>
           {config.lastRebuiltAt && (
             <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
@@ -169,6 +197,10 @@ export function AISearchAdminPanel() {
   const [newSourceType, setNewSourceType] = useState<AISearchContentSourceType>('ocdp_page');
   const [newSourcePageId, setNewSourcePageId] = useState('');
   const [newSourceAemUrl, setNewSourceAemUrl] = useState('');
+  const [reviewItem, setReviewItem] = useState<{ title: string; payload: unknown } | null>(null);
+  const [newAssetType, setNewAssetType] = useState<AISearchAssetSource['type']>('video');
+  const [newAssetLabel, setNewAssetLabel] = useState('');
+  const [newAssetUrl, setNewAssetUrl] = useState('');
 
   const livePages = pages.filter(p => p.authoringStatus === 'LIVE' || p.authoringStatus === 'APPROVED');
 
@@ -239,11 +271,53 @@ export function AISearchAdminPanel() {
     setForm(f => ({ ...f, contentSources: f.contentSources.filter((_, i) => i !== idx) }));
   }
 
+  function removeAssetSource(idx: number) {
+    setForm(f => ({ ...f, assetSources: (f.assetSources ?? []).filter((_, i) => i !== idx) }));
+  }
+
+  function editAssetSource(idx: number, patch: Partial<AISearchAssetSource>) {
+    setForm(f => ({
+      ...f,
+      assetSources: (f.assetSources ?? []).map((src, i) => i === idx ? { ...src, ...patch } : src),
+    }));
+  }
+
+  function addAssetSource() {
+    if (!newAssetLabel || !newAssetUrl) return;
+    const isFolder = newAssetUrl.endsWith('/');
+    const source: AISearchAssetSource = {
+      sourceId: `asset-${Date.now()}`,
+      type: newAssetType,
+      label: newAssetLabel,
+      ...(isFolder ? { parentFolderUrl: newAssetUrl } : { url: newAssetUrl }),
+      description: `${newAssetLabel} configured for semantic search`,
+      keywords: newAssetLabel,
+      audienceRules: [
+        {
+          ruleId: `allow-${Date.now()}`,
+          label: 'Default HK audience',
+          customerSegments: ['premier', 'elite'],
+          accountTypes: ['wealth_account'],
+          locations: ['HK'],
+          action: 'allow',
+        },
+      ],
+    };
+    setForm(f => ({ ...f, assetSources: [...(f.assetSources ?? []), source] }));
+    setNewAssetLabel('');
+    setNewAssetUrl('');
+  }
+
   async function handleRebuild(configId: string) {
     setRebuildingId(configId);
     setRebuildStatus(s => ({ ...s, [configId]: '' }));
     try {
-      const res = await fetch(`${BFF_BASE}/api/v1/search/config/${configId}/rebuild`, { method: 'POST' });
+      const config = aiSearchConfigs.find(c => c.configId === configId);
+      const res = await fetch(`${BFF_BASE}/api/v1/search/config/${configId}/rebuild`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: config ? JSON.stringify(config) : undefined,
+      });
       const data = await res.json();
       if (res.ok) {
         dispatch({
@@ -275,7 +349,7 @@ export function AISearchAdminPanel() {
           <div>
             <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>AI Search</h2>
             <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>
-              Configure semantic search for each mobile app and the website. Each app gets its own search corpus built from quick-access entry points and product/content pages.
+              Configure semantic search for each mobile app and the website. Each app gets its own corpus built from entry points, OCDP/AEM content, and governed video, image, and file URLs.
             </p>
           </div>
           <button
@@ -492,6 +566,91 @@ export function AISearchAdminPanel() {
                 </button>
               </div>
             </div>
+
+            {/* Refresh schedule */}
+            {(form.assetSources?.length) && (
+              <div style={{ padding: 12, border: '1px solid var(--border-light)', borderRadius: 8, background: '#F9FAFB', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>
+                    Audience Governance
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                    Review, edit or delete governed configuration files, URL folders and asset URLs. The BFF applies these rules at search time using customer segment, account type and location.
+                  </div>
+                </div>
+
+                {(form.assetSources?.length ?? 0) > 0 && (
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 6 }}>Video / Image / File URLs</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {form.assetSources!.map((src, idx) => (
+                        <div key={src.sourceId} style={{ padding: 10, border: '1px solid var(--border-light)', borderRadius: 6, background: '#fff' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: '#DB0011', textTransform: 'uppercase' }}>{src.type}</span>
+                            <input
+                              style={{ ...inp, padding: '5px 8px', fontSize: 12 }}
+                              value={src.label}
+                              onChange={e => editAssetSource(idx, { label: e.target.value })}
+                            />
+                          </div>
+                          <input
+                            style={{ ...inp, padding: '5px 8px', fontSize: 12, marginTop: 6 }}
+                            value={src.url ?? src.parentFolderUrl ?? ''}
+                            onChange={e => editAssetSource(idx, src.url !== undefined ? { url: e.target.value } : { parentFolderUrl: e.target.value })}
+                          />
+                          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 5 }}>{audienceSummary(src)}</div>
+                          <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                            <button onClick={() => setReviewItem({ title: src.label, payload: src })}
+                              style={{ fontSize: 11, padding: '4px 9px', borderRadius: 5, border: '1px solid var(--border-mid)', background: '#fff', cursor: 'pointer' }}>Review</button>
+                            <button onClick={() => removeAssetSource(idx)}
+                              style={{ fontSize: 11, padding: '4px 9px', borderRadius: 5, border: '1px solid #FECACA', background: '#FEE2E2', color: '#DC2626', cursor: 'pointer' }}>Delete</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 6 }}>Add Governed URL</div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <select style={{ ...sel, flex: '0 0 88px' }} value={newAssetType}
+                      onChange={e => setNewAssetType(e.target.value as AISearchAssetSource['type'])}>
+                      <option value="video">Video</option>
+                      <option value="image">Image</option>
+                      <option value="file">File</option>
+                    </select>
+                    <input style={{ ...inp, flex: '1 1 140px' }} placeholder="Label"
+                      value={newAssetLabel} onChange={e => setNewAssetLabel(e.target.value)} />
+                    <input style={{ ...inp, flex: '1 1 220px' }} placeholder="URL or folder URL ending with /"
+                      value={newAssetUrl} onChange={e => setNewAssetUrl(e.target.value)} />
+                    <button onClick={addAssetSource}
+                      style={{ padding: '8px 12px', fontSize: 12, fontWeight: 600, borderRadius: 6,
+                        border: '1px solid #DB0011', background: '#DB0011', color: '#fff',
+                        cursor: 'pointer', fontFamily: 'var(--font-family)' }}>
+                      Add URL
+                    </button>
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                    New URLs default to Premier/Elite HK wealth customers; edit the saved JSON rule for other segment, account type or location targeting.
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {reviewItem && (
+              <div style={{ padding: 12, border: '1px solid var(--border-light)', borderRadius: 8, background: '#111827', color: '#fff' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <span style={{ fontSize: 12, fontWeight: 700 }}>Review: {reviewItem.title}</span>
+                  <button onClick={() => setReviewItem(null)}
+                    style={{ fontSize: 11, border: '1px solid rgba(255,255,255,0.25)', background: 'transparent', color: '#fff', borderRadius: 5, padding: '3px 8px', cursor: 'pointer' }}>Close</button>
+                </div>
+                <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 11, lineHeight: 1.45, maxHeight: 220, overflow: 'auto' }}>
+                  {JSON.stringify(reviewItem.payload, null, 2)}
+                </pre>
+              </div>
+            )}
 
             {/* Refresh schedule */}
             <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

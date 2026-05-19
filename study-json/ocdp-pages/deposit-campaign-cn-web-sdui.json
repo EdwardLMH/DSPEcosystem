@@ -29,8 +29,8 @@
       ]
     },
     "version": 1,
-    "publishedAt": "2026-05-17T11:04:25.828Z",
-    "generatedAt": "2026-05-18T11:04:25.828Z",
+    "publishedAt": "2026-05-18T17:41:18.038Z",
+    "generatedAt": "2026-05-19T17:41:18.038Z",
     "a11y": {
       "reduceMotion": false,
       "highContrast": false,
@@ -38,6 +38,57 @@
       "voiceOver": false,
       "talkBack": false,
       "screenReader": false
+    },
+    "observability": {
+      "standard": "OpenTelemetry / W3C Trace Context",
+      "tracePropagation": {
+        "requiredHeaders": [
+          "traceparent",
+          "x-request-id",
+          "x-platform",
+          "x-market"
+        ],
+        "piiRule": "Do not place customer identifiers, account numbers, tokens, or raw free-text PII in span names or high-cardinality attributes."
+      },
+      "clientSpans": [
+        "sdui.bootstrap",
+        "sdui.manifest.fetch",
+        "sdui.screen.fetch",
+        "sdui.screen.parse",
+        "sdui.component.render"
+      ],
+      "backendPath": [
+        "Tencent CDN/WAF",
+        "Kong external",
+        "BFF / SDUI API",
+        "Redis cache",
+        "database/search/object storage",
+        "SensorData operational bridge"
+      ],
+      "dataResidency": "China-resident telemetry; aggregate SLO/status only may cross regional boundary."
+    },
+    "operationalSlo": {
+      "availabilityMonthly": "99.9%",
+      "apiLatencyP95Ms": 600,
+      "staticJsonAvailabilityTarget": "99.99%",
+      "publishCompletionP95Seconds": 60,
+      "syntheticCheck": "syn-deposit-campaign-cn"
+    },
+    "cicd": {
+      "pipeline": "Jenkins",
+      "deploymentPlane": "mainland-china",
+      "supportedActions": [
+        "build-only",
+        "deploy",
+        "restart",
+        "site-switch"
+      ],
+      "deployMarkerAttributes": [
+        "release.tag",
+        "deployment.environment",
+        "deployment.platform",
+        "deployment.action"
+      ]
     }
   },
   "layout": {

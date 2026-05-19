@@ -2701,6 +2701,69 @@ function scoreEntry(entry, queryTokens, queryFreq) {
   return score;
 }
 
+function asArray(value) {
+  if (value === undefined || value === null) return [];
+  return Array.isArray(value) ? value : [value];
+}
+
+function normaliseAudience(req) {
+  return {
+    customerSegment: req.body.customerSegment || req.body.segmentId || req.headers['x-segment'] || req.headers['x-customer-segment'] || null,
+    accountType: req.body.accountType || req.headers['x-account-type'] || null,
+    customerLocation: req.body.customerLocation || req.body.location || req.headers['x-location'] || req.headers['x-customer-location'] || null,
+  };
+}
+
+function conditionMatches(condition, audience) {
+  const actual = condition.field === 'customerSegment'
+    ? audience.customerSegment
+    : condition.field === 'accountType'
+      ? audience.accountType
+      : condition.field === 'customerLocation'
+        ? audience.customerLocation
+        : null;
+  if (actual === null || actual === undefined) return false;
+  const values = asArray(condition.value);
+  if (condition.operator === 'is') return actual === values[0];
+  if (condition.operator === 'is_not') return actual !== values[0];
+  if (condition.operator === 'in') return values.includes(actual);
+  if (condition.operator === 'not_in') return !values.includes(actual);
+  return false;
+}
+
+function visibilityRuleMatches(rule, audience) {
+  const conditions = Array.isArray(rule.conditions) ? rule.conditions : [];
+  if (conditions.length === 0) return true;
+  return rule.conditionLogic === 'OR'
+    ? conditions.some(condition => conditionMatches(condition, audience))
+    : conditions.every(condition => conditionMatches(condition, audience));
+}
+
+function audienceRuleMatches(rule, audience) {
+  const segmentOk = !rule.customerSegments || rule.customerSegments.length === 0 || rule.customerSegments.includes(audience.customerSegment);
+  const accountOk = !rule.accountTypes || rule.accountTypes.length === 0 || rule.accountTypes.includes(audience.accountType);
+  const locationOk = !rule.locations || rule.locations.length === 0 || rule.locations.includes(audience.customerLocation);
+  return segmentOk && accountOk && locationOk;
+}
+
+function isVisibleForAudience(entry, audience) {
+  const visibilityRules = Array.isArray(entry.visibilityRules) ? entry.visibilityRules : [];
+  if (visibilityRules.length > 0) {
+    const matchedRules = visibilityRules.filter(rule => visibilityRuleMatches(rule, audience));
+    if (matchedRules.some(rule => rule.action === 'hide')) return false;
+    if (visibilityRules.some(rule => rule.action === 'show') && !matchedRules.some(rule => rule.action === 'show')) return false;
+  }
+
+  const audienceRules = Array.isArray(entry.audienceRules) ? entry.audienceRules : [];
+  if (audienceRules.length > 0) {
+    const matchedRules = audienceRules.filter(rule => audienceRuleMatches(rule, audience));
+    if (matchedRules.some(rule => rule.action === 'deny')) return false;
+    if (audienceRules.some(rule => rule.action === 'allow') && !matchedRules.some(rule => rule.action === 'allow')) return false;
+  }
+
+  return true;
+}
+
 // ─── POST /api/v1/search — semantic search (Zone 1 public) ────────────────────
 app.post('/api/v1/search', (req, res) => {
   const { query = '', limit = 8, types, appId, responseMode } = req.body;
@@ -2715,11 +2778,14 @@ app.post('/api/v1/search', (req, res) => {
 
   const queryTokens = tokenise(q);
   const queryFreq   = buildTermFreq(queryTokens);
+  const audience = normaliseAudience(req);
 
   // Prefer per-app corpus if appId provided and corpus exists; fall back to global
   let corpus = (appId && AI_SEARCH_CORPORA[appId] && AI_SEARCH_CORPORA[appId].length > 0)
     ? AI_SEARCH_CORPORA[appId]
     : SEARCH_CORPUS;
+
+  corpus = corpus.filter(entry => isVisibleForAudience(entry, audience));
 
   if (Array.isArray(types) && types.length > 0) {
     corpus = corpus.filter(e => types.includes(e.type));
@@ -2741,6 +2807,8 @@ app.post('/api/v1/search', (req, res) => {
     icon:        e.icon,
     category:    e.category,
     deepLink:    e.deepLink,
+    assetUrl:    e.assetUrl,
+    assetType:   e.assetType,
     score:       parseFloat(e.score.toFixed(4)),
   }));
 
@@ -2859,8 +2927,9 @@ app.post('/api/v1/search/config/:configId/rebuild', async (req, res) => {
     return res.status(404).json({ error: 'NOT_FOUND', message: 'No config found. POST /api/v1/search/config/:id first.' });
   }
 
-  const { appId, quickAccessSource, contentSources = [] } = cfg;
+  const { appId, quickAccessSource, contentSources = [], assetSources = [], entryPointRules = [] } = cfg;
   const corpusItems = [];
+  const entryRuleById = new Map(entryPointRules.map(ruleSet => [ruleSet.entryPointId, ruleSet]));
 
   // ── 1. Quick-access source ────────────────────────────────────────────────
   if (quickAccessSource) {
@@ -2895,6 +2964,7 @@ app.post('/api/v1/search/config/:configId/rebuild', async (req, res) => {
 
     for (const item of rawItems) {
       if (!item.id || !item.title) continue;
+      const entryRules = entryRuleById.get(item.id);
       corpusItems.push({
         id:          `qa-${appId}-${item.id}`,
         type:        item.type ?? 'function',
@@ -2904,6 +2974,8 @@ app.post('/api/v1/search/config/:configId/rebuild', async (req, res) => {
         icon:        item.icon ?? '⚡',
         category:    item.category ?? 'Quick Access',
         deepLink:    item.deepLink ?? '',
+        visibilityRules: entryRules?.visibilityRules ?? item.visibilityRules ?? [],
+        audienceRules: entryRules?.audienceRules ?? item.audienceRules ?? [],
       });
     }
   }
@@ -2960,6 +3032,7 @@ app.post('/api/v1/search/config/:configId/rebuild', async (req, res) => {
         icon:        '📄',
         category:    screenData.category,
         deepLink:    `hsbc://page/${src.ref}`,
+        visibilityRules: src.visibilityRules ?? [],
       });
     } else if (src.type === 'aem_url') {
       // Derive a synthetic corpus entry from the AEM URL
@@ -2978,8 +3051,28 @@ app.post('/api/v1/search/config/:configId/rebuild', async (req, res) => {
         icon:        '🌐',
         category:    'AEM Content',
         deepLink:    src.ref,
+        visibilityRules: src.visibilityRules ?? [],
       });
     }
+  }
+
+  // ── 3. Governed asset URL sources ──────────────────────────────────────────
+  for (const src of assetSources) {
+    const assetUrl = src.url || src.parentFolderUrl;
+    if (!assetUrl) continue;
+    corpusItems.push({
+      id:          `asset-${appId}-${src.sourceId}`,
+      type:        src.type ?? 'file',
+      title:       src.label || src.sourceId,
+      description: src.description || `${src.type || 'Asset'} source: ${assetUrl}`,
+      keywords:    src.keywords || src.label || '',
+      icon:        src.type === 'video' ? '▶️' : src.type === 'image' ? '🖼️' : '📎',
+      category:    src.type === 'video' ? 'Video' : src.type === 'image' ? 'Image' : 'File',
+      deepLink:    assetUrl,
+      assetUrl,
+      assetType:   src.type,
+      audienceRules: src.audienceRules ?? [],
+    });
   }
 
   // Deduplicate by id (quick-access wins over content if same id)

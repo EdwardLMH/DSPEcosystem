@@ -136,20 +136,58 @@ private final class HomeSDUIViewModel: ObservableObject {
     #endif
 
     func load() async {
+        let loadStarted = Date()
+        ObservabilityClient.shared.recordStartupStep(
+            "home_fetch_start",
+            durationMs: ObservabilityClient.shared.startupElapsedMs()
+        )
         guard let url = URL(string: "\(baseURL)/api/v1/screen/home-hub-hk") else {
             state = .fallback; return
         }
+        var request = URLRequest(url: url)
+        request.setValue("ios", forHTTPHeaderField: "x-platform")
+        request.setValue(ObservabilityClient.shared.traceparent(), forHTTPHeaderField: "traceparent")
         do {
-            let (data, response) = try await URLSession.shared.data(from: url)
+            let (data, response) = try await URLSession.shared.data(for: request)
+            let ok = (response as? HTTPURLResponse).map { (200...299).contains($0.statusCode) } ?? false
+            ObservabilityClient.shared.recordNetworkStep(
+                "sdui_screen_fetch",
+                durationMs: Int(Date().timeIntervalSince(loadStarted) * 1000),
+                path: "/api/v1/screen/home-hub-hk",
+                success: ok
+            )
             if let http = response as? HTTPURLResponse, http.statusCode == 200 {
+                let parseStarted = Date()
                 let payload = try JSONDecoder().decode(HomeHubPayload.self, from: data)
                 let visible = payload.layout.children.filter { $0.isVisible }
+                ObservabilityClient.shared.recordStartupStep(
+                    "home_parse_bff",
+                    durationMs: Int(Date().timeIntervalSince(parseStarted) * 1000)
+                )
                 state = visible.isEmpty ? .fallback : .sdui(visible)
+                ObservabilityClient.shared.recordStartupStep(
+                    "home_interactive",
+                    durationMs: Int(Date().timeIntervalSince(loadStarted) * 1000)
+                )
             } else {
                 state = .fallback
+                ObservabilityClient.shared.recordStartupStep(
+                    "home_load_error",
+                    durationMs: Int(Date().timeIntervalSince(loadStarted) * 1000)
+                )
             }
         } catch {
             state = .fallback
+            ObservabilityClient.shared.recordNetworkStep(
+                "sdui_screen_fetch",
+                durationMs: Int(Date().timeIntervalSince(loadStarted) * 1000),
+                path: "/api/v1/screen/home-hub-hk",
+                success: false
+            )
+            ObservabilityClient.shared.recordStartupStep(
+                "home_load_error",
+                durationMs: Int(Date().timeIntervalSince(loadStarted) * 1000)
+            )
         }
     }
 }

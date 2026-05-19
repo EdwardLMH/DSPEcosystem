@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hsbc.sdui.analytics.TealiumClient
+import com.hsbc.sdui.analytics.ObservabilityClient
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.json.JSONArray
@@ -48,6 +49,8 @@ data class SearchResult(
     val icon: String,
     val category: String,
     val deepLink: String,
+    val assetUrl: String? = null,
+    val assetType: String? = null,
     val score: Double
 )
 
@@ -150,6 +153,11 @@ private val localSearchCorpus = listOf(
 class AISearchViewModel : ViewModel() {
 
     private val bffBase = "http://10.0.2.2:4000" // Android emulator localhost alias
+    private val searchAudience = mapOf(
+        "customerSegment" to "premier",
+        "accountType" to "wealth_account",
+        "customerLocation" to "HK"
+    )
 
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
@@ -203,27 +211,42 @@ class AISearchViewModel : ViewModel() {
                 "search_submitted", screen = "ai_search", journey = "home_hub",
                 custom = mapOf("search_query" to q)
             )
+            val started = System.nanoTime()
+            var networkRecorded = false
             try {
                 val body = JSONObject().apply {
                     put("query", q)
                     put("limit", 10)
                     put("appId", "android")
                     put("responseMode", "a2ui")
+                    searchAudience.forEach { (key, value) -> put(key, value) }
                 }.toString()
                 val conn = URL("$bffBase/api/v1/search").openConnection() as java.net.HttpURLConnection
                 conn.apply {
                     requestMethod = "POST"
                     setRequestProperty("Content-Type", "application/json")
+                    setRequestProperty("traceparent", ObservabilityClient.traceparent())
+                    setRequestProperty("x-platform", "android")
                     doOutput = true
                     connectTimeout = 5000; readTimeout = 8000
                     outputStream.write(body.toByteArray())
                 }
+                ObservabilityClient.recordNetworkStep(
+                    "ai_search_query",
+                    (System.nanoTime() - started) / 1_000_000,
+                    "/api/v1/search",
+                    conn.responseCode in 200..299
+                )
+                networkRecorded = true
                 val responseBody = conn.inputStream.bufferedReader().readText()
                 val json = JSONObject(responseBody)
                 val items = parseA2UIResults(json).ifEmpty { parseLegacyResults(json) }
                 _results.value = items.ifEmpty { localSearch(q) }
                 _hasSearched.value = true
             } catch (e: Exception) {
+                if (!networkRecorded) {
+                    ObservabilityClient.recordNetworkStep("ai_search_query", (System.nanoTime() - started) / 1_000_000, "/api/v1/search", false)
+                }
                 val fallback = localSearch(q)
                 _error.value = if (fallback.isEmpty()) "搜尋服務暫時不可用，請稍後重試。" else null
                 _results.value = fallback
@@ -246,6 +269,8 @@ class AISearchViewModel : ViewModel() {
                 icon = o.optString("icon"),
                 category = o.optString("category", "功能入口"),
                 deepLink = o.optString("deepLink"),
+                assetUrl = o.optString("assetUrl").takeIf { it.isNotBlank() },
+                assetType = o.optString("assetType").takeIf { it.isNotBlank() },
                 score = o.optDouble("score", 0.0)
             )
         }.filter { it.title.isNotBlank() && it.deepLink.isNotBlank() }
@@ -259,12 +284,14 @@ class AISearchViewModel : ViewModel() {
             val action = component.optJSONObject("action") ?: JSONObject()
             SearchResult(
                 id = component.optString("id", "a2ui-result-$i"),
-                type = component.optString("type", "function"),
+                type = content.optString("resultType", component.optString("type", "function")),
                 title = content.optString("title"),
                 description = content.optString("description"),
                 icon = content.optString("icon"),
                 category = content.optString("category", "功能入口"),
                 deepLink = action.optString("url"),
+                assetUrl = content.optString("assetUrl").takeIf { it.isNotBlank() },
+                assetType = content.optString("assetType").takeIf { it.isNotBlank() },
                 score = content.optDouble("score", 0.0)
             )
         }.filter { it.title.isNotBlank() && it.deepLink.isNotBlank() }
@@ -294,6 +321,8 @@ class AISearchViewModel : ViewModel() {
                     icon = item.icon,
                     category = item.category,
                     deepLink = item.deepLink,
+                    assetUrl = null,
+                    assetType = null,
                     score = score
                 )
             }
@@ -428,12 +457,13 @@ fun AISearchScreen(
                                 screen = "ai_search", journey = "home_hub",
                                 custom = mapOf("result_id" to result.id,
                                     "result_type" to result.type,
-                                    "deep_link" to result.deepLink,
+                                    "deep_link" to (result.assetUrl ?: result.deepLink),
+                                    "asset_type" to (result.assetType ?: ""),
                                     "search_query" to query))
                             onDismiss()
                             try {
                                 context.startActivity(
-                                    Intent(Intent.ACTION_VIEW, Uri.parse(result.deepLink))
+                                    Intent(Intent.ACTION_VIEW, Uri.parse(result.assetUrl ?: result.deepLink))
                                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                             } catch (_: Exception) {}
                         }
@@ -521,9 +551,14 @@ private fun SearchResultRow(result: SearchResult, onTap: () -> Unit) {
                 color = N900, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(result.description, fontSize = 11.sp, color = N500,
                 maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 15.sp)
+            result.assetType?.let {
+                Text("Governed ${it.lowercase()} URL", fontSize = 10.sp,
+                    color = HsbcRed, fontWeight = FontWeight.SemiBold,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
         }
 
-        TypeBadge(result.type)
+        TypeBadge(result.assetType ?: result.type)
     }
 }
 

@@ -226,9 +226,12 @@ function searchResultsToA2UI(query, results = []) {
         icon: result.icon,
         category: result.category,
         score: result.score,
+        resultType: result.type,
+        assetUrl: result.assetUrl,
+        assetType: result.assetType,
       },
       action: {
-        type: 'DEEPLINK',
+        type: result.assetUrl ? 'EXTERNAL_URL' : 'DEEPLINK',
         url: result.deepLink,
       },
       analytics: {

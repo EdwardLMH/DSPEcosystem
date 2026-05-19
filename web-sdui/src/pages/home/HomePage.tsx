@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { tealium } from '../../analytics/TealiumClient';
+import { observability } from '../../analytics/ObservabilityClient';
 import { useSDUIContext } from '../../context/SDUIContext';
 import { useChannelMeta } from '../../hooks/useChannelMeta';
 
@@ -26,21 +27,31 @@ function useHomeSDUI() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      const loadStarted = performance.now();
       try {
+        observability.recordStartupStep('home_fetch_start', observability.startupElapsedMs());
         const res = await fetch(`${BFF_BASE}/api/v1/screen/home-hub-hk`, {
-          headers: { ...bffHeaders, 'x-platform': 'web' },
+          headers: { ...bffHeaders, 'x-platform': 'web', traceparent: observability.traceparent() },
         });
+        observability.recordNetworkStep('sdui_screen_fetch', performance.now() - loadStarted, '/api/v1/screen/home-hub-hk', res.ok);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const parseStarted = performance.now();
         const data = await res.json();
         const visible: HomeSlice[] = (data.layout?.children ?? []).filter(
           (s: HomeSlice) => s.visible !== false,
         );
+        observability.recordStartupStep('home_parse_bff', performance.now() - parseStarted);
         if (cancelled) return;
         if (visible.length === 0) { setLoadState('fallback'); return; }
         setSlices(visible);
         setLoadState('sdui');
+        observability.recordStartupStep('home_interactive', performance.now() - loadStarted);
       } catch {
-        if (!cancelled) setLoadState('fallback');
+        observability.recordStartupStep('home_load_error', performance.now() - loadStarted);
+        if (!cancelled) {
+          setLoadState('fallback');
+          observability.recordStartupStep('home_interactive_fallback', performance.now() - loadStarted);
+        }
       }
     })();
     return () => { cancelled = true; };

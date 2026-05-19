@@ -3,6 +3,12 @@ import SwiftUI
 @main
 struct HSBCSduiApp: App {
     @State private var store = AppStore()
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var hasActivatedOnce = false
+
+    init() {
+        ObservabilityClient.shared.markAppStart()
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -14,6 +20,15 @@ struct HSBCSduiApp: App {
                     reduceMotion: UIAccessibility.isReduceMotionEnabled,
                     highContrast: UIAccessibility.isDarkerSystemColorsEnabled
                 )
+        }
+        .onChange(of: scenePhase) { phase in
+            if phase == .active {
+                if hasActivatedOnce {
+                    ObservabilityClient.shared.markForeground()
+                } else {
+                    hasActivatedOnce = true
+                }
+            }
         }
     }
 }
