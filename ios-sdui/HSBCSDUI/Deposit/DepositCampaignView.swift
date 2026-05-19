@@ -584,8 +584,8 @@ private struct DepositFAQSection: View {
 
 private struct DepositInsuranceSection: View {
     let slice: DepositSlice
-    @Environment(\.openURL) private var openURL
     @StateObject private var loader = RemoteImageLoader()
+    @State private var pdfPreview: DepositPDFPreview?
 
     #if targetEnvironment(simulator)
     private let mediaBase = "http://127.0.0.1:4000"
@@ -606,16 +606,37 @@ private struct DepositInsuranceSection: View {
     }
 
     private var linkUrl: String {
-        slice.string("linkUrl") ?? "https://www.hsbc.com.cn/content/dam/hsbc/cn/docs/insurance/insurance-prodcut-electronic-notice.pdf"
+        let raw = slice.string("linkUrl") ?? "https://www.hsbc.com.cn/content/dam/hsbc/cn/docs/insurance/insurance-prodcut-electronic-notice.pdf"
+        if raw.contains("www.hsbc.com.cn/content/dam/hsbc/cn/docs/insurance/insurance-prodcut-electronic-notice.pdf") {
+            return "\(mediaBase)/api/v1/assets/deposit-insurance-notice.pdf"
+        }
+        return raw
+            .replacingOccurrences(of: "http://localhost:4000", with: mediaBase)
+            .replacingOccurrences(of: "http://localhost", with: mediaBase)
+    }
+
+    private func openPDF() {
+        TealiumClient.sliceTapped(sliceType: "DEPOSIT_INSURANCE",
+            instanceId: slice.instanceId, ctaLabel: title, deepLink: linkUrl)
+        guard let url = URL(string: linkUrl) else {
+            TealiumClient.track(
+                event: "sdui_action_error",
+                category: "Deposit",
+                action: "deposit_insurance_pdf_open_failed",
+                label: linkUrl,
+                screen: "deposit_campaign_cn",
+                journey: "deposit_campaign",
+                componentId: slice.instanceId,
+                custom: ["type": "DEPOSIT_INSURANCE", "reason": "invalid_pdf_url"]
+            )
+            return
+        }
+        pdfPreview = DepositPDFPreview(url: url, title: title)
     }
 
     var body: some View {
         Button {
-            TealiumClient.sliceTapped(sliceType: "DEPOSIT_INSURANCE",
-                instanceId: slice.instanceId, ctaLabel: title, deepLink: linkUrl)
-            if let url = URL(string: linkUrl) {
-                openURL(url)
-            }
+            openPDF()
         } label: {
             ZStack {
                 Hive.Color.brandWhite
@@ -648,6 +669,159 @@ private struct DepositInsuranceSection: View {
             loader.load(from: logoUrl)
             TealiumClient.sliceImpression(sliceType: "DEPOSIT_INSURANCE",
                                           instanceId: slice.instanceId, position: 7)
+        }
+        .sheet(item: $pdfPreview) { preview in
+            InAppPDFViewer(url: preview.url, title: preview.title)
+        }
+    }
+}
+
+private struct DepositPDFPreview: Identifiable {
+    let id = UUID()
+    let url: URL
+    let title: String
+}
+
+private struct InAppPDFViewer: View {
+    let url: URL
+    let title: String
+    @Environment(\.dismiss) private var dismiss
+    @State private var pages: [UIImage] = []
+    @State private var isLoading = true
+    @State private var errorMessage: String?
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(title)
+                    .font(Hive.Typography.labelBase)
+                    .foregroundColor(Hive.Color.n900)
+                Spacer()
+                Button("Done") { dismiss() }
+                    .foregroundColor(Hive.Color.brandPrimary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            Divider()
+
+            if isLoading {
+                VStack(spacing: 12) {
+                    ProgressView()
+                    Text("Loading PDF...")
+                        .font(Hive.Typography.bodySm)
+                        .foregroundColor(Hive.Color.n500)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if let errorMessage {
+                VStack(spacing: 12) {
+                    Text("Unable to load PDF")
+                        .font(Hive.Typography.labelBase)
+                        .foregroundColor(Hive.Color.n700)
+                    Text(errorMessage)
+                        .font(Hive.Typography.bodySm)
+                        .foregroundColor(Hive.Color.n500)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(24)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 12) {
+                        ForEach(Array(pages.enumerated()), id: \.offset) { _, image in
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFit()
+                                .background(Color.white)
+                                .shadow(color: Color.black.opacity(0.08), radius: 3, x: 0, y: 1)
+                        }
+                    }
+                    .padding(12)
+                }
+                .background(Hive.Color.n50)
+            }
+        }
+        .background(Hive.Color.brandWhite)
+        .task(id: url) {
+            await loadPDF()
+        }
+    }
+
+    private func loadPDF() async {
+        isLoading = true
+        errorMessage = nil
+        pages = []
+
+        do {
+            var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)
+            request.setValue("application/pdf,*/*", forHTTPHeaderField: "Accept")
+            request.setValue("HSBCSDUI/1.0", forHTTPHeaderField: "User-Agent")
+
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200..<300).contains(httpResponse.statusCode) else {
+                let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+                throw NSError(domain: "DepositPDF", code: status, userInfo: [
+                    NSLocalizedDescriptionKey: "HTTP \(status)"
+                ])
+            }
+            guard data.prefix(4) == Data([0x25, 0x50, 0x44, 0x46]) else {
+                throw NSError(domain: "DepositPDF", code: -2, userInfo: [
+                    NSLocalizedDescriptionKey: "Downloaded response is not a PDF"
+                ])
+            }
+
+            let renderedPages = try await Task.detached(priority: .userInitiated) {
+                try renderPDFPages(from: data)
+            }.value
+            pages = renderedPages
+        } catch {
+            errorMessage = error.localizedDescription
+            TealiumClient.track(
+                event: "sdui_action_error",
+                category: "Deposit",
+                action: "deposit_insurance_pdf_load_failed",
+                label: url.absoluteString,
+                screen: "deposit_campaign_cn",
+                journey: "deposit_campaign",
+                custom: ["reason": error.localizedDescription]
+            )
+        }
+
+        isLoading = false
+    }
+}
+
+private func renderPDFPages(from data: Data) throws -> [UIImage] {
+    guard let provider = CGDataProvider(data: data as CFData),
+          let document = CGPDFDocument(provider),
+          document.numberOfPages > 0 else {
+        throw NSError(domain: "DepositPDF", code: -4, userInfo: [
+            NSLocalizedDescriptionKey: "Unable to parse PDF pages"
+        ])
+    }
+
+    return try (1...document.numberOfPages).map { pageIndex in
+        guard let page = document.page(at: pageIndex) else {
+            throw NSError(domain: "DepositPDF", code: -5, userInfo: [
+                NSLocalizedDescriptionKey: "Unable to read PDF page \(pageIndex)"
+            ])
+        }
+
+        let box = page.getBoxRect(.mediaBox)
+        let targetWidth: CGFloat = 1200
+        let scale = targetWidth / max(box.width, 1)
+        let targetSize = CGSize(width: box.width * scale, height: box.height * scale)
+        let renderer = UIGraphicsImageRenderer(size: targetSize)
+        return renderer.image { context in
+            UIColor.white.setFill()
+            context.fill(CGRect(origin: .zero, size: targetSize))
+            let cgContext = context.cgContext
+            cgContext.saveGState()
+            cgContext.translateBy(x: 0, y: targetSize.height)
+            cgContext.scaleBy(x: scale, y: -scale)
+            cgContext.translateBy(x: -box.minX, y: -box.minY)
+            cgContext.drawPDFPage(page)
+            cgContext.restoreGState()
         }
     }
 }

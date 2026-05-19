@@ -17,6 +17,8 @@ interface DepositHeroBanner_Params {
 interface DepositInsuranceSection_Params {
     props?: Record<string, ESObject>;
     instanceId?: string;
+    showPdfViewer?: boolean;
+    pdfController?: webview.WebviewController;
 }
 interface DepositFAQSection_Params {
     props?: Record<string, ESObject>;
@@ -51,6 +53,7 @@ import { fetchDepositCampaignScreen } from "@normalized:N&&&entry/src/main/ets/n
 import type { ScreenSlice } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
 import type common from "@ohos:app.ability.common";
 import type Want from "@ohos:app.ability.Want";
+import webview from "@ohos:web.webview";
 // ─── Load-state enum ──────────────────────────────────────────────────────────
 // ArkTS forbids string-union @State — plain number constants are used instead.
 const LOAD_IDLE = 0;
@@ -117,7 +120,7 @@ class DepositSDUISliceView extends ViewPU {
                                     title: this.slice.props['title'] as string ?? 'Renminbi Savings Offers',
                                     showBack: this.slice.props['showBackButton'] as boolean ?? true,
                                     onBack: this.onBack
-                                }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 37, col: 7 });
+                                }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 38, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -140,7 +143,7 @@ class DepositSDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new DepositPromoBanner(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 43, col: 7 });
+                                let componentCall = new DepositPromoBanner(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 44, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -161,7 +164,7 @@ class DepositSDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new DepositRateTable(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 45, col: 7 });
+                                let componentCall = new DepositRateTable(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 46, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -182,7 +185,7 @@ class DepositSDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new DepositOpenCTA(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 47, col: 7 });
+                                let componentCall = new DepositOpenCTA(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 48, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -203,7 +206,7 @@ class DepositSDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new DepositFAQSection(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 49, col: 7 });
+                                let componentCall = new DepositFAQSection(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 50, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -224,7 +227,7 @@ class DepositSDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new DepositInsuranceSection(this, { props: this.slice.props, instanceId: this.slice.instanceId }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 51, col: 7 });
+                                let componentCall = new DepositInsuranceSection(this, { props: this.slice.props, instanceId: this.slice.instanceId }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 52, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -346,7 +349,7 @@ export class DepositCampaignView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new DepositHeaderBar(this, { title: 'Renminbi Savings Offers', showBack: true, onBack: this.onBack }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 93, col: 9 });
+                                let componentCall = new DepositHeaderBar(this, { title: 'Renminbi Savings Offers', showBack: true, onBack: this.onBack }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 94, col: 9 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -400,7 +403,7 @@ export class DepositCampaignView extends ViewPU {
                             {
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     if (isInitialRender) {
-                                        let componentCall = new DepositSDUISliceView(this, { slice: slice, onBack: this.onBack }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 106, col: 17 });
+                                        let componentCall = new DepositSDUISliceView(this, { slice: slice, onBack: this.onBack }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 107, col: 17 });
                                         ViewPU.create(componentCall);
                                         let paramsLambda = () => {
                                             return {
@@ -448,7 +451,7 @@ export class DepositCampaignView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new DepositHeaderBar(this, { title: 'Renminbi Savings Offers', showBack: true, onBack: this.onBack }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 117, col: 13 });
+                                let componentCall = new DepositHeaderBar(this, { title: 'Renminbi Savings Offers', showBack: true, onBack: this.onBack }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 118, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -467,7 +470,7 @@ export class DepositCampaignView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new DepositHeroBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 118, col: 13 });
+                                let componentCall = new DepositHeroBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 119, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -482,7 +485,7 @@ export class DepositCampaignView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new DepositCalloutBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 119, col: 13 });
+                                let componentCall = new DepositCalloutBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 120, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -497,7 +500,7 @@ export class DepositCampaignView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new DepositHardcodedRateTable(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 120, col: 13 });
+                                let componentCall = new DepositHardcodedRateTable(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 121, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -512,7 +515,7 @@ export class DepositCampaignView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new DepositHardcodedCTA(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 121, col: 13 });
+                                let componentCall = new DepositHardcodedCTA(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 122, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -532,7 +535,7 @@ export class DepositCampaignView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new DepositHardcodedFAQ(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 123, col: 13 });
+                                let componentCall = new DepositHardcodedFAQ(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/deposit/DepositCampaignPage.ets", line: 124, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -1231,6 +1234,8 @@ class DepositInsuranceSection extends ViewPU {
         }
         this.props = {};
         this.instanceId = 'dep-insurance';
+        this.__showPdfViewer = new ObservedPropertySimplePU(false, this, "showPdfViewer");
+        this.pdfController = new webview.WebviewController();
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
@@ -1241,17 +1246,33 @@ class DepositInsuranceSection extends ViewPU {
         if (params.instanceId !== undefined) {
             this.instanceId = params.instanceId;
         }
+        if (params.showPdfViewer !== undefined) {
+            this.showPdfViewer = params.showPdfViewer;
+        }
+        if (params.pdfController !== undefined) {
+            this.pdfController = params.pdfController;
+        }
     }
     updateStateVars(params: DepositInsuranceSection_Params) {
     }
     purgeVariableDependenciesOnElmtId(rmElmtId) {
+        this.__showPdfViewer.purgeDependencyOnElmtId(rmElmtId);
     }
     aboutToBeDeleted() {
+        this.__showPdfViewer.aboutToBeDeleted();
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
     private props: Record<string, any>;
     private instanceId: string;
+    private __showPdfViewer: ObservedPropertySimplePU<boolean>;
+    get showPdfViewer() {
+        return this.__showPdfViewer.get();
+    }
+    set showPdfViewer(newValue: boolean) {
+        this.__showPdfViewer.set(newValue);
+    }
+    private pdfController: webview.WebviewController;
     private title(): string { return this.props['title'] as string ?? '存款保险'; }
     private linkUrl(): string {
         return this.props['linkUrl'] as string ??
@@ -1267,12 +1288,59 @@ class DepositInsuranceSection extends ViewPU {
         }
         return raw;
     }
+    private openPdf(): void {
+        const url = this.linkUrl();
+        SensorDataClient.track('deposit_insurance_tap', 'Deposit', 'deposit_insurance_tapped', url, 'deposit_campaign_cn', 'deposit_campaign');
+        this.showPdfViewer = true;
+    }
+    pdfSheet(parent = null) {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create();
+            Column.width('100%');
+            Column.height('100%');
+            Column.backgroundColor(Hive.Color.brandWhite);
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.width('100%');
+            Row.padding({ left: 16, right: 16, top: 12, bottom: 12 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.title());
+            Text.fontSize(18);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor(Hive.Color.n900);
+            Text.layoutWeight(1);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Button.createWithLabel('Done');
+            Button.fontColor(Hive.Color.brandPrimary);
+            Button.backgroundColor(Color.Transparent);
+            Button.onClick(() => { this.showPdfViewer = false; });
+        }, Button);
+        Button.pop();
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Divider.create();
+            Divider.color(Hive.Color.n200);
+        }, Divider);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Web.create({ src: this.linkUrl(), controller: this.pdfController });
+            Web.width('100%');
+            Web.layoutWeight(1);
+        }, Web);
+        Column.pop();
+    }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create();
             Row.width('100%');
             Row.padding({ left: 16, right: 16, top: 12, bottom: 12 });
             Row.backgroundColor(Hive.Color.brandWhite);
+            Row.bindSheet({ value: this.showPdfViewer, changeEvent: newValue => { this.showPdfViewer = newValue; } }, { builder: () => {
+                    this.pdfSheet.call(this);
+                } }, { height: SheetSize.LARGE });
             Row.onAppear(() => {
                 SensorDataClient.track('slice_impression', 'Deposit', 'DEPOSIT_INSURANCE', this.instanceId, 'deposit_campaign_cn', 'deposit_campaign');
             });
@@ -1286,7 +1354,7 @@ class DepositInsuranceSection extends ViewPU {
             Image.backgroundColor(Hive.Color.brandWhite);
             Image.border({ width: 1, color: Hive.Color.n200, radius: 8 });
             Image.onClick(() => {
-                SensorDataClient.track('deposit_insurance_tap', 'Deposit', 'deposit_insurance_tapped', this.linkUrl(), 'deposit_campaign_cn', 'deposit_campaign');
+                this.openPdf();
             });
         }, Image);
         Row.pop();

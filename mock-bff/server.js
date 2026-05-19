@@ -26,6 +26,7 @@
 const express = require('express');
 const cors    = require('cors');
 const { v4: uuidv4 } = require('uuid');
+const https = require('https');
 const path = require('path');
 const {
   SDUI_V2_SCHEMA,
@@ -38,6 +39,7 @@ const {
 const app  = express();
 const PORT = Number(process.env.PORT || 4000);
 const MEDIA_DIR = path.join(__dirname, 'public/media');
+const DEPOSIT_INSURANCE_PDF_URL = 'https://www.hsbc.com.cn/content/dam/hsbc/cn/docs/insurance/insurance-prodcut-electronic-notice.pdf';
 
 app.use(cors());
 app.use(express.json());
@@ -48,6 +50,39 @@ app.get('/media/:name(Wealth1|Wealth2|fx-viewpoint).mp4', (req, res) => {
 app.get('/media/:name(fx-viewpoint-thumbnail|announcement-envelope|announcement-elaisee).jpg', (req, res) => {
   res.type('image/jpeg');
   res.sendFile(path.join(MEDIA_DIR, 'deposit-campaign-banner.jpg'));
+});
+app.get('/api/v1/assets/deposit-insurance-notice.pdf', (req, res) => {
+  const proxy = (url, redirectCount = 0) => {
+    https.get(url, {
+      headers: {
+        Accept: 'application/pdf,*/*',
+        'User-Agent': 'HSBCSDUI-BFF/1.0',
+      },
+    }, upstream => {
+      if ([301, 302, 303, 307, 308].includes(upstream.statusCode) && upstream.headers.location && redirectCount < 3) {
+        upstream.resume();
+        proxy(new URL(upstream.headers.location, url).toString(), redirectCount + 1);
+        return;
+      }
+
+      if (upstream.statusCode < 200 || upstream.statusCode >= 300) {
+        upstream.resume();
+        res.status(upstream.statusCode || 502).json({ error: 'deposit_insurance_pdf_unavailable' });
+        return;
+      }
+
+      res.setHeader('content-type', upstream.headers['content-type'] || 'application/pdf');
+      res.setHeader('cache-control', 'public, max-age=300');
+      if (upstream.headers['content-length']) {
+        res.setHeader('content-length', upstream.headers['content-length']);
+      }
+      upstream.pipe(res);
+    }).on('error', error => {
+      res.status(502).json({ error: 'deposit_insurance_pdf_proxy_failed', message: error.message });
+    });
+  };
+
+  proxy(DEPOSIT_INSURANCE_PDF_URL);
 });
 app.use('/media', express.static(MEDIA_DIR));
 
@@ -1227,7 +1262,7 @@ const DEPOSIT_INSURANCE_PROPS = {
   title: '存款保险',
   logoUrl: '/media/deposit-insurance-logo.jpg',
   altText: '存款保险标识',
-  linkUrl: 'https://www.hsbc.com.cn/content/dam/hsbc/cn/docs/insurance/insurance-prodcut-electronic-notice.pdf',
+  linkUrl: DEPOSIT_INSURANCE_PDF_URL,
 };
 
 ucpPages.set('deposit-campaign-cn', {

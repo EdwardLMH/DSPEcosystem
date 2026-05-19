@@ -1,11 +1,15 @@
 package com.hsbc.sdui.deposit
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.pdf.PdfRenderer
 import android.net.Uri
+import android.os.ParcelFileDescriptor
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,21 +21,28 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.google.gson.annotations.SerializedName
 import com.hsbc.sdui.analytics.TealiumClient
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
+import java.io.File
 
 // ─── Design tokens (inline) ───────────────────────────────────────────────────
 
@@ -47,6 +58,10 @@ private val N900      = Color(0xFF0A0A0A)
 private val White     = Color.White
 private val Amber50   = Color(0xFFFFF7ED)
 private val AmberText = Color(0xFF92400E)
+private val pdfHttpClient = OkHttpClient.Builder()
+    .followRedirects(true)
+    .followSslRedirects(true)
+    .build()
 
 // ─── Network models ───────────────────────────────────────────────────────────
 
@@ -459,7 +474,8 @@ private fun DepositFAQSection(slice: DepositSlice) {
 
 @Composable
 private fun DepositInsuranceSection(slice: DepositSlice) {
-    val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
+    var activePdfUrl by remember { mutableStateOf<String?>(null) }
     val title = slice.str("title").ifEmpty { "存款保险" }
     val logoUrl = slice.str("logoUrl")
         .ifEmpty { "/media/deposit-insurance-logo.jpg" }
@@ -467,6 +483,13 @@ private fun DepositInsuranceSection(slice: DepositSlice) {
         .let { if (it.startsWith("/media/")) "http://10.0.2.2:4000$it" else it }
     val linkUrl = slice.str("linkUrl").ifEmpty {
         "https://www.hsbc.com.cn/content/dam/hsbc/cn/docs/insurance/insurance-prodcut-electronic-notice.pdf"
+    }.let {
+        if (it.contains("www.hsbc.com.cn/content/dam/hsbc/cn/docs/insurance/insurance-prodcut-electronic-notice.pdf")) {
+            "http://10.0.2.2:4000/api/v1/assets/deposit-insurance-notice.pdf"
+        } else {
+            it.replace("http://localhost:4000", "http://10.0.2.2:4000")
+                .replace("http://localhost", "http://10.0.2.2:4000")
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -485,7 +508,7 @@ private fun DepositInsuranceSection(slice: DepositSlice) {
                 .height(140.dp)
                 .clickable {
                     TealiumClient.sliceTapped("DEPOSIT_INSURANCE", slice.instanceId, title, linkUrl)
-                    uriHandler.openUri(linkUrl)
+                    activePdfUrl = linkUrl
                 },
             shape = RoundedCornerShape(8.dp),
             color = White,
@@ -498,6 +521,138 @@ private fun DepositInsuranceSection(slice: DepositSlice) {
                 modifier = Modifier.fillMaxSize().padding(10.dp),
                 contentScale = ContentScale.Fit,
             )
+        }
+    }
+
+    activePdfUrl?.let { pdfUrl ->
+        InAppPdfDialog(
+            title = title,
+            url = pdfUrl,
+            onDismiss = { activePdfUrl = null }
+        )
+    }
+}
+
+@Composable
+private fun InAppPdfDialog(title: String, url: String, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    var pages by remember(url) { mutableStateOf<List<Bitmap>>(emptyList()) }
+    var error by remember(url) { mutableStateOf<String?>(null) }
+    var loading by remember(url) { mutableStateOf(true) }
+
+    LaunchedEffect(url) {
+        loading = true
+        error = null
+        pages = emptyList()
+        runCatching {
+            withContext(Dispatchers.IO) {
+                val file = File(context.cacheDir, "deposit-insurance-${url.hashCode()}.pdf")
+                val request = Request.Builder()
+                    .url(url)
+                    .header("Accept", "application/pdf,*/*")
+                    .header("User-Agent", "HSBCSDUI-Android/1.0")
+                    .build()
+                pdfHttpClient.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        throw IllegalStateException("HTTP ${response.code}")
+                    }
+                    val body = response.body ?: throw IllegalStateException("Empty PDF response")
+                    val contentType = body.contentType()?.toString().orEmpty()
+                    file.outputStream().use { output -> body.byteStream().use { input -> input.copyTo(output) } }
+                    if (file.length() == 0L) {
+                        throw IllegalStateException("Downloaded PDF is empty")
+                    }
+                    if (contentType.isNotEmpty() && !contentType.contains("pdf", ignoreCase = true)) {
+                        throw IllegalStateException("Unexpected content type: $contentType")
+                    }
+                }
+                val descriptor = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
+                try {
+                    PdfRenderer(descriptor).use { renderer ->
+                        if (renderer.pageCount == 0) {
+                            throw IllegalStateException("PDF has no pages")
+                        }
+                        (0 until renderer.pageCount).map { index ->
+                            renderer.openPage(index).use { page ->
+                                val scale = 2
+                                val bitmap = Bitmap.createBitmap(
+                                    page.width * scale,
+                                    page.height * scale,
+                                    Bitmap.Config.ARGB_8888
+                                )
+                                bitmap.eraseColor(android.graphics.Color.WHITE)
+                                page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                                bitmap
+                            }
+                        }
+                    }
+                } finally {
+                    descriptor.close()
+                }
+            }
+        }.onSuccess {
+            pages = it
+        }.onFailure {
+            error = it.localizedMessage ?: "Unable to open PDF"
+            TealiumClient.track(
+                event = "sdui_action_error",
+                category = "Deposit",
+                action = "deposit_insurance_pdf_open_failed",
+                label = url,
+                screen = "deposit_campaign_cn",
+                journey = "deposit_campaign"
+            )
+        }
+        loading = false
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = White
+        ) {
+            Column(Modifier.fillMaxSize()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(White)
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(title, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = N900)
+                    TextButton(onClick = onDismiss) { Text("Done", color = HsbcRed) }
+                }
+                Divider(color = N200)
+                when {
+                    loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = HsbcRed)
+                    }
+                    error != null -> Box(
+                        Modifier.fillMaxSize().padding(24.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(error ?: "Unable to open PDF", color = N500, textAlign = TextAlign.Center)
+                    }
+                    else -> LazyColumn(
+                        modifier = Modifier.fillMaxSize().background(N50),
+                        contentPadding = PaddingValues(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        itemsIndexed(pages) { _, bitmap ->
+                            Image(
+                                bitmap = bitmap.asImageBitmap(),
+                                contentDescription = title,
+                                modifier = Modifier.fillMaxWidth().background(White),
+                                contentScale = ContentScale.FillWidth
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

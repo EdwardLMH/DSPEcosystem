@@ -8,6 +8,13 @@ const BASE_URL = `http://127.0.0.1:${PORT}`;
 const OUT_JSON = path.join(ROOT, 'study-json');
 const OUT_HTML = path.join(ROOT, 'study-html');
 
+const obkycArtifacts = [
+  { file: 'obkyc-journeys/obkyc-ios-journey.json', platform: 'ios', channel: 'SDUI', locale: 'en' },
+  { file: 'obkyc-journeys/obkyc-android-journey.json', platform: 'android', channel: 'SDUI', locale: 'en' },
+  { file: 'obkyc-journeys/obkyc-harmonynext-journey.json', platform: 'harmonynext', channel: 'SDUI', locale: 'en' },
+  { file: 'obkyc-journeys/obkyc-web-journey.json', platform: 'web', channel: 'WEB_STANDARD', locale: 'en' },
+];
+
 const jsonArtifacts = [
   {
     file: 'harmonynext-hk-pages/home-hub-hk.json',
@@ -143,6 +150,18 @@ async function fetchJson(url, headers) {
   const response = await fetch(`${BASE_URL}${url}`, { headers });
   if (!response.ok) {
     throw new Error(`GET ${url} failed with ${response.status}`);
+  }
+  return response.json();
+}
+
+async function postJson(url, headers, body = {}) {
+  const response = await fetch(`${BASE_URL}${url}`, {
+    method: 'POST',
+    headers: { ...headers, 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw new Error(`POST ${url} failed with ${response.status}`);
   }
   return response.json();
 }
@@ -335,6 +354,51 @@ async function writeHtmlArtifacts(webPayload) {
   }
 }
 
+function obkycHeaders(artifact) {
+  return {
+    'x-platform': artifact.platform,
+    'x-channel': artifact.channel,
+    'x-locale': artifact.locale,
+  };
+}
+
+async function writeObkycArtifact(artifact) {
+  const headers = obkycHeaders(artifact);
+  const session = await postJson('/api/v1/kyc/sessions/start', headers, {
+    journeyId: 'obkyc-account-opening',
+  });
+  const steps = [];
+  for (let index = 1; index <= session.totalSteps; index++) {
+    const stepId = `step-${String(index).padStart(3, '0')}`;
+    const step = await fetchJson(`/api/v1/kyc/sessions/${session.sessionId}/steps/${stepId}`, headers);
+    steps.push(step);
+  }
+
+  const journey = {
+    schemaVersion: '2.3',
+    journeyId: 'obkyc-account-opening',
+    journeyName: artifact.platform === 'web' ? 'OBKYC Account Opening - Web' : 'OBKYC Account Opening',
+    sessionId: session.sessionId,
+    platform: artifact.platform,
+    channel: artifact.channel,
+    locale: artifact.locale,
+    totalSteps: session.totalSteps,
+    generatedAt: new Date().toISOString(),
+    endpoints: {
+      start: '/api/v1/kyc/sessions/start',
+      resume: `/api/v1/kyc/sessions/${session.sessionId}/resume`,
+      step: `/api/v1/kyc/sessions/${session.sessionId}/steps/{stepId}`,
+      submit: `/api/v1/kyc/sessions/${session.sessionId}/steps/{stepId}/submit`,
+    },
+    steps,
+  };
+
+  const target = path.join(OUT_JSON, artifact.file);
+  await mkdir(path.dirname(target), { recursive: true });
+  await writeFile(target, `${JSON.stringify(journey, null, 2)}\n`);
+  console.log(`wrote ${path.relative(ROOT, target)}`);
+}
+
 async function main() {
   const bff = startBff();
   try {
@@ -347,6 +411,9 @@ async function main() {
       }
     }
     await writeHtmlArtifacts(webStandardPayload);
+    for (const artifact of obkycArtifacts) {
+      await writeObkycArtifact(artifact);
+    }
   } finally {
     bff.kill('SIGTERM');
   }

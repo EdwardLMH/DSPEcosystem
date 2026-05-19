@@ -25,6 +25,7 @@
         android:label="HSBC SDUI"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:testOnly="true"
         android:theme="@style/Theme.HSBCSDUIAndroid"
         android:usesCleartextTraffic="true" >
         <activity

@@ -11,11 +11,11 @@ function resolveHarmonyLocale(): string {
     const systemLocale = i18n.System.getSystemLocale(); // e.g. "zh-Hant-HK", "en-GB"
     const lower = systemLocale.toLowerCase();
     if (lower.startsWith('zh-hant') || lower === 'zh-hk' || lower === 'zh-tw')
-        return 'zh-TW';
+        return 'zh-HK';
     if (lower.startsWith('zh-hans') || lower === 'zh-cn' || lower === 'zh-sg')
         return 'zh-CN';
     if (lower.startsWith('zh'))
-        return 'zh-TW';
+        return 'zh-HK';
     if (lower.startsWith('ar'))
         return 'ar';
     if (lower.startsWith('es'))

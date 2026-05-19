@@ -9,6 +9,7 @@ import { SensorDataClient } from '../network/SensorDataClient'
 import { fetchDepositCampaignScreen, ScreenSlice } from '../network/KYCNetworkService'
 import common from '@ohos.app.ability.common'
 import Want from '@ohos.app.ability.Want'
+import webview from '@ohos.web.webview'
 
 // ─── Load-state enum ──────────────────────────────────────────────────────────
 // ArkTS forbids string-union @State — plain number constants are used instead.
@@ -425,6 +426,8 @@ struct DepositFAQSection {
 struct DepositInsuranceSection {
   props: Record<string, ESObject> = {}
   instanceId: string = 'dep-insurance'
+  @State private showPdfViewer: boolean = false
+  private pdfController: webview.WebviewController = new webview.WebviewController()
 
   private title(): string { return this.props['title'] as string ?? '存款保险' }
   private linkUrl(): string {
@@ -442,6 +445,40 @@ struct DepositInsuranceSection {
     return raw
   }
 
+  private openPdf(): void {
+    const url = this.linkUrl()
+    SensorDataClient.track('deposit_insurance_tap', 'Deposit', 'deposit_insurance_tapped',
+      url, 'deposit_campaign_cn', 'deposit_campaign')
+    this.showPdfViewer = true
+  }
+
+  @Builder pdfSheet() {
+    Column() {
+      Row() {
+        Text(this.title())
+          .fontSize(18)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(Hive.Color.n900)
+          .layoutWeight(1)
+        Button('Done')
+          .fontColor(Hive.Color.brandPrimary)
+          .backgroundColor(Color.Transparent)
+          .onClick(() => { this.showPdfViewer = false })
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+
+      Divider().color(Hive.Color.n200)
+
+      Web({ src: this.linkUrl(), controller: this.pdfController })
+        .width('100%')
+        .layoutWeight(1)
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor(Hive.Color.brandWhite)
+  }
+
   build() {
     Row() {
       Image(this.logoUrl())
@@ -452,13 +489,13 @@ struct DepositInsuranceSection {
         .backgroundColor(Hive.Color.brandWhite)
         .border({ width: 1, color: Hive.Color.n200, radius: 8 })
         .onClick(() => {
-          SensorDataClient.track('deposit_insurance_tap', 'Deposit', 'deposit_insurance_tapped',
-            this.linkUrl(), 'deposit_campaign_cn', 'deposit_campaign')
+          this.openPdf()
         })
     }
     .width('100%')
     .padding({ left: 16, right: 16, top: 12, bottom: 12 })
     .backgroundColor(Hive.Color.brandWhite)
+    .bindSheet($$this.showPdfViewer, this.pdfSheet(), { height: SheetSize.LARGE })
     .onAppear(() => {
       SensorDataClient.track('slice_impression', 'Deposit', 'DEPOSIT_INSURANCE', this.instanceId,
         'deposit_campaign_cn', 'deposit_campaign')
