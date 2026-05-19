@@ -19,7 +19,9 @@ DSPEcosystem/
 │   ├── 11_ad_rbac_design.md     # AD group RBAC & biz line authorisation
 │   ├── 12_local_dev_environment.md  # Local development with mock-BFF
 │   ├── 13_promo_video_script.md # Demo / promo video script
-│   └── 14_mipaaS_architecture.md # Mobile Intelligence PaaS architecture
+│   ├── 14_mipaaS_architecture.md # Mobile Intelligence PaaS architecture
+│   ├── 15_aws_infrastructure_blueprint.md # AWS Testing/Production infrastructure blueprint
+│   └── 16_mainland_china_infrastructure_blueprint.md # Mainland China Tencent/IKP/Alicloud blueprint
 │
 ├── mock-bff/                    # Node.js/Express — Local Dev BFF Simulator
 │   └── server.js                # Single-file mock; replaces bff-java locally

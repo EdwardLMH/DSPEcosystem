@@ -1,0 +1,23 @@
+aws_profile = "dsp-testing"
+project     = "hsbc-dsp"
+environment = "testing"
+region      = "ap-southeast-1"
+primary_region = "ap-east-1"
+deployment_mode = "single-site"
+sdui_runtime_mode = "hot-warm-warm"
+regional_role   = "warm"
+vpc_cidr        = "10.21.0.0/16"
+
+public_domain_name         = ""
+sdui_fqdn                  = "sdui-test.example.com"
+ocdp_fqdn                  = "ocdp-test.example.com"
+ucp_fqdn                   = "ucp-test.example.com"
+dap_fqdn                   = "dap-test.example.com"
+cloudfront_certificate_arn = ""
+
+tags = {
+  Application = "DSP-SDUI"
+  Owner       = "DigitalChannels"
+  CostCenter  = "REPLACE_ME"
+  DataClass   = "Internal"
+}

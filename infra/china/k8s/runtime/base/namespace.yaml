@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gateway-public
+  labels:
+    app.kubernetes.io/part-of: hsbc-sdui-cn
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sdui-public
+  labels:
+    app.kubernetes.io/part-of: hsbc-sdui-cn
+

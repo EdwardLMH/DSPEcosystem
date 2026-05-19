@@ -1,0 +1,56 @@
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: sdui-api
+    url: http://sdui-api.sdui-public.svc.cluster.local:8080
+    routes:
+      - name: sdui-screen-api
+        paths:
+          - /api/v1/screen
+        strip_path: false
+      - name: sdui-search-api
+        paths:
+          - /api/v1/search
+        strip_path: false
+      - name: sdui-event-api
+        paths:
+          - /api/v1/events
+        strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 6000
+          policy: local
+      - name: request-size-limiting
+        config:
+          allowed_payload_size: 2
+      - name: cors
+        config:
+          origins:
+            - https://sdui.example.cn
+            - https://sdui-test.example.cn
+            - https://www.example.cn
+            - https://web-test.example.cn
+          methods:
+            - GET
+            - POST
+            - OPTIONS
+          headers:
+            - Accept
+            - Authorization
+            - Content-Type
+            - X-Client-Platform
+            - X-Request-Id
+          exposed_headers:
+            - X-Request-Id
+          credentials: false
+          max_age: 3600
+
+plugins:
+  - name: correlation-id
+    config:
+      header_name: X-Request-Id
+      generator: uuid
+      echo_downstream: true
+

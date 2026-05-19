@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sdui-api
+  namespace: sdui-public
+  labels:
+    app: sdui-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sdui-api
+  template:
+    metadata:
+      labels:
+        app: sdui-api
+    spec:
+      containers:
+        - name: sdui-api
+          image: registry.example.cn/hsbc-dsp/bff-java:testing
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: china
+            - name: SDUI_STATIC_BASE_URL
+              value: https://sdui.example.cn
+            - name: SENSORDATA_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: sensordata
+                  key: endpoint
+                  optional: true
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            initialDelaySeconds: 40
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sdui-api
+  namespace: sdui-public
+  labels:
+    app: sdui-api
+spec:
+  type: ClusterIP
+  selector:
+    app: sdui-api
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+

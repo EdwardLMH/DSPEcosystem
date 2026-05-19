@@ -1,0 +1,23 @@
+aws_profile = "dsp-prod-sg"
+project     = "hsbc-dsp"
+environment = "prod"
+region      = "ap-southeast-1"
+primary_region = "ap-east-1"
+deployment_mode = "single-site"
+sdui_runtime_mode = "hot-hot-hot"
+regional_role   = "active"
+vpc_cidr        = "10.31.0.0/16"
+
+public_domain_name         = ""
+sdui_fqdn                  = "sdui.example.com"
+ocdp_fqdn                  = "ocdp.example.com"
+ucp_fqdn                   = "ucp.example.com"
+dap_fqdn                   = "dap.example.com"
+cloudfront_certificate_arn = ""
+
+tags = {
+  Application = "DSP-SDUI"
+  Owner       = "DigitalChannels"
+  CostCenter  = "REPLACE_ME"
+  DataClass   = "Confidential"
+}
