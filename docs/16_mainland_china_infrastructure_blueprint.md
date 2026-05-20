@@ -216,7 +216,7 @@ Publish/export worker
         ├── writes approved SDUI JSON/HTML/JS/media to Tencent COS
         ├── invalidates Tencent CDN paths
         ├── updates runtime manifest and API cache
-        └── emits China-resident audit and SensorData operational events
+        └── emits China-resident audit events and SensorData behaviour-tagging events
 ```
 
 The private publish job is the only controlled bridge from the private authoring plane to the public runtime plane. It should use short-lived credentials, route allowlists and signed artifact manifests.
