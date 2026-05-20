@@ -156,7 +156,8 @@ function applyOperationalMetadata(file, payload) {
   const deploymentPlane = deploymentPlaneFor(file, platform);
 
   payload.metadata.observability = {
-    standard: 'OpenTelemetry / W3C Trace Context',
+    apmTool: 'AppDynamics',
+    traceStandard: 'W3C Trace Context propagated to backend OpenTelemetry spans',
     tracePropagation: {
       requiredHeaders: ['traceparent', 'x-request-id', 'x-platform', 'x-market'],
       piiRule: 'Do not place customer identifiers, account numbers, tokens, or raw free-text PII in span names or high-cardinality attributes.',
@@ -174,8 +175,11 @@ function applyOperationalMetadata(file, payload) {
       'BFF / SDUI API',
       'Redis cache',
       'database/search/object storage',
-      market === 'CN' ? 'SensorData operational bridge' : 'DAP event ingestion',
+      'AppDynamics APM dashboard',
     ],
+    behaviourAnalytics: market === 'CN'
+      ? 'SensorData for mainland China customer behaviour tagging only.'
+      : 'Tealium for HK/non-mainland-China customer behaviour tagging.',
     dataResidency: dataResidencyFor(file),
   };
 
@@ -203,7 +207,8 @@ function applyJourneyOperationalMetadata(file, journey) {
   const platform = journey.platform;
   const market = file.includes('harmonynext') ? 'HK' : 'HK';
   journey.observability = {
-    standard: 'OpenTelemetry / W3C Trace Context',
+    apmTool: 'AppDynamics',
+    traceStandard: 'W3C Trace Context propagated to backend OpenTelemetry spans',
     tracePropagation: {
       requiredHeaders: ['traceparent', 'x-request-id', 'x-platform', 'x-market'],
       piiRule: 'KYC answers and customer identifiers must not be written into span names or high-cardinality attributes.',
@@ -216,6 +221,7 @@ function applyJourneyOperationalMetadata(file, journey) {
       'sdui.screen.parse',
     ],
     backendPath: ['Kong external', 'BFF / KYC service', 'Redis journey state', 'database/audit log'],
+    behaviourAnalytics: 'Tealium for HK/non-mainland-China tagging; SensorData only for mainland China behaviour tracking.',
     market,
   };
   journey.startupSlo = startupSloFor(platform);

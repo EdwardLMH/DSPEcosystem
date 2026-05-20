@@ -1,7 +1,7 @@
 // ObservabilityClient.ets
 // Lightweight HarmonyNext trace context and startup timing bridge.
 
-import { SensorDataClient } from './SensorDataClient'
+import { AppDynamicsClient } from './AppDynamicsClient'
 
 const HEX = '0123456789abcdef'
 
@@ -55,26 +55,25 @@ class _ObservabilityClient {
   }
 
   recordStartupStep(step: string, durationMs: number, screenId: string = 'home-hub-hk'): void {
-    const extra: Record<string, ESObject> = {}
-    extra['trace_id'] = this.traceId as ESObject
-    extra['span_id'] = randomHex(16) as ESObject
-    extra['startup_type'] = this.startupType as ESObject
-    extra['startup_step'] = step as ESObject
-    extra['duration_ms'] = durationMs as ESObject
-    extra['screen_id'] = screenId as ESObject
-    SensorDataClient.track('operational_startup_step', 'Operational', 'startup_step', step,
-      screenId, 'app_startup', step, '', '', '', '', '', '', '', extra)
+    AppDynamicsClient.reportStartupStep(
+      step,
+      durationMs,
+      this.traceId,
+      randomHex(16),
+      this.startupType,
+      screenId
+    )
   }
 
   recordNetworkStep(name: string, durationMs: number, path: string, success: boolean): void {
-    const extra: Record<string, ESObject> = {}
-    extra['trace_id'] = this.traceId as ESObject
-    extra['span_id'] = randomHex(16) as ESObject
-    extra['duration_ms'] = durationMs as ESObject
-    extra['path'] = path as ESObject
-    extra['success'] = success as ESObject
-    SensorDataClient.track('operational_network_step', 'Operational', 'network_step', name,
-      'network', 'sdui_runtime', name, '', '', '', '', '', '', '', extra)
+    AppDynamicsClient.reportNetworkStep(
+      name,
+      durationMs,
+      this.traceId,
+      randomHex(16),
+      path,
+      success
+    )
   }
 }
 

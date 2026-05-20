@@ -11,8 +11,9 @@
 		AA02000000000000000001BF /* HiveTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02000000000000000001F5 /* HiveTokens.swift */; };
 		AA03000000000000000001BF /* TealiumClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA03000000000000000001F5 /* TealiumClient.swift */; };
 		AA03100000000000000001BF /* ObservabilityClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA03100000000000000001F5 /* ObservabilityClient.swift */; };
+		AA03200000000000000001BF /* AppDynamicsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA03200000000000000001F5 /* AppDynamicsClient.swift */; };
 		AA04000000000000000001BF /* AppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA04000000000000000001F5 /* AppStore.swift */; };
-		AA05000000000000000001BF /* KYCNetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA05000000000000000001F5 /* KYCNetworkService.swift */; };
+		AA05000000000000000001BF /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA05000000000000000001F5 /* NetworkService.swift */; };
 		AA06000000000000000001BF /* SDUIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA06000000000000000001F5 /* SDUIModels.swift */; };
 		AA07000000000000000001BF /* KYCShellViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA07000000000000000001F5 /* KYCShellViews.swift */; };
 		AA08000000000000000001BF /* KYCStepViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA08000000000000000001F5 /* KYCStepViews.swift */; };
@@ -31,8 +32,9 @@
 		AA02000000000000000001F5 /* HiveTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HiveTokens.swift; sourceTree = "<group>"; };
 		AA03000000000000000001F5 /* TealiumClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TealiumClient.swift; sourceTree = "<group>"; };
 		AA03100000000000000001F5 /* ObservabilityClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservabilityClient.swift; sourceTree = "<group>"; };
+		AA03200000000000000001F5 /* AppDynamicsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDynamicsClient.swift; sourceTree = "<group>"; };
 		AA04000000000000000001F5 /* AppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStore.swift; sourceTree = "<group>"; };
-		AA05000000000000000001F5 /* KYCNetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KYCNetworkService.swift; sourceTree = "<group>"; };
+		AA05000000000000000001F5 /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
 		AA06000000000000000001F5 /* SDUIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDUIModels.swift; sourceTree = "<group>"; };
 		AA07000000000000000001F5 /* KYCShellViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KYCShellViews.swift; sourceTree = "<group>"; };
 		AA08000000000000000001F5 /* KYCStepViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KYCStepViews.swift; sourceTree = "<group>"; };
@@ -73,7 +75,7 @@
 				AA01000000000000000001F5 /* HSBCSduiApp.swift */,
 				AA02000000000000000001F5 /* HiveTokens.swift */,
 				AA04000000000000000001F5 /* AppStore.swift */,
-				AA05000000000000000001F5 /* KYCNetworkService.swift */,
+				AA05000000000000000001F5 /* NetworkService.swift */,
 				AA06000000000000000001F5 /* SDUIModels.swift */,
 				AA16000000000000000001F5 /* SDUIEnvironment.swift */,
 				AA07000000000000000001F5 /* KYCShellViews.swift */,
@@ -125,6 +127,7 @@
 			children = (
 				AA03000000000000000001F5 /* TealiumClient.swift */,
 				AA03100000000000000001F5 /* ObservabilityClient.swift */,
+				AA03200000000000000001F5 /* AppDynamicsClient.swift */,
 			);
 			path = Analytics;
 			sourceTree = "<group>";
@@ -277,8 +280,9 @@
 				AA02000000000000000001BF /* HiveTokens.swift in Sources */,
 				AA03000000000000000001BF /* TealiumClient.swift in Sources */,
 				AA03100000000000000001BF /* ObservabilityClient.swift in Sources */,
+				AA03200000000000000001BF /* AppDynamicsClient.swift in Sources */,
 				AA04000000000000000001BF /* AppStore.swift in Sources */,
-				AA05000000000000000001BF /* KYCNetworkService.swift in Sources */,
+				AA05000000000000000001BF /* NetworkService.swift in Sources */,
 				AA06000000000000000001BF /* SDUIModels.swift in Sources */,
 				AA07000000000000000001BF /* KYCShellViews.swift in Sources */,
 				AA08000000000000000001BF /* KYCStepViews.swift in Sources */,

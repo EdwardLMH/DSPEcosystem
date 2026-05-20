@@ -9,9 +9,9 @@
 // device preferences unless selfPickForceUpdate is set in the manifest.
 
 import { Hive } from '../common/HiveTokens'
-import { SensorDataClient } from '../network/SensorDataClient'
+import { TealiumClient } from '../network/TealiumClient'
 import { AISearchPage } from './AISearchPage'
-import { fetchHomeScreen, HomeSlice } from '../network/KYCNetworkService'
+import { fetchHomeScreen, HomeSlice } from '../network/NetworkService'
 import { SDUIStaticDistribution } from '../network/SDUIStaticDistribution'
 import { ObservabilityClient } from '../network/ObservabilityClient'
 
@@ -194,7 +194,7 @@ export struct HomePageView {
 
   aboutToAppear() {
     ObservabilityClient.recordStartupStep('home_about_to_appear', ObservabilityClient.currentStartupElapsedMs())
-    SensorDataClient.homeHubViewed()
+    TealiumClient.homeHubViewed()
     this.loadWithStaticChain()
   }
 
@@ -350,14 +350,14 @@ struct SDUIHomeSearchHeader {
           Text('🔔').fontSize(20).fontColor(Hive.Color.brandWhite)
             .margin({ right: 12 })
             .onClick(() => {
-              SensorDataClient.track('notification_tap', 'Wealth', 'notification_tapped', '',
+              TealiumClient.track('notification_tap', 'Wealth', 'notification_tapped', '',
                 'home_search_header', 'home_hub')
             })
         }
         if (this.showHeadset()) {
           Text('🎧').fontSize(20).fontColor(Hive.Color.brandWhite)
             .onClick(() => {
-              SensorDataClient.track('headset_tap', 'Wealth', 'headset_tapped', '',
+              TealiumClient.track('headset_tap', 'Wealth', 'headset_tapped', '',
                 'home_search_header', 'home_hub')
             })
         }
@@ -381,7 +381,7 @@ struct SDUIHomeSearchHeader {
         .borderRadius(18)
         .backgroundColor(Hive.Color.brandWhite)
         .onClick(() => {
-          SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '',
+          TealiumClient.track('search_tap', 'Wealth', 'search_tapped', '',
             'home_search_header', 'home_hub')
           this.onSearchTap()
         })
@@ -479,7 +479,7 @@ struct SDUIComboQuickAccess {
           .layoutWeight(1).alignItems(HorizontalAlign.Center)
           .padding({ top: 10 })
           .onClick(() => {
-            SensorDataClient.quickAccessTapped(
+            TealiumClient.quickAccessTapped(
               (raw as Record<string, string>)['label'] ?? '',
               (raw as Record<string, string>)['deepLink'] ?? '')
           })
@@ -501,7 +501,7 @@ struct SDUIComboQuickAccess {
           .layoutWeight(1).alignItems(HorizontalAlign.Center)
           .padding({ bottom: 10 })
           .onClick(() => {
-            SensorDataClient.quickAccessTapped(
+            TealiumClient.quickAccessTapped(
               (raw as Record<string, string>)['label'] ?? '',
               (raw as Record<string, string>)['deepLink'] ?? '')
           })
@@ -533,7 +533,7 @@ struct SDUICardActivationBanner {
       Text(this.ctaLabel())
         .fontSize(12).fontWeight(FontWeight.Bold).fontColor('#DB0011')
         .onClick(() => {
-          SensorDataClient.sliceTapped('CARD_ACTIVATION_BANNER',
+          TealiumClient.sliceTapped('CARD_ACTIVATION_BANNER',
             this.props['instanceId'] as string ?? 'slice-card-activation',
             this.ctaLabel(), this.deepLink())
         })
@@ -585,7 +585,7 @@ struct SDUIQuestBanner {
           .borderRadius(14).backgroundColor('#DB0011')
           .fontColor(Hive.Color.brandWhite).fontSize(11).fontWeight(FontWeight.Bold)
           .onClick(() => {
-            SensorDataClient.sliceTapped('QUEST_BANNER',
+            TealiumClient.sliceTapped('QUEST_BANNER',
               this.props['instanceId'] as string ?? 'slice-quest',
               this.ctaLabel(), this.deepLink())
           })
@@ -665,7 +665,7 @@ struct SDUIFeatureProduct {
               .backgroundColor(this.activeTab === idx ? Hive.Color.brandWhite : '#00000000')
               .onClick(() => {
                 this.activeTab = idx
-                SensorDataClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product', button.name, button.url)
+                TealiumClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product', button.name, button.url)
               })
           })
         }
@@ -706,7 +706,7 @@ struct SDUIFeatureProduct {
           .width('100%')
           .padding({ left: 16, right: 16, top: 12, bottom: 12 })
           .onClick(() => {
-            SensorDataClient.wealthProductTapped(
+            TealiumClient.wealthProductTapped(
               (raw as Record<string, string>)['name'] ?? '',
               (raw as Record<string, string>)['id'] ?? '')
           })
@@ -722,7 +722,7 @@ struct SDUIFeatureProduct {
         .fontColor(Hive.Color.n700)
         .padding({ left: 16, right: 16, top: 10, bottom: 10 })
         .onClick(() => {
-          SensorDataClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product',
+          TealiumClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product',
             this.moreLabel(), this.bestSellingUrl())
         })
     }
@@ -815,7 +815,7 @@ struct SDUIWealthStudioCarousel {
               .width(`${Math.floor(100 / this.numColumns()) - 2}%`)
               .margin({ right: 8, bottom: 10 })
               .onClick(() => {
-                SensorDataClient.wealthStudioTapped(
+                TealiumClient.wealthStudioTapped(
                   (raw as Record<string, string>)['title'] ?? '',
                   (raw as Record<string, string>)['id'] ?? '')
                 const vUrl: string = (raw as Record<string, string>)['videoUrl'] ?? ''
@@ -866,7 +866,7 @@ struct SDUIWealthStudioCarousel {
                 .borderRadius(10).clip(true)
                 .shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 })
                 .onClick(() => {
-                  SensorDataClient.wealthStudioTapped(
+                  TealiumClient.wealthStudioTapped(
                     (raw as Record<string, string>)['title'] ?? '',
                     (raw as Record<string, string>)['id'] ?? '')
                   const vUrl: string = (raw as Record<string, string>)['videoUrl'] ?? ''
@@ -974,7 +974,7 @@ struct SDUIGuidesInsights {
             .width(`${Math.floor(100 / this.numColumns()) - 2}%`)
             .margin({ right: 8, bottom: 10 })
             .onClick(() => {
-              SensorDataClient.guidesTapped(
+              TealiumClient.guidesTapped(
                 (raw as Record<string, string>)['title'] ?? '',
                 (raw as Record<string, string>)['id'] ?? '')
             })
@@ -1015,7 +1015,7 @@ struct SDUIGuidesInsights {
               .borderRadius(10).clip(true)
               .shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 })
               .onClick(() => {
-                SensorDataClient.guidesTapped(
+                TealiumClient.guidesTapped(
                   (raw as Record<string, string>)['title'] ?? '',
                   (raw as Record<string, string>)['id'] ?? '')
               })
@@ -1106,7 +1106,7 @@ struct SDUIFXWatchlist {
         .width('100%')
         .padding({ left: 16, right: 16, top: 10, bottom: 10 })
         .onClick(() => {
-          SensorDataClient.track('fx_pair_tap', 'Wealth', 'fx_pair_tapped',
+          TealiumClient.track('fx_pair_tap', 'Wealth', 'fx_pair_tapped',
             this.pairId(raw), 'fx_watchlist', 'home_hub')
         })
 
@@ -1187,7 +1187,7 @@ struct SDUIDiscoverMore {
             .width(`${Math.floor(100 / this.numColumns()) - 2}%`)
             .margin({ right: 8, bottom: 10 })
             .onClick(() => {
-              SensorDataClient.discoverMoreTapped(
+              TealiumClient.discoverMoreTapped(
                 (raw as Record<string, string>)['title'] ?? '',
                 (raw as Record<string, string>)['tag'] ?? '')
             })
@@ -1233,7 +1233,7 @@ struct SDUIDiscoverMore {
               .backgroundColor(Hive.Color.brandWhite)
               .shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 })
               .onClick(() => {
-                SensorDataClient.discoverMoreTapped(
+                TealiumClient.discoverMoreTapped(
                   (raw as Record<string, string>)['title'] ?? '',
                   (raw as Record<string, string>)['tag'] ?? '')
               })
@@ -1264,7 +1264,7 @@ struct WHHomeSearchHeader {
   onSearchTap: () => void = () => {}
 
   aboutToAppear() {
-    SensorDataClient.sliceImpression('HOME_SEARCH_HEADER', 'slice-home-search-hdr', 0)
+    TealiumClient.sliceImpression('HOME_SEARCH_HEADER', 'slice-home-search-hdr', 0)
   }
 
   build() {
@@ -1277,12 +1277,12 @@ struct WHHomeSearchHeader {
         Text('🔔').fontSize(20).fontColor(Hive.Color.brandWhite)
           .margin({ right: 12 })
           .onClick(() => {
-            SensorDataClient.track('notification_tap', 'Wealth', 'notification_tapped', '',
+            TealiumClient.track('notification_tap', 'Wealth', 'notification_tapped', '',
               'home_search_header', 'home_hub')
           })
         Text('🎧').fontSize(20).fontColor(Hive.Color.brandWhite)
           .onClick(() => {
-            SensorDataClient.track('headset_tap', 'Wealth', 'headset_tapped', '',
+            TealiumClient.track('headset_tap', 'Wealth', 'headset_tapped', '',
               'home_search_header', 'home_hub')
           })
       }
@@ -1304,7 +1304,7 @@ struct WHHomeSearchHeader {
         .borderRadius(18)
         .backgroundColor(Hive.Color.brandWhite)
         .onClick(() => {
-          SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '',
+          TealiumClient.track('search_tap', 'Wealth', 'search_tapped', '',
             'home_search_header', 'home_hub')
           this.onSearchTap()
         })
@@ -1325,7 +1325,7 @@ struct WHComboQuickAccess {
   private tabs: string[] = ['My pick', 'Invest', 'Global', 'HK Daily']
 
   aboutToAppear() {
-    SensorDataClient.sliceImpression('COMBO_QUICK_ACCESS', 'slice-combo-quick', 1)
+    TealiumClient.sliceImpression('COMBO_QUICK_ACCESS', 'slice-combo-quick', 1)
   }
 
   build() {
@@ -1362,7 +1362,7 @@ struct WHComboQuickAccess {
           }
           .layoutWeight(1).alignItems(HorizontalAlign.Center)
           .padding({ top: 10 })
-          .onClick(() => { SensorDataClient.quickAccessTapped(item.label, item.deepLink) })
+          .onClick(() => { TealiumClient.quickAccessTapped(item.label, item.deepLink) })
         })
       }
       .width('100%').backgroundColor(Hive.Color.brandWhite)
@@ -1379,7 +1379,7 @@ struct WHComboQuickAccess {
           }
           .layoutWeight(1).alignItems(HorizontalAlign.Center)
           .padding({ bottom: 10 })
-          .onClick(() => { SensorDataClient.quickAccessTapped(item.label, item.deepLink) })
+          .onClick(() => { TealiumClient.quickAccessTapped(item.label, item.deepLink) })
         })
       }
       .width('100%').backgroundColor(Hive.Color.brandWhite)
@@ -1394,7 +1394,7 @@ struct WHComboQuickAccess {
 @Component
 struct WHCardActivationBanner {
   aboutToAppear() {
-    SensorDataClient.sliceImpression('CARD_ACTIVATION_BANNER', 'slice-card-act', 2)
+    TealiumClient.sliceImpression('CARD_ACTIVATION_BANNER', 'slice-card-act', 2)
   }
 
   build() {
@@ -1405,7 +1405,7 @@ struct WHCardActivationBanner {
       Text('Activate now')
         .fontSize(12).fontWeight(FontWeight.Bold).fontColor('#DB0011')
         .onClick(() => {
-          SensorDataClient.sliceTapped('CARD_ACTIVATION_BANNER', 'slice-card-act',
+          TealiumClient.sliceTapped('CARD_ACTIVATION_BANNER', 'slice-card-act',
             'Activate now', 'hsbc://cards/activate')
         })
     }
@@ -1422,7 +1422,7 @@ struct WHCardActivationBanner {
 @Component
 struct WHQuestBanner {
   aboutToAppear() {
-    SensorDataClient.sliceImpression('QUEST_BANNER', 'slice-quest', 3)
+    TealiumClient.sliceImpression('QUEST_BANNER', 'slice-quest', 3)
   }
 
   build() {
@@ -1449,7 +1449,7 @@ struct WHQuestBanner {
           .borderRadius(14).backgroundColor('#DB0011')
           .fontColor(Hive.Color.brandWhite).fontSize(11).fontWeight(FontWeight.Bold)
           .onClick(() => {
-            SensorDataClient.sliceTapped('QUEST_BANNER', 'slice-quest',
+            TealiumClient.sliceTapped('QUEST_BANNER', 'slice-quest',
               'Continue', 'hsbc://onboarding/checklist')
           })
       }.layoutWeight(1).alignItems(HorizontalAlign.Start)
@@ -1469,7 +1469,7 @@ struct WHFeatureProduct {
   @State activeTab: number = 0
 
   aboutToAppear() {
-    SensorDataClient.sliceImpression('FEATURE_PRODUCT', 'slice-feature-product', 4)
+    TealiumClient.sliceImpression('FEATURE_PRODUCT', 'slice-feature-product', 4)
   }
 
   build() {
@@ -1495,7 +1495,7 @@ struct WHFeatureProduct {
               .backgroundColor(this.activeTab === idx ? Hive.Color.brandWhite : '#00000000')
               .onClick(() => {
                 this.activeTab = idx
-                SensorDataClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product', button.name, button.url)
+                TealiumClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product', button.name, button.url)
               })
           })
         }
@@ -1529,7 +1529,7 @@ struct WHFeatureProduct {
           }
           .width('100%')
           .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-          .onClick(() => { SensorDataClient.wealthProductTapped(fund.name, fund.id) })
+          .onClick(() => { TealiumClient.wealthProductTapped(fund.name, fund.id) })
 
           if (index < STATIC_FUNDS.length - 1) {
             Divider().color(Hive.Color.n100).margin({ left: 16, right: 16 })
@@ -1542,7 +1542,7 @@ struct WHFeatureProduct {
         .fontColor(Hive.Color.n700)
         .padding({ left: 16, right: 16, top: 10, bottom: 10 })
         .onClick(() => {
-          SensorDataClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product',
+          TealiumClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product',
             FEATURE_PRODUCT_MORE_LABEL, FEATURE_PRODUCT_BEST_SELLING_URL)
         })
     }
@@ -1556,7 +1556,7 @@ struct WHFeatureProduct {
 @Component
 struct WHWealthStudioCarousel {
   aboutToAppear() {
-    SensorDataClient.sliceImpression('WEALTH_STUDIO_CAROUSEL', 'slice-wealth-studio', 5)
+    TealiumClient.sliceImpression('WEALTH_STUDIO_CAROUSEL', 'slice-wealth-studio', 5)
   }
 
   build() {
@@ -1603,7 +1603,7 @@ struct WHWealthStudioCarousel {
             }
             .borderRadius(10).clip(true)
             .shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 })
-            .onClick(() => { SensorDataClient.wealthStudioTapped(ep.title, ep.id) })
+            .onClick(() => { TealiumClient.wealthStudioTapped(ep.title, ep.id) })
           })
         }
         .padding({ left: 16, right: 16, bottom: 14 })
@@ -1620,7 +1620,7 @@ struct WHWealthStudioCarousel {
 @Component
 struct WHGuidesInsights {
   aboutToAppear() {
-    SensorDataClient.sliceImpression('GUIDES_INSIGHTS_CAROUSEL', 'slice-guides', 6)
+    TealiumClient.sliceImpression('GUIDES_INSIGHTS_CAROUSEL', 'slice-guides', 6)
   }
 
   build() {
@@ -1657,7 +1657,7 @@ struct WHGuidesInsights {
             }
             .borderRadius(10).clip(true)
             .shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 })
-            .onClick(() => { SensorDataClient.guidesTapped(guide.title, guide.id) })
+            .onClick(() => { TealiumClient.guidesTapped(guide.title, guide.id) })
           })
         }
         .padding({ left: 16, right: 16, bottom: 14 })
@@ -1674,7 +1674,7 @@ struct WHGuidesInsights {
 @Component
 struct WHFXWatchlist {
   aboutToAppear() {
-    SensorDataClient.sliceImpression('FX_WATCHLIST', 'slice-fx-watchlist', 7)
+    TealiumClient.sliceImpression('FX_WATCHLIST', 'slice-fx-watchlist', 7)
   }
 
   build() {
@@ -1715,7 +1715,7 @@ struct WHFXWatchlist {
         .width('100%')
         .padding({ left: 16, right: 16, top: 10, bottom: 10 })
         .onClick(() => {
-          SensorDataClient.track('fx_pair_tap', 'Wealth', 'fx_pair_tapped',
+          TealiumClient.track('fx_pair_tap', 'Wealth', 'fx_pair_tapped',
             `${pair.base}/${pair.quote}`, 'fx_watchlist', 'home_hub')
         })
 
@@ -1736,7 +1736,7 @@ struct WHFXWatchlist {
 @Component
 struct WHDiscoverMore {
   aboutToAppear() {
-    SensorDataClient.sliceImpression('DISCOVER_MORE_CAROUSEL', 'slice-discover-more', 8)
+    TealiumClient.sliceImpression('DISCOVER_MORE_CAROUSEL', 'slice-discover-more', 8)
   }
 
   build() {
@@ -1779,7 +1779,7 @@ struct WHDiscoverMore {
             .borderRadius(12).clip(true)
             .backgroundColor(Hive.Color.brandWhite)
             .shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 })
-            .onClick(() => { SensorDataClient.discoverMoreTapped(card.title, card.tag) })
+            .onClick(() => { TealiumClient.discoverMoreTapped(card.title, card.tag) })
           })
         }
         .padding({ left: 16, right: 16, bottom: 14 })

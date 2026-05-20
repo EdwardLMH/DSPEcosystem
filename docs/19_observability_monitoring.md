@@ -1,4 +1,4 @@
-# Observability and Monitoring — OpenTelemetry, Dashboards and Synthetic Checks
+# Observability and Monitoring — AppDynamics APM, OpenTelemetry, Dashboards and Synthetic Checks
 
 **Document Version:** 1.0  
 **Date:** 2026-05-20  
@@ -8,7 +8,7 @@
 
 ## 1. Goals
 
-Adopt **OpenTelemetry (OTel)** as the common telemetry standard across DSPE so operators can answer:
+Adopt **AppDynamics** as the HSBC APM/RUM observability tool for mobile and web clients, while using **OpenTelemetry (OTel)** as the backend trace propagation and service instrumentation standard across DSPE. Tealium and SensorData are not APM tools in this design: Tealium is for customer behaviour tagging in HK/non-mainland-China, and SensorData is for mainland China behaviour tracking only.
 
 1. Can customers open the app/web Home Hub right now?
 2. Can customers search, tap a result and reach the right app/content destination?
@@ -34,7 +34,7 @@ End-to-end observability, app performance monitoring, high availability and safe
 
 | Selling point | Architecture principle | Evidence in DSPE |
 |---------------|------------------------|------------------|
-| End-to-end observability | Trace customer journeys from mobile/web to backend API, cache, database, search, object storage and analytics ingestion. | `traceparent` propagation, OTel collectors, journey dashboards, service map, synthetic checks and deploy annotations. |
+| End-to-end observability | Trace customer journeys from mobile/web to backend API, cache, database, search, object storage and analytics ingestion. | AppDynamics mobile/web RUM and APM, `traceparent` propagation, OTel backend spans, journey dashboards, service map, synthetic checks and deploy annotations. |
 | App performance monitoring | Treat startup and Home Hub interactivity as explicit product SLOs across iOS, Android, HarmonyOS NEXT and Web. | Cold/warm startup spans, Home fetch/parse/render timings and platform startup SLO matrix. |
 | High availability | Design public runtime paths for graceful degradation, regional/cell visibility and controlled site switch. | CDN/object fallback, BFF stale-cache behaviour, multi-cell AWS and China runtime probes, error-budget alerts. |
 | Good CI/CD | Make every deploy validated, approved, traceable and reversible across overseas AWS and mainland China IKP/Alicloud/Tencent. | Jenkins build/deploy/restart/site-switch actions, China runtime/static publish flows, deploy markers on dashboards. |
@@ -69,7 +69,7 @@ End-to-end observability, app performance monitoring, high availability and safe
 
 ```
 Mobile / Web Client
-  ├─ OTel client span: home_hub_open / ai_search_query / kyc_step_submit
+  ├─ AppDynamics RUM/APM timing: home_hub_open / ai_search_query / kyc_step_submit
   ├─ W3C traceparent header
   ▼
 Edge CDN / WAF
@@ -128,10 +128,10 @@ PII rule: never put customer names, account numbers, card numbers, raw access to
 
 | Component | Telemetry | Instrumentation |
 |-----------|-----------|-----------------|
-| Web SDUI | RUM traces, web vitals, search/home/kyc events | OTel JS browser SDK + custom spans around screen fetch, search and action handling |
-| iOS SDUI | RUM traces, network spans, app lifecycle | OTel Swift SDK or vendor RUM SDK with W3C header injection |
-| Android SDUI | RUM traces, network spans, app lifecycle | OTel Android/Kotlin SDK or vendor RUM SDK with W3C header injection |
-| HarmonyNext SDUI | RUM-like custom events, trace IDs, cold/warm startup step timings | Lightweight trace ID generation, `traceparent` header injection and SensorData/OTel bridge until native OTel is available |
+| Web SDUI | AppDynamics browser RUM, web vitals, search/home/kyc timing | AppDynamics Browser RUM facade + W3C `traceparent` injection on BFF calls |
+| iOS SDUI | AppDynamics mobile RUM/APM, network spans, app lifecycle | AppDynamics iOS agent/facade with W3C `traceparent` header injection |
+| Android SDUI | AppDynamics mobile RUM/APM, network spans, app lifecycle | AppDynamics Android agent/facade with W3C `traceparent` header injection |
+| HarmonyNext SDUI | AppDynamics-compatible mobile APM timing, trace IDs, cold/warm startup step timings | HarmonyNext AppDynamics facade with lightweight trace ID generation and `traceparent` header injection |
 | CloudFront/WAF | edge logs, availability, 4xx/5xx, origin latency | CloudFront standard/real-time logs to Kinesis/S3 + trace header allow-list |
 | Tencent CDN/WAF | China edge availability, 4xx/5xx, origin latency, purge health | Tencent CDN/COS logs retained in China; trace/request ID pass-through where supported |
 | Kong | route spans, upstream latency, auth/rate-limit errors | Kong OpenTelemetry plugin exporting OTLP |
@@ -143,17 +143,18 @@ PII rule: never put customer names, account numbers, card numbers, raw access to
 | Database | DB latency, connection saturation | AWS Aurora or China-resident PostgreSQL-compatible metrics + SQL client spans with sanitized statements |
 | Search | search latency/errors | AWS OpenSearch or China-resident search metrics + client spans |
 | Object/CDN static | object availability, manifest latency | AWS S3/CloudFront or Tencent COS/CDN metrics + synthetic checks |
-| DAP/SensorData ingestion | event acceptance and lag | AWS Kinesis/Firehose span links overseas; SensorData operational events in mainland China |
+| DAP/SensorData ingestion | behaviour event acceptance and lag | Tealium/DAP for HK and overseas behaviour tagging; SensorData for mainland China behaviour tagging only |
 
 Recommended collector pattern:
 
 ```
 App / Kong / Services
-  → OTLP gRPC/HTTP
+  → AppDynamics mobile/browser agents for client RUM/APM
+  → OTLP gRPC/HTTP for backend services
   → OpenTelemetry Collector DaemonSet in EKS or IKP
   → tail sampling + attribute filtering
-  → AWS: CloudWatch / X-Ray / Amazon Managed Prometheus / Datadog / OpenSearch
-  → Mainland China: China-resident APM/log/metrics backend plus SensorData operational bridge
+  → AWS: AppDynamics + CloudWatch / X-Ray / Amazon Managed Prometheus / OpenSearch
+  → Mainland China: approved China-resident AppDynamics/APM/log/metrics backend; SensorData remains behaviour analytics
 ```
 
 ### Mobile and Web Client Enhancements
@@ -196,7 +197,7 @@ Recommended startup SLOs:
 | HarmonyNext | < 3.5 s | < 1.4 s | < 2.8 s |
 | Web / WeChat H5 | n/a | n/a | < 2.5 s on 4G baseline |
 
-HarmonyNext should instrument ArkUI lifecycle boundaries such as `Ability.onCreate`, `UIAbility.onWindowStageCreate`, page `aboutToAppear`, SDUI fetch, parse and first content render. Until native OTel support is standardised, emit SensorData operational events with `trace_id`, `span_id`, `parent_span_id`, `duration_ms`, `startup_type` and `screen_id`, then bridge those events into the China-resident observability backend.
+HarmonyNext should instrument ArkUI lifecycle boundaries such as `Ability.onCreate`, `UIAbility.onWindowStageCreate`, page `aboutToAppear`, SDUI fetch, parse and first content render. These timings should be sent to the approved AppDynamics-compatible mobile APM bridge. SensorData must not be used for HK Home Hub operational telemetry; it is reserved for mainland China customer behaviour tracking.
 
 ---
 
@@ -358,7 +359,7 @@ Run synthetics from at least:
 | `syn-publish-smoke` | on deploy | publish non-customer test page to testing | manifest version updates | P2 |
 | `syn-cn-cos-manifest` | 2 min | `GET` Tencent CDN manifest/page JSON | 200 + valid version | P1 |
 | `syn-cn-ikp-api` | 1 min | `GET /health` through Tencent CDN/WAF to IKP Kong | 200 + version | P1 |
-| `syn-cn-sensordata` | 5 min | send operational synthetic event | accepted by SensorData test project | P2 |
+| `syn-cn-sensordata` | 5 min | send non-customer synthetic behaviour event | accepted by SensorData test project | P2 |
 
 Synthetic events must include:
 
@@ -545,6 +546,6 @@ Recommended first implementation:
 1. AWS: CloudWatch Synthetics for public runtime checks.
 2. AWS: VPC Lambda probes for staff/private OCDP/UCP checks.
 3. Mainland China: IKP CronJob probes for public runtime and Alicloud private probes for staff authoring.
-4. Mainland China: Tencent CDN/COS manifest and media checks plus SensorData operational event checks.
+4. Mainland China: Tencent CDN/COS manifest and media checks plus SensorData synthetic behaviour-ingestion checks.
 5. OTel collectors exporting traces to the approved region-local APM backend.
 6. Route alerts to the enterprise incident channel with deploy markers from Jenkins.

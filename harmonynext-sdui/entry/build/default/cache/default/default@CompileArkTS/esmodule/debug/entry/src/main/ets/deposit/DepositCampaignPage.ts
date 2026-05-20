@@ -49,8 +49,8 @@ interface DepositSDUISliceView_Params {
 }
 import { Hive } from "@normalized:N&&&entry/src/main/ets/common/HiveTokens&";
 import { SensorDataClient } from "@normalized:N&&&entry/src/main/ets/network/SensorDataClient&";
-import { fetchDepositCampaignScreen } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
-import type { ScreenSlice } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
+import { fetchDepositCampaignScreen } from "@normalized:N&&&entry/src/main/ets/network/NetworkService&";
+import type { ScreenSlice } from "@normalized:N&&&entry/src/main/ets/network/NetworkService&";
 import type common from "@ohos:app.ability.common";
 import type Want from "@ohos:app.ability.Want";
 import webview from "@ohos:web.webview";

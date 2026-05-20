@@ -2,17 +2,17 @@
   "schemaVersion": "2.3",
   "journeyId": "obkyc-account-opening",
   "journeyName": "OBKYC Account Opening - Web",
-  "sessionId": "kyc-af970143",
+  "sessionId": "kyc-3c51cf87",
   "platform": "web",
   "channel": "WEB_STANDARD",
   "locale": "en",
   "totalSteps": 6,
-  "generatedAt": "2026-05-19T17:41:18.085Z",
+  "generatedAt": "2026-05-20T04:31:39.283Z",
   "endpoints": {
     "start": "/api/v1/kyc/sessions/start",
-    "resume": "/api/v1/kyc/sessions/kyc-af970143/resume",
-    "step": "/api/v1/kyc/sessions/kyc-af970143/steps/{stepId}",
-    "submit": "/api/v1/kyc/sessions/kyc-af970143/steps/{stepId}/submit"
+    "resume": "/api/v1/kyc/sessions/kyc-3c51cf87/resume",
+    "step": "/api/v1/kyc/sessions/kyc-3c51cf87/steps/{stepId}",
+    "submit": "/api/v1/kyc/sessions/kyc-3c51cf87/steps/{stepId}/submit"
   },
   "steps": [
     {
@@ -20,7 +20,7 @@
       "screen": "kyc_step",
       "ttl": 0,
       "metadata": {
-        "sessionId": "kyc-af970143",
+        "sessionId": "kyc-3c51cf87",
         "stepId": "step-001",
         "stepIndex": 1,
         "totalSteps": 6,
@@ -324,7 +324,7 @@
       "screen": "kyc_step",
       "ttl": 0,
       "metadata": {
-        "sessionId": "kyc-af970143",
+        "sessionId": "kyc-3c51cf87",
         "stepId": "step-002",
         "stepIndex": 2,
         "totalSteps": 6,
@@ -440,7 +440,7 @@
       "screen": "kyc_step",
       "ttl": 0,
       "metadata": {
-        "sessionId": "kyc-af970143",
+        "sessionId": "kyc-3c51cf87",
         "stepId": "step-003",
         "stepIndex": 3,
         "totalSteps": 6,
@@ -815,7 +815,7 @@
       "screen": "kyc_step",
       "ttl": 0,
       "metadata": {
-        "sessionId": "kyc-af970143",
+        "sessionId": "kyc-3c51cf87",
         "stepId": "step-004",
         "stepIndex": 4,
         "totalSteps": 6,
@@ -872,7 +872,7 @@
       "screen": "kyc_step",
       "ttl": 0,
       "metadata": {
-        "sessionId": "kyc-af970143",
+        "sessionId": "kyc-3c51cf87",
         "stepId": "step-005",
         "stepIndex": 5,
         "totalSteps": 6,
@@ -929,7 +929,7 @@
       "screen": "kyc_step",
       "ttl": 0,
       "metadata": {
-        "sessionId": "kyc-af970143",
+        "sessionId": "kyc-3c51cf87",
         "stepId": "step-006",
         "stepIndex": 6,
         "totalSteps": 6,
@@ -1025,7 +1025,8 @@
     }
   ],
   "observability": {
-    "standard": "OpenTelemetry / W3C Trace Context",
+    "apmTool": "AppDynamics",
+    "traceStandard": "W3C Trace Context propagated to backend OpenTelemetry spans",
     "tracePropagation": {
       "requiredHeaders": [
         "traceparent",
@@ -1048,6 +1049,7 @@
       "Redis journey state",
       "database/audit log"
     ],
+    "behaviourAnalytics": "Tealium for HK/non-mainland-China tagging; SensorData only for mainland China behaviour tracking.",
     "market": "HK"
   },
   "startupSlo": {

@@ -97,7 +97,7 @@ Keep this running in a terminal tab.
 
 ### BFF connection (simulator uses `127.0.0.1:4000`)
 ```swift
-// KYCNetworkService.swift
+// NetworkService.swift
 #if targetEnvironment(simulator)
 private let BASE_URL = "http://127.0.0.1:4000/api/v1"
 ```
@@ -126,7 +126,7 @@ For a **real device**, replace the IP with your Mac's LAN address.
 
 ### BFF connection (emulator uses `10.0.2.2:4000`)
 ```kotlin
-// KYCNetworkService.kt
+// NetworkService.kt
 private const val BASE_URL = "http://10.0.2.2:4000/api/v1/"
 ```
 
@@ -153,7 +153,7 @@ private const val BASE_URL = "http://10.0.2.2:4000/api/v1/"
 
 ### BFF connection (emulator uses `10.0.2.2:4000`)
 ```typescript
-// KYCNetworkService.ets
+// NetworkService.ets
 const BASE_URL = 'http://10.0.2.2:4000/api/v1'
 ```
 
@@ -185,7 +185,7 @@ Routing is done on the **primary question ID** (`payload.layout.children[0].id`)
 ios-sdui/HSBCSDUI/
   AppStore.swift                ← Redux store: KYCAction enum, dispatch(), reduce(), handleEffect()
   SDUIModels.swift              ← Codable DTOs: SDUIScreenPayload, AnyCodable, KYC reference data
-  KYCNetworkService.swift       ← HTTP client (URLSession)
+  NetworkService.swift       ← HTTP client (URLSession)
   KYCShellViews.swift           ← Welcome, journey shell, progress bar, nav bar
   KYCStepViews.swift            ← 11 step views (KYCNameStep, KYCAddressStep, etc.)
   KYCSDUIStepRouter.swift       ← primaryQuestionId → SwiftUI view router
@@ -205,7 +205,7 @@ android-sdui/app/src/main/java/com/hsbc/sdui/
   kyc/
     KYCModels.kt                ← DTOs (SDUIScreenPayload, KYCUiState, AnswerEntry, …)
     KYCViewModel.kt             ← Redux store: startSession(), setAnswer(), submitStep()
-    KYCNetworkService.kt        ← Retrofit API client
+    NetworkService.kt        ← Retrofit API client
     KYCShellViews.kt            ← Welcome, journey shell, progress bar, nav bar
     KYCStepViews.kt             ← 11 step composables
     KYCStepRouter.kt            ← primaryQuestionId → Composable router + kycStepTitle()
@@ -222,7 +222,7 @@ harmonynext-sdui/entry/src/main/ets/
     KYCShellViews.ets           ← Welcome, journey shell, step router (@ObjectLink store: KYCStore)
     KYCStepViews.ets            ← 11 @Component step views (@ObjectLink state: KYCState)
   network/
-    KYCNetworkService.ets       ← HTTP via @ohos.net.http
+    NetworkService.ets       ← HTTP via @ohos.net.http
     SensorDataClient.ets        ← SensorData analytics: KYC + Home Hub (HK)
                                    (wealthStudioTapped, guidesTapped, discoverMoreTapped added)
   home/HomePage.ets         ← Home Hub (HK) — ArkTS SDUI loader + 9 @Component slice structs

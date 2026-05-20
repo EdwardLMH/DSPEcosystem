@@ -16,8 +16,8 @@ interface AnnouncementPage_Params {
 }
 import { Hive } from "@normalized:N&&&entry/src/main/ets/common/HiveTokens&";
 import { SensorDataClient } from "@normalized:N&&&entry/src/main/ets/network/SensorDataClient&";
-import { fetchAnnouncementScreen } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
-import type { ScreenSlice } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
+import { fetchAnnouncementScreen } from "@normalized:N&&&entry/src/main/ets/network/NetworkService&";
+import type { ScreenSlice } from "@normalized:N&&&entry/src/main/ets/network/NetworkService&";
 const LOAD_LOADING = 1;
 const LOAD_DONE = 2;
 const LOAD_ERROR = 3;

@@ -1,6 +1,6 @@
 import { KYCState } from "@normalized:N&&&entry/src/main/ets/models/SDUIModels&";
 import type { KYCAction, AnswerEntry } from "@normalized:N&&&entry/src/main/ets/models/SDUIModels&";
-import { fetchConfig, startSession, resume, getStep, submitStep } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
+import { fetchConfig, startSession, resume, getStep, submitStep } from "@normalized:N&&&entry/src/main/ets/network/NetworkService&";
 import { SensorDataClient } from "@normalized:N&&&entry/src/main/ets/network/SensorDataClient&";
 @Observed
 export class KYCStore {

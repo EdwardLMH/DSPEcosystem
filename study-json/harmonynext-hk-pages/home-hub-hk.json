@@ -12,8 +12,8 @@
     "platform": "harmonynext",
     "channel": "SDUI",
     "version": 3,
-    "publishedAt": "2026-03-24T17:41:17.832Z",
-    "generatedAt": "2026-05-19T17:41:18.022Z",
+    "publishedAt": "2026-03-25T04:31:39.033Z",
+    "generatedAt": "2026-05-20T04:31:39.212Z",
     "supportedLocales": [
       "en",
       "zh-HK",
@@ -31,7 +31,8 @@
       "harmonynext"
     ],
     "observability": {
-      "standard": "OpenTelemetry / W3C Trace Context",
+      "apmTool": "AppDynamics",
+      "traceStandard": "W3C Trace Context propagated to backend OpenTelemetry spans",
       "tracePropagation": {
         "requiredHeaders": [
           "traceparent",
@@ -54,8 +55,9 @@
         "BFF / SDUI API",
         "Redis cache",
         "database/search/object storage",
-        "DAP event ingestion"
+        "AppDynamics APM dashboard"
       ],
+      "behaviourAnalytics": "Tealium for HK/non-mainland-China customer behaviour tagging.",
       "dataResidency": "Region-local telemetry with PII-free, low-cardinality trace attributes."
     },
     "startupSlo": {

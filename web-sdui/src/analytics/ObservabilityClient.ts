@@ -1,4 +1,4 @@
-import { analyticsClient } from './AnalyticsClient';
+import { appDynamics } from './AppDynamicsClient';
 
 const hex = '0123456789abcdef';
 
@@ -35,7 +35,7 @@ class ObservabilityClient {
   }
 
   recordStartupStep(step: string, durationMs: number, screenId = 'home-hub-hk'): void {
-    analyticsClient.fire('operational_startup_step', {
+    appDynamics.reportStartupStep(step, durationMs, {
       trace_id: this.traceId,
       span_id: randomHex(16),
       startup_type: this.startupType,
@@ -47,7 +47,7 @@ class ObservabilityClient {
   }
 
   recordNetworkStep(name: string, durationMs: number, path: string, success: boolean): void {
-    analyticsClient.fire('operational_network_step', {
+    appDynamics.reportNetworkStep(name, durationMs, {
       trace_id: this.traceId,
       span_id: randomHex(16),
       duration_ms: Math.round(durationMs),

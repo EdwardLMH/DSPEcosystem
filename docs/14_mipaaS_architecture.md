@@ -580,4 +580,4 @@ Access enforced via HSBC AD group membership mapped to miPaaS roles at the API g
 | PlatformHub (Android) | Kotlin, Jetpack Compose, Redux via MVI (Orbit / MVI Kotlin), Coroutines | Plugin registry + journey engine as MVI reducers |
 | PlatformHub (HarmonyNext) | ArkTS, ArkUI, custom Redux-style StateManager | Plugin registry + journey engine in ArkTS state |
 | Auth | HSBC OAuth 2.0 / AD SSO | Shared with UCP / OCDP |
-| Observability | OpenTelemetry → Datadog | Consistent with platform standard |
+| Observability | AppDynamics mobile/web APM + OpenTelemetry backend trace propagation | AppDynamics is used for client APM/RUM; Tealium/SensorData remain customer behaviour tagging tools |

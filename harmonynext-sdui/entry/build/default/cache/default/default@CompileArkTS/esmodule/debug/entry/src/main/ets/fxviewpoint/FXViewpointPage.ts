@@ -38,8 +38,8 @@ interface FXSDUISliceView_Params {
 }
 import { Hive } from "@normalized:N&&&entry/src/main/ets/common/HiveTokens&";
 import { SensorDataClient } from "@normalized:N&&&entry/src/main/ets/network/SensorDataClient&";
-import { fetchFXViewpointScreen } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
-import type { ScreenSlice } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
+import { fetchFXViewpointScreen } from "@normalized:N&&&entry/src/main/ets/network/NetworkService&";
+import type { ScreenSlice } from "@normalized:N&&&entry/src/main/ets/network/NetworkService&";
 // ─── Load-state enum ──────────────────────────────────────────────────────────
 // ArkTS forbids string-union @State — plain number constants are used instead.
 const LOAD_IDLE = 0;

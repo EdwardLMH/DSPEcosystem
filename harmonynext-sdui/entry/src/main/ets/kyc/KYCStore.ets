@@ -19,7 +19,7 @@ import {
 } from '../models/SDUIModels'
 import {
   fetchConfig, startSession, resume, getStep, submitStep
-} from '../network/KYCNetworkService'
+} from '../network/NetworkService'
 import { SensorDataClient } from '../network/SensorDataClient'
 
 @Observed

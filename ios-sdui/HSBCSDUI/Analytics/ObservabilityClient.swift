@@ -36,41 +36,24 @@ public final class ObservabilityClient {
     }
 
     public func recordStartupStep(_ step: String, durationMs: Int, screenId: String = "home-hub-hk") {
-        TealiumClient.track(
-            event: "operational_startup_step",
-            category: "Operational",
-            action: "startup_step",
-            label: step,
-            screen: screenId,
-            journey: "app_startup",
-            step: step,
-            custom: [
-                "trace_id": traceId,
-                "span_id": Self.randomHex(byteCount: 8),
-                "startup_type": startupType,
-                "startup_step": step,
-                "duration_ms": "\(durationMs)",
-                "screen_id": screenId
-            ]
+        AppDynamicsClient.shared.reportStartupStep(
+            name: step,
+            durationMs: durationMs,
+            traceId: traceId,
+            spanId: Self.randomHex(byteCount: 8),
+            startupType: startupType,
+            screenId: screenId
         )
     }
 
     public func recordNetworkStep(_ name: String, durationMs: Int, path: String, success: Bool) {
-        TealiumClient.track(
-            event: "operational_network_step",
-            category: "Operational",
-            action: "network_step",
-            label: name,
-            screen: "network",
-            journey: "sdui_runtime",
-            step: name,
-            custom: [
-                "trace_id": traceId,
-                "span_id": Self.randomHex(byteCount: 8),
-                "duration_ms": "\(durationMs)",
-                "path": path,
-                "success": "\(success)"
-            ]
+        AppDynamicsClient.shared.reportNetworkStep(
+            name: name,
+            durationMs: durationMs,
+            traceId: traceId,
+            spanId: Self.randomHex(byteCount: 8),
+            path: path,
+            success: success
         )
     }
 

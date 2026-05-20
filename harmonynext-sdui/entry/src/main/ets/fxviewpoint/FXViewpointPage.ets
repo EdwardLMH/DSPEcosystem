@@ -6,7 +6,7 @@
 
 import { Hive } from '../common/HiveTokens'
 import { SensorDataClient } from '../network/SensorDataClient'
-import { fetchFXViewpointScreen, ScreenSlice } from '../network/KYCNetworkService'
+import { fetchFXViewpointScreen, ScreenSlice } from '../network/NetworkService'
 
 // ─── Load-state enum ──────────────────────────────────────────────────────────
 // ArkTS forbids string-union @State — plain number constants are used instead.

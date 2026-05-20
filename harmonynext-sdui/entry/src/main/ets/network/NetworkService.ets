@@ -1,4 +1,4 @@
-// KYCNetworkService.ets
+// NetworkService.ets
 // HTTP client for HSBC KYC BFF — HarmonyNext ArkTS
 
 import http from '@ohos.net.http'
@@ -29,6 +29,13 @@ function resolveHarmonyLocale(): string {
 // detectable accessibility preference. Set screenReader flag via developer config.
 function resolveA11yFlags(): string {
   return ''  // Extend when HarmonyOS accessibility API becomes available in ArkTS
+}
+
+function asErrorMessage(prefix: string, e: Error): string {
+  if (e.message.length > 0) {
+    return prefix + ': ' + e.message
+  }
+  return prefix + ': request failed'
 }
 
 async function doRequest<T>(
@@ -75,7 +82,7 @@ async function doRequest<T>(
     if (!recorded) {
       ObservabilityClient.recordNetworkStep('bff_request', Date.now() - started, path, false)
     }
-    throw e
+    throw new Error(asErrorMessage('bff_request', e as Error))
   } finally {
     client.destroy()
   }
@@ -178,7 +185,7 @@ export async function fetchHomeScreen(): Promise<HomeScreenPayload> {
     if (!recorded) {
       ObservabilityClient.recordNetworkStep('sdui_screen_fetch', Date.now() - started, path, false)
     }
-    throw e
+    throw new Error(asErrorMessage('sdui_screen_fetch', e as Error))
   } finally {
     client.destroy()
   }

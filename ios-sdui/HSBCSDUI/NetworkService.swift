@@ -69,7 +69,7 @@ struct IOSLocaleContext {
 
 // MARK: - Network service
 
-final class KYCNetworkService: Sendable {
+final class NetworkService: Sendable {
     private let session: URLSession = {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 15

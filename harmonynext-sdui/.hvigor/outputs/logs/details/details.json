@@ -24,20 +24,27 @@
     "IS_HVIGORFILE_TYPE_CHECK": false,
     "TASK_TIME": {
       "923fe53966c6cd9343e11af776cd4b05be315ea4b200b02e4d5dfb0f929b73bf": {
-        "init": 546417,
-        "CreateModuleInfo": 1389208,
-        "ConfigureCmake": 1620542,
-        "PreCheckSyscap": 664666,
-        "GeneratePkgSdkInfo": 8233375,
-        "ProcessIntegratedHsp": 659916,
-        "BuildNativeWithCmake": 1336417,
-        "SyscapTransform": 23816375,
-        "ProcessStartupConfig": 2059167,
-        "BuildNativeWithNinja": 547959,
-        "BuildJS": 5666291
+        "init": 317583,
+        "CreateModuleInfo": 632667,
+        "ConfigureCmake": 916584,
+        "PreCheckSyscap": 1149292,
+        "GeneratePkgSdkInfo": 3542542,
+        "ProcessIntegratedHsp": 1616583,
+        "BuildNativeWithCmake": 1699042,
+        "SyscapTransform": 15651292,
+        "ProcessStartupConfig": 3736417,
+        "BuildNativeWithNinja": 328583,
+        "BuildJS": 4373792,
+        "CompileArkTS": 12048697666,
+        "ProcessCompiledResources": 667959,
+        "PackageHap": 931758459,
+        "PackingCheck": 7907083,
+        "SignHap": 2822666,
+        "CollectDebugSymbol": 455584,
+        "assembleHap": 154458
       },
       "APP": {
-        "init": 169666
+        "init": 124750
       }
     },
     "APIS": [
@@ -48,74 +55,7 @@
       "ENABLE_CPP_FUNCTION_LEVEL_INCREMENTAL": false
     },
     "CONFIG_PROPERTIES": {},
-    "BUILD_ID": "202605200128570410",
-    "ERROR_MESSAGE": [
-      {
-        "CODE": "10605087",
-        "STACK": "...\n10605087 ArkTS Compiler Error\n...\n10605087 ArkTS Compiler Error\n...",
-        "PROJECT_CONFIG": {
-          "buildMode": "Debug",
-          "compileMode": "esmodule",
-          "moduleType": "entry",
-          "targetName": ".default",
-          "packageManagerType": "ohpm",
-          "isLocalTest": false,
-          "needCoverageInsert": false,
-          "debugLine": false,
-          "compileSdkVersion": 23,
-          "compatibleSdkVersion": 23,
-          "originCompatibleSdkVersion": "6.1.0(23)",
-          "etsLoaderVersion": "6.1.0.105",
-          "etsLoaderReleaseType": "Release",
-          "aotCompileMode": "type",
-          "isCrossplatform": false,
-          "bundleType": "app",
-          "apiVersion": 23,
-          "isFaMode": false,
-          "deviceTypes": [
-            "phone"
-          ],
-          "integratedHsp": false,
-          "branchElimination": false,
-          "tsImportSendable": false,
-          "resolveConflictMode": true,
-          "useNativeResolver": true,
-          "shouldEmitJs": true,
-          "useTscResolve": false,
-          "singleFileEmit": false,
-          "executionMode": "memory",
-          "isHarDeduplicateEnabled": false,
-          "autoLazyImport": false,
-          "allowEmptyBundleName": false,
-          "reExportCheckMode": "noCheck",
-          "usePathPlaceholder": false,
-          "writeRollupCache": true,
-          "isExpandImportEnabled": false,
-          "ignoreCrossplatformCheck": false,
-          "skipOhModulesLint": false,
-          "enableStrictCheckOHModule": false,
-          "useDeclarationFileSignature": false,
-          "isPreloadSoEnabled": false,
-          "strictMode.caseSensitiveCheck": true,
-          "strictMode.useNormalizedOHMUrl": true,
-          "strictMode.noExternalImportByPath": true,
-          "runtimeOS": "HarmonyOS",
-          "sdkInfo": "false:23:6.1.0.105:Release",
-          "useSourceHash": false,
-          "isByteCodeHarOptimize": false,
-          "copyCodeResourceEnable": true,
-          "uiTransformOptimization": false
-        }
-      },
-      {
-        "CODE": "10605087",
-        "TIMESTAMP": "1779211745928"
-      },
-      {
-        "CODE": "10605087",
-        "TIMESTAMP": "1779211745928"
-      }
-    ],
-    "TOTAL_TIME": 8888787250
+    "BUILD_ID": "202605201108232780",
+    "TOTAL_TIME": 13329540792
   }
 }

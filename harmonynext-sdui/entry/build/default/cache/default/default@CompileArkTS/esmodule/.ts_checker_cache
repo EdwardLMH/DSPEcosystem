@@ -1503,7 +1503,8 @@
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/kyc/KYCShellViews.ets",
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/kyc/KYCStepViews.ets",
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets",
-        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/kyc/KYCStore.ets"
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/kyc/KYCStore.ets",
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/NetworkService.ets"
       ],
       "error": false,
       "errorCodes": [
@@ -1584,7 +1585,7 @@
       "error": false
     },
     "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets": {
-      "mtimeMs": 1779209515093.5708,
+      "mtimeMs": 1779245782020.2917,
       "children": [
         "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.net.http.d.ts",
         "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.i18n.d.ts",
@@ -1602,7 +1603,6 @@
       ],
       "error": true,
       "errorCodes": [
-        87,
         28007,
         28040
       ]
@@ -1638,7 +1638,9 @@
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SensorDataClient.ets",
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/wealth/AISearchPage.ets",
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets",
-        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/home/AISearchPage.ets"
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/home/AISearchPage.ets",
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/TealiumClient.ets",
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/NetworkService.ets"
       ],
       "error": false
     },
@@ -2169,10 +2171,10 @@
       ]
     },
     "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/kyc/KYCStore.ets": {
-      "mtimeMs": 1778471699599.568,
+      "mtimeMs": 1779246110052.6677,
       "children": [
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/models/SDUIModels.ets",
-        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets",
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/NetworkService.ets",
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SensorDataClient.ets"
       ],
       "parent": [
@@ -2182,11 +2184,11 @@
       "error": false
     },
     "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/fxviewpoint/FXViewpointPage.ets": {
-      "mtimeMs": 1779018251684.4233,
+      "mtimeMs": 1779246110051.867,
       "children": [
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/common/HiveTokens.ets",
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SensorDataClient.ets",
-        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets"
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/NetworkService.ets"
       ],
       "parent": [
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/pages/Index.ets"
@@ -2194,11 +2196,11 @@
       "error": false
     },
     "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/deposit/DepositCampaignPage.ets": {
-      "mtimeMs": 1779162987769.2039,
+      "mtimeMs": 1779246110053.1177,
       "children": [
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/common/HiveTokens.ets",
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SensorDataClient.ets",
-        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets",
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/NetworkService.ets",
         "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.app.ability.common.d.ts",
         "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.app.ability.Want.d.ts",
         "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.web.webview.d.ts"
@@ -2217,7 +2219,8 @@
         "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.intl.d.ts"
       ],
       "parent": [
-        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets"
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets",
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/NetworkService.ets"
       ],
       "error": false
     },
@@ -2271,11 +2274,11 @@
       "error": false
     },
     "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/announcement/AnnouncementPage.ets": {
-      "mtimeMs": 1779018251683.9487,
+      "mtimeMs": 1779246110050.966,
       "children": [
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/common/HiveTokens.ets",
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SensorDataClient.ets",
-        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets"
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/NetworkService.ets"
       ],
       "parent": [
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/pages/Index.ets"
@@ -2283,12 +2286,12 @@
       "error": false
     },
     "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/home/HomePage.ets": {
-      "mtimeMs": 1779209413790.8616,
+      "mtimeMs": 1779246110056.0627,
       "children": [
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/common/HiveTokens.ets",
-        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SensorDataClient.ets",
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/TealiumClient.ets",
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/home/AISearchPage.ets",
-        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets",
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/NetworkService.ets",
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SDUIStaticDistribution.ets",
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/ObservabilityClient.ets"
       ],
@@ -2319,17 +2322,57 @@
       ]
     },
     "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/ObservabilityClient.ets": {
-      "mtimeMs": 1779209348760.4866,
+      "mtimeMs": 1779244962579.6458,
       "children": [
-        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/SensorDataClient.ets"
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/AppDynamicsClient.ets"
       ],
       "parent": [
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/entryability/EntryAbility.ets",
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/KYCNetworkService.ets",
         "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/home/HomePage.ets",
-        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/home/AISearchPage.ets"
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/home/AISearchPage.ets",
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/NetworkService.ets"
       ],
       "error": false
+    },
+    "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/AppDynamicsClient.ets": {
+      "mtimeMs": 1779244913711.0261,
+      "children": [],
+      "parent": [
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/ObservabilityClient.ets"
+      ],
+      "error": false
+    },
+    "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/TealiumClient.ets": {
+      "mtimeMs": 1779245360363.2688,
+      "children": [
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.net.http.d.ts"
+      ],
+      "parent": [
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/home/HomePage.ets"
+      ],
+      "error": false
+    },
+    "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/NetworkService.ets": {
+      "mtimeMs": 1779246110050.1296,
+      "children": [
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.net.http.d.ts",
+        "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.i18n.d.ts",
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/models/SDUIModels.ets",
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/network/ObservabilityClient.ets"
+      ],
+      "parent": [
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/kyc/KYCStore.ets",
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/home/HomePage.ets",
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/fxviewpoint/FXViewpointPage.ets",
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/deposit/DepositCampaignPage.ets",
+        "/Users/Edward/workspace/DSPEcosystem/harmonynext-sdui/entry/src/main/ets/announcement/AnnouncementPage.ets"
+      ],
+      "error": true,
+      "errorCodes": [
+        28007,
+        28040
+      ]
     }
   }
 }

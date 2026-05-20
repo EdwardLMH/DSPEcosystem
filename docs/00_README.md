@@ -88,7 +88,7 @@ DSPEcosystem/
 │       ├── kyc/                 # KYCShellViews.ets, KYCStepViews.ets
 │       ├── home/                # HomePage.ets, AISearchPage.ets
 │       ├── fxviewpoint/         # FXViewpointPage.ets
-│       ├── network/             # KYCNetworkService.ets, SensorDataClient.ets
+│       ├── network/             # NetworkService.ets, SensorDataClient.ets
 │       └── common/              # HiveTokens.ets
 │
 ├── hive-tokens/                 # HIVE Design Language v2.1.0 — Design Token Source

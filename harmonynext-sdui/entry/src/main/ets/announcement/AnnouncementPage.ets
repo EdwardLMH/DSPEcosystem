@@ -3,7 +3,7 @@
 
 import { Hive } from '../common/HiveTokens'
 import { SensorDataClient } from '../network/SensorDataClient'
-import { fetchAnnouncementScreen, ScreenSlice } from '../network/KYCNetworkService'
+import { fetchAnnouncementScreen, ScreenSlice } from '../network/NetworkService'
 
 const LOAD_LOADING = 1
 const LOAD_DONE = 2

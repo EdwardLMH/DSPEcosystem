@@ -1034,7 +1034,7 @@ struct SDUIRenderer {
 }
 ```
 
-Analytics on HarmonyOS NEXT routes to **SensorDataClient** (神策数据) rather than Tealium, to satisfy China data residency requirements (PIPL). The `KYCNetworkService.ets` and `SensorDataClient.ets` share the same base URL configuration via `AppStorage`.
+Analytics on HarmonyOS NEXT is market-specific: HK Home Hub uses **TealiumClient** for customer behaviour tagging, while mainland China pages use **SensorDataClient** (神策数据) to satisfy China data residency requirements (PIPL). Observability/APM is separate and routes through the AppDynamics facade, with `traceparent` propagated on SDUI/API calls.
 
 > **Note:** The code example above shows the old slice dispatcher. The current `HomePage.ets` dispatches the 9 Home Hub slices (`HOME_SEARCH_HEADER`, `COMBO_QUICK_ACCESS`, `CARD_ACTIVATION_BANNER`, `QUEST_BANNER`, `FEATURE_PRODUCT`, `WEALTH_STUDIO_CAROUSEL`, `GUIDES_INSIGHTS_CAROUSEL`, `FX_WATCHLIST`, `DISCOVER_MORE_CAROUSEL`) using the same `if/else if` pattern. `switch` and `const`/`let` declarations are forbidden inside ArkTS `build()` blocks.
 

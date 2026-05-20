@@ -82,7 +82,7 @@
 
 **Voiceover:**
 
-> "And DSPE is built to run. End-to-end OpenTelemetry traces follow every journey from mobile startup to API, cache and database.Pipelines deploy, restart and switch sites safely — with SLOs visible before customers feel an issue."
+> "And DSPE is built to run. AppDynamics monitors mobile and web performance from startup, while trace context follows every journey to API, cache and database. Jenkins pipelines deploy, restart and switch sites safely — with SLOs visible before customers feel an issue."
 
 ---
 

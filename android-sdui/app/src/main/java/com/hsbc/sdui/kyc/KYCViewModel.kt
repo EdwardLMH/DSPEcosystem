@@ -18,7 +18,7 @@ class KYCViewModel(application: Application) : AndroidViewModel(application) {
     private val _state = MutableStateFlow(KYCUiState())
     val state: StateFlow<KYCUiState> = _state.asStateFlow()
 
-    private val api      = KYCNetworkService.api
+    private val api      = NetworkService.api
     private val platform = "android"
     private val locale   get() = SDUILocale.current()
     private val a11yFlags get() = SDUIA11y.flags(getApplication())

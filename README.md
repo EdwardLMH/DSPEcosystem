@@ -25,7 +25,7 @@ The current repository state is summarised in [IMPLEMENTATION_SUMMARY.md](IMPLEM
 - **Java BFF modules**: SDUI composition, KYC routing, personalisation, A/B allocation, preview, workflow, RBAC, audit, and content repository services.
 - **DAP workers**: Python services for AEO probes, content scoring, feedback loop, app-store harvesting, surveys, and archive lifecycle.
 - **Jenkins CI/CD**: root `Jenkinsfile` plus AWS/EKS/S3/Route53 and mainland China IKP/Alicloud/Tencent helper flows for validation, deploy, restart, static publish and site switch.
-- **OpenTelemetry observability**: monitoring matrix, dashboards, synthetics and mobile/web startup traces for end-to-end API/cache/DB availability across AWS and mainland China.
+- **AppDynamics observability**: monitoring matrix, dashboards, synthetics and mobile/web startup traces for end-to-end API/cache/DB availability across AWS and mainland China, with W3C `traceparent` propagated to backend OpenTelemetry spans.
 
 ### Ecosystem Operational Highlights
 
@@ -112,9 +112,9 @@ The current repository state is summarised in [IMPLEMENTATION_SUMMARY.md](IMPLEM
 | Platform | Location | Notes |
 |----------|----------|-------|
 | Web | `web-sdui` | React 18 + TypeScript. Home Hub, FX Viewpoint, deposit campaign, KYC demo, analytics, cache, action handling. Dev port is `3000`. |
-| iOS | `ios-sdui/HSBCSDUI.xcodeproj` / `ios-sdui/HSBCSDUI` | SwiftUI renderer with Wealth, FX, Deposit, KYC, Tealium, HIVE tokens, inline video fixes, AI Search governed asset results, and startup/network observability. |
-| Android | `android-sdui/app/src/main/java/com/hsbc/sdui` | Jetpack Compose renderer with Wealth, FX, Deposit, KYC, Tealium, HIVE tokens, locale helpers, AI Search governed asset results, and startup/network observability. |
-| HarmonyOS NEXT | `harmonynext-sdui` | ArkTS/ArkUI renderer with SensorData analytics, platform-specific SDUI constraints, and startup/network observability. |
+| iOS | `ios-sdui/HSBCSDUI.xcodeproj` / `ios-sdui/HSBCSDUI` | SwiftUI renderer with Wealth, FX, Deposit, KYC, Tealium behaviour tagging, HIVE tokens, inline video fixes, AI Search governed asset results, and AppDynamics startup/network observability. |
+| Android | `android-sdui/app/src/main/java/com/hsbc/sdui` | Jetpack Compose renderer with Wealth, FX, Deposit, KYC, Tealium behaviour tagging, HIVE tokens, locale helpers, AI Search governed asset results, and AppDynamics startup/network observability. |
+| HarmonyOS NEXT | `harmonynext-sdui` | ArkTS/ArkUI renderer with Tealium tagging for HK Home Hub, SensorData only for mainland China behaviour tracking, platform-specific SDUI constraints, and AppDynamics startup/network observability. |
 
 ### Current AI Search Design
 
@@ -131,12 +131,16 @@ The clients call `POST /api/v1/search` with `responseMode: "a2ui"` and their pla
 
 The client prototypes include lightweight observability bridges:
 
+- Web AppDynamics facade: `web-sdui/src/analytics/AppDynamicsClient.ts`
 - Web: `web-sdui/src/analytics/ObservabilityClient.ts`
+- iOS AppDynamics facade: `ios-sdui/HSBCSDUI/Analytics/AppDynamicsClient.swift`
 - iOS: `ios-sdui/HSBCSDUI/Analytics/ObservabilityClient.swift`
+- Android AppDynamics facade: `android-sdui/app/src/main/java/com/hsbc/sdui/analytics/AppDynamicsClient.kt`
 - Android: `android-sdui/app/src/main/java/com/hsbc/sdui/analytics/ObservabilityClient.kt`
+- HarmonyNext AppDynamics facade: `harmonynext-sdui/entry/src/main/ets/network/AppDynamicsClient.ets`
 - HarmonyNext: `harmonynext-sdui/entry/src/main/ets/network/ObservabilityClient.ets`
 
-They generate `traceparent`, time Home Hub startup steps, and emit Home/API/Search network timing events through the current analytics path. The production monitoring matrix is in `docs/19_observability_monitoring.md`.
+They generate `traceparent`, time Home Hub startup steps, and report Home/API/Search network timing events through AppDynamics-style APM facades. Tealium and SensorData remain customer behaviour tagging tools: Tealium for HK/non-mainland-China surfaces and SensorData only for mainland China. The production monitoring matrix is in `docs/19_observability_monitoring.md`.
 
 ### Intelligence and Design System
 

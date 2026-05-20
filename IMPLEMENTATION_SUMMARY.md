@@ -48,7 +48,7 @@ Three new analytics helpers were added to all four platform analytics clients du
 
 | Event | Trigger | Platforms |
 |-------|---------|-----------|
-| `wealthStudioTapped(title, instanceId)` | User taps a Wealth Studio episode card | iOS (Tealium), Android (Tealium), HarmonyNext (SensorData), Web (Tealium) |
+| `wealthStudioTapped(title, instanceId)` | User taps a Wealth Studio episode card | iOS (Tealium), Android (Tealium), HarmonyNext HK Home Hub (Tealium), Web (Tealium); SensorData only for mainland China behaviour tracking |
 | `guidesTapped(title, instanceId)` | User taps a Guides & Insights article card | All four |
 | `discoverMoreTapped(title, tag)` | User taps a Discover More campaign card | All four |
 
@@ -58,10 +58,11 @@ Three new analytics helpers were added to all four platform analytics clients du
 |----------|------|
 | iOS | `ios-sdui/HSBCSDUI/Analytics/TealiumClient.swift` |
 | Android | `android-sdui/…/analytics/TealiumClient.kt` |
-| HarmonyOS NEXT | `harmonynext-sdui/…/network/SensorDataClient.ets` |
+| HarmonyOS NEXT HK Home Hub | `harmonynext-sdui/…/network/TealiumClient.ets` |
+| HarmonyOS NEXT mainland China | `harmonynext-sdui/…/network/SensorDataClient.ets` |
 | Web | `web-sdui/src/analytics/TealiumClient.ts` |
 
-HarmonyOS NEXT routes all analytics to SensorData (神策数据) rather than Tealium to satisfy China data residency requirements (PIPL).
+Tealium is used for HK/non-mainland-China customer behaviour tagging. SensorData (神策数据) is used only for mainland China customer behaviour tracking to satisfy China data residency requirements (PIPL). Neither tool is the APM observability channel.
 
 ---
 
@@ -138,16 +139,16 @@ Mainland China authoring remains private in Alicloud, public runtime runs throug
 
 ## 6. Observability — End-to-End Trace and Startup Timing
 
-OpenTelemetry is the common monitoring standard in the design, with lightweight client bridges implemented in the prototypes.
+AppDynamics is the APM/RUM observability channel for mobile and web clients. OpenTelemetry remains the backend trace propagation and service instrumentation standard, with `traceparent` linking AppDynamics client timing to Kong/BFF/backend spans.
 
 | Platform | File | Implemented observability hooks |
 |----------|------|---------------------------------|
-| Web | `web-sdui/src/analytics/ObservabilityClient.ts` | `traceparent`, Home startup steps, Home fetch timing, AI Search timing |
-| iOS | `ios-sdui/HSBCSDUI/Analytics/ObservabilityClient.swift` | `traceparent`, cold/warm app lifecycle, Home startup steps, Home fetch timing, AI Search timing |
-| Android | `android-sdui/…/analytics/ObservabilityClient.kt` | `traceparent`, cold/warm activity lifecycle, Home startup steps, Home fetch timing, AI Search timing |
-| HarmonyOS NEXT | `harmonynext-sdui/…/network/ObservabilityClient.ets` | SensorData operational events, `traceparent`, Home startup steps, network timing |
+| Web | `web-sdui/src/analytics/ObservabilityClient.ts` + `AppDynamicsClient.ts` | `traceparent`, Home startup steps, Home fetch timing, AI Search timing via AppDynamics facade |
+| iOS | `ios-sdui/HSBCSDUI/Analytics/ObservabilityClient.swift` + `AppDynamicsClient.swift` | `traceparent`, cold/warm app lifecycle, Home startup steps, Home fetch timing, AI Search timing via AppDynamics facade |
+| Android | `android-sdui/…/analytics/ObservabilityClient.kt` + `AppDynamicsClient.kt` | `traceparent`, cold/warm activity lifecycle, Home startup steps, Home fetch timing, AI Search timing via AppDynamics facade |
+| HarmonyOS NEXT | `harmonynext-sdui/…/network/ObservabilityClient.ets` + `AppDynamicsClient.ets` | `traceparent`, Home startup steps, network timing via AppDynamics facade |
 
-Operational events use low-cardinality names such as `operational_startup_step` and `operational_network_step`. The monitoring matrix, dashboards, SLOs, synthetic checks and China deployment boundaries are documented in `docs/19_observability_monitoring.md`.
+Operational metrics use low-cardinality names such as `SDUI.Startup.*` and `SDUI.Network.*`. The monitoring matrix, dashboards, SLOs, synthetic checks and China deployment boundaries are documented in `docs/19_observability_monitoring.md`.
 
 ---
 
@@ -216,5 +217,6 @@ VStack {
 | ArkTS | `as ESObject[]` treated as `any[]` by compiler; use `as Array<T>` with explicit element type |
 | Kotlin | `private val` at file top-level and `internal val` in same package both become package-level declarations and conflict |
 | Tealium (iOS/Android/Web) | Overseas markets; `userId` SHA-256 hashed before event send |
-| SensorData (HarmonyNext) | China-resident endpoints; required for PIPL compliance on HarmonyOS NEXT |
+| Tealium (HarmonyNext HK Home Hub) | HK/non-mainland-China behaviour tagging for HarmonyNext HK pages |
+| SensorData (mainland China only) | China-resident behaviour analytics endpoints; required for PIPL compliance on mainland China pages |
 | iOS project | Use `ios-sdui/HSBCSDUI.xcodeproj`; it is a SwiftUI app with `@main` in `HSBCSduiApp.swift` |

@@ -6,7 +6,7 @@
 
 import { Hive } from '../common/HiveTokens'
 import { SensorDataClient } from '../network/SensorDataClient'
-import { fetchDepositCampaignScreen, ScreenSlice } from '../network/KYCNetworkService'
+import { fetchDepositCampaignScreen, ScreenSlice } from '../network/NetworkService'
 import common from '@ohos.app.ability.common'
 import Want from '@ohos.app.ability.Want'
 import webview from '@ohos.web.webview'

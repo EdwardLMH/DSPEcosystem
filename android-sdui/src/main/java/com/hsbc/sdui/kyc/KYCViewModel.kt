@@ -15,7 +15,7 @@ class KYCViewModel : ViewModel() {
     private val _state = MutableStateFlow(KYCUiState())
     val state: StateFlow<KYCUiState> = _state.asStateFlow()
 
-    private val api = KYCNetworkService.api
+    private val api = NetworkService.api
     private val platform = "android"
 
     fun startSession() {

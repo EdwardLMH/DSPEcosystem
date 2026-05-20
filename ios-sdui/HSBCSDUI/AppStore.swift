@@ -53,7 +53,7 @@ final class AppStore {
     var a11yHighContrast:  Bool                 = false
     var a11yLargeText:     Bool                 = false
 
-    private let network = KYCNetworkService()
+    private let network = NetworkService()
 
     // MARK: - Dispatch
 

@@ -66,11 +66,12 @@ interface SDUISliceView_Params {
     onSearchTap?: () => void;
 }
 import { Hive } from "@normalized:N&&&entry/src/main/ets/common/HiveTokens&";
-import { SensorDataClient } from "@normalized:N&&&entry/src/main/ets/network/SensorDataClient&";
+import { TealiumClient } from "@normalized:N&&&entry/src/main/ets/network/TealiumClient&";
 import { AISearchPage } from "@normalized:N&&&entry/src/main/ets/home/AISearchPage&";
-import { fetchHomeScreen } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
-import type { HomeSlice } from "@normalized:N&&&entry/src/main/ets/network/KYCNetworkService&";
+import { fetchHomeScreen } from "@normalized:N&&&entry/src/main/ets/network/NetworkService&";
+import type { HomeSlice } from "@normalized:N&&&entry/src/main/ets/network/NetworkService&";
 import { SDUIStaticDistribution } from "@normalized:N&&&entry/src/main/ets/network/SDUIStaticDistribution&";
+import { ObservabilityClient } from "@normalized:N&&&entry/src/main/ets/network/ObservabilityClient&";
 // ─── Data models ──────────────────────────────────────────────────────────────
 interface QuickItem {
     icon: string;
@@ -267,7 +268,7 @@ class SDUISliceView extends ViewPU {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
                                 let componentCall = new SDUIHomeSearchHeader(this, { props: this.slice.props,
-                                    onSearchTap: () => { this.onSearchTap(); } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 152, col: 7 });
+                                    onSearchTap: () => { this.onSearchTap(); } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 153, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -289,7 +290,7 @@ class SDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIComboQuickAccess(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 155, col: 7 });
+                                let componentCall = new SDUIComboQuickAccess(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 156, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -312,7 +313,7 @@ class SDUISliceView extends ViewPU {
                             if (isInitialRender) {
                                 let componentCall = new 
                                 // Self-pick items have already been merged by HomePageView before render
-                                SDUIComboQuickAccess(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 158, col: 7 });
+                                SDUIComboQuickAccess(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 159, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -333,7 +334,7 @@ class SDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUICardActivationBanner(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 160, col: 7 });
+                                let componentCall = new SDUICardActivationBanner(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 161, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -354,7 +355,7 @@ class SDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIQuestBanner(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 162, col: 7 });
+                                let componentCall = new SDUIQuestBanner(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 163, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -375,7 +376,7 @@ class SDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIFeatureProduct(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 164, col: 7 });
+                                let componentCall = new SDUIFeatureProduct(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 165, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -396,7 +397,7 @@ class SDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIWealthStudioCarousel(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 166, col: 7 });
+                                let componentCall = new SDUIWealthStudioCarousel(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 167, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -417,7 +418,7 @@ class SDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIGuidesInsights(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 168, col: 7 });
+                                let componentCall = new SDUIGuidesInsights(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 169, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -438,7 +439,7 @@ class SDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIFXWatchlist(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 170, col: 7 });
+                                let componentCall = new SDUIFXWatchlist(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 171, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -459,7 +460,7 @@ class SDUISliceView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new SDUIDiscoverMore(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 172, col: 7 });
+                                let componentCall = new SDUIDiscoverMore(this, { props: this.slice.props }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 173, col: 7 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -569,14 +570,17 @@ export class HomePageView extends ViewPU {
     private staticDist: SDUIStaticDistribution;
     private selfPickForceUpdate: boolean;
     aboutToAppear() {
-        SensorDataClient.homeHubViewed();
+        ObservabilityClient.recordStartupStep('home_about_to_appear', ObservabilityClient.currentStartupElapsedMs());
+        TealiumClient.homeHubViewed();
         this.loadWithStaticChain();
     }
     // ── 3-tier resolution chain ─────────────────────────────────────────────────
     private async loadWithStaticChain(): Promise<void> {
         this.loadState = LOAD_LOADING;
+        const loadStarted = Date.now();
         try {
             // Step 1 — CDN static distribution (concurrent with BFF call)
+            ObservabilityClient.recordStartupStep('home_fetch_start', ObservabilityClient.currentStartupElapsedMs());
             const staticPromise = this.staticDist.resolve('home-hub-hk');
             const bffPromise = fetchHomeScreen().catch(() => null);
             // Await both; prefer the BFF if it succeeds (personalised/A-B), else use static
@@ -585,32 +589,41 @@ export class HomePageView extends ViewPU {
             const bffPayload = results[1];
             if (bffPayload !== null) {
                 // BFF success — use personalised payload
+                const parseStarted = Date.now();
                 const slices: HomeSlice[] = bffPayload.layout.children.filter((s: HomeSlice) => s.visible !== false);
+                ObservabilityClient.recordStartupStep('home_parse_bff', Date.now() - parseStarted);
                 await this.mergeSelfPick(slices);
                 this.sdui = slices;
                 this.loadState = LOAD_DONE;
+                ObservabilityClient.recordStartupStep('home_interactive', Date.now() - loadStarted);
                 return;
             }
             if (staticResult.json !== null) {
                 // Static / local / bundled baseline
                 try {
+                    const parseStarted = Date.now();
                     const parsed = JSON.parse(staticResult.json) as StaticScreenPayload;
                     const slices: HomeSlice[] = parsed.layout.children.filter((s: HomeSlice) => s.visible !== false);
+                    ObservabilityClient.recordStartupStep('home_parse_static', Date.now() - parseStarted);
                     await this.mergeSelfPick(slices);
                     this.sdui = slices;
                     this.loadState = LOAD_DONE;
+                    ObservabilityClient.recordStartupStep('home_interactive', Date.now() - loadStarted);
                 }
                 catch (e) {
                     this.loadState = LOAD_ERROR;
+                    ObservabilityClient.recordStartupStep('home_load_error', Date.now() - loadStarted);
                 }
                 return;
             }
             // All tiers exhausted — render hardcoded static fallback
             this.loadState = LOAD_ERROR;
+            ObservabilityClient.recordStartupStep('home_load_error', Date.now() - loadStarted);
         }
         catch (e) {
             // Safety net: any unhandled crash must not leave loadState at LOAD_LOADING
             this.loadState = LOAD_ERROR;
+            ObservabilityClient.recordStartupStep('home_load_error', Date.now() - loadStarted);
         }
     }
     // Merge self-pick preferences into any SELF_PICK_ENTRY_POINTS slices
@@ -652,7 +665,7 @@ export class HomePageView extends ViewPU {
                             if (isInitialRender) {
                                 let componentCall = new 
                                 // Minimal loading state — show header so page doesn't flash blank
-                                WHHomeSearchHeader(this, { onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 273, col: 13 });
+                                WHHomeSearchHeader(this, { onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 286, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -691,7 +704,7 @@ export class HomePageView extends ViewPU {
                             {
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     if (isInitialRender) {
-                                        let componentCall = new SDUISliceView(this, { slice: slice, onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 282, col: 15 });
+                                        let componentCall = new SDUISliceView(this, { slice: slice, onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 295, col: 15 });
                                         ViewPU.create(componentCall);
                                         let paramsLambda = () => {
                                             return {
@@ -720,7 +733,7 @@ export class HomePageView extends ViewPU {
                             if (isInitialRender) {
                                 let componentCall = new 
                                 // ── Static fallback: BFF not live yet (LOAD_IDLE or LOAD_ERROR) ─
-                                WHHomeSearchHeader(this, { onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 286, col: 13 });
+                                WHHomeSearchHeader(this, { onSearchTap: () => { this.searchOpen = true; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 299, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -737,7 +750,7 @@ export class HomePageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHComboQuickAccess(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 287, col: 13 });
+                                let componentCall = new WHComboQuickAccess(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 300, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -752,7 +765,7 @@ export class HomePageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHCardActivationBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 288, col: 13 });
+                                let componentCall = new WHCardActivationBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 301, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -767,7 +780,7 @@ export class HomePageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHQuestBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 289, col: 13 });
+                                let componentCall = new WHQuestBanner(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 302, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -782,7 +795,7 @@ export class HomePageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHFeatureProduct(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 290, col: 13 });
+                                let componentCall = new WHFeatureProduct(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 303, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -797,7 +810,7 @@ export class HomePageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHWealthStudioCarousel(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 291, col: 13 });
+                                let componentCall = new WHWealthStudioCarousel(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 304, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -812,7 +825,7 @@ export class HomePageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHGuidesInsights(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 292, col: 13 });
+                                let componentCall = new WHGuidesInsights(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 305, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -827,7 +840,7 @@ export class HomePageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHFXWatchlist(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 293, col: 13 });
+                                let componentCall = new WHFXWatchlist(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 306, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -842,7 +855,7 @@ export class HomePageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new WHDiscoverMore(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 294, col: 13 });
+                                let componentCall = new WHDiscoverMore(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 307, col: 13 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {};
@@ -879,7 +892,7 @@ export class HomePageView extends ViewPU {
                     {
                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                             if (isInitialRender) {
-                                let componentCall = new AISearchPage(this, { onDismiss: () => { this.searchOpen = false; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 301, col: 9 });
+                                let componentCall = new AISearchPage(this, { onDismiss: () => { this.searchOpen = false; } }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/home/HomePage.ets", line: 314, col: 9 });
                                 ViewPU.create(componentCall);
                                 let paramsLambda = () => {
                                     return {
@@ -973,7 +986,7 @@ class SDUIHomeSearchHeader extends ViewPU {
                         Text.fontColor(Hive.Color.brandWhite);
                         Text.margin({ right: 12 });
                         Text.onClick(() => {
-                            SensorDataClient.track('notification_tap', 'Wealth', 'notification_tapped', '', 'home_search_header', 'home_hub');
+                            TealiumClient.track('notification_tap', 'Wealth', 'notification_tapped', '', 'home_search_header', 'home_hub');
                         });
                     }, Text);
                     Text.pop();
@@ -994,7 +1007,7 @@ class SDUIHomeSearchHeader extends ViewPU {
                         Text.fontSize(20);
                         Text.fontColor(Hive.Color.brandWhite);
                         Text.onClick(() => {
-                            SensorDataClient.track('headset_tap', 'Wealth', 'headset_tapped', '', 'home_search_header', 'home_hub');
+                            TealiumClient.track('headset_tap', 'Wealth', 'headset_tapped', '', 'home_search_header', 'home_hub');
                         });
                     }, Text);
                     Text.pop();
@@ -1024,7 +1037,7 @@ class SDUIHomeSearchHeader extends ViewPU {
             Row.borderRadius(18);
             Row.backgroundColor(Hive.Color.brandWhite);
             Row.onClick(() => {
-                SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '', 'home_search_header', 'home_hub');
+                TealiumClient.track('search_tap', 'Wealth', 'search_tapped', '', 'home_search_header', 'home_hub');
                 this.onSearchTap();
             });
         }, Row);
@@ -1225,7 +1238,7 @@ class SDUIComboQuickAccess extends ViewPU {
                     Column.alignItems(HorizontalAlign.Center);
                     Column.padding({ top: 10 });
                     Column.onClick(() => {
-                        SensorDataClient.quickAccessTapped((raw as Record<string, string>)['label'] ?? '', (raw as Record<string, string>)['deepLink'] ?? '');
+                        TealiumClient.quickAccessTapped((raw as Record<string, string>)['label'] ?? '', (raw as Record<string, string>)['deepLink'] ?? '');
                     });
                 }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1272,7 +1285,7 @@ class SDUIComboQuickAccess extends ViewPU {
                     Column.alignItems(HorizontalAlign.Center);
                     Column.padding({ bottom: 10 });
                     Column.onClick(() => {
-                        SensorDataClient.quickAccessTapped((raw as Record<string, string>)['label'] ?? '', (raw as Record<string, string>)['deepLink'] ?? '');
+                        TealiumClient.quickAccessTapped((raw as Record<string, string>)['label'] ?? '', (raw as Record<string, string>)['deepLink'] ?? '');
                     });
                 }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1360,7 +1373,7 @@ class SDUICardActivationBanner extends ViewPU {
             Text.fontWeight(FontWeight.Bold);
             Text.fontColor('#DB0011');
             Text.onClick(() => {
-                SensorDataClient.sliceTapped('CARD_ACTIVATION_BANNER', this.props['instanceId'] as string ?? 'slice-card-activation', this.ctaLabel(), this.deepLink());
+                TealiumClient.sliceTapped('CARD_ACTIVATION_BANNER', this.props['instanceId'] as string ?? 'slice-card-activation', this.ctaLabel(), this.deepLink());
             });
         }, Text);
         Text.pop();
@@ -1477,7 +1490,7 @@ class SDUIQuestBanner extends ViewPU {
             Button.fontSize(11);
             Button.fontWeight(FontWeight.Bold);
             Button.onClick(() => {
-                SensorDataClient.sliceTapped('QUEST_BANNER', this.props['instanceId'] as string ?? 'slice-quest', this.ctaLabel(), this.deepLink());
+                TealiumClient.sliceTapped('QUEST_BANNER', this.props['instanceId'] as string ?? 'slice-quest', this.ctaLabel(), this.deepLink());
             });
         }, Button);
         Button.pop();
@@ -1614,7 +1627,7 @@ class SDUIFeatureProduct extends ViewPU {
                     Text.backgroundColor(this.activeTab === idx ? Hive.Color.brandWhite : '#00000000');
                     Text.onClick(() => {
                         this.activeTab = idx;
-                        SensorDataClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product', button.name, button.url);
+                        TealiumClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product', button.name, button.url);
                     });
                 }, Text);
                 Text.pop();
@@ -1638,7 +1651,7 @@ class SDUIFeatureProduct extends ViewPU {
                     Row.width('100%');
                     Row.padding({ left: 16, right: 16, top: 12, bottom: 12 });
                     Row.onClick(() => {
-                        SensorDataClient.wealthProductTapped((raw as Record<string, string>)['name'] ?? '', (raw as Record<string, string>)['id'] ?? '');
+                        TealiumClient.wealthProductTapped((raw as Record<string, string>)['name'] ?? '', (raw as Record<string, string>)['id'] ?? '');
                     });
                 }, Row);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1732,7 +1745,7 @@ class SDUIFeatureProduct extends ViewPU {
             Text.fontColor(Hive.Color.n700);
             Text.padding({ left: 16, right: 16, top: 10, bottom: 10 });
             Text.onClick(() => {
-                SensorDataClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product', this.moreLabel(), this.bestSellingUrl());
+                TealiumClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product', this.moreLabel(), this.bestSellingUrl());
             });
         }, Text);
         Text.pop();
@@ -1855,7 +1868,7 @@ class SDUIWealthStudioCarousel extends ViewPU {
                                 Column.width(`${Math.floor(100 / this.numColumns()) - 2}%`);
                                 Column.margin({ right: 8, bottom: 10 });
                                 Column.onClick(() => {
-                                    SensorDataClient.wealthStudioTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['id'] ?? '');
+                                    TealiumClient.wealthStudioTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['id'] ?? '');
                                     const vUrl: string = (raw as Record<string, string>)['videoUrl'] ?? '';
                                     if (vUrl) {
                                         this.playingUrl = this.resolveVideoUrl(vUrl);
@@ -1989,7 +2002,7 @@ class SDUIWealthStudioCarousel extends ViewPU {
                                 Column.clip(true);
                                 Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
                                 Column.onClick(() => {
-                                    SensorDataClient.wealthStudioTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['id'] ?? '');
+                                    TealiumClient.wealthStudioTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['id'] ?? '');
                                     const vUrl: string = (raw as Record<string, string>)['videoUrl'] ?? '';
                                     if (vUrl) {
                                         this.playingUrl = this.resolveVideoUrl(vUrl);
@@ -2222,7 +2235,7 @@ class SDUIGuidesInsights extends ViewPU {
                                 Column.width(`${Math.floor(100 / this.numColumns()) - 2}%`);
                                 Column.margin({ right: 8, bottom: 10 });
                                 Column.onClick(() => {
-                                    SensorDataClient.guidesTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['id'] ?? '');
+                                    TealiumClient.guidesTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['id'] ?? '');
                                 });
                             }, Column);
                             this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -2308,7 +2321,7 @@ class SDUIGuidesInsights extends ViewPU {
                                 Column.clip(true);
                                 Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
                                 Column.onClick(() => {
-                                    SensorDataClient.guidesTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['id'] ?? '');
+                                    TealiumClient.guidesTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['id'] ?? '');
                                 });
                             }, Column);
                             this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -2536,7 +2549,7 @@ class SDUIFXWatchlist extends ViewPU {
                     Row.width('100%');
                     Row.padding({ left: 16, right: 16, top: 10, bottom: 10 });
                     Row.onClick(() => {
-                        SensorDataClient.track('fx_pair_tap', 'Wealth', 'fx_pair_tapped', this.pairId(raw), 'fx_watchlist', 'home_hub');
+                        TealiumClient.track('fx_pair_tap', 'Wealth', 'fx_pair_tapped', this.pairId(raw), 'fx_watchlist', 'home_hub');
                     });
                 }, Row);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -2681,7 +2694,7 @@ class SDUIDiscoverMore extends ViewPU {
                                 Column.width(`${Math.floor(100 / this.numColumns()) - 2}%`);
                                 Column.margin({ right: 8, bottom: 10 });
                                 Column.onClick(() => {
-                                    SensorDataClient.discoverMoreTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['tag'] ?? '');
+                                    TealiumClient.discoverMoreTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['tag'] ?? '');
                                 });
                             }, Column);
                             this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -2766,7 +2779,7 @@ class SDUIDiscoverMore extends ViewPU {
                                 Column.backgroundColor(Hive.Color.brandWhite);
                                 Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
                                 Column.onClick(() => {
-                                    SensorDataClient.discoverMoreTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['tag'] ?? '');
+                                    TealiumClient.discoverMoreTapped((raw as Record<string, string>)['title'] ?? '', (raw as Record<string, string>)['tag'] ?? '');
                                 });
                             }, Column);
                             this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -2873,7 +2886,7 @@ class WHHomeSearchHeader extends ViewPU {
     }
     private onSearchTap: () => void;
     aboutToAppear() {
-        SensorDataClient.sliceImpression('HOME_SEARCH_HEADER', 'slice-home-search-hdr', 0);
+        TealiumClient.sliceImpression('HOME_SEARCH_HEADER', 'slice-home-search-hdr', 0);
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -2903,7 +2916,7 @@ class WHHomeSearchHeader extends ViewPU {
             Text.fontColor(Hive.Color.brandWhite);
             Text.margin({ right: 12 });
             Text.onClick(() => {
-                SensorDataClient.track('notification_tap', 'Wealth', 'notification_tapped', '', 'home_search_header', 'home_hub');
+                TealiumClient.track('notification_tap', 'Wealth', 'notification_tapped', '', 'home_search_header', 'home_hub');
             });
         }, Text);
         Text.pop();
@@ -2912,7 +2925,7 @@ class WHHomeSearchHeader extends ViewPU {
             Text.fontSize(20);
             Text.fontColor(Hive.Color.brandWhite);
             Text.onClick(() => {
-                SensorDataClient.track('headset_tap', 'Wealth', 'headset_tapped', '', 'home_search_header', 'home_hub');
+                TealiumClient.track('headset_tap', 'Wealth', 'headset_tapped', '', 'home_search_header', 'home_hub');
             });
         }, Text);
         Text.pop();
@@ -2934,7 +2947,7 @@ class WHHomeSearchHeader extends ViewPU {
             Row.borderRadius(18);
             Row.backgroundColor(Hive.Color.brandWhite);
             Row.onClick(() => {
-                SensorDataClient.track('search_tap', 'Wealth', 'search_tapped', '', 'home_search_header', 'home_hub');
+                TealiumClient.track('search_tap', 'Wealth', 'search_tapped', '', 'home_search_header', 'home_hub');
                 this.onSearchTap();
             });
         }, Row);
@@ -3008,7 +3021,7 @@ class WHComboQuickAccess extends ViewPU {
     }
     private tabs: string[];
     aboutToAppear() {
-        SensorDataClient.sliceImpression('COMBO_QUICK_ACCESS', 'slice-combo-quick', 1);
+        TealiumClient.sliceImpression('COMBO_QUICK_ACCESS', 'slice-combo-quick', 1);
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -3072,7 +3085,7 @@ class WHComboQuickAccess extends ViewPU {
                     Column.layoutWeight(1);
                     Column.alignItems(HorizontalAlign.Center);
                     Column.padding({ top: 10 });
-                    Column.onClick(() => { SensorDataClient.quickAccessTapped(item.label, item.deepLink); });
+                    Column.onClick(() => { TealiumClient.quickAccessTapped(item.label, item.deepLink); });
                 }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     Text.create(item.icon);
@@ -3117,7 +3130,7 @@ class WHComboQuickAccess extends ViewPU {
                     Column.layoutWeight(1);
                     Column.alignItems(HorizontalAlign.Center);
                     Column.padding({ bottom: 10 });
-                    Column.onClick(() => { SensorDataClient.quickAccessTapped(item.label, item.deepLink); });
+                    Column.onClick(() => { TealiumClient.quickAccessTapped(item.label, item.deepLink); });
                 }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     Text.create(item.icon);
@@ -3169,7 +3182,7 @@ class WHCardActivationBanner extends ViewPU {
         this.aboutToBeDeletedInternal();
     }
     aboutToAppear() {
-        SensorDataClient.sliceImpression('CARD_ACTIVATION_BANNER', 'slice-card-act', 2);
+        TealiumClient.sliceImpression('CARD_ACTIVATION_BANNER', 'slice-card-act', 2);
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -3199,7 +3212,7 @@ class WHCardActivationBanner extends ViewPU {
             Text.fontWeight(FontWeight.Bold);
             Text.fontColor('#DB0011');
             Text.onClick(() => {
-                SensorDataClient.sliceTapped('CARD_ACTIVATION_BANNER', 'slice-card-act', 'Activate now', 'hsbc://cards/activate');
+                TealiumClient.sliceTapped('CARD_ACTIVATION_BANNER', 'slice-card-act', 'Activate now', 'hsbc://cards/activate');
             });
         }, Text);
         Text.pop();
@@ -3229,7 +3242,7 @@ class WHQuestBanner extends ViewPU {
         this.aboutToBeDeletedInternal();
     }
     aboutToAppear() {
-        SensorDataClient.sliceImpression('QUEST_BANNER', 'slice-quest', 3);
+        TealiumClient.sliceImpression('QUEST_BANNER', 'slice-quest', 3);
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -3301,7 +3314,7 @@ class WHQuestBanner extends ViewPU {
             Button.fontSize(11);
             Button.fontWeight(FontWeight.Bold);
             Button.onClick(() => {
-                SensorDataClient.sliceTapped('QUEST_BANNER', 'slice-quest', 'Continue', 'hsbc://onboarding/checklist');
+                TealiumClient.sliceTapped('QUEST_BANNER', 'slice-quest', 'Continue', 'hsbc://onboarding/checklist');
             });
         }, Button);
         Button.pop();
@@ -3345,7 +3358,7 @@ class WHFeatureProduct extends ViewPU {
         this.__activeTab.set(newValue);
     }
     aboutToAppear() {
-        SensorDataClient.sliceImpression('FEATURE_PRODUCT', 'slice-feature-product', 4);
+        TealiumClient.sliceImpression('FEATURE_PRODUCT', 'slice-feature-product', 4);
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -3397,7 +3410,7 @@ class WHFeatureProduct extends ViewPU {
                     Text.backgroundColor(this.activeTab === idx ? Hive.Color.brandWhite : '#00000000');
                     Text.onClick(() => {
                         this.activeTab = idx;
-                        SensorDataClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product', button.name, button.url);
+                        TealiumClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product', button.name, button.url);
                     });
                 }, Text);
                 Text.pop();
@@ -3418,7 +3431,7 @@ class WHFeatureProduct extends ViewPU {
                     Row.create({ space: 12 });
                     Row.width('100%');
                     Row.padding({ left: 16, right: 16, top: 12, bottom: 12 });
-                    Row.onClick(() => { SensorDataClient.wealthProductTapped(fund.name, fund.id); });
+                    Row.onClick(() => { TealiumClient.wealthProductTapped(fund.name, fund.id); });
                 }, Row);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     Column.create({ space: 4 });
@@ -3508,7 +3521,7 @@ class WHFeatureProduct extends ViewPU {
             Text.fontColor(Hive.Color.n700);
             Text.padding({ left: 16, right: 16, top: 10, bottom: 10 });
             Text.onClick(() => {
-                SensorDataClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product', FEATURE_PRODUCT_MORE_LABEL, FEATURE_PRODUCT_BEST_SELLING_URL);
+                TealiumClient.sliceTapped('FEATURE_PRODUCT', 'slice-feature-product', FEATURE_PRODUCT_MORE_LABEL, FEATURE_PRODUCT_BEST_SELLING_URL);
             });
         }, Text);
         Text.pop();
@@ -3538,7 +3551,7 @@ class WHWealthStudioCarousel extends ViewPU {
         this.aboutToBeDeletedInternal();
     }
     aboutToAppear() {
-        SensorDataClient.sliceImpression('WEALTH_STUDIO_CAROUSEL', 'slice-wealth-studio', 5);
+        TealiumClient.sliceImpression('WEALTH_STUDIO_CAROUSEL', 'slice-wealth-studio', 5);
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -3590,7 +3603,7 @@ class WHWealthStudioCarousel extends ViewPU {
                     Column.borderRadius(10);
                     Column.clip(true);
                     Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
-                    Column.onClick(() => { SensorDataClient.wealthStudioTapped(ep.title, ep.id); });
+                    Column.onClick(() => { TealiumClient.wealthStudioTapped(ep.title, ep.id); });
                 }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     // Fixed-height image area
@@ -3696,7 +3709,7 @@ class WHGuidesInsights extends ViewPU {
         this.aboutToBeDeletedInternal();
     }
     aboutToAppear() {
-        SensorDataClient.sliceImpression('GUIDES_INSIGHTS_CAROUSEL', 'slice-guides', 6);
+        TealiumClient.sliceImpression('GUIDES_INSIGHTS_CAROUSEL', 'slice-guides', 6);
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -3748,7 +3761,7 @@ class WHGuidesInsights extends ViewPU {
                     Column.borderRadius(10);
                     Column.clip(true);
                     Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
-                    Column.onClick(() => { SensorDataClient.guidesTapped(guide.title, guide.id); });
+                    Column.onClick(() => { TealiumClient.guidesTapped(guide.title, guide.id); });
                 }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     Text.create(guide.imageEmoji);
@@ -3818,7 +3831,7 @@ class WHFXWatchlist extends ViewPU {
         this.aboutToBeDeletedInternal();
     }
     aboutToAppear() {
-        SensorDataClient.sliceImpression('FX_WATCHLIST', 'slice-fx-watchlist', 7);
+        TealiumClient.sliceImpression('FX_WATCHLIST', 'slice-fx-watchlist', 7);
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -3904,7 +3917,7 @@ class WHFXWatchlist extends ViewPU {
                     Row.width('100%');
                     Row.padding({ left: 16, right: 16, top: 10, bottom: 10 });
                     Row.onClick(() => {
-                        SensorDataClient.track('fx_pair_tap', 'Wealth', 'fx_pair_tapped', `${pair.base}/${pair.quote}`, 'fx_watchlist', 'home_hub');
+                        TealiumClient.track('fx_pair_tap', 'Wealth', 'fx_pair_tapped', `${pair.base}/${pair.quote}`, 'fx_watchlist', 'home_hub');
                     });
                 }, Row);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -3985,7 +3998,7 @@ class WHDiscoverMore extends ViewPU {
         this.aboutToBeDeletedInternal();
     }
     aboutToAppear() {
-        SensorDataClient.sliceImpression('DISCOVER_MORE_CAROUSEL', 'slice-discover-more', 8);
+        TealiumClient.sliceImpression('DISCOVER_MORE_CAROUSEL', 'slice-discover-more', 8);
     }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -4038,7 +4051,7 @@ class WHDiscoverMore extends ViewPU {
                     Column.clip(true);
                     Column.backgroundColor(Hive.Color.brandWhite);
                     Column.shadow({ radius: 4, color: '#14000000', offsetX: 0, offsetY: 2 });
-                    Column.onClick(() => { SensorDataClient.discoverMoreTapped(card.title, card.tag); });
+                    Column.onClick(() => { TealiumClient.discoverMoreTapped(card.title, card.tag); });
                 }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     Stack.create({ alignContent: Alignment.TopStart });

@@ -14,6 +14,7 @@ interface AISearchPage_Params {
 }
 import { Hive } from "@normalized:N&&&entry/src/main/ets/common/HiveTokens&";
 import { SensorDataClient } from "@normalized:N&&&entry/src/main/ets/network/SensorDataClient&";
+import { ObservabilityClient } from "@normalized:N&&&entry/src/main/ets/network/ObservabilityClient&";
 import http from "@ohos:net.http";
 import promptAction from "@ohos:promptAction";
 // ─── Models ────────────────────────────────────────────────────────────────────
@@ -295,14 +296,16 @@ export class AISearchPage extends ViewPU {
         SensorDataClient.track('ai_search_query', 'Search', 'search_submitted', q, 'ai_search', 'home_hub');
         const reqBody = JSON.stringify({ query: q, limit: 10, appId: 'harmony', responseMode: 'a2ui' });
         const httpReq = http.createHttp();
+        const started = Date.now();
         httpReq.request(`${BFF_BASE}/api/v1/search`, {
             method: http.RequestMethod.POST,
-            header: { 'Content-Type': 'application/json' },
+            header: { 'Content-Type': 'application/json', 'traceparent': ObservabilityClient.currentTraceparent(), 'x-platform': 'harmonynext' },
             extraData: reqBody,
             connectTimeout: 5000,
             readTimeout: 8000,
         }, (err, data) => {
             this.isLoading = false;
+            ObservabilityClient.recordNetworkStep('ai_search_query', Date.now() - started, '/search', !err && data.responseCode === 200);
             if (err || data.responseCode !== 200) {
                 const fallback = this.localSearch(q);
                 this.errorMsg = fallback.length > 0 ? '' : '搜尋服務暫時不可用，請稍後重試。';

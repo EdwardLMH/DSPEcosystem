@@ -29,8 +29,8 @@
       ]
     },
     "version": 1,
-    "publishedAt": "2026-05-18T17:41:18.035Z",
-    "generatedAt": "2026-05-19T17:41:18.035Z",
+    "publishedAt": "2026-05-19T04:31:39.224Z",
+    "generatedAt": "2026-05-20T04:31:39.224Z",
     "a11y": {
       "reduceMotion": false,
       "highContrast": false,
@@ -40,7 +40,8 @@
       "screenReader": false
     },
     "observability": {
-      "standard": "OpenTelemetry / W3C Trace Context",
+      "apmTool": "AppDynamics",
+      "traceStandard": "W3C Trace Context propagated to backend OpenTelemetry spans",
       "tracePropagation": {
         "requiredHeaders": [
           "traceparent",
@@ -63,8 +64,9 @@
         "BFF / SDUI API",
         "Redis cache",
         "database/search/object storage",
-        "SensorData operational bridge"
+        "AppDynamics APM dashboard"
       ],
+      "behaviourAnalytics": "SensorData for mainland China customer behaviour tagging only.",
       "dataResidency": "China-resident telemetry; aggregate SLO/status only may cross regional boundary."
     },
     "operationalSlo": {
